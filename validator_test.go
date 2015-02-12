@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/joeybloggs/go-validate-yourself"
+	"gopkg.in/joeybloggs/go-validate-yourself.v0"
 )
 
 type UserDetails struct {
