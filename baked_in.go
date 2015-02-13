@@ -8,14 +8,14 @@ import (
 )
 
 var bakedInValidators = map[string]ValidationFunc{
-	"required": isRequired,
+	"required": required,
 	"length":   length,
 	"min":      min,
 	"max":      max,
 	"regex":    regex,
 }
 
-func isRequired(field interface{}, param string) bool {
+func required(field interface{}, param string) bool {
 
 	return field != nil && field != reflect.Zero(reflect.TypeOf(field)).Interface()
 }

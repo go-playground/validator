@@ -210,7 +210,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		return nil
 	}
 
-	if strings.Contains(tag, omitempty) && !isRequired(f, "") {
+	if strings.Contains(tag, omitempty) && !required(f, "") {
 		return nil
 	}
 
