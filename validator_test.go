@@ -8,7 +8,7 @@ import (
 )
 
 type UserDetails struct {
-	Address string `validate:"required"`
+	Address string `validate:"omitempty,length=6"`
 }
 
 type User struct {

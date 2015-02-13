@@ -8,6 +8,10 @@ import (
 	"unicode"
 )
 
+const (
+	omitempty string = "omitempty"
+)
+
 // FieldValidationError contains a single fields validation error
 type FieldValidationError struct {
 	Field    string
@@ -161,7 +165,7 @@ func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationEr
 		}
 	}
 
-	if currentStructError.Errors != nil {
+	if len(currentStructError.Errors) > 0 {
 		errorArray[currentStructError.Struct] = currentStructError
 		// free up memory
 		currentStructError = nil
@@ -206,6 +210,10 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		return nil
 	}
 
+	if strings.Contains(tag, omitempty) && !isRequired(f, "") {
+		return nil
+	}
+
 	valueField := reflect.ValueOf(f)
 
 	if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
@@ -227,6 +235,10 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 		if len(key) == 0 {
 			log.Fatalf("Invalid validation tag on field %s", name)
+		}
+
+		if key == omitempty {
+			continue
 		}
 
 		valFunc := v.validationFuncs[key]
