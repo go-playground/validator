@@ -1,18 +1,26 @@
+/**
+ * Package validator
+ *
+ * MISC:
+ * - anonymous structs - they don't have names so expect the Struct name within StructValidationErrors to be blank
+ *
+ */
+
 package validator
 
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"unicode"
 )
 
 const (
-	defaultTagName          = "validate"
-	omitempty        string = "omitempty"
-	validationErrMsg        = "Field validation for \"%s\" failed on the \"%s\" tag\n"
+	defaultTagName         = "validate"
+	omitempty              = "omitempty"
+	validationFieldErrMsg  = "Field validation for \"%s\" failed on the \"%s\" tag\n"
+	validationStructErrMsg = "Struct:%s\n"
 )
 
 // FieldValidationError contains a single fields validation error
@@ -24,29 +32,35 @@ type FieldValidationError struct {
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows FieldValidationError to be used as an Error interface
 func (e FieldValidationError) Error() string {
-	return fmt.Sprintf(validationErrMsg, e.Field, e.ErrorTag)
+	return fmt.Sprintf(validationFieldErrMsg, e.Field, e.ErrorTag)
 }
 
-// StructValidationErrors is a struct of errors for struct fields ( Excluding fields of type struct )
-// NOTE: if a field within a struct is a struct it's errors will not be contained within the current
-// StructValidationErrors but rather a new StructValidationErrors is created for each struct resulting in
-// a neat & tidy 2D flattened list of structs validation errors
+// StructValidationErrors is hierarchical list of field and struct errors
 type StructValidationErrors struct {
+	// Name of the Struct
 	Struct string
+	// Struct Field Errors
 	Errors map[string]*FieldValidationError
+	// Struct Fields of type struct and their errors
+	// key = Field Name of current struct, but internally Struct will be the actual struct name unless anonymous struct, it will be blank
+	StructErrors map[string]*StructValidationErrors
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows StructValidationErrors to be used as an Error interface
 func (e StructValidationErrors) Error() string {
 
-	s := ""
+	s := fmt.Sprintf(validationStructErrMsg, e.Struct)
 
 	for _, err := range e.Errors {
-		s += fmt.Sprintf(validationErrMsg, err.Field, err.ErrorTag)
+		s += err.Error()
 	}
 
-	return s
+	for _, sErr := range e.StructErrors {
+		s += sErr.Error()
+	}
+
+	return fmt.Sprintf("%s\n\n", s)
 }
 
 // ValidationFunc that accepts the value of a field and parameter for use in validation (parameter not always used or needed)
@@ -113,22 +127,22 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 }
 
 // ValidateStruct validates a struct and returns a struct containing the errors
-func ValidateStruct(s interface{}) map[string]*StructValidationErrors {
+func ValidateStruct(s interface{}) *StructValidationErrors {
 
 	return internalValidator.ValidateStruct(s)
 }
 
 // ValidateStruct validates a struct and returns a struct containing the errors
-func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationErrors {
+func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 
-	errorArray := map[string]*StructValidationErrors{}
 	structValue := reflect.ValueOf(s)
 	structType := reflect.TypeOf(s)
 	structName := structType.Name()
 
-	var currentStructError = &StructValidationErrors{
-		Struct: structName,
-		Errors: map[string]*FieldValidationError{},
+	validationErrors := &StructValidationErrors{
+		Struct:       structName,
+		Errors:       map[string]*FieldValidationError{},
+		StructErrors: map[string]*StructValidationErrors{},
 	}
 
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
@@ -136,7 +150,7 @@ func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationEr
 	}
 
 	if structValue.Kind() != reflect.Struct {
-		log.Fatal("interface passed for validation is not a struct")
+		panic("interface passed for validation is not a struct")
 	}
 
 	var numFields = structValue.NumField()
@@ -170,9 +184,7 @@ func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationEr
 			}
 
 			if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
-				for key, val := range structErrors {
-					errorArray[key] = val
-				}
+				validationErrors.StructErrors[typeField.Name] = structErrors
 				// free up memory map no longer needed
 				structErrors = nil
 			}
@@ -180,24 +192,18 @@ func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationEr
 		default:
 
 			if fieldError := v.validateStructFieldByTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
-				currentStructError.Errors[fieldError.Field] = fieldError
+				validationErrors.Errors[fieldError.Field] = fieldError
 				// free up memory reference
 				fieldError = nil
 			}
 		}
 	}
 
-	if len(currentStructError.Errors) > 0 {
-		errorArray[currentStructError.Struct] = currentStructError
-		// free up memory
-		currentStructError = nil
-	}
-
-	if len(errorArray) == 0 {
+	if len(validationErrors.Errors) == 0 && len(validationErrors.StructErrors) == 0 {
 		return nil
 	}
 
-	return errorArray
+	return validationErrors
 }
 
 // ValidateFieldWithTag validates the given field by the given tag arguments
@@ -245,7 +251,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 	switch valueField.Kind() {
 
 	case reflect.Struct, reflect.Invalid:
-		log.Fatal("Invalid field passed to ValidateFieldWithTag")
+		panic("Invalid field passed to ValidateFieldWithTag")
 	}
 
 	valTags := strings.Split(tag, ",")
@@ -256,7 +262,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		key := strings.Trim(vals[0], " ")
 
 		if len(key) == 0 {
-			log.Fatalf("Invalid validation tag on field %s", name)
+			panic(fmt.Sprintf("Invalid validation tag on field %s", name))
 		}
 
 		// OK to continue because we checked it's existance before getting into this loop
@@ -266,7 +272,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 		valFunc := v.validationFuncs[key]
 		if valFunc == nil {
-			log.Fatalf("Undefined validation function on field %s", name)
+			panic(fmt.Sprintf("Undefined validation function on field %s", name))
 		}
 
 		param := ""
