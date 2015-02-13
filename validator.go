@@ -2,9 +2,14 @@ package validator
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"reflect"
+	"strings"
+	"unicode"
+)
+
+const (
+	omitempty string = "omitempty"
 )
 
 // FieldValidationError contains a single fields validation error
@@ -13,21 +18,17 @@ type FieldValidationError struct {
 	ErrorTag string
 }
 
-// StructValidationErrors is a slice of errors for struct fields ( Excluding struct fields)
+// StructValidationErrors is a struct of errors for struct fields ( Excluding fields of type struct )
 // NOTE: if a field within a struct is a struct it's errors will not be contained within the current
-// StructValidationErrors but rather a new ArrayValidationErrors is created for each struct
+// StructValidationErrors but rather a new StructValidationErrors is created for each struct resulting in
+// a neat & tidy 2D flattened list of structs validation errors
 type StructValidationErrors struct {
-	Errors []FieldValidationError
-}
-
-// ArrayStructValidationErrors is a struct that contains a 2D flattened list of struct specific StructValidationErrors
-type ArrayStructValidationErrors struct {
-	// Key = Struct Name
-	Errors map[string][]StructValidationErrors
+	Struct string
+	Errors map[string]*FieldValidationError
 }
 
 // ValidationFunc that accepts the value of a field and parameter for use in validation (parameter not always used or needed)
-type ValidationFunc func(v interface{}, param string) error
+type ValidationFunc func(v interface{}, param string) bool
 
 // Validator implements the Validator Struct
 // NOTE: Fields within are not thread safe and that is on purpose
@@ -40,7 +41,7 @@ type Validator struct {
 	validationFuncs map[string]ValidationFunc
 }
 
-var bakedInValidators = map[string]ValidationFunc{}
+// var bakedInValidators = map[string]ValidationFunc{}
 
 var internalValidator = NewValidator("validate", bakedInValidators)
 
@@ -89,17 +90,24 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 	return nil
 }
 
-func ValidateStruct(s interface{}) ArrayStructValidationErrors {
+// ValidateStruct validates a struct and returns a struct containing the errors
+func ValidateStruct(s interface{}) map[string]*StructValidationErrors {
 
 	return internalValidator.ValidateStruct(s)
 }
 
-func (v *Validator) ValidateStruct(s interface{}) ArrayStructValidationErrors {
+// ValidateStruct validates a struct and returns a struct containing the errors
+func (v *Validator) ValidateStruct(s interface{}) map[string]*StructValidationErrors {
 
-	var errorStruct = ArrayStructValidationErrors{}
-
+	errorArray := map[string]*StructValidationErrors{}
 	structValue := reflect.ValueOf(s)
 	structType := reflect.TypeOf(s)
+	structName := structType.Name()
+
+	var currentStructError = &StructValidationErrors{
+		Struct: structName,
+		Errors: map[string]*FieldValidationError{},
+	}
 
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
 		return v.ValidateStruct(structValue.Elem().Interface())
@@ -120,8 +128,135 @@ func (v *Validator) ValidateStruct(s interface{}) ArrayStructValidationErrors {
 			valueField = valueField.Elem()
 		}
 
-		fmt.Println(typeField.Name)
+		tag := typeField.Tag.Get(v.tagName)
+
+		if tag == "-" {
+			continue
+		}
+
+		// if no validation and not a struct (which may containt fields for validation)
+		if tag == "" && valueField.Kind() != reflect.Struct {
+			continue
+		}
+
+		switch valueField.Kind() {
+
+		case reflect.Struct:
+
+			if !unicode.IsUpper(rune(typeField.Name[0])) {
+				continue
+			}
+
+			if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
+				for key, val := range structErrors {
+					errorArray[key] = val
+				}
+				// free up memory map no longer needed
+				structErrors = nil
+			}
+
+		default:
+
+			if fieldError := v.validateStructFieldByTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
+				currentStructError.Errors[fieldError.Field] = fieldError
+				// free up memory reference
+				fieldError = nil
+			}
+		}
 	}
 
-	return errorStruct
+	if len(currentStructError.Errors) > 0 {
+		errorArray[currentStructError.Struct] = currentStructError
+		// free up memory
+		currentStructError = nil
+	}
+
+	if len(errorArray) == 0 {
+		return nil
+	}
+
+	return errorArray
+}
+
+// ValidateFieldWithTag validates the given field by the given tag arguments
+func (v *Validator) validateStructFieldByTag(f interface{}, name string, tag string) *FieldValidationError {
+
+	if err := v.validateFieldByNameAndTag(f, name, tag); err != nil {
+		return &FieldValidationError{
+			Field:    name,
+			ErrorTag: err.Error(),
+		}
+	}
+
+	return nil
+}
+
+// ValidateFieldByTag allows validation of a single field with the internal validator, still using tag style validation to check multiple errors
+func ValidateFieldByTag(f interface{}, tag string) error {
+
+	return internalValidator.validateFieldByNameAndTag(f, "", tag)
+}
+
+// ValidateFieldByTag allows validation of a single field, still using tag style validation to check multiple errors
+func (v *Validator) ValidateFieldByTag(f interface{}, tag string) error {
+
+	return v.validateFieldByNameAndTag(f, "", tag)
+}
+
+func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag string) error {
+
+	// This is a double check if coming from ValidateStruct but need to be here in case function is called directly
+	if tag == "-" {
+		return nil
+	}
+
+	if strings.Contains(tag, omitempty) && !required(f, "") {
+		return nil
+	}
+
+	valueField := reflect.ValueOf(f)
+
+	if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
+		return v.ValidateFieldByTag(valueField.Elem().Interface(), tag)
+	}
+
+	switch valueField.Kind() {
+
+	case reflect.Struct, reflect.Invalid:
+		log.Fatal("Invalid field passed to ValidateFieldWithTag")
+	}
+
+	valTags := strings.Split(tag, ",")
+
+	for _, valTag := range valTags {
+
+		vals := strings.Split(valTag, "=")
+		key := strings.Trim(vals[0], " ")
+
+		if len(key) == 0 {
+			log.Fatalf("Invalid validation tag on field %s", name)
+		}
+
+		if key == omitempty {
+			continue
+		}
+
+		valFunc := v.validationFuncs[key]
+		if valFunc == nil {
+			log.Fatalf("Undefined validation function on field %s", name)
+		}
+
+		param := ""
+		if len(vals) > 1 {
+			param = strings.Trim(vals[1], " ")
+		}
+
+		if err := valFunc(f, param); !err {
+
+			return errors.New(key)
+		}
+
+	}
+
+	return nil
 }
