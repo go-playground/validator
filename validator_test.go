@@ -35,6 +35,7 @@ func TestValidateStruct(t *testing.T) {
 		for _, j := range i.Errors {
 
 			fmt.Printf("Error Field:%s Error Tag:%s\n", j.Field, j.ErrorTag)
+			fmt.Println(j.Error())
 		}
 	}
 
