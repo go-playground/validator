@@ -9,7 +9,7 @@ import (
 
 var bakedInValidators = map[string]ValidationFunc{
 	"required": required,
-	"length":   length,
+	"len":      length,
 	"min":      min,
 	"max":      max,
 	"regex":    regex,
@@ -17,7 +17,16 @@ var bakedInValidators = map[string]ValidationFunc{
 
 func required(field interface{}, param string) bool {
 
-	return field != nil && field != reflect.Zero(reflect.TypeOf(field)).Interface()
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return field != nil && int64(st.Len()) > 0
+
+	default:
+		return field != nil && field != reflect.Zero(reflect.TypeOf(field)).Interface()
+	}
 }
 
 // length tests whether a variable's length is equal to a given
