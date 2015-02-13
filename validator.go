@@ -1,9 +1,8 @@
 /**
  * Package validator
  *
- * NOTES:
- *
- * anonymous structs - they don't have names so expect the Struct name within StructValidationErrors to be blank
+ * MISC:
+ * - anonymous structs - they don't have names so expect the Struct name within StructValidationErrors to be blank
  *
  */
 
@@ -12,7 +11,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"unicode"
@@ -152,7 +150,7 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 	}
 
 	if structValue.Kind() != reflect.Struct {
-		log.Fatal("interface passed for validation is not a struct")
+		panic("interface passed for validation is not a struct")
 	}
 
 	var numFields = structValue.NumField()
@@ -253,7 +251,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 	switch valueField.Kind() {
 
 	case reflect.Struct, reflect.Invalid:
-		log.Fatal("Invalid field passed to ValidateFieldWithTag")
+		panic("Invalid field passed to ValidateFieldWithTag")
 	}
 
 	valTags := strings.Split(tag, ",")
@@ -264,7 +262,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		key := strings.Trim(vals[0], " ")
 
 		if len(key) == 0 {
-			log.Fatalf("Invalid validation tag on field %s", name)
+			panic(fmt.Sprintf("Invalid validation tag on field %s", name))
 		}
 
 		// OK to continue because we checked it's existance before getting into this loop
@@ -274,7 +272,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 		valFunc := v.validationFuncs[key]
 		if valFunc == nil {
-			log.Fatalf("Undefined validation function on field %s", name)
+			panic(fmt.Sprintf("Undefined validation function on field %s", name))
 		}
 
 		param := ""
