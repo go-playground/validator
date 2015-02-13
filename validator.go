@@ -2,6 +2,7 @@ package validator
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -9,13 +10,21 @@ import (
 )
 
 const (
-	omitempty string = "omitempty"
+	defaultTagName          = "validate"
+	omitempty        string = "omitempty"
+	validationErrMsg        = "Field validation for \"%s\" failed on the \"%s\" tag\n"
 )
 
 // FieldValidationError contains a single fields validation error
 type FieldValidationError struct {
 	Field    string
 	ErrorTag string
+}
+
+// This is intended for use in development + debugging and not intended to be a production error message.
+// it also allows FieldValidationError to be used as an Error interface
+func (e FieldValidationError) Error() string {
+	return fmt.Sprintf(validationErrMsg, e.Field, e.ErrorTag)
 }
 
 // StructValidationErrors is a struct of errors for struct fields ( Excluding fields of type struct )
@@ -25,6 +34,19 @@ type FieldValidationError struct {
 type StructValidationErrors struct {
 	Struct string
 	Errors map[string]*FieldValidationError
+}
+
+// This is intended for use in development + debugging and not intended to be a production error message.
+// it also allows StructValidationErrors to be used as an Error interface
+func (e StructValidationErrors) Error() string {
+
+	s := ""
+
+	for _, err := range e.Errors {
+		s += fmt.Sprintf(validationErrMsg, err.Field, err.ErrorTag)
+	}
+
+	return s
 }
 
 // ValidationFunc that accepts the value of a field and parameter for use in validation (parameter not always used or needed)
@@ -43,7 +65,7 @@ type Validator struct {
 
 // var bakedInValidators = map[string]ValidationFunc{}
 
-var internalValidator = NewValidator("validate", bakedInValidators)
+var internalValidator = NewValidator(defaultTagName, bakedInValidators)
 
 // NewValidator creates a new Validator instance
 // NOTE: it is not necessary to create a new validator as the internal one will do in 99.9% of cases, but the option is there.
@@ -237,6 +259,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 			log.Fatalf("Invalid validation tag on field %s", name)
 		}
 
+		// OK to continue because we checked it's existance before getting into this loop
 		if key == omitempty {
 			continue
 		}
