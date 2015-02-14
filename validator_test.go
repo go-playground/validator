@@ -8,8 +8,24 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+type I interface {
+	Foo() string
+}
+
+type Impl struct {
+	F string `validate:"len=3"`
+}
+
+func (i *Impl) Foo() string {
+	return i.F
+}
+
 type SubTest struct {
 	Test string `validate:"required"`
+}
+
+type TestInterface struct {
+	Iface I
 }
 
 type TestString struct {
@@ -24,6 +40,7 @@ type TestString struct {
 	Anonymous struct {
 		A string `validate:"required"`
 	}
+	Iface I
 }
 
 type TestInt32 struct {
@@ -116,6 +133,9 @@ func (ms *MySuite) TestFlattening(c *C) {
 		}{
 			A: "1",
 		},
+		Iface: &Impl{
+			F: "123",
+		},
 	}
 
 	err1 := validator.ValidateStruct(tSuccess).Flatten()
@@ -136,6 +156,9 @@ func (ms *MySuite) TestFlattening(c *C) {
 		}{
 			A: "",
 		},
+		Iface: &Impl{
+			F: "12",
+		},
 	}
 
 	err2 := validator.ValidateStruct(tFail).Flatten()
@@ -151,6 +174,9 @@ func (ms *MySuite) TestFlattening(c *C) {
 
 	// Assert Anonymous Struct Field
 	AssertMapFieldError(err2, "Anonymous.A", "required", c)
+
+	// Assert Interface Field
+	AssertMapFieldError(err2, "Iface.F", "len", c)
 }
 
 func (ms *MySuite) TestStructStringValidation(c *C) {
@@ -173,6 +199,9 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		}{
 			A: "1",
 		},
+		Iface: &Impl{
+			F: "123",
+		},
 	}
 
 	err := validator.ValidateStruct(tSuccess)
@@ -193,6 +222,9 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		}{
 			A: "",
 		},
+		Iface: &Impl{
+			F: "12",
+		},
 	}
 
 	err = validator.ValidateStruct(tFail)
@@ -201,7 +233,7 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestString")
 	c.Assert(len(err.Errors), Equals, 6)
-	c.Assert(len(err.StructErrors), Equals, 2)
+	c.Assert(len(err.StructErrors), Equals, 3)
 
 	// Assert Fields
 	AssertFieldError(err, "Required", "required", c)

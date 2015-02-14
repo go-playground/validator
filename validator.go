@@ -108,7 +108,7 @@ type Validator struct {
 
 // var bakedInValidators = map[string]ValidationFunc{}
 
-var internalValidator = NewValidator(defaultTagName, bakedInValidators)
+var internalValidator = NewValidator(defaultTagName, BakedInValidators)
 
 // NewValidator creates a new Validator instance
 // NOTE: it is not necessary to create a new validator as the internal one will do in 99.9% of cases, but the option is there.
@@ -178,7 +178,7 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 		return v.ValidateStruct(structValue.Elem().Interface())
 	}
 
-	if structValue.Kind() != reflect.Struct {
+	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
 		panic("interface passed for validation is not a struct")
 	}
 
@@ -200,13 +200,13 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 		}
 
 		// if no validation and not a struct (which may containt fields for validation)
-		if tag == "" && valueField.Kind() != reflect.Struct {
+		if tag == "" && valueField.Kind() != reflect.Struct && valueField.Kind() != reflect.Interface {
 			continue
 		}
 
 		switch valueField.Kind() {
 
-		case reflect.Struct:
+		case reflect.Struct, reflect.Interface:
 
 			if !unicode.IsUpper(rune(typeField.Name[0])) {
 				continue
@@ -283,10 +283,12 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		panic("Invalid field passed to ValidateFieldWithTag")
 	}
 
+	// TODO: validate commas in regex's
 	valTags := strings.Split(tag, ",")
 
 	for _, valTag := range valTags {
 
+		// TODO: validate = in regex's
 		vals := strings.Split(valTag, "=")
 		key := strings.Trim(vals[0], " ")
 
@@ -299,8 +301,8 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 			continue
 		}
 
-		valFunc := v.validationFuncs[key]
-		if valFunc == nil {
+		valFunc, ok := v.validationFuncs[key]
+		if !ok {
 			panic(fmt.Sprintf("Undefined validation function on field %s", name))
 		}
 
