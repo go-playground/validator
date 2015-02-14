@@ -3,16 +3,14 @@ package validator
 import (
 	"log"
 	"reflect"
-	"regexp"
 	"strconv"
 )
 
-var bakedInValidators = map[string]ValidationFunc{
+var BakedInValidators = map[string]ValidationFunc{
 	"required": required,
 	"len":      length,
 	"min":      min,
 	"max":      max,
-	"regex":    regex,
 }
 
 func required(field interface{}, param string) bool {
@@ -149,27 +147,6 @@ func max(field interface{}, param string) bool {
 		log.Fatalf("Bad field type for Input Param %s for %s\n", param, field)
 		return false
 	}
-}
-
-// regex is the builtin validation function that checks
-// whether the string variable matches a regular expression
-func regex(field interface{}, param string) bool {
-
-	s, ok := field.(string)
-	if !ok {
-		log.Fatalf("Bad field type %s\n", field)
-	}
-
-	re, err := regexp.Compile(param)
-	if err != nil {
-		log.Fatalf("Bad regex param %s\n", param)
-	}
-
-	if !re.MatchString(s) {
-		return false
-	}
-
-	return true
 }
 
 // asInt retuns the parameter as a int64
