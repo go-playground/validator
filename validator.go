@@ -178,7 +178,7 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 		return v.ValidateStruct(structValue.Elem().Interface())
 	}
 
-	if structValue.Kind() != reflect.Struct {
+	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
 		panic("interface passed for validation is not a struct")
 	}
 
@@ -200,13 +200,13 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 		}
 
 		// if no validation and not a struct (which may containt fields for validation)
-		if tag == "" && valueField.Kind() != reflect.Struct {
+		if tag == "" && valueField.Kind() != reflect.Struct && valueField.Kind() != reflect.Interface {
 			continue
 		}
 
 		switch valueField.Kind() {
 
-		case reflect.Struct:
+		case reflect.Struct, reflect.Interface:
 
 			if !unicode.IsUpper(rune(typeField.Name[0])) {
 				continue
