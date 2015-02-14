@@ -87,6 +87,72 @@ func AssertFieldError(s *validator.StructValidationErrors, field string, expecte
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
+func AssertMapFieldError(s map[string]*validator.FieldValidationError, field string, expectedTag string, c *C) {
+
+	val, ok := s[field]
+	c.Assert(ok, Equals, true)
+	c.Assert(val, NotNil)
+	c.Assert(val.Field, Equals, field)
+	c.Assert(val.ErrorTag, Equals, expectedTag)
+}
+
+func (ms *MySuite) TestFlattening(c *C) {
+
+	tSuccess := &TestString{
+		Required:  "Required",
+		Len:       "length==10",
+		Min:       "min=1",
+		Max:       "1234567890",
+		MinMax:    "12345",
+		OmitEmpty: "",
+		Sub: &SubTest{
+			Test: "1",
+		},
+		SubIgnore: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A string `validate:"required"`
+		}{
+			A: "1",
+		},
+	}
+
+	err1 := validator.ValidateStruct(tSuccess).Flatten()
+	c.Assert(err1, IsNil)
+
+	tFail := &TestString{
+		Required:  "",
+		Len:       "",
+		Min:       "",
+		Max:       "12345678901",
+		MinMax:    "",
+		OmitEmpty: "12345678901",
+		Sub: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A string `validate:"required"`
+		}{
+			A: "",
+		},
+	}
+
+	err2 := validator.ValidateStruct(tFail).Flatten()
+
+	// Assert Top Level
+	c.Assert(err2, NotNil)
+
+	// Assert Fields
+	AssertMapFieldError(err2, "Len", "len", c)
+
+	// Assert Struct Field
+	AssertMapFieldError(err2, "Sub.Test", "required", c)
+
+	// Assert Anonymous Struct Field
+	AssertMapFieldError(err2, "Anonymous.A", "required", c)
+}
+
 func (ms *MySuite) TestStructStringValidation(c *C) {
 
 	tSuccess := &TestString{
@@ -132,6 +198,7 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 	err = validator.ValidateStruct(tFail)
 
 	// Assert Top Level
+	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestString")
 	c.Assert(len(err.Errors), Equals, 6)
 	c.Assert(len(err.StructErrors), Equals, 2)
@@ -181,6 +248,7 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 	err = validator.ValidateStruct(tFail)
 
 	// Assert Top Level
+	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestInt32")
 	c.Assert(len(err.Errors), Equals, 6)
 	c.Assert(len(err.StructErrors), Equals, 0)
@@ -220,6 +288,7 @@ func (ms *MySuite) TestStructUint64Validation(c *C) {
 	err = validator.ValidateStruct(tFail)
 
 	// Assert Top Level
+	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestUint64")
 	c.Assert(len(err.Errors), Equals, 6)
 	c.Assert(len(err.StructErrors), Equals, 0)
@@ -259,6 +328,7 @@ func (ms *MySuite) TestStructFloat64Validation(c *C) {
 	err = validator.ValidateStruct(tFail)
 
 	// Assert Top Level
+	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestFloat64")
 	c.Assert(len(err.Errors), Equals, 6)
 	c.Assert(len(err.StructErrors), Equals, 0)
@@ -298,6 +368,7 @@ func (ms *MySuite) TestStructSliceValidation(c *C) {
 	err = validator.ValidateStruct(tFail)
 
 	// Assert Top Level
+	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestSlice")
 	c.Assert(len(err.Errors), Equals, 6)
 	c.Assert(len(err.StructErrors), Equals, 0)
