@@ -31,7 +31,7 @@ type FieldValidationError struct {
 
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows FieldValidationError to be used as an Error interface
-func (e FieldValidationError) Error() string {
+func (e *FieldValidationError) Error() string {
 	return fmt.Sprintf(validationFieldErrMsg, e.Field, e.ErrorTag)
 }
 
@@ -48,7 +48,7 @@ type StructValidationErrors struct {
 
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows StructValidationErrors to be used as an Error interface
-func (e StructValidationErrors) Error() string {
+func (e *StructValidationErrors) Error() string {
 
 	s := fmt.Sprintf(validationStructErrMsg, e.Struct)
 
@@ -61,6 +61,35 @@ func (e StructValidationErrors) Error() string {
 	}
 
 	return fmt.Sprintf("%s\n\n", s)
+}
+
+// Flatten flattens the StructValidationErrors hierarchical sctructure into a flat namespace style field name
+// for those that want/need it
+func (e *StructValidationErrors) Flatten() map[string]*FieldValidationError {
+
+	if e == nil {
+		return nil
+	}
+
+	errs := map[string]*FieldValidationError{}
+
+	for _, f := range e.Errors {
+
+		errs[f.Field] = f
+	}
+
+	for key, val := range e.StructErrors {
+
+		otherErrs := val.Flatten()
+
+		for _, f2 := range otherErrs {
+
+			f2.Field = fmt.Sprintf("%s.%s", key, f2.Field)
+			errs[f2.Field] = f2
+		}
+	}
+
+	return errs
 }
 
 // ValidationFunc that accepts the value of a field and parameter for use in validation (parameter not always used or needed)
