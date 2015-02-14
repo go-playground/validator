@@ -119,7 +119,7 @@ Bad Validator definitions are not handled by the library
 
 	// this definition of min max will never validate
 
-Baked In Validators & Tags
+Baked In Validators and Tags
 
 Here is a list of the current built in validators:
 
