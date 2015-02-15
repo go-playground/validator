@@ -158,6 +158,22 @@ Here is a list of the current built in validators:
 	alphanum
 		This validates that a strings value contains alphanumeric characters only
 		(Usage: alphanum)
+	numeric
+		This validates that a strings value contains a basic numeric value.
+		basic excludes exponents etc...
+		(Usage: numeric)
+	hexadecimal
+		This validates that a strings value contains a valid hexadecimal.
+		(Usage: hexadecimal)
+	hexcolor
+		This validates that a strings value contains a valid hex color including
+		hashtag (#)
+		(Usage: hexcolor)
+	email
+		This validates that a strings value contains a valid email
+		This may not conform to all possibilities of any rfc standard, but neither
+		does any email provider accept all posibilities...
+		(Usage: email)
 
 Validator notes:
 

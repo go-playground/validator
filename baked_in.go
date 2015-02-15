@@ -9,12 +9,82 @@ import (
 // BakedInValidators is the map of ValidationFunc used internally
 // but can be used with any new Validator if desired
 var BakedInValidators = map[string]ValidationFunc{
-	"required": required,
-	"len":      length,
-	"min":      min,
-	"max":      max,
-	"alpha":    alpha,
-	"alphanum": alphanum,
+	"required":    required,
+	"len":         length,
+	"min":         min,
+	"max":         max,
+	"alpha":       alpha,
+	"alphanum":    alphanum,
+	"numeric":     numeric,
+	"number":      number,
+	"hexadecimal": hexadecimal,
+	"hexcolor":    hexcolor,
+	"email":       email,
+}
+
+func email(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return emailRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func hexcolor(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return hexcolorRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func hexadecimal(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return hexadecimalRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func number(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return numberRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func numeric(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return numericRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
 }
 
 func alphanum(field interface{}, param string) bool {
