@@ -1,16 +1,46 @@
 package validator
 
 import (
-	"log"
+	"fmt"
 	"reflect"
 	"strconv"
 )
 
+// BakedInValidators is the map of ValidationFunc used internally
+// but can be used with any new Validator if desired
 var BakedInValidators = map[string]ValidationFunc{
 	"required": required,
 	"len":      length,
 	"min":      min,
 	"max":      max,
+	"alpha":    alpha,
+	"alphanum": alphanum,
+}
+
+func alphanum(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return alphaNumericRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func alpha(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return alphaRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
 }
 
 func required(field interface{}, param string) bool {
@@ -62,8 +92,7 @@ func length(field interface{}, param string) bool {
 		return st.Float() == p
 
 	default:
-		log.Fatalf("Bad field type for Input Param %s for %s\n", param, field)
-		return false
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
 	}
 }
 
@@ -103,8 +132,7 @@ func min(field interface{}, param string) bool {
 		return st.Float() >= p
 
 	default:
-		log.Fatalf("Bad field type for Input Param %s for %s\n", param, field)
-		return false
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
 	}
 }
 
@@ -144,8 +172,7 @@ func max(field interface{}, param string) bool {
 		return st.Float() <= p
 
 	default:
-		log.Fatalf("Bad field type for Input Param %s for %s\n", param, field)
-		return false
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
 	}
 }
 
@@ -156,7 +183,7 @@ func asInt(param string) int64 {
 	i, err := strconv.ParseInt(param, 0, 64)
 
 	if err != nil {
-		log.Fatalf("Bad Input Param %s\n", param)
+		panic(fmt.Sprintf("Bad Input Param %s\n", param))
 	}
 
 	return i
@@ -169,7 +196,7 @@ func asUint(param string) uint64 {
 	i, err := strconv.ParseUint(param, 0, 64)
 
 	if err != nil {
-		log.Fatalf("Bad Input Param %s\n", param)
+		panic(fmt.Sprintf("Bad Input Param %s\n", param))
 	}
 
 	return i
@@ -182,7 +209,7 @@ func asFloat(param string) float64 {
 	i, err := strconv.ParseFloat(param, 64)
 
 	if err != nil {
-		log.Fatalf("Bad Input Param %s\n", param)
+		panic(fmt.Sprintf("Bad Input Param %s\n", param))
 	}
 
 	return i
