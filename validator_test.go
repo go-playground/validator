@@ -113,6 +113,34 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
+func (ms *MySuite) TestOrTag(c *C) {
+	s := "rgba(0,31,255,0.5)"
+	err := validator.ValidateFieldByTag(s, "rgb|rgba")
+	c.Assert(err, IsNil)
+
+	s = "rgba(0,31,255,0.5)"
+	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=18")
+	c.Assert(err, IsNil)
+
+	s = "this ain't right"
+	err = validator.ValidateFieldByTag(s, "rgb|rgba")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgb|rgba")
+
+	s = "this ain't right"
+	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=10")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgb|rgba|len")
+
+	s = "this is right"
+	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=13")
+	c.Assert(err, IsNil)
+
+	s = ""
+	err = validator.ValidateFieldByTag(s, "omitempty,rgb|rgba")
+	c.Assert(err, IsNil)
+}
+
 func (ms *MySuite) TestHsla(c *C) {
 
 	s := "hsla(360,100%,100%,1)"
