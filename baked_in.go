@@ -19,6 +19,10 @@ var BakedInValidators = map[string]ValidationFunc{
 	"number":      number,
 	"hexadecimal": hexadecimal,
 	"hexcolor":    hexcolor,
+	"rgb":         rgb,
+	"rgba":        rgba,
+	"hsl":         hsl,
+	"hsla":        hsla,
 	"email":       email,
 }
 
@@ -30,6 +34,58 @@ func email(field interface{}, param string) bool {
 
 	case reflect.String:
 		return emailRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func hsla(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return hslaRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func hsl(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return hslRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func rgba(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return rgbaRegex.MatchString(field.(string))
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func rgb(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		return rgbRegex.MatchString(field.(string))
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field))
 	}
