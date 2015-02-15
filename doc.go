@@ -132,6 +132,11 @@ Here is a list of the current built in validators:
 		a value (Determined by the required validator) then other validation
 		such as min or max won't run, but if a value is set validation will run.
 		(Usage: omitempty)
+	required
+		This validates that the value is not the data types default value.
+		For numbers ensures value is not zero. For strings ensures value is
+		not "". For slices, arrays, and maps, ensures the length is not zero.
+		(Usage: required)
 	len
 		For numbers, max will ensure that the value is
 		equal to the parameter given. For strings, it checks that
@@ -147,12 +152,12 @@ Here is a list of the current built in validators:
 		greater or equal to the parameter given. For strings, it checks that
 		the string length is at least that number of characters. For slices,
 		arrays, and maps, validates the number of items. (Usage: min=10)
-
-	required
-		This validates that the value is not the data types default value.
-		For numbers ensures value is not zero. For strings ensures value is
-		not "". For slices, arrays, and maps, ensures the length is not zero.
-		(Usage: required)
+	alpha
+		This validates that a strings value contains alpha characters only
+		(Usage: alpha)
+	alphanum
+		This validates that a strings value contains alphanumeric characters only
+		(Usage: alphanum)
 
 Validator notes:
 
