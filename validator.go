@@ -288,35 +288,96 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 	for _, valTag := range valTags {
 
+		orVals := strings.Split(valTag, "|")
+
+		if len(orVals) > 1 {
+
+			errTag := ""
+
+			for _, val := range orVals {
+
+				key, err := v.validateFieldByNameAndSingleTag(f, name, val)
+
+				if err == nil {
+					return nil
+				}
+
+				errTag += "|" + key
+
+			}
+
+			errTag = strings.TrimLeft(errTag, "|")
+
+			return errors.New(errTag)
+		}
+
+		if _, err := v.validateFieldByNameAndSingleTag(f, name, valTag); err != nil {
+			return err
+		}
+
 		// TODO: validate = in regex's
-		vals := strings.Split(valTag, "=")
-		key := strings.Trim(vals[0], " ")
-
-		if len(key) == 0 {
-			panic(fmt.Sprintf("Invalid validation tag on field %s", name))
-		}
-
-		// OK to continue because we checked it's existance before getting into this loop
-		if key == omitempty {
-			continue
-		}
-
-		valFunc, ok := v.validationFuncs[key]
-		if !ok {
-			panic(fmt.Sprintf("Undefined validation function on field %s", name))
-		}
-
-		param := ""
-		if len(vals) > 1 {
-			param = strings.Trim(vals[1], " ")
-		}
-
-		if err := valFunc(f, param); !err {
-
-			return errors.New(key)
-		}
+		// vals := strings.Split(valTag, "=")
+		// key := strings.Trim(vals[0], " ")
+		//
+		// if len(key) == 0 {
+		// 	panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+		// }
+		//
+		// // OK to continue because we checked it's existance before getting into this loop
+		// if key == omitempty {
+		// 	continue
+		// }
+		//
+		// valFunc, ok := v.validationFuncs[key]
+		// if !ok {
+		// 	panic(fmt.Sprintf("Undefined validation function on field %s", name))
+		// }
+		//
+		// param := ""
+		// if len(vals) > 1 {
+		// 	param = strings.Trim(vals[1], " ")
+		// }
+		//
+		// if err := valFunc(f, param); !err {
+		//
+		// 	return errors.New(key)
+		// }
+		// if err := v.validateFieldByNameAndSingleTag(f, name, valTag); err != nil {
+		// 	return err
+		// }
 
 	}
 
 	return nil
+}
+
+func (v *Validator) validateFieldByNameAndSingleTag(f interface{}, name string, valTag string) (string, error) {
+
+	vals := strings.Split(valTag, "=")
+	key := strings.Trim(vals[0], " ")
+
+	if len(key) == 0 {
+		panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+	}
+
+	// OK to continue because we checked it's existance before getting into this loop
+	if key == omitempty {
+		return key, nil
+	}
+
+	valFunc, ok := v.validationFuncs[key]
+	if !ok {
+		panic(fmt.Sprintf("Undefined validation function on field %s", name))
+	}
+
+	param := ""
+	if len(vals) > 1 {
+		param = strings.Trim(vals[1], " ")
+	}
+
+	if err := valFunc(f, param); !err {
+		return key, errors.New(key)
+	}
+
+	return key, nil
 }
