@@ -279,7 +279,7 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 	switch valueField.Kind() {
 
-	case reflect.Struct, reflect.Invalid:
+	case reflect.Struct, reflect.Interface, reflect.Invalid:
 		panic("Invalid field passed to ValidateFieldWithTag")
 	}
 
