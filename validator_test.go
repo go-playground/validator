@@ -113,6 +113,129 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
+func (ms *MySuite) TestEmail(c *C) {
+
+	s := "test@mail.com"
+	err := validator.ValidateFieldByTag(s, "email")
+	c.Assert(err, IsNil)
+
+	s = ""
+	err = validator.ValidateFieldByTag(s, "email")
+	c.Assert(err.Error(), Equals, "email")
+
+	s = "test@email"
+	err = validator.ValidateFieldByTag(s, "email")
+	c.Assert(err.Error(), Equals, "email")
+
+	s = "test@email."
+	err = validator.ValidateFieldByTag(s, "email")
+	c.Assert(err.Error(), Equals, "email")
+
+	s = "@email.com"
+	err = validator.ValidateFieldByTag(s, "email")
+	c.Assert(err.Error(), Equals, "email")
+}
+
+func (ms *MySuite) TestHexColor(c *C) {
+
+	s := "#fff"
+	err := validator.ValidateFieldByTag(s, "hexcolor")
+	c.Assert(err, IsNil)
+
+	s = "#c2c2c2"
+	err = validator.ValidateFieldByTag(s, "hexcolor")
+	c.Assert(err, IsNil)
+
+	s = "fff"
+	err = validator.ValidateFieldByTag(s, "hexcolor")
+	c.Assert(err.Error(), Equals, "hexcolor")
+
+	s = "fffFF"
+	err = validator.ValidateFieldByTag(s, "hexcolor")
+	c.Assert(err.Error(), Equals, "hexcolor")
+}
+
+func (ms *MySuite) TestHexadecimal(c *C) {
+
+	s := "ff0044"
+	err := validator.ValidateFieldByTag(s, "hexadecimal")
+	c.Assert(err, IsNil)
+
+	s = "abcdefg"
+	err = validator.ValidateFieldByTag(s, "hexadecimal")
+	c.Assert(err.Error(), Equals, "hexadecimal")
+}
+
+func (ms *MySuite) TestNumber(c *C) {
+
+	s := "1"
+	err := validator.ValidateFieldByTag(s, "number")
+	c.Assert(err, IsNil)
+
+	s = "+1"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "-1"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "1.12"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "+1.12"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "-1.12"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "1."
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+
+	s = "1.o"
+	err = validator.ValidateFieldByTag(s, "number")
+	c.Assert(err.Error(), Equals, "number")
+}
+
+func (ms *MySuite) TestNumeric(c *C) {
+
+	s := "1"
+	err := validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "+1"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "-1"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "1.12"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "+1.12"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "-1.12"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err, IsNil)
+
+	s = "1."
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err.Error(), Equals, "numeric")
+
+	s = "1.o"
+	err = validator.ValidateFieldByTag(s, "numeric")
+	c.Assert(err.Error(), Equals, "numeric")
+}
+
 func (ms *MySuite) TestAlphaNumeric(c *C) {
 
 	s := "abcd123"
