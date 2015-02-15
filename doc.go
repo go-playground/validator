@@ -169,6 +169,18 @@ Here is a list of the current built in validators:
 		This validates that a strings value contains a valid hex color including
 		hashtag (#)
 		(Usage: hexcolor)
+	rgb
+		This validates that a strings value contains a valid rgb color
+		(Usage: rgb)
+	rgba
+		This validates that a strings value contains a valid rgba color
+		(Usage: rgba)
+	hsl
+		This validates that a strings value contains a valid hsl color
+		(Usage: hsl)
+	hsla
+		This validates that a strings value contains a valid hsla color
+		(Usage: hsla)
 	email
 		This validates that a strings value contains a valid email
 		This may not conform to all possibilities of any rfc standard, but neither

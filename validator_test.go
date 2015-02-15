@@ -113,6 +113,133 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
+func (ms *MySuite) TestHsla(c *C) {
+
+	s := "hsla(360,100%,100%,1)"
+	err := validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, IsNil)
+
+	s = "hsla(360,100%,100%,0.5)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, IsNil)
+
+	s = "hsla(0,0%,0%, 0)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, IsNil)
+
+	s = "hsl(361,100%,50%,1)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsla")
+
+	s = "hsl(361,100%,50%)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsla")
+
+	s = "hsla(361,100%,50%)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsla")
+
+	s = "hsla(360,101%,50%)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsla")
+
+	s = "hsla(360,100%,101%)"
+	err = validator.ValidateFieldByTag(s, "hsla")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsla")
+}
+
+func (ms *MySuite) TestHsl(c *C) {
+
+	s := "hsl(360,100%,50%)"
+	err := validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, IsNil)
+
+	s = "hsl(0,0%,0%)"
+	err = validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, IsNil)
+
+	s = "hsl(361,100%,50%)"
+	err = validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsl")
+
+	s = "hsl(361,101%,50%)"
+	err = validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsl")
+
+	s = "hsl(361,100%,101%)"
+	err = validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsl")
+
+	s = "hsl(-10,100%,100%)"
+	err = validator.ValidateFieldByTag(s, "hsl")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "hsl")
+}
+
+func (ms *MySuite) TestRgba(c *C) {
+
+	s := "rgba(0,31,255,0.5)"
+	err := validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, IsNil)
+
+	s = "rgba(0,31,255,0.12)"
+	err = validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, IsNil)
+
+	s = "rgba( 0,  31, 255, 0.5)"
+	err = validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, IsNil)
+
+	s = "rgb(0,  31, 255)"
+	err = validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgba")
+
+	s = "rgb(1,349,275,0.5)"
+	err = validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgba")
+
+	s = "rgb(01,31,255,0.5)"
+	err = validator.ValidateFieldByTag(s, "rgba")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgba")
+}
+
+func (ms *MySuite) TestRgb(c *C) {
+
+	s := "rgb(0,31,255)"
+	err := validator.ValidateFieldByTag(s, "rgb")
+	c.Assert(err, IsNil)
+
+	s = "rgb(0,  31, 255)"
+	err = validator.ValidateFieldByTag(s, "rgb")
+	c.Assert(err, IsNil)
+
+	s = "rgb(1,349,275)"
+	err = validator.ValidateFieldByTag(s, "rgb")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgb")
+
+	s = "rgb(01,31,255)"
+	err = validator.ValidateFieldByTag(s, "rgb")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgb")
+
+	s = "rgba(0,31,255)"
+	err = validator.ValidateFieldByTag(s, "rgb")
+	c.Assert(err, NotNil)
+	c.Assert(err.Error(), Equals, "rgb")
+}
+
 func (ms *MySuite) TestEmail(c *C) {
 
 	s := "test@mail.com"
