@@ -127,60 +127,80 @@ Here is a list of the current built in validators:
 		Tells the validation to skip this struct field; this is particularily
 		handy in ignoring embedded structs from being validated. (Usage: -)
 
+	|
+		This is the 'or' operator allowing multiple validators to be used and
+		accepted. (Usage: rbg|rgba) <-- this would allow either rgb or rgba
+		colors to be accepted. This can also be combined with 'and' for example
+		( Usage: omitempty,rgb|rgba)
+
 	omitempty
 		Allows conitional validation, for example if a field is not set with
 		a value (Determined by the required validator) then other validation
 		such as min or max won't run, but if a value is set validation will run.
 		(Usage: omitempty)
+
 	required
 		This validates that the value is not the data types default value.
 		For numbers ensures value is not zero. For strings ensures value is
 		not "". For slices, arrays, and maps, ensures the length is not zero.
 		(Usage: required)
+
 	len
 		For numbers, max will ensure that the value is
 		equal to the parameter given. For strings, it checks that
 		the string length is exactly that number of characters. For slices,
 		arrays, and maps, validates the number of items. (Usage: len=10)
+
 	max
 		For numbers, max will ensure that the value is
 		less than or equal to the parameter given. For strings, it checks
 		that the string length is at most that number of characters. For
 		slices, arrays, and maps, validates the number of items. (Usage: max=10)
+
 	min
 		For numbers, min will ensure that the value is
 		greater or equal to the parameter given. For strings, it checks that
 		the string length is at least that number of characters. For slices,
 		arrays, and maps, validates the number of items. (Usage: min=10)
+
 	alpha
 		This validates that a strings value contains alpha characters only
 		(Usage: alpha)
+
 	alphanum
 		This validates that a strings value contains alphanumeric characters only
 		(Usage: alphanum)
+
 	numeric
 		This validates that a strings value contains a basic numeric value.
 		basic excludes exponents etc...
 		(Usage: numeric)
+
 	hexadecimal
 		This validates that a strings value contains a valid hexadecimal.
 		(Usage: hexadecimal)
+
 	hexcolor
 		This validates that a strings value contains a valid hex color including
 		hashtag (#)
 		(Usage: hexcolor)
+
 	rgb
 		This validates that a strings value contains a valid rgb color
 		(Usage: rgb)
+
 	rgba
 		This validates that a strings value contains a valid rgba color
 		(Usage: rgba)
+
 	hsl
 		This validates that a strings value contains a valid hsl color
 		(Usage: hsl)
+
 	hsla
 		This validates that a strings value contains a valid hsla color
 		(Usage: hsla)
+
 	email
 		This validates that a strings value contains a valid email
 		This may not conform to all possibilities of any rfc standard, but neither
