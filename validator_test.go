@@ -113,6 +113,32 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
+func (ms *MySuite) TestAlphaNumeric(c *C) {
+
+	s := "abcd123"
+	err := validator.ValidateFieldByTag(s, "alphanum")
+	c.Assert(err, IsNil)
+
+	s = "abc!23"
+	err = validator.ValidateFieldByTag(s, "alphanum")
+	c.Assert(err.Error(), Equals, "alphanum")
+
+	c.Assert(func() { validator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "Bad field type int")
+}
+
+func (ms *MySuite) TestAlpha(c *C) {
+
+	s := "abcd"
+	err := validator.ValidateFieldByTag(s, "alpha")
+	c.Assert(err, IsNil)
+
+	s = "abc1"
+	err = validator.ValidateFieldByTag(s, "alpha")
+	c.Assert(err.Error(), Equals, "alpha")
+
+	c.Assert(func() { validator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "Bad field type int")
+}
+
 func (ms *MySuite) TestFlattening(c *C) {
 
 	tSuccess := &TestString{
