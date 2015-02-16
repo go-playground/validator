@@ -13,6 +13,10 @@ var BakedInValidators = map[string]ValidationFunc{
 	"len":         length,
 	"min":         min,
 	"max":         max,
+	"lt":          lt,
+	"lte":         lte,
+	"gt":          gt,
+	"gte":         gte,
 	"alpha":       alpha,
 	"alphanum":    alphanum,
 	"numeric":     numeric,
@@ -183,6 +187,78 @@ func required(field interface{}, param string) bool {
 	}
 }
 
+func gte(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(len(st.String())) >= p
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		p := asInt(param)
+
+		return int64(st.Len()) >= p
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		p := asInt(param)
+
+		return st.Int() >= p
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		p := asUint(param)
+
+		return st.Uint() >= p
+
+	case reflect.Float32, reflect.Float64:
+		p := asFloat(param)
+
+		return st.Float() >= p
+
+	default:
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+	}
+}
+
+func gt(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(len(st.String())) > p
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		p := asInt(param)
+
+		return int64(st.Len()) > p
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		p := asInt(param)
+
+		return st.Int() > p
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		p := asUint(param)
+
+		return st.Uint() > p
+
+	case reflect.Float32, reflect.Float64:
+		p := asFloat(param)
+
+		return st.Float() > p
+
+	default:
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+	}
+}
+
 // length tests whether a variable's length is equal to a given
 // value. For strings it tests the number of characters whereas
 // for maps and slices it tests the number of items.
@@ -228,45 +304,10 @@ func length(field interface{}, param string) bool {
 // and slices it tests the number of items.
 func min(field interface{}, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		p := asInt(param)
-
-		return int64(len(st.String())) >= p
-
-	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-
-		return int64(st.Len()) >= p
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
-
-		return st.Int() >= p
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-
-		return st.Uint() >= p
-
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-
-		return st.Float() >= p
-
-	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
-	}
+	return gte(field, param)
 }
 
-// max tests whether a variable value is lesser than a given
-// value. For numbers, it's a simple lesser-than test; for
-// strings it tests the number of characters whereas for maps
-// and slices it tests the number of items.
-func max(field interface{}, param string) bool {
+func lte(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -300,6 +341,51 @@ func max(field interface{}, param string) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
 	}
+}
+
+func lt(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(len(st.String())) < p
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		p := asInt(param)
+
+		return int64(st.Len()) < p
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		p := asInt(param)
+
+		return st.Int() < p
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		p := asUint(param)
+
+		return st.Uint() < p
+
+	case reflect.Float32, reflect.Float64:
+		p := asFloat(param)
+
+		return st.Float() < p
+
+	default:
+		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+	}
+}
+
+// max tests whether a variable value is lesser than a given
+// value. For numbers, it's a simple lesser-than test; for
+// strings it tests the number of characters whereas for maps
+// and slices it tests the number of items.
+func max(field interface{}, param string) bool {
+
+	return lte(field, param)
 }
 
 // asInt retuns the parameter as a int64
