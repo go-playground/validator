@@ -34,6 +34,10 @@ type TestString struct {
 	Min       string `validate:"min=1"`
 	Max       string `validate:"max=10"`
 	MinMax    string `validate:"min=1,max=10"`
+	Lt        string `validate:"lt=10"`
+	Lte       string `validate:"lte=10"`
+	Gt        string `validate:"gt=10"`
+	Gte       string `validate:"gte=10"`
 	OmitEmpty string `validate:"omitempty,min=1,max=10"`
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
@@ -49,6 +53,10 @@ type TestInt32 struct {
 	Min       int `validate:"min=1"`
 	Max       int `validate:"max=10"`
 	MinMax    int `validate:"min=1,max=10"`
+	Lt        int `validate:"lt=10"`
+	Lte       int `validate:"lte=10"`
+	Gt        int `validate:"gt=10"`
+	Gte       int `validate:"gte=10"`
 	OmitEmpty int `validate:"omitempty,min=1,max=10"`
 }
 
@@ -425,6 +433,10 @@ func (ms *MySuite) TestFlattening(c *C) {
 		Min:       "min=1",
 		Max:       "1234567890",
 		MinMax:    "12345",
+		Lt:        "012345678",
+		Lte:       "0123456789",
+		Gt:        "01234567890",
+		Gte:       "0123456789",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -472,6 +484,8 @@ func (ms *MySuite) TestFlattening(c *C) {
 
 	// Assert Fields
 	AssertMapFieldError(err2, "Len", "len", c)
+	AssertMapFieldError(err2, "Gt", "gt", c)
+	AssertMapFieldError(err2, "Gte", "gte", c)
 
 	// Assert Struct Field
 	AssertMapFieldError(err2, "Sub.Test", "required", c)
@@ -491,6 +505,10 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		Min:       "min=1",
 		Max:       "1234567890",
 		MinMax:    "12345",
+		Lt:        "012345678",
+		Lte:       "0123456789",
+		Gt:        "01234567890",
+		Gte:       "0123456789",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -517,6 +535,10 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		Min:       "",
 		Max:       "12345678901",
 		MinMax:    "",
+		Lt:        "0123456789",
+		Lte:       "01234567890",
+		Gt:        "1",
+		Gte:       "1",
 		OmitEmpty: "12345678901",
 		Sub: &SubTest{
 			Test: "",
@@ -536,7 +558,7 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 	// Assert Top Level
 	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestString")
-	c.Assert(len(err.Errors), Equals, 6)
+	c.Assert(len(err.Errors), Equals, 10)
 	c.Assert(len(err.StructErrors), Equals, 3)
 
 	// Assert Fields
@@ -545,6 +567,8 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 	AssertFieldError(err, "Min", "min", c)
 	AssertFieldError(err, "Max", "max", c)
 	AssertFieldError(err, "MinMax", "min", c)
+	AssertFieldError(err, "Gt", "gt", c)
+	AssertFieldError(err, "Gte", "gte", c)
 	AssertFieldError(err, "OmitEmpty", "max", c)
 
 	// Assert Anonymous embedded struct
@@ -566,6 +590,10 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 		Min:       1,
 		Max:       10,
 		MinMax:    5,
+		Lt:        9,
+		Lte:       10,
+		Gt:        11,
+		Gte:       10,
 		OmitEmpty: 0,
 	}
 
@@ -578,6 +606,10 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 		Min:       -1,
 		Max:       11,
 		MinMax:    -1,
+		Lt:        10,
+		Lte:       11,
+		Gt:        10,
+		Gte:       9,
 		OmitEmpty: 11,
 	}
 
@@ -586,7 +618,7 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 	// Assert Top Level
 	c.Assert(err, NotNil)
 	c.Assert(err.Struct, Equals, "TestInt32")
-	c.Assert(len(err.Errors), Equals, 6)
+	c.Assert(len(err.Errors), Equals, 10)
 	c.Assert(len(err.StructErrors), Equals, 0)
 
 	// Assert Fields
@@ -595,6 +627,10 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 	AssertFieldError(err, "Min", "min", c)
 	AssertFieldError(err, "Max", "max", c)
 	AssertFieldError(err, "MinMax", "min", c)
+	AssertFieldError(err, "Lt", "lt", c)
+	AssertFieldError(err, "Lte", "lte", c)
+	AssertFieldError(err, "Gt", "gt", c)
+	AssertFieldError(err, "Gte", "gte", c)
 	AssertFieldError(err, "OmitEmpty", "max", c)
 }
 

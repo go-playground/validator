@@ -163,6 +163,27 @@ Here is a list of the current built in validators:
 		the string length is at least that number of characters. For slices,
 		arrays, and maps, validates the number of items. (Usage: min=10)
 
+	gt
+		For numbers, this will ensure that the value is greater than the
+		parameter given. For strings, it checks that the string length
+		is greater than that number of characters. For slices, arrays
+		and maps it validates the number of items. (Usage: gt=10)
+
+	gte
+		Same as 'min' above. Kept both to make terminology with 'len' easier
+		(Usage: gte=10)
+
+	lt
+		For numbers, this will ensure that the value is
+		less than the parameter given. For strings, it checks
+		that the string length is less than that number of characters.
+		For slices, arrays, and maps it validates the number of items.
+		(Usage: lt=10)
+
+	lte
+		Same as 'max' above. Kept both to make terminology with 'len' easier
+		(Usage: lte=10)
+
 	alpha
 		This validates that a strings value contains alpha characters only
 		(Usage: alpha)
