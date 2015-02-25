@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
 	"strconv"
 )
@@ -9,28 +10,69 @@ import (
 // BakedInValidators is the map of ValidationFunc used internally
 // but can be used with any new Validator if desired
 var BakedInValidators = map[string]ValidationFunc{
-	"required":    required,
-	"len":         length,
-	"min":         min,
-	"max":         max,
-	"lt":          lt,
-	"lte":         lte,
-	"gt":          gt,
-	"gte":         gte,
-	"alpha":       alpha,
-	"alphanum":    alphanum,
-	"numeric":     numeric,
-	"number":      number,
-	"hexadecimal": hexadecimal,
-	"hexcolor":    hexcolor,
-	"rgb":         rgb,
-	"rgba":        rgba,
-	"hsl":         hsl,
-	"hsla":        hsla,
-	"email":       email,
+	"required":    hasValue,
+	"len":         hasLengthOf,
+	"min":         hasMinOf,
+	"max":         hasMaxOf,
+	"lt":          isLt,
+	"lte":         isLte,
+	"gt":          isGt,
+	"gte":         isGte,
+	"alpha":       isAlpha,
+	"alphanum":    isAlphanum,
+	"numeric":     isNumeric,
+	"number":      isNumber,
+	"hexadecimal": isHexadecimal,
+	"hexcolor":    isHexcolor,
+	"rgb":         isRgb,
+	"rgba":        isRgba,
+	"hsl":         isHsl,
+	"hsla":        isHsla,
+	"email":       isEmail,
+	"url":         isURL,
+	"uri":         isURI,
 }
 
-func email(field interface{}, param string) bool {
+func isURI(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		_, err := url.ParseRequestURI(field.(string))
+
+		return err == nil
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func isURL(field interface{}, param string) bool {
+
+	st := reflect.ValueOf(field)
+
+	switch st.Kind() {
+
+	case reflect.String:
+		url, err := url.ParseRequestURI(field.(string))
+
+		if err != nil {
+			return false
+		}
+
+		if len(url.Scheme) == 0 {
+			return false
+		}
+
+		return err == nil
+
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field))
+	}
+}
+
+func isEmail(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -43,7 +85,7 @@ func email(field interface{}, param string) bool {
 	}
 }
 
-func hsla(field interface{}, param string) bool {
+func isHsla(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -56,7 +98,7 @@ func hsla(field interface{}, param string) bool {
 	}
 }
 
-func hsl(field interface{}, param string) bool {
+func isHsl(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -69,7 +111,7 @@ func hsl(field interface{}, param string) bool {
 	}
 }
 
-func rgba(field interface{}, param string) bool {
+func isRgba(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -82,7 +124,7 @@ func rgba(field interface{}, param string) bool {
 	}
 }
 
-func rgb(field interface{}, param string) bool {
+func isRgb(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -95,7 +137,7 @@ func rgb(field interface{}, param string) bool {
 	}
 }
 
-func hexcolor(field interface{}, param string) bool {
+func isHexcolor(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -108,7 +150,7 @@ func hexcolor(field interface{}, param string) bool {
 	}
 }
 
-func hexadecimal(field interface{}, param string) bool {
+func isHexadecimal(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -121,7 +163,7 @@ func hexadecimal(field interface{}, param string) bool {
 	}
 }
 
-func number(field interface{}, param string) bool {
+func isNumber(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -134,7 +176,7 @@ func number(field interface{}, param string) bool {
 	}
 }
 
-func numeric(field interface{}, param string) bool {
+func isNumeric(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -147,7 +189,7 @@ func numeric(field interface{}, param string) bool {
 	}
 }
 
-func alphanum(field interface{}, param string) bool {
+func isAlphanum(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -160,7 +202,7 @@ func alphanum(field interface{}, param string) bool {
 	}
 }
 
-func alpha(field interface{}, param string) bool {
+func isAlpha(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -173,7 +215,7 @@ func alpha(field interface{}, param string) bool {
 	}
 }
 
-func required(field interface{}, param string) bool {
+func hasValue(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -187,7 +229,7 @@ func required(field interface{}, param string) bool {
 	}
 }
 
-func gte(field interface{}, param string) bool {
+func isGte(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -223,7 +265,7 @@ func gte(field interface{}, param string) bool {
 	}
 }
 
-func gt(field interface{}, param string) bool {
+func isGt(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -262,7 +304,7 @@ func gt(field interface{}, param string) bool {
 // length tests whether a variable's length is equal to a given
 // value. For strings it tests the number of characters whereas
 // for maps and slices it tests the number of items.
-func length(field interface{}, param string) bool {
+func hasLengthOf(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -302,12 +344,12 @@ func length(field interface{}, param string) bool {
 // number. For number types, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func min(field interface{}, param string) bool {
+func hasMinOf(field interface{}, param string) bool {
 
-	return gte(field, param)
+	return isGte(field, param)
 }
 
-func lte(field interface{}, param string) bool {
+func isLte(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -343,7 +385,7 @@ func lte(field interface{}, param string) bool {
 	}
 }
 
-func lt(field interface{}, param string) bool {
+func isLt(field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -383,9 +425,9 @@ func lt(field interface{}, param string) bool {
 // value. For numbers, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func max(field interface{}, param string) bool {
+func hasMaxOf(field interface{}, param string) bool {
 
-	return lte(field, param)
+	return isLte(field, param)
 }
 
 // asInt retuns the parameter as a int64
