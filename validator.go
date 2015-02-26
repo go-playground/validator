@@ -27,6 +27,9 @@ const (
 type FieldValidationError struct {
 	Field    string
 	ErrorTag string
+	Kind     reflect.Kind
+	Param    string
+	Value    interface{}
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
@@ -220,7 +223,7 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 
 		default:
 
-			if fieldError := v.validateStructFieldByTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
+			if fieldError := v.validateFieldByNameAndTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
 				validationErrors.Errors[fieldError.Field] = fieldError
 				// free up memory reference
 				fieldError = nil
@@ -235,32 +238,19 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 	return validationErrors
 }
 
-// ValidateFieldWithTag validates the given field by the given tag arguments
-func (v *Validator) validateStructFieldByTag(f interface{}, name string, tag string) *FieldValidationError {
-
-	if err := v.validateFieldByNameAndTag(f, name, tag); err != nil {
-		return &FieldValidationError{
-			Field:    name,
-			ErrorTag: err.Error(),
-		}
-	}
-
-	return nil
-}
-
 // ValidateFieldByTag allows validation of a single field with the internal validator, still using tag style validation to check multiple errors
-func ValidateFieldByTag(f interface{}, tag string) error {
+func ValidateFieldByTag(f interface{}, tag string) *FieldValidationError {
 
 	return internalValidator.validateFieldByNameAndTag(f, "", tag)
 }
 
 // ValidateFieldByTag allows validation of a single field, still using tag style validation to check multiple errors
-func (v *Validator) ValidateFieldByTag(f interface{}, tag string) error {
+func (v *Validator) ValidateFieldByTag(f interface{}, tag string) *FieldValidationError {
 
 	return v.validateFieldByNameAndTag(f, "", tag)
 }
 
-func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag string) error {
+func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag string) *FieldValidationError {
 
 	// This is a double check if coming from ValidateStruct but need to be here in case function is called directly
 	if tag == "-" {
@@ -283,7 +273,8 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 		panic("Invalid field passed to ValidateFieldWithTag")
 	}
 
-	// TODO: validate commas in regex's
+	var valErr *FieldValidationError
+	var err error
 	valTags := strings.Split(tag, ",")
 
 	for _, valTag := range valTags {
@@ -296,62 +287,35 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 
 			for _, val := range orVals {
 
-				key, err := v.validateFieldByNameAndSingleTag(f, name, val)
+				valErr, err = v.validateFieldByNameAndSingleTag(f, name, val)
 
 				if err == nil {
 					return nil
 				}
 
-				errTag += "|" + key
+				errTag += "|" + valErr.ErrorTag
 
 			}
 
 			errTag = strings.TrimLeft(errTag, "|")
 
-			return errors.New(errTag)
+			valErr.ErrorTag = errTag
+			valErr.Kind = valueField.Kind()
+
+			return valErr
 		}
 
-		if _, err := v.validateFieldByNameAndSingleTag(f, name, valTag); err != nil {
-			return err
+		if valErr, err = v.validateFieldByNameAndSingleTag(f, name, valTag); err != nil {
+			valErr.Kind = valueField.Kind()
+
+			return valErr
 		}
-
-		// TODO: validate = in regex's
-		// vals := strings.Split(valTag, "=")
-		// key := strings.Trim(vals[0], " ")
-		//
-		// if len(key) == 0 {
-		// 	panic(fmt.Sprintf("Invalid validation tag on field %s", name))
-		// }
-		//
-		// // OK to continue because we checked it's existance before getting into this loop
-		// if key == omitempty {
-		// 	continue
-		// }
-		//
-		// valFunc, ok := v.validationFuncs[key]
-		// if !ok {
-		// 	panic(fmt.Sprintf("Undefined validation function on field %s", name))
-		// }
-		//
-		// param := ""
-		// if len(vals) > 1 {
-		// 	param = strings.Trim(vals[1], " ")
-		// }
-		//
-		// if err := valFunc(f, param); !err {
-		//
-		// 	return errors.New(key)
-		// }
-		// if err := v.validateFieldByNameAndSingleTag(f, name, valTag); err != nil {
-		// 	return err
-		// }
-
 	}
 
 	return nil
 }
 
-func (v *Validator) validateFieldByNameAndSingleTag(f interface{}, name string, valTag string) (string, error) {
+func (v *Validator) validateFieldByNameAndSingleTag(f interface{}, name string, valTag string) (*FieldValidationError, error) {
 
 	vals := strings.Split(valTag, "=")
 	key := strings.Trim(vals[0], " ")
@@ -360,9 +324,16 @@ func (v *Validator) validateFieldByNameAndSingleTag(f interface{}, name string, 
 		panic(fmt.Sprintf("Invalid validation tag on field %s", name))
 	}
 
+	valErr := &FieldValidationError{
+		Field:    name,
+		ErrorTag: key,
+		Value:    f,
+		Param:    "",
+	}
+
 	// OK to continue because we checked it's existance before getting into this loop
 	if key == omitempty {
-		return key, nil
+		return valErr, nil
 	}
 
 	valFunc, ok := v.validationFuncs[key]
@@ -376,8 +347,9 @@ func (v *Validator) validateFieldByNameAndSingleTag(f interface{}, name string, 
 	}
 
 	if err := valFunc(f, param); !err {
-		return key, errors.New(key)
+		valErr.Param = param
+		return valErr, errors.New(key)
 	}
 
-	return key, nil
+	return valErr, nil
 }
