@@ -169,7 +169,7 @@ func (ms *MySuite) TestUrl(c *C) {
 			c.Assert(err, IsNil)
 		} else {
 			c.Assert(err, NotNil)
-			c.Assert(err.Error(), Equals, "url")
+			c.Assert(err.ErrorTag, Equals, "url")
 		}
 	}
 }
@@ -222,7 +222,7 @@ func (ms *MySuite) TestUri(c *C) {
 			c.Assert(err, IsNil)
 		} else {
 			c.Assert(err, NotNil)
-			c.Assert(err.Error(), Equals, "uri")
+			c.Assert(err.ErrorTag, Equals, "uri")
 		}
 	}
 }
@@ -239,12 +239,12 @@ func (ms *MySuite) TestOrTag(c *C) {
 	s = "this ain't right"
 	err = validator.ValidateFieldByTag(s, "rgb|rgba")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgb|rgba")
+	c.Assert(err.ErrorTag, Equals, "rgb|rgba")
 
 	s = "this ain't right"
 	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=10")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgb|rgba|len")
+	c.Assert(err.ErrorTag, Equals, "rgb|rgba|len")
 
 	s = "this is right"
 	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=13")
@@ -272,27 +272,27 @@ func (ms *MySuite) TestHsla(c *C) {
 	s = "hsl(361,100%,50%,1)"
 	err = validator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsla")
+	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsl(361,100%,50%)"
 	err = validator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsla")
+	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(361,100%,50%)"
 	err = validator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsla")
+	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(360,101%,50%)"
 	err = validator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsla")
+	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(360,100%,101%)"
 	err = validator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsla")
+	c.Assert(err.ErrorTag, Equals, "hsla")
 }
 
 func (ms *MySuite) TestHsl(c *C) {
@@ -308,22 +308,22 @@ func (ms *MySuite) TestHsl(c *C) {
 	s = "hsl(361,100%,50%)"
 	err = validator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsl")
+	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(361,101%,50%)"
 	err = validator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsl")
+	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(361,100%,101%)"
 	err = validator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsl")
+	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(-10,100%,100%)"
 	err = validator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "hsl")
+	c.Assert(err.ErrorTag, Equals, "hsl")
 }
 
 func (ms *MySuite) TestRgba(c *C) {
@@ -343,17 +343,17 @@ func (ms *MySuite) TestRgba(c *C) {
 	s = "rgb(0,  31, 255)"
 	err = validator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgba")
+	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	s = "rgb(1,349,275,0.5)"
 	err = validator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgba")
+	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	s = "rgb(01,31,255,0.5)"
 	err = validator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgba")
+	c.Assert(err.ErrorTag, Equals, "rgba")
 }
 
 func (ms *MySuite) TestRgb(c *C) {
@@ -369,17 +369,17 @@ func (ms *MySuite) TestRgb(c *C) {
 	s = "rgb(1,349,275)"
 	err = validator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgb")
+	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	s = "rgb(01,31,255)"
 	err = validator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgb")
+	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	s = "rgba(0,31,255)"
 	err = validator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
-	c.Assert(err.Error(), Equals, "rgb")
+	c.Assert(err.ErrorTag, Equals, "rgb")
 }
 
 func (ms *MySuite) TestEmail(c *C) {
@@ -390,19 +390,23 @@ func (ms *MySuite) TestEmail(c *C) {
 
 	s = ""
 	err = validator.ValidateFieldByTag(s, "email")
-	c.Assert(err.Error(), Equals, "email")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "test@email"
 	err = validator.ValidateFieldByTag(s, "email")
-	c.Assert(err.Error(), Equals, "email")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "test@email."
 	err = validator.ValidateFieldByTag(s, "email")
-	c.Assert(err.Error(), Equals, "email")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "@email.com"
 	err = validator.ValidateFieldByTag(s, "email")
-	c.Assert(err.Error(), Equals, "email")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "email")
 }
 
 func (ms *MySuite) TestHexColor(c *C) {
@@ -417,11 +421,13 @@ func (ms *MySuite) TestHexColor(c *C) {
 
 	s = "fff"
 	err = validator.ValidateFieldByTag(s, "hexcolor")
-	c.Assert(err.Error(), Equals, "hexcolor")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "hexcolor")
 
 	s = "fffFF"
 	err = validator.ValidateFieldByTag(s, "hexcolor")
-	c.Assert(err.Error(), Equals, "hexcolor")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "hexcolor")
 }
 
 func (ms *MySuite) TestHexadecimal(c *C) {
@@ -432,7 +438,8 @@ func (ms *MySuite) TestHexadecimal(c *C) {
 
 	s = "abcdefg"
 	err = validator.ValidateFieldByTag(s, "hexadecimal")
-	c.Assert(err.Error(), Equals, "hexadecimal")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "hexadecimal")
 }
 
 func (ms *MySuite) TestNumber(c *C) {
@@ -443,31 +450,38 @@ func (ms *MySuite) TestNumber(c *C) {
 
 	s = "+1"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "-1"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1.12"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "+1.12"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "-1.12"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1."
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1.o"
 	err = validator.ValidateFieldByTag(s, "number")
-	c.Assert(err.Error(), Equals, "number")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "number")
 }
 
 func (ms *MySuite) TestNumeric(c *C) {
@@ -498,11 +512,13 @@ func (ms *MySuite) TestNumeric(c *C) {
 
 	s = "1."
 	err = validator.ValidateFieldByTag(s, "numeric")
-	c.Assert(err.Error(), Equals, "numeric")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "numeric")
 
 	s = "1.o"
 	err = validator.ValidateFieldByTag(s, "numeric")
-	c.Assert(err.Error(), Equals, "numeric")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "numeric")
 }
 
 func (ms *MySuite) TestAlphaNumeric(c *C) {
@@ -513,7 +529,8 @@ func (ms *MySuite) TestAlphaNumeric(c *C) {
 
 	s = "abc!23"
 	err = validator.ValidateFieldByTag(s, "alphanum")
-	c.Assert(err.Error(), Equals, "alphanum")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "alphanum")
 
 	c.Assert(func() { validator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "Bad field type int")
 }
@@ -526,7 +543,8 @@ func (ms *MySuite) TestAlpha(c *C) {
 
 	s = "abc1"
 	err = validator.ValidateFieldByTag(s, "alpha")
-	c.Assert(err.Error(), Equals, "alpha")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "alpha")
 
 	c.Assert(func() { validator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "Bad field type int")
 }
