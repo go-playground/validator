@@ -261,7 +261,7 @@ func isGte(field interface{}, param string) bool {
 		return st.Float() >= p
 
 	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+		panic(fmt.Sprintf("Bad field type %T", field))
 	}
 }
 
@@ -297,7 +297,7 @@ func isGt(field interface{}, param string) bool {
 		return st.Float() > p
 
 	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+		panic(fmt.Sprintf("Bad field type %T", field))
 	}
 }
 
@@ -336,7 +336,7 @@ func hasLengthOf(field interface{}, param string) bool {
 		return st.Float() == p
 
 	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+		panic(fmt.Sprintf("Bad field type %T", field))
 	}
 }
 
@@ -381,7 +381,7 @@ func isLte(field interface{}, param string) bool {
 		return st.Float() <= p
 
 	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+		panic(fmt.Sprintf("Bad field type %T", field))
 	}
 }
 
@@ -417,7 +417,7 @@ func isLt(field interface{}, param string) bool {
 		return st.Float() < p
 
 	default:
-		panic(fmt.Sprintf("Bad field type for Input Param %s for %s\n", param, field))
+		panic(fmt.Sprintf("Bad field type %T", field))
 	}
 }
 
@@ -437,7 +437,7 @@ func asInt(param string) int64 {
 	i, err := strconv.ParseInt(param, 0, 64)
 
 	if err != nil {
-		panic(fmt.Sprintf("Bad Input Param %s\n", param))
+		panic(err.Error())
 	}
 
 	return i
@@ -450,7 +450,7 @@ func asUint(param string) uint64 {
 	i, err := strconv.ParseUint(param, 0, 64)
 
 	if err != nil {
-		panic(fmt.Sprintf("Bad Input Param %s\n", param))
+		panic(err.Error())
 	}
 
 	return i
@@ -463,7 +463,7 @@ func asFloat(param string) float64 {
 	i, err := strconv.ParseFloat(param, 64)
 
 	if err != nil {
-		panic(fmt.Sprintf("Bad Input Param %s\n", param))
+		panic(err.Error())
 	}
 
 	return i
