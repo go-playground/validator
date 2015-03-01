@@ -1,11 +1,14 @@
 language: go
+
 notificaitons:
   email:
     recipients: dean.karn@gmail.com
     on_success: change
     on_failure: always
+
 before_script:
 - go get gopkg.in/check.v1
+
 go:
   - 1.2
   - 1.3
