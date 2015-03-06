@@ -123,9 +123,33 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
-func newValidatorFunc(field interface{}, param string) bool {
+func newValidatorFunc(val interface{}, field interface{}, param string) bool {
 
 	return true
+}
+
+func isEqualFunc(val interface{}, field interface{}, param string) bool {
+
+	return val.(string) == field.(string)
+}
+
+func (ms *MySuite) TestValidateByTagAndValue(c *C) {
+
+	val := "test"
+	field := "test"
+	err := validator.ValidateFieldByTagAndValue(val, field, "required")
+	c.Assert(err, IsNil)
+
+	validator.AddFunction("isequaltestfunc", isEqualFunc)
+
+	err = validator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
+	c.Assert(err, IsNil)
+
+	val = "unequal"
+
+	err = validator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "isequaltestfunc")
 }
 
 func (ms *MySuite) TestAddFunctions(c *C) {
