@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -215,10 +216,21 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 				continue
 			}
 
-			if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
-				validationErrors.StructErrors[typeField.Name] = structErrors
-				// free up memory map no longer needed
-				structErrors = nil
+			if valueField.Type() == reflect.TypeOf(time.Time{}) {
+
+				if fieldError := v.validateFieldByNameAndTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
+					validationErrors.Errors[fieldError.Field] = fieldError
+					// free up memory reference
+					fieldError = nil
+				}
+
+			} else {
+
+				if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
+					validationErrors.StructErrors[typeField.Name] = structErrors
+					// free up memory map no longer needed
+					structErrors = nil
+				}
 			}
 
 		default:
@@ -270,7 +282,10 @@ func (v *Validator) validateFieldByNameAndTag(f interface{}, name string, tag st
 	switch valueField.Kind() {
 
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
-		panic("Invalid field passed to ValidateFieldWithTag")
+
+		if valueField.Type() != reflect.TypeOf(time.Time{}) {
+			panic("Invalid field passed to ValidateFieldWithTag")
+		}
 	}
 
 	var valErr *FieldValidationError
