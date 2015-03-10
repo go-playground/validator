@@ -2,6 +2,7 @@ package validator_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -197,6 +198,7 @@ func (ms *MySuite) TestUnexposedStruct(c *C) {
 			A string `validate:"required"`
 		}
 	}
+
 	s := &Test{
 		Name: "TEST",
 	}
@@ -290,6 +292,7 @@ func (ms *MySuite) TestIsGte(c *C) {
 	err = validator.ValidateFieldByTag(t2, "gte")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "gte")
+	c.Assert(err.Type, Equals, reflect.TypeOf(time.Time{}))
 
 	type Test struct {
 		Now *time.Time `validate:"gte"`
