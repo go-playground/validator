@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -174,75 +175,6 @@ func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 	}
 
 	return v.validateStructRecursive(s, s)
-	// structValue := reflect.ValueOf(s)
-	// structType := reflect.TypeOf(s)
-	// structName := structType.Name()
-
-	// validationErrors := &StructValidationErrors{
-	// 	Struct:       structName,
-	// 	Errors:       map[string]*FieldValidationError{},
-	// 	StructErrors: map[string]*StructValidationErrors{},
-	// }
-
-	// if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
-	// 	return v.ValidateStruct(structValue.Elem().Interface())
-	// }
-
-	// if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
-	// 	panic("interface passed for validation is not a struct")
-	// }
-
-	// var numFields = structValue.NumField()
-
-	// for i := 0; i < numFields; i++ {
-
-	// 	valueField := structValue.Field(i)
-	// 	typeField := structType.Field(i)
-
-	// 	if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
-	// 		valueField = valueField.Elem()
-	// 	}
-
-	// 	tag := typeField.Tag.Get(v.tagName)
-
-	// 	if tag == "-" {
-	// 		continue
-	// 	}
-
-	// 	// if no validation and not a struct (which may containt fields for validation)
-	// 	if tag == "" && valueField.Kind() != reflect.Struct && valueField.Kind() != reflect.Interface {
-	// 		continue
-	// 	}
-
-	// 	switch valueField.Kind() {
-
-	// 	case reflect.Struct, reflect.Interface:
-
-	// 		if !unicode.IsUpper(rune(typeField.Name[0])) {
-	// 			continue
-	// 		}
-
-	// 		if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
-	// 			validationErrors.StructErrors[typeField.Name] = structErrors
-	// 			// free up memory map no longer needed
-	// 			structErrors = nil
-	// 		}
-
-	// 	default:
-
-	// 		if fieldError := v.validateFieldByNameAndTag(valueField.Interface(), typeField.Name, tag); fieldError != nil {
-	// 			validationErrors.Errors[fieldError.Field] = fieldError
-	// 			// free up memory reference
-	// 			fieldError = nil
-	// 		}
-	// 	}
-	// }
-
-	// if len(validationErrors.Errors) == 0 && len(validationErrors.StructErrors) == 0 {
-	// 	return nil
-	// }
-
-	// return validationErrors
 }
 
 // validateStructRecursive validates a struct recursivly and passes the top level struct around for use in validator functions and returns a struct containing the errors
@@ -296,10 +228,21 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 				continue
 			}
 
-			if structErrors := v.validateStructRecursive(top, valueField.Interface()); structErrors != nil {
-				validationErrors.StructErrors[typeField.Name] = structErrors
-				// free up memory map no longer needed
-				structErrors = nil
+			if valueField.Type() == reflect.TypeOf(time.Time{}) {
+
+				if fieldError := v.validateFieldByNameAndTagAndValue(top, valueField.Interface(), typeField.Name, tag); fieldError != nil {
+					validationErrors.Errors[fieldError.Field] = fieldError
+					// free up memory reference
+					fieldError = nil
+				}
+
+			} else {
+
+				if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
+					validationErrors.StructErrors[typeField.Name] = structErrors
+					// free up memory map no longer needed
+					structErrors = nil
+				}
 			}
 
 		default:
@@ -363,7 +306,10 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 	switch valueField.Kind() {
 
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
-		panic("Invalid field passed to ValidateFieldWithTag")
+
+		if valueField.Type() != reflect.TypeOf(time.Time{}) {
+			panic("Invalid field passed to ValidateFieldWithTag")
+		}
 	}
 
 	var valErr *FieldValidationError
