@@ -194,10 +194,14 @@ Here is a list of the current built in validators:
 		parameter given. For strings, it checks that the string length
 		is greater than that number of characters. For slices, arrays
 		and maps it validates the number of items. (Usage: gt=10)
+		For time.Time ensures the time value is greater than time.Now.UTC()
+		(Usage: gt)
 
 	gte
 		Same as 'min' above. Kept both to make terminology with 'len' easier
 		(Usage: gte=10)
+		For time.Time ensures the time value is greater than or equal to time.Now.UTC()
+		(Usage: gte)
 
 	lt
 		For numbers, this will ensure that the value is
@@ -205,10 +209,14 @@ Here is a list of the current built in validators:
 		that the string length is less than that number of characters.
 		For slices, arrays, and maps it validates the number of items.
 		(Usage: lt=10)
+		For time.Time ensures the time value is less than time.Now.UTC()
+		(Usage: lt)
 
 	lte
 		Same as 'max' above. Kept both to make terminology with 'len' easier
 		(Usage: lte=10)
+		For time.Time ensures the time value is less than or equal to time.Now.UTC()
+		(Usage: lte)
 
 	alpha
 		This validates that a strings value contains alpha characters only
