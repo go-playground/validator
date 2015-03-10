@@ -82,7 +82,7 @@ Custom Functions
 Custom functions can be added
 
 	//Structure
-	func customFunc(field interface{}, param string) bool {
+	func customFunc(val interface{}, field interface{}, param string) bool {
 
 		if whatever {
 			return false
@@ -92,8 +92,34 @@ Custom functions can be added
 	}
 
 	validator.AddFunction("custom tag name", customFunc)
-	// NOTE: using the same tag name as an existing function
-	//       will overwrite the existing one
+	// NOTES: using the same tag name as an existing function
+	//        will overwrite the existing one
+
+Cross Field Validation
+
+Cross Field Validation can be implemented, for example Start & End Date range validation
+
+	// NOTE: when calling validator.validateStruct(val) val will be the top level struct passed
+	//       into the function
+	//       when calling validator.ValidateFieldByTagAndValue(val, field, tag) val will be
+	//       whatever you pass, struct, field...
+	//       when calling validator.ValidateFieldByTag(field, tag) val will be nil
+	//
+	// Because of the specific requirements and field names within each persons project that
+	// uses this library it is unlikely that any baked in function for this type of validation
+	// would be added, but you can add your own custom ones and keep all your validation logic
+	// in one place.
+
+	func isDateRangeValid(val interface{}, field interface{}, param string) bool {
+
+		myStruct := val.(myStructType)
+
+		if myStruct.Start.After(field.(time.Time)) {
+			return false
+		}
+
+		return true
+	}
 
 Custom Tag Name
 
