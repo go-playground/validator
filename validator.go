@@ -29,6 +29,7 @@ type FieldValidationError struct {
 	Field    string
 	ErrorTag string
 	Kind     reflect.Kind
+	Type     reflect.Type
 	Param    string
 	Value    interface{}
 }
@@ -168,12 +169,6 @@ func ValidateStruct(s interface{}) *StructValidationErrors {
 // ValidateStruct validates a struct and returns a struct containing the errors
 func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 
-	structValue := reflect.ValueOf(s)
-
-	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
-		return v.ValidateStruct(structValue.Elem().Interface())
-	}
-
 	return v.validateStructRecursive(s, s)
 }
 
@@ -298,16 +293,19 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 	}
 
 	valueField := reflect.ValueOf(f)
+	fieldKind := valueField.Kind()
 
-	if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
+	if fieldKind == reflect.Ptr && !valueField.IsNil() {
 		return v.validateFieldByNameAndTagAndValue(val, valueField.Elem().Interface(), name, tag)
 	}
 
-	switch valueField.Kind() {
+	fieldType := valueField.Type()
+
+	switch fieldKind {
 
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
 
-		if valueField.Type() != reflect.TypeOf(time.Time{}) {
+		if fieldType != reflect.TypeOf(time.Time{}) {
 			panic("Invalid field passed to ValidateFieldWithTag")
 		}
 	}
@@ -339,13 +337,15 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 			errTag = strings.TrimLeft(errTag, "|")
 
 			valErr.ErrorTag = errTag
-			valErr.Kind = valueField.Kind()
+			valErr.Kind = fieldKind
 
 			return valErr
 		}
 
 		if valErr, err = v.validateFieldByNameAndSingleTag(val, f, name, valTag); err != nil {
+
 			valErr.Kind = valueField.Kind()
+			valErr.Type = fieldType
 
 			return valErr
 		}
