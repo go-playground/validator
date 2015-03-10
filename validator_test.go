@@ -3,6 +3,7 @@ package validator_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/joeybloggs/go-validate-yourself"
 	. "gopkg.in/check.v1"
@@ -242,12 +243,70 @@ func (ms *MySuite) TestIsGt(c *C) {
 
 	i := true
 	c.Assert(func() { validator.ValidateFieldByTag(i, "gt") }, PanicMatches, "Bad field type bool")
+
+	t := time.Now().UTC()
+	t = t.Add(time.Hour * 24)
+
+	err = validator.ValidateFieldByTag(t, "gt")
+	c.Assert(err, IsNil)
+
+	t2 := time.Now().UTC()
+
+	err = validator.ValidateFieldByTag(t2, "gt")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "gt")
+
+	type Test struct {
+		Now *time.Time `validate:"gt"`
+	}
+	s := &Test{
+		Now: &t,
+	}
+
+	errs := validator.ValidateStruct(s)
+	c.Assert(errs, IsNil)
+
+	s = &Test{
+		Now: &t2,
+	}
+
+	errs = validator.ValidateStruct(s)
+	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsGte(c *C) {
 
 	i := true
 	c.Assert(func() { validator.ValidateFieldByTag(i, "gte") }, PanicMatches, "Bad field type bool")
+
+	t := time.Now().UTC()
+	t = t.Add(time.Hour * 24)
+
+	err := validator.ValidateFieldByTag(t, "gte")
+	c.Assert(err, IsNil)
+
+	t2 := time.Now().UTC()
+
+	err = validator.ValidateFieldByTag(t2, "gte")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "gte")
+
+	type Test struct {
+		Now *time.Time `validate:"gte"`
+	}
+	s := &Test{
+		Now: &t,
+	}
+
+	errs := validator.ValidateStruct(s)
+	c.Assert(errs, IsNil)
+
+	s = &Test{
+		Now: &t2,
+	}
+
+	errs = validator.ValidateStruct(s)
+	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsLt(c *C) {
@@ -266,12 +325,72 @@ func (ms *MySuite) TestIsLt(c *C) {
 
 	i := true
 	c.Assert(func() { validator.ValidateFieldByTag(i, "lt") }, PanicMatches, "Bad field type bool")
+
+	t := time.Now().UTC()
+
+	err = validator.ValidateFieldByTag(t, "lt")
+	c.Assert(err, IsNil)
+
+	t2 := time.Now().UTC()
+	t2 = t2.Add(time.Hour * 24)
+
+	err = validator.ValidateFieldByTag(t2, "lt")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "lt")
+
+	type Test struct {
+		Now *time.Time `validate:"lt"`
+	}
+
+	s := &Test{
+		Now: &t,
+	}
+
+	errs := validator.ValidateStruct(s)
+	c.Assert(errs, IsNil)
+
+	s = &Test{
+		Now: &t2,
+	}
+
+	errs = validator.ValidateStruct(s)
+	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsLte(c *C) {
 
 	i := true
 	c.Assert(func() { validator.ValidateFieldByTag(i, "lte") }, PanicMatches, "Bad field type bool")
+
+	t := time.Now().UTC()
+
+	err := validator.ValidateFieldByTag(t, "lte")
+	c.Assert(err, IsNil)
+
+	t2 := time.Now().UTC()
+	t2 = t2.Add(time.Hour * 24)
+
+	err = validator.ValidateFieldByTag(t2, "lte")
+	c.Assert(err, NotNil)
+	c.Assert(err.ErrorTag, Equals, "lte")
+
+	type Test struct {
+		Now *time.Time `validate:"lte"`
+	}
+
+	s := &Test{
+		Now: &t,
+	}
+
+	errs := validator.ValidateStruct(s)
+	c.Assert(errs, IsNil)
+
+	s = &Test{
+		Now: &t2,
+	}
+
+	errs = validator.ValidateStruct(s)
+	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestUrl(c *C) {

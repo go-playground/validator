@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 // BakedInValidators is the map of ValidationFunc used internally
@@ -43,9 +44,9 @@ func isURI(val interface{}, field interface{}, param string) bool {
 		_, err := url.ParseRequestURI(field.(string))
 
 		return err == nil
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isURL(val interface{}, field interface{}, param string) bool {
@@ -66,10 +67,9 @@ func isURL(val interface{}, field interface{}, param string) bool {
 		}
 
 		return err == nil
-
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isEmail(val interface{}, field interface{}, param string) bool {
@@ -80,9 +80,9 @@ func isEmail(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return emailRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isHsla(val interface{}, field interface{}, param string) bool {
@@ -93,9 +93,9 @@ func isHsla(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return hslaRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isHsl(val interface{}, field interface{}, param string) bool {
@@ -106,9 +106,9 @@ func isHsl(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return hslRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isRgba(val interface{}, field interface{}, param string) bool {
@@ -119,9 +119,9 @@ func isRgba(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return rgbaRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isRgb(val interface{}, field interface{}, param string) bool {
@@ -132,9 +132,9 @@ func isRgb(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return rgbRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isHexcolor(val interface{}, field interface{}, param string) bool {
@@ -145,9 +145,9 @@ func isHexcolor(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return hexcolorRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isHexadecimal(val interface{}, field interface{}, param string) bool {
@@ -158,9 +158,9 @@ func isHexadecimal(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return hexadecimalRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isNumber(val interface{}, field interface{}, param string) bool {
@@ -171,9 +171,9 @@ func isNumber(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return numberRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isNumeric(val interface{}, field interface{}, param string) bool {
@@ -184,9 +184,9 @@ func isNumeric(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return numericRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isAlphanum(val interface{}, field interface{}, param string) bool {
@@ -197,9 +197,9 @@ func isAlphanum(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return alphaNumericRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isAlpha(val interface{}, field interface{}, param string) bool {
@@ -210,9 +210,9 @@ func isAlpha(val interface{}, field interface{}, param string) bool {
 
 	case reflect.String:
 		return alphaRegex.MatchString(field.(string))
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func hasValue(val interface{}, field interface{}, param string) bool {
@@ -260,9 +260,18 @@ func isGte(val interface{}, field interface{}, param string) bool {
 
 		return st.Float() >= p
 
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
+	case reflect.Struct:
+
+		if st.Type() == reflect.TypeOf(field) {
+
+			now := time.Now().UTC()
+			t := field.(time.Time)
+
+			return t.After(now) || t.Equal(now)
+		}
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isGt(val interface{}, field interface{}, param string) bool {
@@ -295,10 +304,15 @@ func isGt(val interface{}, field interface{}, param string) bool {
 		p := asFloat(param)
 
 		return st.Float() > p
+	case reflect.Struct:
 
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
+		if st.Type() == reflect.TypeOf(field) {
+
+			return field.(time.Time).After(time.Now().UTC())
+		}
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 // length tests whether a variable's length is equal to a given
@@ -334,10 +348,9 @@ func hasLengthOf(val interface{}, field interface{}, param string) bool {
 		p := asFloat(param)
 
 		return st.Float() == p
-
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 // min tests whether a variable value is larger or equal to a given
@@ -380,9 +393,18 @@ func isLte(val interface{}, field interface{}, param string) bool {
 
 		return st.Float() <= p
 
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
+	case reflect.Struct:
+
+		if st.Type() == reflect.TypeOf(field) {
+
+			now := time.Now().UTC()
+			t := field.(time.Time)
+
+			return t.Before(now) || t.Equal(now)
+		}
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 func isLt(val interface{}, field interface{}, param string) bool {
@@ -416,9 +438,15 @@ func isLt(val interface{}, field interface{}, param string) bool {
 
 		return st.Float() < p
 
-	default:
-		panic(fmt.Sprintf("Bad field type %T", field))
+	case reflect.Struct:
+
+		if st.Type() == reflect.TypeOf(field) {
+
+			return field.(time.Time).Before(time.Now().UTC())
+		}
 	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
 // max tests whether a variable value is lesser than a given
