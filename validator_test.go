@@ -97,6 +97,8 @@ type MySuite struct{}
 
 var _ = Suite(&MySuite{})
 
+var myValidator = validator.NewValidator("validate", validator.BakedInValidators)
+
 func AssetStruct(s *validator.StructValidationErrors, structFieldName string, expectedStructName string, c *C) *validator.StructValidationErrors {
 
 	val, ok := s.StructErrors[structFieldName]
@@ -151,7 +153,7 @@ func (ms *MySuite) TestGtField(c *C) {
 		End:   &end,
 	}
 
-	errs := validator.ValidateStruct(timeTest)
+	errs := myValidator.ValidateStruct(timeTest)
 	c.Assert(errs, IsNil)
 
 	timeTest = &TimeTest{
@@ -159,14 +161,14 @@ func (ms *MySuite) TestGtField(c *C) {
 		End:   &start,
 	}
 
-	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	errs2 := myValidator.ValidateStruct(timeTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "End", "gtfield", c)
 
-	err3 := validator.ValidateFieldByTagAndValue(&start, &end, "gtfield")
+	err3 := myValidator.ValidateFieldByTagAndValue(&start, &end, "gtfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(&end, &start, "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(&end, &start, "gtfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtfield")
 
@@ -180,7 +182,7 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(intTest)
+	errs = myValidator.ValidateStruct(intTest)
 	c.Assert(errs, IsNil)
 
 	intTest = &IntTest{
@@ -188,14 +190,14 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(intTest).Flatten()
+	errs2 = myValidator.ValidateStruct(intTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(1), int(5), "gtfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(5), int(1), "gtfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtfield")
 
@@ -209,7 +211,7 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(uIntTest)
+	errs = myValidator.ValidateStruct(uIntTest)
 	c.Assert(errs, IsNil)
 
 	uIntTest = &UIntTest{
@@ -217,14 +219,14 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	errs2 = myValidator.ValidateStruct(uIntTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtfield")
 
@@ -238,7 +240,7 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(floatTest)
+	errs = myValidator.ValidateStruct(floatTest)
 	c.Assert(errs, IsNil)
 
 	floatTest = &FloatTest{
@@ -246,20 +248,20 @@ func (ms *MySuite) TestGtField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	errs2 = myValidator.ValidateStruct(floatTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtfield")
 
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 1, "gtfield") }, PanicMatches, "struct not passed for cross validation")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, "T", "gtfield") }, PanicMatches, "Bad field type string")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, start, "gtfield") }, PanicMatches, "Bad Top Level field type")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(nil, 1, "gtfield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(5, "T", "gtfield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(5, start, "gtfield") }, PanicMatches, "Bad Top Level field type")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -271,7 +273,7 @@ func (ms *MySuite) TestGtField(c *C) {
 		End:   &end,
 	}
 
-	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+	c.Assert(func() { myValidator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
 }
 
 func (ms *MySuite) TestLtField(c *C) {
@@ -290,7 +292,7 @@ func (ms *MySuite) TestLtField(c *C) {
 		End:   &end,
 	}
 
-	errs := validator.ValidateStruct(timeTest)
+	errs := myValidator.ValidateStruct(timeTest)
 	c.Assert(errs, IsNil)
 
 	timeTest = &TimeTest{
@@ -298,14 +300,14 @@ func (ms *MySuite) TestLtField(c *C) {
 		End:   &start,
 	}
 
-	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	errs2 := myValidator.ValidateStruct(timeTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Start", "ltfield", c)
 
-	err3 := validator.ValidateFieldByTagAndValue(&end, &start, "ltfield")
+	err3 := myValidator.ValidateFieldByTagAndValue(&end, &start, "ltfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(&start, &end, "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(&start, &end, "ltfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltfield")
 
@@ -319,7 +321,7 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(intTest)
+	errs = myValidator.ValidateStruct(intTest)
 	c.Assert(errs, IsNil)
 
 	intTest = &IntTest{
@@ -327,14 +329,14 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(intTest).Flatten()
+	errs2 = myValidator.ValidateStruct(intTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(5), int(1), "ltfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(1), int(5), "ltfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltfield")
 
@@ -348,7 +350,7 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(uIntTest)
+	errs = myValidator.ValidateStruct(uIntTest)
 	c.Assert(errs, IsNil)
 
 	uIntTest = &UIntTest{
@@ -356,14 +358,14 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	errs2 = myValidator.ValidateStruct(uIntTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltfield")
 
@@ -377,7 +379,7 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(floatTest)
+	errs = myValidator.ValidateStruct(floatTest)
 	c.Assert(errs, IsNil)
 
 	floatTest = &FloatTest{
@@ -385,20 +387,20 @@ func (ms *MySuite) TestLtField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	errs2 = myValidator.ValidateStruct(floatTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltfield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltfield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltfield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltfield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltfield")
 
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 5, "ltfield") }, PanicMatches, "struct not passed for cross validation")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, "T", "ltfield") }, PanicMatches, "Bad field type string")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, end, "ltfield") }, PanicMatches, "Bad Top Level field type")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(nil, 5, "ltfield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(1, "T", "ltfield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(1, end, "ltfield") }, PanicMatches, "Bad Top Level field type")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -410,7 +412,7 @@ func (ms *MySuite) TestLtField(c *C) {
 		End:   &start,
 	}
 
-	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+	c.Assert(func() { myValidator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
 }
 
 func (ms *MySuite) TestLteField(c *C) {
@@ -429,7 +431,7 @@ func (ms *MySuite) TestLteField(c *C) {
 		End:   &end,
 	}
 
-	errs := validator.ValidateStruct(timeTest)
+	errs := myValidator.ValidateStruct(timeTest)
 	c.Assert(errs, IsNil)
 
 	timeTest = &TimeTest{
@@ -437,14 +439,14 @@ func (ms *MySuite) TestLteField(c *C) {
 		End:   &start,
 	}
 
-	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	errs2 := myValidator.ValidateStruct(timeTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Start", "ltefield", c)
 
-	err3 := validator.ValidateFieldByTagAndValue(&end, &start, "ltefield")
+	err3 := myValidator.ValidateFieldByTagAndValue(&end, &start, "ltefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(&start, &end, "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(&start, &end, "ltefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltefield")
 
@@ -458,7 +460,7 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(intTest)
+	errs = myValidator.ValidateStruct(intTest)
 	c.Assert(errs, IsNil)
 
 	intTest = &IntTest{
@@ -466,14 +468,14 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(intTest).Flatten()
+	errs2 = myValidator.ValidateStruct(intTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(5), int(1), "ltefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(1), int(5), "ltefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltefield")
 
@@ -487,7 +489,7 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(uIntTest)
+	errs = myValidator.ValidateStruct(uIntTest)
 	c.Assert(errs, IsNil)
 
 	uIntTest = &UIntTest{
@@ -495,14 +497,14 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	errs2 = myValidator.ValidateStruct(uIntTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltefield")
 
@@ -516,7 +518,7 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 1,
 	}
 
-	errs = validator.ValidateStruct(floatTest)
+	errs = myValidator.ValidateStruct(floatTest)
 	c.Assert(errs, IsNil)
 
 	floatTest = &FloatTest{
@@ -524,20 +526,20 @@ func (ms *MySuite) TestLteField(c *C) {
 		Val2: 5,
 	}
 
-	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	errs2 = myValidator.ValidateStruct(floatTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "ltefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "ltefield")
 
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 5, "ltefield") }, PanicMatches, "struct not passed for cross validation")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, "T", "ltefield") }, PanicMatches, "Bad field type string")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, end, "ltefield") }, PanicMatches, "Bad Top Level field type")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(nil, 5, "ltefield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(1, "T", "ltefield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(1, end, "ltefield") }, PanicMatches, "Bad Top Level field type")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -549,7 +551,7 @@ func (ms *MySuite) TestLteField(c *C) {
 		End:   &start,
 	}
 
-	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+	c.Assert(func() { myValidator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
 }
 
 func (ms *MySuite) TestGteField(c *C) {
@@ -568,7 +570,7 @@ func (ms *MySuite) TestGteField(c *C) {
 		End:   &end,
 	}
 
-	errs := validator.ValidateStruct(timeTest)
+	errs := myValidator.ValidateStruct(timeTest)
 	c.Assert(errs, IsNil)
 
 	timeTest = &TimeTest{
@@ -576,14 +578,14 @@ func (ms *MySuite) TestGteField(c *C) {
 		End:   &start,
 	}
 
-	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	errs2 := myValidator.ValidateStruct(timeTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "End", "gtefield", c)
 
-	err3 := validator.ValidateFieldByTagAndValue(&start, &end, "gtefield")
+	err3 := myValidator.ValidateFieldByTagAndValue(&start, &end, "gtefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(&end, &start, "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(&end, &start, "gtefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtefield")
 
@@ -597,7 +599,7 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(intTest)
+	errs = myValidator.ValidateStruct(intTest)
 	c.Assert(errs, IsNil)
 
 	intTest = &IntTest{
@@ -605,14 +607,14 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(intTest).Flatten()
+	errs2 = myValidator.ValidateStruct(intTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(1), int(5), "gtefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(int(5), int(1), "gtefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtefield")
 
@@ -626,7 +628,7 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(uIntTest)
+	errs = myValidator.ValidateStruct(uIntTest)
 	c.Assert(errs, IsNil)
 
 	uIntTest = &UIntTest{
@@ -634,14 +636,14 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	errs2 = myValidator.ValidateStruct(uIntTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtefield")
 
@@ -655,7 +657,7 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 5,
 	}
 
-	errs = validator.ValidateStruct(floatTest)
+	errs = myValidator.ValidateStruct(floatTest)
 	c.Assert(errs, IsNil)
 
 	floatTest = &FloatTest{
@@ -663,20 +665,20 @@ func (ms *MySuite) TestGteField(c *C) {
 		Val2: 1,
 	}
 
-	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	errs2 = myValidator.ValidateStruct(floatTest).Flatten()
 	c.Assert(errs2, NotNil)
 	AssertMapFieldError(errs2, "Val2", "gtefield", c)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtefield")
 	c.Assert(err3, IsNil)
 
-	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtefield")
+	err3 = myValidator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtefield")
 	c.Assert(err3, NotNil)
 	c.Assert(err3.ErrorTag, Equals, "gtefield")
 
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 1, "gtefield") }, PanicMatches, "struct not passed for cross validation")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, "T", "gtefield") }, PanicMatches, "Bad field type string")
-	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, start, "gtefield") }, PanicMatches, "Bad Top Level field type")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(nil, 1, "gtefield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(5, "T", "gtefield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { myValidator.ValidateFieldByTagAndValue(5, start, "gtefield") }, PanicMatches, "Bad Top Level field type")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -688,24 +690,24 @@ func (ms *MySuite) TestGteField(c *C) {
 		End:   &end,
 	}
 
-	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+	c.Assert(func() { myValidator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
 }
 
 func (ms *MySuite) TestValidateByTagAndValue(c *C) {
 
 	val := "test"
 	field := "test"
-	err := validator.ValidateFieldByTagAndValue(val, field, "required")
+	err := myValidator.ValidateFieldByTagAndValue(val, field, "required")
 	c.Assert(err, IsNil)
 
-	validator.AddFunction("isequaltestfunc", isEqualFunc)
+	myValidator.AddFunction("isequaltestfunc", isEqualFunc)
 
-	err = validator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
+	err = myValidator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
 	c.Assert(err, IsNil)
 
 	val = "unequal"
 
-	err = validator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
+	err = myValidator.ValidateFieldByTagAndValue(val, field, "isequaltestfunc")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "isequaltestfunc")
 }
@@ -723,7 +725,7 @@ func (ms *MySuite) TestAddFunctions(c *C) {
 	validate.AddFunction("new", nil)
 	c.Assert(err, NotNil)
 
-	err = validator.AddFunction("new", newValidatorFunc)
+	err = validate.AddFunction("new", newValidatorFunc)
 	c.Assert(err, IsNil)
 }
 
@@ -739,11 +741,11 @@ func (ms *MySuite) TestChangeTag(c *C) {
 		Name: "TEST",
 	}
 
-	err := validator.ValidateStruct(s)
+	err := validate.ValidateStruct(s)
 	c.Assert(err, IsNil)
 
-	validator.SetTag("v")
-	validator.SetTag("validate")
+	// validator.SetTag("v")
+	// validator.SetTag("validate")
 }
 
 func (ms *MySuite) TestUnexposedStruct(c *C) {
@@ -759,58 +761,58 @@ func (ms *MySuite) TestUnexposedStruct(c *C) {
 		Name: "TEST",
 	}
 
-	err := validator.ValidateStruct(s)
+	err := myValidator.ValidateStruct(s)
 	c.Assert(err, IsNil)
 }
 
 func (ms *MySuite) TestBadParams(c *C) {
 
 	i := 1
-	err := validator.ValidateFieldByTag(i, "-")
+	err := myValidator.ValidateFieldByTag(i, "-")
 	c.Assert(err, IsNil)
 
-	c.Assert(func() { validator.ValidateFieldByTag(i, "len=a") }, PanicMatches, "strconv.ParseInt: parsing \"a\": invalid syntax")
-	c.Assert(func() { validator.ValidateFieldByTag(i, "len=a") }, PanicMatches, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "len=a") }, PanicMatches, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "len=a") }, PanicMatches, "strconv.ParseInt: parsing \"a\": invalid syntax")
 
 	var ui uint = 1
-	c.Assert(func() { validator.ValidateFieldByTag(ui, "len=a") }, PanicMatches, "strconv.ParseUint: parsing \"a\": invalid syntax")
+	c.Assert(func() { myValidator.ValidateFieldByTag(ui, "len=a") }, PanicMatches, "strconv.ParseUint: parsing \"a\": invalid syntax")
 
 	f := 1.23
-	c.Assert(func() { validator.ValidateFieldByTag(f, "len=a") }, PanicMatches, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+	c.Assert(func() { myValidator.ValidateFieldByTag(f, "len=a") }, PanicMatches, "strconv.ParseFloat: parsing \"a\": invalid syntax")
 }
 
 func (ms *MySuite) TestLength(c *C) {
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "len") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "len") }, PanicMatches, "Bad field type bool")
 }
 
 func (ms *MySuite) TestIsGt(c *C) {
 
 	myMap := map[string]string{}
-	err := validator.ValidateFieldByTag(myMap, "gt=0")
+	err := myValidator.ValidateFieldByTag(myMap, "gt=0")
 	c.Assert(err, NotNil)
 
 	f := 1.23
-	err = validator.ValidateFieldByTag(f, "gt=5")
+	err = myValidator.ValidateFieldByTag(f, "gt=5")
 	c.Assert(err, NotNil)
 
 	var ui uint = 5
-	err = validator.ValidateFieldByTag(ui, "gt=10")
+	err = myValidator.ValidateFieldByTag(ui, "gt=10")
 	c.Assert(err, NotNil)
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "gt") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "gt") }, PanicMatches, "Bad field type bool")
 
 	t := time.Now().UTC()
 	t = t.Add(time.Hour * 24)
 
-	err = validator.ValidateFieldByTag(t, "gt")
+	err = myValidator.ValidateFieldByTag(t, "gt")
 	c.Assert(err, IsNil)
 
 	t2 := time.Now().UTC()
 
-	err = validator.ValidateFieldByTag(t2, "gt")
+	err = myValidator.ValidateFieldByTag(t2, "gt")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "gt")
 
@@ -821,31 +823,31 @@ func (ms *MySuite) TestIsGt(c *C) {
 		Now: &t,
 	}
 
-	errs := validator.ValidateStruct(s)
+	errs := myValidator.ValidateStruct(s)
 	c.Assert(errs, IsNil)
 
 	s = &Test{
 		Now: &t2,
 	}
 
-	errs = validator.ValidateStruct(s)
+	errs = myValidator.ValidateStruct(s)
 	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsGte(c *C) {
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "gte") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "gte") }, PanicMatches, "Bad field type bool")
 
 	t := time.Now().UTC()
 	t = t.Add(time.Hour * 24)
 
-	err := validator.ValidateFieldByTag(t, "gte")
+	err := myValidator.ValidateFieldByTag(t, "gte")
 	c.Assert(err, IsNil)
 
 	t2 := time.Now().UTC()
 
-	err = validator.ValidateFieldByTag(t2, "gte")
+	err = myValidator.ValidateFieldByTag(t2, "gte")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "gte")
 	c.Assert(err.Type, Equals, reflect.TypeOf(time.Time{}))
@@ -857,43 +859,43 @@ func (ms *MySuite) TestIsGte(c *C) {
 		Now: &t,
 	}
 
-	errs := validator.ValidateStruct(s)
+	errs := myValidator.ValidateStruct(s)
 	c.Assert(errs, IsNil)
 
 	s = &Test{
 		Now: &t2,
 	}
 
-	errs = validator.ValidateStruct(s)
+	errs = myValidator.ValidateStruct(s)
 	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsLt(c *C) {
 
 	myMap := map[string]string{}
-	err := validator.ValidateFieldByTag(myMap, "lt=0")
+	err := myValidator.ValidateFieldByTag(myMap, "lt=0")
 	c.Assert(err, NotNil)
 
 	f := 1.23
-	err = validator.ValidateFieldByTag(f, "lt=0")
+	err = myValidator.ValidateFieldByTag(f, "lt=0")
 	c.Assert(err, NotNil)
 
 	var ui uint = 5
-	err = validator.ValidateFieldByTag(ui, "lt=0")
+	err = myValidator.ValidateFieldByTag(ui, "lt=0")
 	c.Assert(err, NotNil)
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "lt") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "lt") }, PanicMatches, "Bad field type bool")
 
 	t := time.Now().UTC()
 
-	err = validator.ValidateFieldByTag(t, "lt")
+	err = myValidator.ValidateFieldByTag(t, "lt")
 	c.Assert(err, IsNil)
 
 	t2 := time.Now().UTC()
 	t2 = t2.Add(time.Hour * 24)
 
-	err = validator.ValidateFieldByTag(t2, "lt")
+	err = myValidator.ValidateFieldByTag(t2, "lt")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "lt")
 
@@ -905,31 +907,31 @@ func (ms *MySuite) TestIsLt(c *C) {
 		Now: &t,
 	}
 
-	errs := validator.ValidateStruct(s)
+	errs := myValidator.ValidateStruct(s)
 	c.Assert(errs, IsNil)
 
 	s = &Test{
 		Now: &t2,
 	}
 
-	errs = validator.ValidateStruct(s)
+	errs = myValidator.ValidateStruct(s)
 	c.Assert(errs, NotNil)
 }
 
 func (ms *MySuite) TestIsLte(c *C) {
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "lte") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "lte") }, PanicMatches, "Bad field type bool")
 
 	t := time.Now().UTC()
 
-	err := validator.ValidateFieldByTag(t, "lte")
+	err := myValidator.ValidateFieldByTag(t, "lte")
 	c.Assert(err, IsNil)
 
 	t2 := time.Now().UTC()
 	t2 = t2.Add(time.Hour * 24)
 
-	err = validator.ValidateFieldByTag(t2, "lte")
+	err = myValidator.ValidateFieldByTag(t2, "lte")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "lte")
 
@@ -941,14 +943,14 @@ func (ms *MySuite) TestIsLte(c *C) {
 		Now: &t,
 	}
 
-	errs := validator.ValidateStruct(s)
+	errs := myValidator.ValidateStruct(s)
 	c.Assert(errs, IsNil)
 
 	s = &Test{
 		Now: &t2,
 	}
 
-	errs = validator.ValidateStruct(s)
+	errs = myValidator.ValidateStruct(s)
 	c.Assert(errs, NotNil)
 }
 
@@ -994,7 +996,7 @@ func (ms *MySuite) TestUrl(c *C) {
 	}
 	for _, test := range tests {
 
-		err := validator.ValidateFieldByTag(test.param, "url")
+		err := myValidator.ValidateFieldByTag(test.param, "url")
 
 		if test.expected == true {
 			c.Assert(err, IsNil)
@@ -1005,7 +1007,7 @@ func (ms *MySuite) TestUrl(c *C) {
 	}
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "url") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "url") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestUri(c *C) {
@@ -1050,7 +1052,7 @@ func (ms *MySuite) TestUri(c *C) {
 	}
 	for _, test := range tests {
 
-		err := validator.ValidateFieldByTag(test.param, "uri")
+		err := myValidator.ValidateFieldByTag(test.param, "uri")
 
 		if test.expected == true {
 			c.Assert(err, IsNil)
@@ -1061,356 +1063,356 @@ func (ms *MySuite) TestUri(c *C) {
 	}
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "uri") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "uri") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestOrTag(c *C) {
 	s := "rgba(0,31,255,0.5)"
-	err := validator.ValidateFieldByTag(s, "rgb|rgba")
+	err := myValidator.ValidateFieldByTag(s, "rgb|rgba")
 	c.Assert(err, IsNil)
 
 	s = "rgba(0,31,255,0.5)"
-	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=18")
+	err = myValidator.ValidateFieldByTag(s, "rgb|rgba|len=18")
 	c.Assert(err, IsNil)
 
 	s = "this ain't right"
-	err = validator.ValidateFieldByTag(s, "rgb|rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgb|rgba")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgb|rgba")
 
 	s = "this ain't right"
-	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=10")
+	err = myValidator.ValidateFieldByTag(s, "rgb|rgba|len=10")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgb|rgba|len")
 
 	s = "this is right"
-	err = validator.ValidateFieldByTag(s, "rgb|rgba|len=13")
+	err = myValidator.ValidateFieldByTag(s, "rgb|rgba|len=13")
 	c.Assert(err, IsNil)
 
 	s = ""
-	err = validator.ValidateFieldByTag(s, "omitempty,rgb|rgba")
+	err = myValidator.ValidateFieldByTag(s, "omitempty,rgb|rgba")
 	c.Assert(err, IsNil)
 }
 
 func (ms *MySuite) TestHsla(c *C) {
 
 	s := "hsla(360,100%,100%,1)"
-	err := validator.ValidateFieldByTag(s, "hsla")
+	err := myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, IsNil)
 
 	s = "hsla(360,100%,100%,0.5)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, IsNil)
 
 	s = "hsla(0,0%,0%, 0)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, IsNil)
 
 	s = "hsl(361,100%,50%,1)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsl(361,100%,50%)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(361,100%,50%)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(360,101%,50%)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	s = "hsla(360,100%,101%)"
-	err = validator.ValidateFieldByTag(s, "hsla")
+	err = myValidator.ValidateFieldByTag(s, "hsla")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "hsla") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsla") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestHsl(c *C) {
 
 	s := "hsl(360,100%,50%)"
-	err := validator.ValidateFieldByTag(s, "hsl")
+	err := myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, IsNil)
 
 	s = "hsl(0,0%,0%)"
-	err = validator.ValidateFieldByTag(s, "hsl")
+	err = myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, IsNil)
 
 	s = "hsl(361,100%,50%)"
-	err = validator.ValidateFieldByTag(s, "hsl")
+	err = myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(361,101%,50%)"
-	err = validator.ValidateFieldByTag(s, "hsl")
+	err = myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(361,100%,101%)"
-	err = validator.ValidateFieldByTag(s, "hsl")
+	err = myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	s = "hsl(-10,100%,100%)"
-	err = validator.ValidateFieldByTag(s, "hsl")
+	err = myValidator.ValidateFieldByTag(s, "hsl")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "hsl") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsl") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestRgba(c *C) {
 
 	s := "rgba(0,31,255,0.5)"
-	err := validator.ValidateFieldByTag(s, "rgba")
+	err := myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, IsNil)
 
 	s = "rgba(0,31,255,0.12)"
-	err = validator.ValidateFieldByTag(s, "rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, IsNil)
 
 	s = "rgba( 0,  31, 255, 0.5)"
-	err = validator.ValidateFieldByTag(s, "rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, IsNil)
 
 	s = "rgb(0,  31, 255)"
-	err = validator.ValidateFieldByTag(s, "rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	s = "rgb(1,349,275,0.5)"
-	err = validator.ValidateFieldByTag(s, "rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	s = "rgb(01,31,255,0.5)"
-	err = validator.ValidateFieldByTag(s, "rgba")
+	err = myValidator.ValidateFieldByTag(s, "rgba")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "rgba") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgba") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestRgb(c *C) {
 
 	s := "rgb(0,31,255)"
-	err := validator.ValidateFieldByTag(s, "rgb")
+	err := myValidator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, IsNil)
 
 	s = "rgb(0,  31, 255)"
-	err = validator.ValidateFieldByTag(s, "rgb")
+	err = myValidator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, IsNil)
 
 	s = "rgb(1,349,275)"
-	err = validator.ValidateFieldByTag(s, "rgb")
+	err = myValidator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	s = "rgb(01,31,255)"
-	err = validator.ValidateFieldByTag(s, "rgb")
+	err = myValidator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	s = "rgba(0,31,255)"
-	err = validator.ValidateFieldByTag(s, "rgb")
+	err = myValidator.ValidateFieldByTag(s, "rgb")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "rgb") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgb") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestEmail(c *C) {
 
 	s := "test@mail.com"
-	err := validator.ValidateFieldByTag(s, "email")
+	err := myValidator.ValidateFieldByTag(s, "email")
 	c.Assert(err, IsNil)
 
 	s = ""
-	err = validator.ValidateFieldByTag(s, "email")
+	err = myValidator.ValidateFieldByTag(s, "email")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "test@email"
-	err = validator.ValidateFieldByTag(s, "email")
+	err = myValidator.ValidateFieldByTag(s, "email")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "test@email."
-	err = validator.ValidateFieldByTag(s, "email")
+	err = myValidator.ValidateFieldByTag(s, "email")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "email")
 
 	s = "@email.com"
-	err = validator.ValidateFieldByTag(s, "email")
+	err = myValidator.ValidateFieldByTag(s, "email")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "email")
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "email") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "email") }, PanicMatches, "Bad field type bool")
 }
 
 func (ms *MySuite) TestHexColor(c *C) {
 
 	s := "#fff"
-	err := validator.ValidateFieldByTag(s, "hexcolor")
+	err := myValidator.ValidateFieldByTag(s, "hexcolor")
 	c.Assert(err, IsNil)
 
 	s = "#c2c2c2"
-	err = validator.ValidateFieldByTag(s, "hexcolor")
+	err = myValidator.ValidateFieldByTag(s, "hexcolor")
 	c.Assert(err, IsNil)
 
 	s = "fff"
-	err = validator.ValidateFieldByTag(s, "hexcolor")
+	err = myValidator.ValidateFieldByTag(s, "hexcolor")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hexcolor")
 
 	s = "fffFF"
-	err = validator.ValidateFieldByTag(s, "hexcolor")
+	err = myValidator.ValidateFieldByTag(s, "hexcolor")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hexcolor")
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "hexcolor") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexcolor") }, PanicMatches, "Bad field type bool")
 }
 
 func (ms *MySuite) TestHexadecimal(c *C) {
 
 	s := "ff0044"
-	err := validator.ValidateFieldByTag(s, "hexadecimal")
+	err := myValidator.ValidateFieldByTag(s, "hexadecimal")
 	c.Assert(err, IsNil)
 
 	s = "abcdefg"
-	err = validator.ValidateFieldByTag(s, "hexadecimal")
+	err = myValidator.ValidateFieldByTag(s, "hexadecimal")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "hexadecimal")
 
 	i := true
-	c.Assert(func() { validator.ValidateFieldByTag(i, "hexadecimal") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexadecimal") }, PanicMatches, "Bad field type bool")
 }
 
 func (ms *MySuite) TestNumber(c *C) {
 
 	s := "1"
-	err := validator.ValidateFieldByTag(s, "number")
+	err := myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, IsNil)
 
 	s = "+1"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "-1"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1.12"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "+1.12"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "-1.12"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1."
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	s = "1.o"
-	err = validator.ValidateFieldByTag(s, "number")
+	err = myValidator.ValidateFieldByTag(s, "number")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "number") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "number") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestNumeric(c *C) {
 
 	s := "1"
-	err := validator.ValidateFieldByTag(s, "numeric")
+	err := myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "+1"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "-1"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "1.12"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "+1.12"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "-1.12"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, IsNil)
 
 	s = "1."
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "numeric")
 
 	s = "1.o"
-	err = validator.ValidateFieldByTag(s, "numeric")
+	err = myValidator.ValidateFieldByTag(s, "numeric")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "numeric")
 
 	i := 1
-	c.Assert(func() { validator.ValidateFieldByTag(i, "numeric") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "numeric") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestAlphaNumeric(c *C) {
 
 	s := "abcd123"
-	err := validator.ValidateFieldByTag(s, "alphanum")
+	err := myValidator.ValidateFieldByTag(s, "alphanum")
 	c.Assert(err, IsNil)
 
 	s = "abc!23"
-	err = validator.ValidateFieldByTag(s, "alphanum")
+	err = myValidator.ValidateFieldByTag(s, "alphanum")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "alphanum")
 
-	c.Assert(func() { validator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestAlpha(c *C) {
 
 	s := "abcd"
-	err := validator.ValidateFieldByTag(s, "alpha")
+	err := myValidator.ValidateFieldByTag(s, "alpha")
 	c.Assert(err, IsNil)
 
 	s = "abc1"
-	err = validator.ValidateFieldByTag(s, "alpha")
+	err = myValidator.ValidateFieldByTag(s, "alpha")
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "alpha")
 
-	c.Assert(func() { validator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "Bad field type int")
 }
 
 func (ms *MySuite) TestFlattening(c *C) {
@@ -1442,7 +1444,7 @@ func (ms *MySuite) TestFlattening(c *C) {
 		},
 	}
 
-	err1 := validator.ValidateStruct(tSuccess).Flatten()
+	err1 := myValidator.ValidateStruct(tSuccess).Flatten()
 	c.Assert(err1, IsNil)
 
 	tFail := &TestString{
@@ -1465,7 +1467,7 @@ func (ms *MySuite) TestFlattening(c *C) {
 		},
 	}
 
-	err2 := validator.ValidateStruct(tFail).Flatten()
+	err2 := myValidator.ValidateStruct(tFail).Flatten()
 
 	// Assert Top Level
 	c.Assert(err2, NotNil)
@@ -1514,7 +1516,7 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		},
 	}
 
-	err := validator.ValidateStruct(tSuccess)
+	err := myValidator.ValidateStruct(tSuccess)
 	c.Assert(err, IsNil)
 
 	tFail := &TestString{
@@ -1541,7 +1543,7 @@ func (ms *MySuite) TestStructStringValidation(c *C) {
 		},
 	}
 
-	err = validator.ValidateStruct(tFail)
+	err = myValidator.ValidateStruct(tFail)
 
 	// Assert Top Level
 	c.Assert(err, NotNil)
@@ -1588,7 +1590,7 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 		OmitEmpty: 0,
 	}
 
-	err := validator.ValidateStruct(tSuccess)
+	err := myValidator.ValidateStruct(tSuccess)
 	c.Assert(err, IsNil)
 
 	tFail := &TestInt32{
@@ -1604,7 +1606,7 @@ func (ms *MySuite) TestStructInt32Validation(c *C) {
 		OmitEmpty: 11,
 	}
 
-	err = validator.ValidateStruct(tFail)
+	err = myValidator.ValidateStruct(tFail)
 
 	// Assert Top Level
 	c.Assert(err, NotNil)
@@ -1636,7 +1638,7 @@ func (ms *MySuite) TestStructUint64Validation(c *C) {
 		OmitEmpty: 0,
 	}
 
-	err := validator.ValidateStruct(tSuccess)
+	err := myValidator.ValidateStruct(tSuccess)
 	c.Assert(err, IsNil)
 
 	tFail := &TestUint64{
@@ -1648,7 +1650,7 @@ func (ms *MySuite) TestStructUint64Validation(c *C) {
 		OmitEmpty: 11,
 	}
 
-	err = validator.ValidateStruct(tFail)
+	err = myValidator.ValidateStruct(tFail)
 
 	// Assert Top Level
 	c.Assert(err, NotNil)
@@ -1676,7 +1678,7 @@ func (ms *MySuite) TestStructFloat64Validation(c *C) {
 		OmitEmpty: 0,
 	}
 
-	err := validator.ValidateStruct(tSuccess)
+	err := myValidator.ValidateStruct(tSuccess)
 	c.Assert(err, IsNil)
 
 	tFail := &TestFloat64{
@@ -1688,7 +1690,7 @@ func (ms *MySuite) TestStructFloat64Validation(c *C) {
 		OmitEmpty: 11,
 	}
 
-	err = validator.ValidateStruct(tFail)
+	err = myValidator.ValidateStruct(tFail)
 
 	// Assert Top Level
 	c.Assert(err, NotNil)
@@ -1716,7 +1718,7 @@ func (ms *MySuite) TestStructSliceValidation(c *C) {
 		OmitEmpty: []int{},
 	}
 
-	err := validator.ValidateStruct(tSuccess)
+	err := myValidator.ValidateStruct(tSuccess)
 	c.Assert(err, IsNil)
 
 	tFail := &TestSlice{
@@ -1728,7 +1730,7 @@ func (ms *MySuite) TestStructSliceValidation(c *C) {
 		OmitEmpty: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 	}
 
-	err = validator.ValidateStruct(tFail)
+	err = myValidator.ValidateStruct(tFail)
 
 	// Assert Top Level
 	c.Assert(err, NotNil)
@@ -1750,7 +1752,7 @@ func (ms *MySuite) TestInvalidStruct(c *C) {
 		Test: "1",
 	}
 
-	c.Assert(func() { validator.ValidateStruct(s.Test) }, PanicMatches, "interface passed for validation is not a struct")
+	c.Assert(func() { myValidator.ValidateStruct(s.Test) }, PanicMatches, "interface passed for validation is not a struct")
 }
 
 func (ms *MySuite) TestInvalidField(c *C) {
@@ -1758,7 +1760,7 @@ func (ms *MySuite) TestInvalidField(c *C) {
 		Test: "1",
 	}
 
-	c.Assert(func() { validator.ValidateFieldByTag(s, "required") }, PanicMatches, "Invalid field passed to ValidateFieldWithTag")
+	c.Assert(func() { myValidator.ValidateFieldByTag(s, "required") }, PanicMatches, "Invalid field passed to ValidateFieldWithTag")
 }
 
 func (ms *MySuite) TestInvalidTagField(c *C) {
@@ -1766,7 +1768,7 @@ func (ms *MySuite) TestInvalidTagField(c *C) {
 		Test: "1",
 	}
 
-	c.Assert(func() { validator.ValidateFieldByTag(s.Test, "") }, PanicMatches, fmt.Sprintf("Invalid validation tag on field %s", ""))
+	c.Assert(func() { myValidator.ValidateFieldByTag(s.Test, "") }, PanicMatches, fmt.Sprintf("Invalid validation tag on field %s", ""))
 }
 
 func (ms *MySuite) TestInvalidValidatorFunction(c *C) {
@@ -1774,5 +1776,5 @@ func (ms *MySuite) TestInvalidValidatorFunction(c *C) {
 		Test: "1",
 	}
 
-	c.Assert(func() { validator.ValidateFieldByTag(s.Test, "zzxxBadFunction") }, PanicMatches, fmt.Sprintf("Undefined validation function on field %s", ""))
+	c.Assert(func() { myValidator.ValidateFieldByTag(s.Test, "zzxxBadFunction") }, PanicMatches, fmt.Sprintf("Undefined validation function on field %s", ""))
 }
