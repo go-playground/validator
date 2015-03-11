@@ -135,6 +135,562 @@ func isEqualFunc(val interface{}, field interface{}, param string) bool {
 	return val.(string) == field.(string)
 }
 
+func (ms *MySuite) TestGtField(c *C) {
+
+	type TimeTest struct {
+		Start *time.Time `validate:"required,gt"`
+		End   *time.Time `validate:"required,gt,gtfield=Start"`
+	}
+
+	now := time.Now()
+	start := now.Add(time.Hour * 24)
+	end := start.Add(time.Hour * 24)
+
+	timeTest := &TimeTest{
+		Start: &start,
+		End:   &end,
+	}
+
+	errs := validator.ValidateStruct(timeTest)
+	c.Assert(errs, IsNil)
+
+	timeTest = &TimeTest{
+		Start: &end,
+		End:   &start,
+	}
+
+	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "End", "gtfield", c)
+
+	err3 := validator.ValidateFieldByTagAndValue(&start, &end, "gtfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(&end, &start, "gtfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtfield")
+
+	type IntTest struct {
+		Val1 int `validate:"required"`
+		Val2 int `validate:"required,gtfield=Val1"`
+	}
+
+	intTest := &IntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(intTest)
+	c.Assert(errs, IsNil)
+
+	intTest = &IntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(intTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "gtfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "gtfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtfield")
+
+	type UIntTest struct {
+		Val1 uint `validate:"required"`
+		Val2 uint `validate:"required,gtfield=Val1"`
+	}
+
+	uIntTest := &UIntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(uIntTest)
+	c.Assert(errs, IsNil)
+
+	uIntTest = &UIntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtfield")
+
+	type FloatTest struct {
+		Val1 float64 `validate:"required"`
+		Val2 float64 `validate:"required,gtfield=Val1"`
+	}
+
+	floatTest := &FloatTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(floatTest)
+	c.Assert(errs, IsNil)
+
+	floatTest = &FloatTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtfield")
+
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 1, "gtfield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, "T", "gtfield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, start, "gtfield") }, PanicMatches, "Bad Top Level field type")
+
+	type TimeTest2 struct {
+		Start *time.Time `validate:"required"`
+		End   *time.Time `validate:"required,gtfield=NonExistantField"`
+	}
+
+	timeTest2 := &TimeTest2{
+		Start: &start,
+		End:   &end,
+	}
+
+	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
+func (ms *MySuite) TestLtField(c *C) {
+
+	type TimeTest struct {
+		Start *time.Time `validate:"required,lt,ltfield=End"`
+		End   *time.Time `validate:"required,lt"`
+	}
+
+	now := time.Now()
+	start := now.Add(time.Hour * 24 * -1 * 2)
+	end := start.Add(time.Hour * 24)
+
+	timeTest := &TimeTest{
+		Start: &start,
+		End:   &end,
+	}
+
+	errs := validator.ValidateStruct(timeTest)
+	c.Assert(errs, IsNil)
+
+	timeTest = &TimeTest{
+		Start: &end,
+		End:   &start,
+	}
+
+	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Start", "ltfield", c)
+
+	err3 := validator.ValidateFieldByTagAndValue(&end, &start, "ltfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(&start, &end, "ltfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltfield")
+
+	type IntTest struct {
+		Val1 int `validate:"required"`
+		Val2 int `validate:"required,ltfield=Val1"`
+	}
+
+	intTest := &IntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(intTest)
+	c.Assert(errs, IsNil)
+
+	intTest = &IntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(intTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "ltfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "ltfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltfield")
+
+	type UIntTest struct {
+		Val1 uint `validate:"required"`
+		Val2 uint `validate:"required,ltfield=Val1"`
+	}
+
+	uIntTest := &UIntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(uIntTest)
+	c.Assert(errs, IsNil)
+
+	uIntTest = &UIntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltfield")
+
+	type FloatTest struct {
+		Val1 float64 `validate:"required"`
+		Val2 float64 `validate:"required,ltfield=Val1"`
+	}
+
+	floatTest := &FloatTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(floatTest)
+	c.Assert(errs, IsNil)
+
+	floatTest = &FloatTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltfield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltfield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltfield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltfield")
+
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 5, "ltfield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, "T", "ltfield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, end, "ltfield") }, PanicMatches, "Bad Top Level field type")
+
+	type TimeTest2 struct {
+		Start *time.Time `validate:"required"`
+		End   *time.Time `validate:"required,ltfield=NonExistantField"`
+	}
+
+	timeTest2 := &TimeTest2{
+		Start: &end,
+		End:   &start,
+	}
+
+	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
+func (ms *MySuite) TestLteField(c *C) {
+
+	type TimeTest struct {
+		Start *time.Time `validate:"required,lte,ltefield=End"`
+		End   *time.Time `validate:"required,lte"`
+	}
+
+	now := time.Now()
+	start := now.Add(time.Hour * 24 * -1 * 2)
+	end := start.Add(time.Hour * 24)
+
+	timeTest := &TimeTest{
+		Start: &start,
+		End:   &end,
+	}
+
+	errs := validator.ValidateStruct(timeTest)
+	c.Assert(errs, IsNil)
+
+	timeTest = &TimeTest{
+		Start: &end,
+		End:   &start,
+	}
+
+	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Start", "ltefield", c)
+
+	err3 := validator.ValidateFieldByTagAndValue(&end, &start, "ltefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(&start, &end, "ltefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltefield")
+
+	type IntTest struct {
+		Val1 int `validate:"required"`
+		Val2 int `validate:"required,ltefield=Val1"`
+	}
+
+	intTest := &IntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(intTest)
+	c.Assert(errs, IsNil)
+
+	intTest = &IntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(intTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "ltefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "ltefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltefield")
+
+	type UIntTest struct {
+		Val1 uint `validate:"required"`
+		Val2 uint `validate:"required,ltefield=Val1"`
+	}
+
+	uIntTest := &UIntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(uIntTest)
+	c.Assert(errs, IsNil)
+
+	uIntTest = &UIntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "ltefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "ltefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltefield")
+
+	type FloatTest struct {
+		Val1 float64 `validate:"required"`
+		Val2 float64 `validate:"required,ltefield=Val1"`
+	}
+
+	floatTest := &FloatTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs = validator.ValidateStruct(floatTest)
+	c.Assert(errs, IsNil)
+
+	floatTest = &FloatTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "ltefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "ltefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "ltefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "ltefield")
+
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 5, "ltefield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, "T", "ltefield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(1, end, "ltefield") }, PanicMatches, "Bad Top Level field type")
+
+	type TimeTest2 struct {
+		Start *time.Time `validate:"required"`
+		End   *time.Time `validate:"required,ltefield=NonExistantField"`
+	}
+
+	timeTest2 := &TimeTest2{
+		Start: &end,
+		End:   &start,
+	}
+
+	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
+func (ms *MySuite) TestGteField(c *C) {
+
+	type TimeTest struct {
+		Start *time.Time `validate:"required,gte"`
+		End   *time.Time `validate:"required,gte,gtefield=Start"`
+	}
+
+	now := time.Now()
+	start := now.Add(time.Hour * 24)
+	end := start.Add(time.Hour * 24)
+
+	timeTest := &TimeTest{
+		Start: &start,
+		End:   &end,
+	}
+
+	errs := validator.ValidateStruct(timeTest)
+	c.Assert(errs, IsNil)
+
+	timeTest = &TimeTest{
+		Start: &end,
+		End:   &start,
+	}
+
+	errs2 := validator.ValidateStruct(timeTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "End", "gtefield", c)
+
+	err3 := validator.ValidateFieldByTagAndValue(&start, &end, "gtefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(&end, &start, "gtefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtefield")
+
+	type IntTest struct {
+		Val1 int `validate:"required"`
+		Val2 int `validate:"required,gtefield=Val1"`
+	}
+
+	intTest := &IntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(intTest)
+	c.Assert(errs, IsNil)
+
+	intTest = &IntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(intTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(1), int(5), "gtefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(int(5), int(1), "gtefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtefield")
+
+	type UIntTest struct {
+		Val1 uint `validate:"required"`
+		Val2 uint `validate:"required,gtefield=Val1"`
+	}
+
+	uIntTest := &UIntTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(uIntTest)
+	c.Assert(errs, IsNil)
+
+	uIntTest = &UIntTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(uIntTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(1), uint(5), "gtefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(uint(5), uint(1), "gtefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtefield")
+
+	type FloatTest struct {
+		Val1 float64 `validate:"required"`
+		Val2 float64 `validate:"required,gtefield=Val1"`
+	}
+
+	floatTest := &FloatTest{
+		Val1: 1,
+		Val2: 5,
+	}
+
+	errs = validator.ValidateStruct(floatTest)
+	c.Assert(errs, IsNil)
+
+	floatTest = &FloatTest{
+		Val1: 5,
+		Val2: 1,
+	}
+
+	errs2 = validator.ValidateStruct(floatTest).Flatten()
+	c.Assert(errs2, NotNil)
+	AssertMapFieldError(errs2, "Val2", "gtefield", c)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(1), float32(5), "gtefield")
+	c.Assert(err3, IsNil)
+
+	err3 = validator.ValidateFieldByTagAndValue(float32(5), float32(1), "gtefield")
+	c.Assert(err3, NotNil)
+	c.Assert(err3.ErrorTag, Equals, "gtefield")
+
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(nil, 1, "gtefield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, "T", "gtefield") }, PanicMatches, "Bad field type string")
+	c.Assert(func() { validator.ValidateFieldByTagAndValue(5, start, "gtefield") }, PanicMatches, "Bad Top Level field type")
+
+	type TimeTest2 struct {
+		Start *time.Time `validate:"required"`
+		End   *time.Time `validate:"required,gtefield=NonExistantField"`
+	}
+
+	timeTest2 := &TimeTest2{
+		Start: &start,
+		End:   &end,
+	}
+
+	c.Assert(func() { validator.ValidateStruct(timeTest2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
 func (ms *MySuite) TestValidateByTagAndValue(c *C) {
 
 	val := "test"
