@@ -218,6 +218,34 @@ Here is a list of the current built in validators:
 		For time.Time ensures the time value is less than or equal to time.Now.UTC()
 		(Usage: lte)
 
+	gtfield
+		Only valid for Numbers and time.Time types, this will validate the field value
+		against another fields value either within a struct or passed in field.
+		usage examples are for validation of a Start and End date:
+		Validation on End field using ValidateByStruct Usage(gtfield=Start)
+		Validating by field ValidateFieldByTagAndValue(start, end, "gtfield")
+
+	gtefield
+		Only valid for Numbers and time.Time types, this will validate the field value
+		against another fields value either within a struct or passed in field.
+		usage examples are for validation of a Start and End date:
+		Validation on End field using ValidateByStruct Usage(gtefield=Start)
+		Validating by field ValidateFieldByTagAndValue(start, end, "gtefield")
+
+	ltfield
+		Only valid for Numbers and time.Time types, this will validate the field value
+		against another fields value either within a struct or passed in field.
+		usage examples are for validation of a Start and End date:
+		Validation on End field using ValidateByStruct Usage(ltfield=Start)
+		Validating by field ValidateFieldByTagAndValue(start, end, "ltfield")
+
+	ltefield
+		Only valid for Numbers and time.Time types, this will validate the field value
+		against another fields value either within a struct or passed in field.
+		usage examples are for validation of a Start and End date:
+		Validation on End field using ValidateByStruct Usage(ltefield=Start)
+		Validating by field ValidateFieldByTagAndValue(start, end, "ltefield")
+
 	alpha
 		This validates that a strings value contains alpha characters only
 		(Usage: alpha)
