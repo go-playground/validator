@@ -19,6 +19,10 @@ var BakedInValidators = map[string]ValidationFunc{
 	"lte":         isLte,
 	"gt":          isGt,
 	"gte":         isGte,
+	"gtefield":    isGteField,
+	"gtfield":     isGtField,
+	"ltefield":    isLteField,
+	"ltfield":     isLtField,
 	"alpha":       isAlpha,
 	"alphanum":    isAlphanum,
 	"numeric":     isNumeric,
@@ -229,6 +233,156 @@ func hasValue(val interface{}, field interface{}, param string) bool {
 	}
 }
 
+func isGteField(val interface{}, field interface{}, param string) bool {
+
+	if val == nil {
+		panic("struct not passed for cross validation")
+	}
+
+	topVal := reflect.ValueOf(val)
+
+	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
+		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	}
+
+	var topFieldVal reflect.Value
+
+	switch topVal.Kind() {
+
+	case reflect.Struct:
+
+		if topVal.Type() == reflect.TypeOf(time.Time{}) {
+			topFieldVal = topVal
+			break
+		}
+
+		f := topVal.FieldByName(param)
+
+		if f.Kind() == reflect.Invalid {
+			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
+		}
+
+		topFieldVal = f
+
+	default:
+
+		topFieldVal = topVal
+	}
+
+	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+
+		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+	}
+
+	fv := reflect.ValueOf(field)
+
+	switch fv.Kind() {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+
+		return fv.Int() >= topFieldVal.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+
+		return fv.Uint() >= topFieldVal.Uint()
+
+	case reflect.Float32, reflect.Float64:
+
+		return fv.Float() >= topFieldVal.Float()
+
+	case reflect.Struct:
+
+		if fv.Type() == reflect.TypeOf(time.Time{}) {
+
+			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+				panic("Bad Top Level field type")
+			}
+
+			t := topFieldVal.Interface().(time.Time)
+			fieldTime := field.(time.Time)
+
+			return fieldTime.After(t) || fieldTime.Equal(t)
+		}
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
+}
+
+func isGtField(val interface{}, field interface{}, param string) bool {
+
+	if val == nil {
+		panic("struct not passed for cross validation")
+	}
+
+	topVal := reflect.ValueOf(val)
+
+	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
+		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	}
+
+	var topFieldVal reflect.Value
+
+	switch topVal.Kind() {
+
+	case reflect.Struct:
+
+		if topVal.Type() == reflect.TypeOf(time.Time{}) {
+			topFieldVal = topVal
+			break
+		}
+
+		f := topVal.FieldByName(param)
+
+		if f.Kind() == reflect.Invalid {
+			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
+		}
+
+		topFieldVal = f
+
+	default:
+
+		topFieldVal = topVal
+	}
+
+	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+
+		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+	}
+
+	fv := reflect.ValueOf(field)
+
+	switch fv.Kind() {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+
+		return fv.Int() > topFieldVal.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+
+		return fv.Uint() > topFieldVal.Uint()
+
+	case reflect.Float32, reflect.Float64:
+
+		return fv.Float() > topFieldVal.Float()
+
+	case reflect.Struct:
+
+		if fv.Type() == reflect.TypeOf(time.Time{}) {
+
+			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+				panic("Bad Top Level field type")
+			}
+
+			t := topFieldVal.Interface().(time.Time)
+			fieldTime := field.(time.Time)
+
+			return fieldTime.After(t)
+		}
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
+}
+
 func isGte(val interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
@@ -262,7 +416,7 @@ func isGte(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(field) {
+		if st.Type() == reflect.TypeOf(time.Time{}) {
 
 			now := time.Now().UTC()
 			t := field.(time.Time)
@@ -306,7 +460,7 @@ func isGt(val interface{}, field interface{}, param string) bool {
 		return st.Float() > p
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(field) {
+		if st.Type() == reflect.TypeOf(time.Time{}) {
 
 			return field.(time.Time).After(time.Now().UTC())
 		}
@@ -362,6 +516,156 @@ func hasMinOf(val interface{}, field interface{}, param string) bool {
 	return isGte(val, field, param)
 }
 
+func isLteField(val interface{}, field interface{}, param string) bool {
+
+	if val == nil {
+		panic("struct not passed for cross validation")
+	}
+
+	topVal := reflect.ValueOf(val)
+
+	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
+		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	}
+
+	var topFieldVal reflect.Value
+
+	switch topVal.Kind() {
+
+	case reflect.Struct:
+
+		if topVal.Type() == reflect.TypeOf(time.Time{}) {
+			topFieldVal = topVal
+			break
+		}
+
+		f := topVal.FieldByName(param)
+
+		if f.Kind() == reflect.Invalid {
+			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
+		}
+
+		topFieldVal = f
+
+	default:
+
+		topFieldVal = topVal
+	}
+
+	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+
+		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+	}
+
+	fv := reflect.ValueOf(field)
+
+	switch fv.Kind() {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+
+		return fv.Int() <= topFieldVal.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+
+		return fv.Uint() <= topFieldVal.Uint()
+
+	case reflect.Float32, reflect.Float64:
+
+		return fv.Float() <= topFieldVal.Float()
+
+	case reflect.Struct:
+
+		if fv.Type() == reflect.TypeOf(time.Time{}) {
+
+			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+				panic("Bad Top Level field type")
+			}
+
+			t := topFieldVal.Interface().(time.Time)
+			fieldTime := field.(time.Time)
+
+			return fieldTime.Before(t) || fieldTime.Equal(t)
+		}
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
+}
+
+func isLtField(val interface{}, field interface{}, param string) bool {
+
+	if val == nil {
+		panic("struct not passed for cross validation")
+	}
+
+	topVal := reflect.ValueOf(val)
+
+	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
+		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	}
+
+	var topFieldVal reflect.Value
+
+	switch topVal.Kind() {
+
+	case reflect.Struct:
+
+		if topVal.Type() == reflect.TypeOf(time.Time{}) {
+			topFieldVal = topVal
+			break
+		}
+
+		f := topVal.FieldByName(param)
+
+		if f.Kind() == reflect.Invalid {
+			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
+		}
+
+		topFieldVal = f
+
+	default:
+
+		topFieldVal = topVal
+	}
+
+	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+
+		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+	}
+
+	fv := reflect.ValueOf(field)
+
+	switch fv.Kind() {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+
+		return fv.Int() < topFieldVal.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+
+		return fv.Uint() < topFieldVal.Uint()
+
+	case reflect.Float32, reflect.Float64:
+
+		return fv.Float() < topFieldVal.Float()
+
+	case reflect.Struct:
+
+		if fv.Type() == reflect.TypeOf(time.Time{}) {
+
+			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+				panic("Bad Top Level field type")
+			}
+
+			t := topFieldVal.Interface().(time.Time)
+			fieldTime := field.(time.Time)
+
+			return fieldTime.Before(t)
+		}
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field))
+}
+
 func isLte(val interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
@@ -395,7 +699,7 @@ func isLte(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(field) {
+		if st.Type() == reflect.TypeOf(time.Time{}) {
 
 			now := time.Now().UTC()
 			t := field.(time.Time)
@@ -440,7 +744,7 @@ func isLt(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(field) {
+		if st.Type() == reflect.TypeOf(time.Time{}) {
 
 			return field.(time.Time).Before(time.Now().UTC())
 		}
