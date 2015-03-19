@@ -1,6 +1,6 @@
 Package go-validate-yourself
 ================
-[![Build Status](https://travis-ci.org/joeybloggs/go-validate-yourself.svg?branch=v3-development)](https://travis-ci.org/joeybloggs/go-validate-yourself)
+[![Build Status](https://travis-ci.org/joeybloggs/go-validate-yourself.svg?branch=v3)](https://travis-ci.org/joeybloggs/go-validate-yourself)
 
 Package validator implements value validations for structs and individual fields based on tags.
 

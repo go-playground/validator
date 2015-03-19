@@ -3,15 +3,12 @@ Package validator implements value validations for structs and individual fields
 
 Built In Validator
 
-The package contains a built in Validator instance for use,
-but you may also create a new instance if needed.
+	v3 no longer contains a built in Validator instance.
 
-	// built in
-	errs := validator.ValidateStruct(//your struct)
-	valErr := validator.ValidateFieldByTag(field, "omitempty,min=1,max=10")
+	myValidator = validator.New("validate", validator.BakedInFunctions)
 
-	// new
-	newValidator = validator.New("struct tag name", validator.BakedInFunctions)
+	errs := myValidator.ValidateStruct(//your struct)
+	valErr := myValidator.ValidateFieldByTag(field, "omitempty,min=1,max=10")
 
 A simple example usage:
 
@@ -32,7 +29,7 @@ A simple example usage:
 	// errs will contain a hierarchical list of errors
 	// using the StructValidationErrors struct
 	// or nil if no errors exist
-	errs := validator.ValidateStruct(user)
+	errs := myValidator.ValidateStruct(user)
 
 	// in this case 1 error Name is required
 	errs.Struct will be "User"
@@ -68,7 +65,7 @@ I needed to know the field and what validation failed so that I could provide an
 		return "Translated string based on field"
 	}
 
-The hierarchical structure is hard to work with sometimes.. Agreed Flatten function to the rescue!
+The hierarchical error structure is hard to work with sometimes.. Agreed Flatten function to the rescue!
 Flatten will return a map of FieldValidationError's but the field name will be namespaced.
 
 	// if UserDetail Details field failed validation
@@ -91,7 +88,7 @@ Custom functions can be added
 		return true
 	}
 
-	validator.AddFunction("custom tag name", customFunc)
+	myValidator.AddFunction("custom tag name", customFunc)
 	// NOTES: using the same tag name as an existing function
 	//        will overwrite the existing one
 
@@ -99,16 +96,16 @@ Cross Field Validation
 
 Cross Field Validation can be implemented, for example Start & End Date range validation
 
-	// NOTE: when calling validator.validateStruct(val) val will be the top level struct passed
+	// NOTE: when calling myValidator.validateStruct(val) val will be the top level struct passed
 	//       into the function
-	//       when calling validator.ValidateFieldByTagAndValue(val, field, tag) val will be
+	//       when calling myValidator.ValidateFieldByTagAndValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
-	//       when calling validator.ValidateFieldByTag(field, tag) val will be nil
+	//       when calling myValidator.ValidateFieldByTag(field, tag) val will be nil
 	//
 	// Because of the specific requirements and field names within each persons project that
-	// uses this library it is unlikely that any baked in function for this type of validation
-	// would be added, but you can add your own custom ones and keep all your validation logic
-	// in one place.
+	// uses this library it is likely that custom functions will need to be created.
+	// however there are some build in Generic Cross Field validation, see Baked In Validators and
+	// Tags below
 
 	func isDateRangeValid(val interface{}, field interface{}, param string) bool {
 
@@ -120,12 +117,6 @@ Cross Field Validation can be implemented, for example Start & End Date range va
 
 		return true
 	}
-
-Custom Tag Name
-
-A custom tag name can be set to avoid conficts, or just have a shorter name
-
-	validator.SetTag("valid")
 
 Multiple Validators
 
@@ -325,6 +316,6 @@ This package panics when bad input is provided, this is by design, bad code like
 		TestField: "Test"
 	}
 
-	validator.ValidateStruct(t) // this will panic
+	myValidator.ValidateStruct(t) // this will panic
 */
 package validator

@@ -18,7 +18,10 @@ import (
 )
 
 const (
-	defaultTagName         = "validate"
+	tagSeparator           = ","
+	orSeparator            = "|"
+	noValidationTag        = "-"
+	tagKeySeparator        = "="
 	omitempty              = "omitempty"
 	validationFieldErrMsg  = "Field validation for \"%s\" failed on the \"%s\" tag\n"
 	validationStructErrMsg = "Struct:%s\n"
@@ -111,10 +114,6 @@ type Validator struct {
 	validationFuncs map[string]ValidationFunc
 }
 
-// var bakedInValidators = map[string]ValidationFunc{}
-
-var internalValidator = NewValidator(defaultTagName, BakedInValidators)
-
 // NewValidator creates a new Validator instance
 // NOTE: it is not necessary to create a new validator as the internal one will do in 99.9% of cases, but the option is there.
 func NewValidator(tagName string, funcs map[string]ValidationFunc) *Validator {
@@ -124,19 +123,9 @@ func NewValidator(tagName string, funcs map[string]ValidationFunc) *Validator {
 	}
 }
 
-// SetTag sets the baked in Validator's tagName to one of your choosing
-func SetTag(tagName string) {
-	internalValidator.SetTag(tagName)
-}
-
 // SetTag sets tagName of the Validator to one of your choosing
 func (v *Validator) SetTag(tagName string) {
 	v.tagName = tagName
-}
-
-// AddFunction adds a ValidationFunc to the baked in Validator's map of validators denoted by the key
-func AddFunction(key string, f ValidationFunc) error {
-	return internalValidator.AddFunction(key, f)
 }
 
 // AddFunction adds a ValidationFunc to a Validator's map of validators denoted by the key
@@ -158,12 +147,6 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 	v.validationFuncs[key] = f
 
 	return nil
-}
-
-// ValidateStruct validates a struct and returns a struct containing the errors
-func ValidateStruct(s interface{}) *StructValidationErrors {
-
-	return internalValidator.ValidateStruct(s)
 }
 
 // ValidateStruct validates a struct and returns a struct containing the errors
@@ -206,7 +189,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 
 		tag := typeField.Tag.Get(v.tagName)
 
-		if tag == "-" {
+		if tag == noValidationTag {
 			continue
 		}
 
@@ -257,22 +240,10 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 	return validationErrors
 }
 
-// ValidateFieldByTag allows validation of a single field with the internal validator, still using tag style validation to check multiple errors
-func ValidateFieldByTag(f interface{}, tag string) *FieldValidationError {
-
-	return internalValidator.ValidateFieldByTag(f, tag)
-}
-
 // ValidateFieldByTag allows validation of a single field, still using tag style validation to check multiple errors
 func (v *Validator) ValidateFieldByTag(f interface{}, tag string) *FieldValidationError {
 
 	return v.ValidateFieldByTagAndValue(nil, f, tag)
-}
-
-// ValidateFieldByTagAndValue allows validation of a single field with the internal validator, still using tag style validation to check multiple errors
-func ValidateFieldByTagAndValue(val interface{}, f interface{}, tag string) *FieldValidationError {
-
-	return internalValidator.ValidateFieldByTagAndValue(val, f, tag)
 }
 
 // ValidateFieldByTagAndValue allows validation of a single field, still using tag style validation to check multiple errors
@@ -284,7 +255,7 @@ func (v *Validator) ValidateFieldByTagAndValue(val interface{}, f interface{}, t
 func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interface{}, name string, tag string) *FieldValidationError {
 
 	// This is a double check if coming from ValidateStruct but need to be here in case function is called directly
-	if tag == "-" {
+	if tag == noValidationTag {
 		return nil
 	}
 
@@ -312,11 +283,11 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 
 	var valErr *FieldValidationError
 	var err error
-	valTags := strings.Split(tag, ",")
+	valTags := strings.Split(tag, tagSeparator)
 
 	for _, valTag := range valTags {
 
-		orVals := strings.Split(valTag, "|")
+		orVals := strings.Split(valTag, orSeparator)
 
 		if len(orVals) > 1 {
 
@@ -330,11 +301,11 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 					return nil
 				}
 
-				errTag += "|" + valErr.ErrorTag
+				errTag += orSeparator + valErr.ErrorTag
 
 			}
 
-			errTag = strings.TrimLeft(errTag, "|")
+			errTag = strings.TrimLeft(errTag, orSeparator)
 
 			valErr.ErrorTag = errTag
 			valErr.Kind = fieldKind
@@ -356,7 +327,7 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 
 func (v *Validator) validateFieldByNameAndSingleTag(val interface{}, f interface{}, name string, valTag string) (*FieldValidationError, error) {
 
-	vals := strings.Split(valTag, "=")
+	vals := strings.Split(valTag, tagKeySeparator)
 	key := strings.Trim(vals[0], " ")
 
 	if len(key) == 0 {
