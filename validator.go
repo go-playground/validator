@@ -216,7 +216,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 
 			} else {
 
-				if structErrors := v.ValidateStruct(valueField.Interface()); structErrors != nil {
+				if structErrors := v.validateStructRecursive(top, valueField.Interface()); structErrors != nil {
 					validationErrors.StructErrors[typeField.Name] = structErrors
 					// free up memory map no longer needed
 					structErrors = nil
