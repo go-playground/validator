@@ -22,6 +22,7 @@ const (
 	orSeparator            = "|"
 	noValidationTag        = "-"
 	tagKeySeparator        = "="
+	structOnlyTag          = "structonly"
 	omitempty              = "omitempty"
 	validationFieldErrMsg  = "Field validation for \"%s\" failed on the \"%s\" tag\n"
 	validationStructErrMsg = "Struct:%s\n"
@@ -215,6 +216,10 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 				}
 
 			} else {
+
+				if strings.Contains(tag, structOnlyTag) {
+					continue
+				}
 
 				if structErrors := v.validateStructRecursive(top, valueField.Interface()); structErrors != nil {
 					validationErrors.StructErrors[typeField.Name] = structErrors

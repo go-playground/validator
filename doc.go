@@ -150,6 +150,13 @@ Here is a list of the current built in validators:
 		colors to be accepted. This can also be combined with 'and' for example
 		( Usage: omitempty,rgb|rgba)
 
+	structonly
+		When a field that is a nest struct in encountered and contains this flag
+		any validation on the nested struct such as "required" will be run, but
+		none of the nested struct fields will be validated. This is usefull if
+		inside of you program you know the struct will be valid, but need to
+		verify it has been assigned.
+
 	omitempty
 		Allows conitional validation, for example if a field is not set with
 		a value (Determined by the required validator) then other validation

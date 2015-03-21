@@ -137,6 +137,35 @@ func isEqualFunc(val interface{}, field interface{}, param string) bool {
 	return val.(string) == field.(string)
 }
 
+func (ms *MySuite) TestStructOnlyValidation(c *C) {
+
+	type Inner struct {
+		Test string `validate:"len=5"`
+	}
+
+	type Outer struct {
+		InnerStruct *Inner `validate:"required,structonly"`
+	}
+
+	outer := &Outer{
+		InnerStruct: nil,
+	}
+
+	errs := myValidator.ValidateStruct(outer).Flatten()
+	c.Assert(errs, NotNil)
+
+	inner := &Inner{
+		Test: "1234",
+	}
+
+	outer = &Outer{
+		InnerStruct: inner,
+	}
+
+	errs = myValidator.ValidateStruct(outer).Flatten()
+	c.Assert(errs, IsNil)
+}
+
 func (ms *MySuite) TestGtField(c *C) {
 
 	type TimeTest struct {
