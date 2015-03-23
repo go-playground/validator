@@ -127,14 +127,14 @@ func AssertMapFieldError(s map[string]*validator.FieldValidationError, field str
 	c.Assert(val.ErrorTag, Equals, expectedTag)
 }
 
-func newValidatorFunc(val interface{}, field interface{}, param string) bool {
+func newValidatorFunc(val interface{}, current interface{}, field interface{}, param string) bool {
 
 	return true
 }
 
-func isEqualFunc(val interface{}, field interface{}, param string) bool {
+func isEqualFunc(val interface{}, current interface{}, field interface{}, param string) bool {
 
-	return val.(string) == field.(string)
+	return current.(string) == field.(string)
 }
 
 func (ms *MySuite) TestStructOnlyValidation(c *C) {

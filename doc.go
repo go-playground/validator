@@ -3,8 +3,6 @@ Package validator implements value validations for structs and individual fields
 
 Built In Validator
 
-	v3 no longer contains a built in Validator instance.
-
 	myValidator = validator.New("validate", validator.BakedInFunctions)
 
 	errs := myValidator.ValidateStruct(//your struct)
@@ -79,7 +77,7 @@ Custom Functions
 Custom functions can be added
 
 	//Structure
-	func customFunc(val interface{}, field interface{}, param string) bool {
+	func customFunc(top interface{}, current interface{}, field interface{}, param string) bool {
 
 		if whatever {
 			return false
@@ -137,6 +135,10 @@ Bad Validator definitions are not handled by the library
 	// this definition of min max will never validate
 
 Baked In Validators and Tags
+
+NOTE: Baked In Cross field validation only compares fields on the same struct,
+if cross field + cross struct validation is needed your own custom validator
+should be implemented.
 
 Here is a list of the current built in validators:
 

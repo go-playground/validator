@@ -38,7 +38,7 @@ var BakedInValidators = map[string]ValidationFunc{
 	"uri":         isURI,
 }
 
-func isURI(val interface{}, field interface{}, param string) bool {
+func isURI(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -53,7 +53,7 @@ func isURI(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isURL(val interface{}, field interface{}, param string) bool {
+func isURL(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -76,7 +76,7 @@ func isURL(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isEmail(val interface{}, field interface{}, param string) bool {
+func isEmail(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -89,7 +89,7 @@ func isEmail(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isHsla(val interface{}, field interface{}, param string) bool {
+func isHsla(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -102,7 +102,7 @@ func isHsla(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isHsl(val interface{}, field interface{}, param string) bool {
+func isHsl(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -115,7 +115,7 @@ func isHsl(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isRgba(val interface{}, field interface{}, param string) bool {
+func isRgba(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -128,7 +128,7 @@ func isRgba(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isRgb(val interface{}, field interface{}, param string) bool {
+func isRgb(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -141,7 +141,7 @@ func isRgb(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isHexcolor(val interface{}, field interface{}, param string) bool {
+func isHexcolor(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -154,7 +154,7 @@ func isHexcolor(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isHexadecimal(val interface{}, field interface{}, param string) bool {
+func isHexadecimal(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -167,7 +167,7 @@ func isHexadecimal(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isNumber(val interface{}, field interface{}, param string) bool {
+func isNumber(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -180,7 +180,7 @@ func isNumber(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isNumeric(val interface{}, field interface{}, param string) bool {
+func isNumeric(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -193,7 +193,7 @@ func isNumeric(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isAlphanum(val interface{}, field interface{}, param string) bool {
+func isAlphanum(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -206,7 +206,7 @@ func isAlphanum(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isAlpha(val interface{}, field interface{}, param string) bool {
+func isAlpha(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -219,7 +219,7 @@ func isAlpha(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func hasValue(val interface{}, field interface{}, param string) bool {
+func hasValue(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -233,45 +233,45 @@ func hasValue(val interface{}, field interface{}, param string) bool {
 	}
 }
 
-func isGteField(val interface{}, field interface{}, param string) bool {
+func isGteField(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	if val == nil {
+	if current == nil {
 		panic("struct not passed for cross validation")
 	}
 
-	topVal := reflect.ValueOf(val)
+	currentVal := reflect.ValueOf(current)
 
-	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
-		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
+		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
 	}
 
-	var topFieldVal reflect.Value
+	var currentFielVal reflect.Value
 
-	switch topVal.Kind() {
+	switch currentVal.Kind() {
 
 	case reflect.Struct:
 
-		if topVal.Type() == reflect.TypeOf(time.Time{}) {
-			topFieldVal = topVal
+		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
+			currentFielVal = currentVal
 			break
 		}
 
-		f := topVal.FieldByName(param)
+		f := currentVal.FieldByName(param)
 
 		if f.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
 
-		topFieldVal = f
+		currentFielVal = f
 
 	default:
 
-		topFieldVal = topVal
+		currentFielVal = currentVal
 	}
 
-	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
 
-		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
 	}
 
 	fv := reflect.ValueOf(field)
@@ -280,25 +280,25 @@ func isGteField(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() >= topFieldVal.Int()
+		return fv.Int() >= currentFielVal.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() >= topFieldVal.Uint()
+		return fv.Uint() >= currentFielVal.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() >= topFieldVal.Float()
+		return fv.Float() >= currentFielVal.Float()
 
 	case reflect.Struct:
 
 		if fv.Type() == reflect.TypeOf(time.Time{}) {
 
-			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
 				panic("Bad Top Level field type")
 			}
 
-			t := topFieldVal.Interface().(time.Time)
+			t := currentFielVal.Interface().(time.Time)
 			fieldTime := field.(time.Time)
 
 			return fieldTime.After(t) || fieldTime.Equal(t)
@@ -308,45 +308,45 @@ func isGteField(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isGtField(val interface{}, field interface{}, param string) bool {
+func isGtField(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	if val == nil {
+	if current == nil {
 		panic("struct not passed for cross validation")
 	}
 
-	topVal := reflect.ValueOf(val)
+	currentVal := reflect.ValueOf(current)
 
-	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
-		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
+		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
 	}
 
-	var topFieldVal reflect.Value
+	var currentFielVal reflect.Value
 
-	switch topVal.Kind() {
+	switch currentVal.Kind() {
 
 	case reflect.Struct:
 
-		if topVal.Type() == reflect.TypeOf(time.Time{}) {
-			topFieldVal = topVal
+		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
+			currentFielVal = currentVal
 			break
 		}
 
-		f := topVal.FieldByName(param)
+		f := currentVal.FieldByName(param)
 
 		if f.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
 
-		topFieldVal = f
+		currentFielVal = f
 
 	default:
 
-		topFieldVal = topVal
+		currentFielVal = currentVal
 	}
 
-	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
 
-		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
 	}
 
 	fv := reflect.ValueOf(field)
@@ -355,25 +355,25 @@ func isGtField(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() > topFieldVal.Int()
+		return fv.Int() > currentFielVal.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() > topFieldVal.Uint()
+		return fv.Uint() > currentFielVal.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() > topFieldVal.Float()
+		return fv.Float() > currentFielVal.Float()
 
 	case reflect.Struct:
 
 		if fv.Type() == reflect.TypeOf(time.Time{}) {
 
-			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
 				panic("Bad Top Level field type")
 			}
 
-			t := topFieldVal.Interface().(time.Time)
+			t := currentFielVal.Interface().(time.Time)
 			fieldTime := field.(time.Time)
 
 			return fieldTime.After(t)
@@ -383,7 +383,7 @@ func isGtField(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isGte(val interface{}, field interface{}, param string) bool {
+func isGte(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -428,7 +428,7 @@ func isGte(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isGt(val interface{}, field interface{}, param string) bool {
+func isGt(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -472,7 +472,7 @@ func isGt(val interface{}, field interface{}, param string) bool {
 // length tests whether a variable's length is equal to a given
 // value. For strings it tests the number of characters whereas
 // for maps and slices it tests the number of items.
-func hasLengthOf(val interface{}, field interface{}, param string) bool {
+func hasLengthOf(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -511,50 +511,50 @@ func hasLengthOf(val interface{}, field interface{}, param string) bool {
 // number. For number types, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMinOf(val interface{}, field interface{}, param string) bool {
+func hasMinOf(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	return isGte(val, field, param)
+	return isGte(top, current, field, param)
 }
 
-func isLteField(val interface{}, field interface{}, param string) bool {
+func isLteField(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	if val == nil {
+	if current == nil {
 		panic("struct not passed for cross validation")
 	}
 
-	topVal := reflect.ValueOf(val)
+	currentVal := reflect.ValueOf(current)
 
-	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
-		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
+		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
 	}
 
-	var topFieldVal reflect.Value
+	var currentFielVal reflect.Value
 
-	switch topVal.Kind() {
+	switch currentVal.Kind() {
 
 	case reflect.Struct:
 
-		if topVal.Type() == reflect.TypeOf(time.Time{}) {
-			topFieldVal = topVal
+		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
+			currentFielVal = currentVal
 			break
 		}
 
-		f := topVal.FieldByName(param)
+		f := currentVal.FieldByName(param)
 
 		if f.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
 
-		topFieldVal = f
+		currentFielVal = f
 
 	default:
 
-		topFieldVal = topVal
+		currentFielVal = currentVal
 	}
 
-	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
 
-		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
 	}
 
 	fv := reflect.ValueOf(field)
@@ -563,25 +563,25 @@ func isLteField(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() <= topFieldVal.Int()
+		return fv.Int() <= currentFielVal.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() <= topFieldVal.Uint()
+		return fv.Uint() <= currentFielVal.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() <= topFieldVal.Float()
+		return fv.Float() <= currentFielVal.Float()
 
 	case reflect.Struct:
 
 		if fv.Type() == reflect.TypeOf(time.Time{}) {
 
-			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
 				panic("Bad Top Level field type")
 			}
 
-			t := topFieldVal.Interface().(time.Time)
+			t := currentFielVal.Interface().(time.Time)
 			fieldTime := field.(time.Time)
 
 			return fieldTime.Before(t) || fieldTime.Equal(t)
@@ -591,45 +591,45 @@ func isLteField(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isLtField(val interface{}, field interface{}, param string) bool {
+func isLtField(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	if val == nil {
+	if current == nil {
 		panic("struct not passed for cross validation")
 	}
 
-	topVal := reflect.ValueOf(val)
+	currentVal := reflect.ValueOf(current)
 
-	if topVal.Kind() == reflect.Ptr && !topVal.IsNil() {
-		topVal = reflect.ValueOf(topVal.Elem().Interface())
+	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
+		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
 	}
 
-	var topFieldVal reflect.Value
+	var currentFielVal reflect.Value
 
-	switch topVal.Kind() {
+	switch currentVal.Kind() {
 
 	case reflect.Struct:
 
-		if topVal.Type() == reflect.TypeOf(time.Time{}) {
-			topFieldVal = topVal
+		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
+			currentFielVal = currentVal
 			break
 		}
 
-		f := topVal.FieldByName(param)
+		f := currentVal.FieldByName(param)
 
 		if f.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
 
-		topFieldVal = f
+		currentFielVal = f
 
 	default:
 
-		topFieldVal = topVal
+		currentFielVal = currentVal
 	}
 
-	if topFieldVal.Kind() == reflect.Ptr && !topFieldVal.IsNil() {
+	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
 
-		topFieldVal = reflect.ValueOf(topFieldVal.Elem().Interface())
+		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
 	}
 
 	fv := reflect.ValueOf(field)
@@ -638,25 +638,25 @@ func isLtField(val interface{}, field interface{}, param string) bool {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() < topFieldVal.Int()
+		return fv.Int() < currentFielVal.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() < topFieldVal.Uint()
+		return fv.Uint() < currentFielVal.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() < topFieldVal.Float()
+		return fv.Float() < currentFielVal.Float()
 
 	case reflect.Struct:
 
 		if fv.Type() == reflect.TypeOf(time.Time{}) {
 
-			if topFieldVal.Type() != reflect.TypeOf(time.Time{}) {
+			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
 				panic("Bad Top Level field type")
 			}
 
-			t := topFieldVal.Interface().(time.Time)
+			t := currentFielVal.Interface().(time.Time)
 			fieldTime := field.(time.Time)
 
 			return fieldTime.Before(t)
@@ -666,7 +666,7 @@ func isLtField(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isLte(val interface{}, field interface{}, param string) bool {
+func isLte(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -711,7 +711,7 @@ func isLte(val interface{}, field interface{}, param string) bool {
 	panic(fmt.Sprintf("Bad field type %T", field))
 }
 
-func isLt(val interface{}, field interface{}, param string) bool {
+func isLt(top interface{}, current interface{}, field interface{}, param string) bool {
 
 	st := reflect.ValueOf(field)
 
@@ -757,9 +757,9 @@ func isLt(val interface{}, field interface{}, param string) bool {
 // value. For numbers, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMaxOf(val interface{}, field interface{}, param string) bool {
+func hasMaxOf(top interface{}, current interface{}, field interface{}, param string) bool {
 
-	return isLte(val, field, param)
+	return isLte(top, current, field, param)
 }
 
 // asInt retuns the parameter as a int64

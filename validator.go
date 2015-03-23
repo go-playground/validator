@@ -101,8 +101,12 @@ func (e *StructValidationErrors) Flatten() map[string]*FieldValidationError {
 	return errs
 }
 
-// ValidationFunc that accepts a value(optional usage), a field and parameter(optional usage) for use in validation
-type ValidationFunc func(val interface{}, v interface{}, param string) bool
+// ValidationFunc accepts all values needed for file and cross field validation
+// top     = top level struct when validating by struct otherwise nil
+// current = current level struct when validating by struct otherwise optional comparison value
+// f       = field value for validation
+// param   = parameter used in validation i.e. gt=0 param would be 0
+type ValidationFunc func(top interface{}, current interface{}, f interface{}, param string) bool
 
 // Validator implements the Validator Struct
 // NOTE: Fields within are not thread safe and that is on purpose
@@ -153,11 +157,11 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 // ValidateStruct validates a struct and returns a struct containing the errors
 func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 
-	return v.validateStructRecursive(s, s)
+	return v.validateStructRecursive(s, s, s)
 }
 
 // validateStructRecursive validates a struct recursivly and passes the top level struct around for use in validator functions and returns a struct containing the errors
-func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *StructValidationErrors {
+func (v *Validator) validateStructRecursive(top interface{}, current interface{}, s interface{}) *StructValidationErrors {
 
 	structValue := reflect.ValueOf(s)
 	structType := reflect.TypeOf(s)
@@ -170,7 +174,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 	}
 
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
-		return v.validateStructRecursive(top, structValue.Elem().Interface())
+		return v.validateStructRecursive(top, current, structValue.Elem().Interface())
 	}
 
 	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
@@ -209,7 +213,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 
 			if valueField.Type() == reflect.TypeOf(time.Time{}) {
 
-				if fieldError := v.validateFieldByNameAndTagAndValue(top, valueField.Interface(), typeField.Name, tag); fieldError != nil {
+				if fieldError := v.validateFieldByNameAndTagAndValue(top, current, valueField.Interface(), typeField.Name, tag); fieldError != nil {
 					validationErrors.Errors[fieldError.Field] = fieldError
 					// free up memory reference
 					fieldError = nil
@@ -221,7 +225,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 					continue
 				}
 
-				if structErrors := v.validateStructRecursive(top, valueField.Interface()); structErrors != nil {
+				if structErrors := v.validateStructRecursive(top, valueField.Interface(), valueField.Interface()); structErrors != nil {
 					validationErrors.StructErrors[typeField.Name] = structErrors
 					// free up memory map no longer needed
 					structErrors = nil
@@ -230,7 +234,7 @@ func (v *Validator) validateStructRecursive(top interface{}, s interface{}) *Str
 
 		default:
 
-			if fieldError := v.validateFieldByNameAndTagAndValue(top, valueField.Interface(), typeField.Name, tag); fieldError != nil {
+			if fieldError := v.validateFieldByNameAndTagAndValue(top, current, valueField.Interface(), typeField.Name, tag); fieldError != nil {
 				validationErrors.Errors[fieldError.Field] = fieldError
 				// free up memory reference
 				fieldError = nil
@@ -254,17 +258,17 @@ func (v *Validator) ValidateFieldByTag(f interface{}, tag string) *FieldValidati
 // ValidateFieldByTagAndValue allows validation of a single field, still using tag style validation to check multiple errors
 func (v *Validator) ValidateFieldByTagAndValue(val interface{}, f interface{}, tag string) *FieldValidationError {
 
-	return v.validateFieldByNameAndTagAndValue(val, f, "", tag)
+	return v.validateFieldByNameAndTagAndValue(nil, val, f, "", tag)
 }
 
-func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interface{}, name string, tag string) *FieldValidationError {
+func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, current interface{}, f interface{}, name string, tag string) *FieldValidationError {
 
 	// This is a double check if coming from ValidateStruct but need to be here in case function is called directly
 	if tag == noValidationTag {
 		return nil
 	}
 
-	if strings.Contains(tag, omitempty) && !hasValue(val, f, "") {
+	if strings.Contains(tag, omitempty) && !hasValue(val, current, f, "") {
 		return nil
 	}
 
@@ -272,7 +276,7 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 	fieldKind := valueField.Kind()
 
 	if fieldKind == reflect.Ptr && !valueField.IsNil() {
-		return v.validateFieldByNameAndTagAndValue(val, valueField.Elem().Interface(), name, tag)
+		return v.validateFieldByNameAndTagAndValue(val, current, valueField.Elem().Interface(), name, tag)
 	}
 
 	fieldType := valueField.Type()
@@ -300,7 +304,7 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 
 			for _, val := range orVals {
 
-				valErr, err = v.validateFieldByNameAndSingleTag(val, f, name, val)
+				valErr, err = v.validateFieldByNameAndSingleTag(val, current, f, name, val)
 
 				if err == nil {
 					return nil
@@ -318,7 +322,7 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 			return valErr
 		}
 
-		if valErr, err = v.validateFieldByNameAndSingleTag(val, f, name, valTag); err != nil {
+		if valErr, err = v.validateFieldByNameAndSingleTag(val, current, f, name, valTag); err != nil {
 
 			valErr.Kind = valueField.Kind()
 			valErr.Type = fieldType
@@ -330,7 +334,7 @@ func (v *Validator) validateFieldByNameAndTagAndValue(val interface{}, f interfa
 	return nil
 }
 
-func (v *Validator) validateFieldByNameAndSingleTag(val interface{}, f interface{}, name string, valTag string) (*FieldValidationError, error) {
+func (v *Validator) validateFieldByNameAndSingleTag(val interface{}, current interface{}, f interface{}, name string, valTag string) (*FieldValidationError, error) {
 
 	vals := strings.Split(valTag, tagKeySeparator)
 	key := strings.Trim(vals[0], " ")
@@ -361,7 +365,7 @@ func (v *Validator) validateFieldByNameAndSingleTag(val interface{}, f interface
 		param = strings.Trim(vals[1], " ")
 	}
 
-	if err := valFunc(val, f, param); !err {
+	if err := valFunc(val, current, f, param); !err {
 		valErr.Param = param
 		return valErr, errors.New(key)
 	}
