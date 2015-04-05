@@ -5,7 +5,7 @@ Built In Validator
 
 	v3 no longer contains a built in Validator instance.
 
-	myValidator = validator.New("validate", validator.BakedInFunctions)
+	myValidator = validator.NewValidator("validate", validator.BakedInValidators)
 
 	errs := myValidator.ValidateStruct(//your struct)
 	valErr := myValidator.ValidateFieldByTag(field, "omitempty,min=1,max=10")
