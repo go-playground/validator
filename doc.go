@@ -3,7 +3,9 @@ Package validator implements value validations for structs and individual fields
 
 Built In Validator
 
-	myValidator = validator.New("validate", validator.BakedInFunctions)
+	v3 no longer contains a built in Validator instance.
+
+	myValidator = validator.NewValidator("validate", validator.BakedInValidators)
 
 	errs := myValidator.ValidateStruct(//your struct)
 	valErr := myValidator.ValidateFieldByTag(field, "omitempty,min=1,max=10")
