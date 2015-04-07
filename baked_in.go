@@ -667,7 +667,7 @@ func hasMaxOf(top interface{}, current interface{}, field interface{}, param str
 func asInt(param string) int64 {
 
 	i, err := strconv.ParseInt(param, 0, 64)
-	panifIf(err)
+	panicIf(err)
 
 	return i
 }
@@ -677,7 +677,7 @@ func asInt(param string) int64 {
 func asUint(param string) uint64 {
 
 	i, err := strconv.ParseUint(param, 0, 64)
-	panifIf(err)
+	panicIf(err)
 
 	return i
 }
@@ -687,12 +687,12 @@ func asUint(param string) uint64 {
 func asFloat(param string) float64 {
 
 	i, err := strconv.ParseFloat(param, 64)
-	panifIf(err)
+	panicIf(err)
 
 	return i
 }
 
-func panifIf(err error) {
+func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
