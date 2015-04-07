@@ -9,6 +9,7 @@
 package validator
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"reflect"
@@ -58,18 +59,17 @@ type StructValidationErrors struct {
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows StructValidationErrors to be used as an Error interface
 func (e *StructValidationErrors) Error() string {
-
-	s := fmt.Sprintf(validationStructErrMsg, e.Struct)
+	buff := bytes.NewBufferString(fmt.Sprintf(validationStructErrMsg, e.Struct))
 
 	for _, err := range e.Errors {
-		s += err.Error()
+		buff.WriteString(err.Error())
 	}
 
-	for _, sErr := range e.StructErrors {
-		s += sErr.Error()
+	for _, err := range e.StructErrors {
+		buff.WriteString(err.Error())
 	}
-
-	return fmt.Sprintf("%s\n\n", s)
+	buff.WriteString("\n\n")
+	return buff.String()
 }
 
 // Flatten flattens the StructValidationErrors hierarchical sctructure into a flat namespace style field name
@@ -141,7 +141,7 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 	}
 
 	if f == nil {
-		return errors.New("Function Key cannot be empty")
+		return errors.New("Function cannot be empty")
 	}
 
 	// Commented out to allow overwritting of Baked In Function if so desired.
@@ -167,18 +167,18 @@ func (v *Validator) validateStructRecursive(top interface{}, current interface{}
 	structType := reflect.TypeOf(s)
 	structName := structType.Name()
 
-	validationErrors := &StructValidationErrors{
-		Struct:       structName,
-		Errors:       map[string]*FieldValidationError{},
-		StructErrors: map[string]*StructValidationErrors{},
-	}
-
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
 		return v.validateStructRecursive(top, current, structValue.Elem().Interface())
 	}
 
 	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
 		panic("interface passed for validation is not a struct")
+	}
+
+	validationErrors := &StructValidationErrors{
+		Struct:       structName,
+		Errors:       map[string]*FieldValidationError{},
+		StructErrors: map[string]*StructValidationErrors{},
 	}
 
 	var numFields = structValue.NumField()

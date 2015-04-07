@@ -31,3 +31,8 @@ var (
 	hslaRegex         = regexp.MustCompile(hslaRegexString)
 	emailRegex        = regexp.MustCompile(emailRegexString)
 )
+
+func matchesRegex(regex *regexp.Regexp, field interface{}) bool {
+	fieldAsString := field.(string) //this will panic, we do not explicit panic
+	return regex.MatchString(fieldAsString)
+}

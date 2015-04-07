@@ -54,7 +54,6 @@ func isURI(top interface{}, current interface{}, field interface{}, param string
 }
 
 func isURL(top interface{}, current interface{}, field interface{}, param string) bool {
-
 	st := reflect.ValueOf(field)
 
 	switch st.Kind() {
@@ -77,146 +76,47 @@ func isURL(top interface{}, current interface{}, field interface{}, param string
 }
 
 func isEmail(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return emailRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(emailRegex, field)
 }
 
 func isHsla(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return hslaRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(hslaRegex, field)
 }
 
 func isHsl(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return hslRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(hslRegex, field)
 }
 
 func isRgba(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return rgbaRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(rgbaRegex, field)
 }
 
 func isRgb(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return rgbRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(rgbRegex, field)
 }
 
 func isHexcolor(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return hexcolorRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(hexcolorRegex, field)
 }
 
 func isHexadecimal(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return hexadecimalRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(hexadecimalRegex, field)
 }
 
 func isNumber(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return numberRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(numberRegex, field)
 }
 
 func isNumeric(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return numericRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(numericRegex, field)
 }
 
 func isAlphanum(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return alphaNumericRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(alphaNumericRegex, field)
 }
 
 func isAlpha(top interface{}, current interface{}, field interface{}, param string) bool {
-
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
-
-	case reflect.String:
-		return alphaRegex.MatchString(field.(string))
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field))
+	return matchesRegex(alphaRegex, field)
 }
 
 func hasValue(top interface{}, current interface{}, field interface{}, param string) bool {
@@ -767,10 +667,7 @@ func hasMaxOf(top interface{}, current interface{}, field interface{}, param str
 func asInt(param string) int64 {
 
 	i, err := strconv.ParseInt(param, 0, 64)
-
-	if err != nil {
-		panic(err.Error())
-	}
+	panicIf(err)
 
 	return i
 }
@@ -780,10 +677,7 @@ func asInt(param string) int64 {
 func asUint(param string) uint64 {
 
 	i, err := strconv.ParseUint(param, 0, 64)
-
-	if err != nil {
-		panic(err.Error())
-	}
+	panicIf(err)
 
 	return i
 }
@@ -793,10 +687,13 @@ func asUint(param string) uint64 {
 func asFloat(param string) float64 {
 
 	i, err := strconv.ParseFloat(param, 64)
+	panicIf(err)
 
+	return i
+}
+
+func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	return i
 }
