@@ -1,9 +1,7 @@
 /*
-Package validator implements value validations for structs and individual fields based on tags.
+Package validator implements value validations for structs and individual fields based on tags. It can also handle Cross Field validation and even Cross Field Cross Struct validation for nested structs.
 
 Built In Validator
-
-	v3 no longer contains a built in Validator instance.
 
 	myValidator = validator.NewValidator("validate", validator.BakedInValidators)
 
@@ -35,6 +33,9 @@ A simple example usage:
 	errs.Struct will be "User"
 	errs.StructErrors will be empty <-- fields that were structs
 	errs.Errors will have 1 error of type FieldValidationError
+
+	NOTE: Anonymous Structs - they don't have names so expect the Struct name
+	within StructValidationErrors to be blank.
 
 Error Handling
 
@@ -103,9 +104,9 @@ Cross Field Validation can be implemented, for example Start & End Date range va
 	//       when calling myValidator.ValidateFieldByTag(field, tag) val will be nil
 	//
 	// Because of the specific requirements and field names within each persons project that
-	// uses this library it is likely that custom functions will need to be created.
-	// however there are some build in Generic Cross Field validation, see Baked In Validators and
-	// Tags below
+	// uses this library it is likely that custom functions will need to be created for your
+	// Cross Field Validation needs, however there are some build in Generic Cross Field validations,
+	// see Baked In Validators and Tags below
 
 	func isDateRangeValid(val interface{}, field interface{}, param string) bool {
 
@@ -307,10 +308,11 @@ Validator notes:
 		a regex which conflict with the validation definitions, although workarounds
 		can be made, they take away from using pure regex's. Furthermore it's quick
 		and dirty but the regex's become harder to maintain and are not reusable, so
-		it's as much as a programming philosiphy as anything.
+		it's as much a programming philosiphy as anything.
 
 		In place of this new validator functions should be created; a regex can be
-		used within the validator function and even be precompiled for better efficiency.
+		used within the validator function and even be precompiled for better efficiency
+		within regexes.go.
 
 		And the best reason, you can sumit a pull request and we can keep on adding to the
 		validation library of this package!

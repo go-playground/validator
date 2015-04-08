@@ -1163,7 +1163,7 @@ func (ms *MySuite) TestHsla(c *C) {
 	c.Assert(err.ErrorTag, Equals, "hsla")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsla") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsla") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestHsl(c *C) {
@@ -1197,7 +1197,7 @@ func (ms *MySuite) TestHsl(c *C) {
 	c.Assert(err.ErrorTag, Equals, "hsl")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsl") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hsl") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestRgba(c *C) {
@@ -1230,7 +1230,7 @@ func (ms *MySuite) TestRgba(c *C) {
 	c.Assert(err.ErrorTag, Equals, "rgba")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgba") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgba") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestRgb(c *C) {
@@ -1259,7 +1259,7 @@ func (ms *MySuite) TestRgb(c *C) {
 	c.Assert(err.ErrorTag, Equals, "rgb")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgb") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "rgb") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestEmail(c *C) {
@@ -1289,7 +1289,7 @@ func (ms *MySuite) TestEmail(c *C) {
 	c.Assert(err.ErrorTag, Equals, "email")
 
 	i := true
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "email") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "email") }, PanicMatches, "interface conversion: interface is bool, not string")
 }
 
 func (ms *MySuite) TestHexColor(c *C) {
@@ -1313,7 +1313,7 @@ func (ms *MySuite) TestHexColor(c *C) {
 	c.Assert(err.ErrorTag, Equals, "hexcolor")
 
 	i := true
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexcolor") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexcolor") }, PanicMatches, "interface conversion: interface is bool, not string")
 }
 
 func (ms *MySuite) TestHexadecimal(c *C) {
@@ -1328,7 +1328,7 @@ func (ms *MySuite) TestHexadecimal(c *C) {
 	c.Assert(err.ErrorTag, Equals, "hexadecimal")
 
 	i := true
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexadecimal") }, PanicMatches, "Bad field type bool")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "hexadecimal") }, PanicMatches, "interface conversion: interface is bool, not string")
 }
 
 func (ms *MySuite) TestNumber(c *C) {
@@ -1373,7 +1373,7 @@ func (ms *MySuite) TestNumber(c *C) {
 	c.Assert(err.ErrorTag, Equals, "number")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "number") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "number") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestNumeric(c *C) {
@@ -1413,7 +1413,7 @@ func (ms *MySuite) TestNumeric(c *C) {
 	c.Assert(err.ErrorTag, Equals, "numeric")
 
 	i := 1
-	c.Assert(func() { myValidator.ValidateFieldByTag(i, "numeric") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(i, "numeric") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestAlphaNumeric(c *C) {
@@ -1427,7 +1427,7 @@ func (ms *MySuite) TestAlphaNumeric(c *C) {
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "alphanum")
 
-	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alphanum") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestAlpha(c *C) {
@@ -1441,7 +1441,7 @@ func (ms *MySuite) TestAlpha(c *C) {
 	c.Assert(err, NotNil)
 	c.Assert(err.ErrorTag, Equals, "alpha")
 
-	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "Bad field type int")
+	c.Assert(func() { myValidator.ValidateFieldByTag(1, "alpha") }, PanicMatches, "interface conversion: interface is int, not string")
 }
 
 func (ms *MySuite) TestFlattening(c *C) {

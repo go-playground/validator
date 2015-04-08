@@ -9,6 +9,7 @@
 package validator
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"reflect"
@@ -28,7 +29,8 @@ const (
 	validationStructErrMsg = "Struct:%s\n"
 )
 
-// FieldValidationError contains a single fields validation error
+// FieldValidationError contains a single field's validation error along
+// with other properties that may be needed for error message creation
 type FieldValidationError struct {
 	Field    string
 	ErrorTag string
@@ -44,7 +46,8 @@ func (e *FieldValidationError) Error() string {
 	return fmt.Sprintf(validationFieldErrMsg, e.Field, e.ErrorTag)
 }
 
-// StructValidationErrors is hierarchical list of field and struct errors
+// StructValidationErrors is hierarchical list of field and struct validation errors
+// for a non hierarchical representation please see the Flatten method for StructValidationErrors
 type StructValidationErrors struct {
 	// Name of the Struct
 	Struct string
@@ -58,21 +61,20 @@ type StructValidationErrors struct {
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows StructValidationErrors to be used as an Error interface
 func (e *StructValidationErrors) Error() string {
-
-	s := fmt.Sprintf(validationStructErrMsg, e.Struct)
+	buff := bytes.NewBufferString(fmt.Sprintf(validationStructErrMsg, e.Struct))
 
 	for _, err := range e.Errors {
-		s += err.Error()
+		buff.WriteString(err.Error())
 	}
 
-	for _, sErr := range e.StructErrors {
-		s += sErr.Error()
+	for _, err := range e.StructErrors {
+		buff.WriteString(err.Error())
 	}
-
-	return fmt.Sprintf("%s\n\n", s)
+	buff.WriteString("\n\n")
+	return buff.String()
 }
 
-// Flatten flattens the StructValidationErrors hierarchical sctructure into a flat namespace style field name
+// Flatten flattens the StructValidationErrors hierarchical structure into a flat namespace style field name
 // for those that want/need it
 func (e *StructValidationErrors) Flatten() map[string]*FieldValidationError {
 
@@ -110,17 +112,16 @@ type ValidationFunc func(top interface{}, current interface{}, f interface{}, pa
 
 // Validator implements the Validator Struct
 // NOTE: Fields within are not thread safe and that is on purpose
-// Functions Tags etc. should all be predifined before use, so subscribe to the philosiphy
+// Functions and Tags should all be predifined before use, so subscribe to the philosiphy
 // or make it thread safe on your end
 type Validator struct {
-	// TagName being used.
+	// tagName being used.
 	tagName string
 	// validationFuncs is a map of validation functions and the tag keys
 	validationFuncs map[string]ValidationFunc
 }
 
-// NewValidator creates a new Validator instance
-// NOTE: it is not necessary to create a new validator as the internal one will do in 99.9% of cases, but the option is there.
+// NewValidator creates a new Validator instance for use.
 func NewValidator(tagName string, funcs map[string]ValidationFunc) *Validator {
 	return &Validator{
 		tagName:         tagName,
@@ -128,12 +129,14 @@ func NewValidator(tagName string, funcs map[string]ValidationFunc) *Validator {
 	}
 }
 
-// SetTag sets tagName of the Validator to one of your choosing
+// SetTag sets tagName of the Validator to one of your choosing after creation
+// perhaps to dodge a tag name conflict in a specific section of code
 func (v *Validator) SetTag(tagName string) {
 	v.tagName = tagName
 }
 
 // AddFunction adds a ValidationFunc to a Validator's map of validators denoted by the key
+// NOTE: if the key already exists, it will get replaced.
 func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 
 	if len(key) == 0 {
@@ -141,37 +144,29 @@ func (v *Validator) AddFunction(key string, f ValidationFunc) error {
 	}
 
 	if f == nil {
-		return errors.New("Function Key cannot be empty")
+		return errors.New("Function cannot be empty")
 	}
-
-	// Commented out to allow overwritting of Baked In Function if so desired.
-	// if v.ValidationFuncs[key] != nil {
-	// 	return errors.New(fmt.Sprintf("Validation Function with key: %s already exists.", key))
-	// }
 
 	v.validationFuncs[key] = f
 
 	return nil
 }
 
-// ValidateStruct validates a struct and returns a struct containing the errors
+// ValidateStruct validates a struct, even it's nested structs, and returns a struct containing the errors
+// NOTE: Nested Arrays, or Maps of structs do not get validated only the Array or Map itself; the reason is that there is no good
+// way to represent or report which struct within the array has the error, besides can validate the struct prior to adding it to
+// the Array or Map.
 func (v *Validator) ValidateStruct(s interface{}) *StructValidationErrors {
 
 	return v.validateStructRecursive(s, s, s)
 }
 
-// validateStructRecursive validates a struct recursivly and passes the top level struct around for use in validator functions and returns a struct containing the errors
+// validateStructRecursive validates a struct recursivly and passes the top level and current struct around for use in validator functions and returns a struct containing the errors
 func (v *Validator) validateStructRecursive(top interface{}, current interface{}, s interface{}) *StructValidationErrors {
 
 	structValue := reflect.ValueOf(s)
 	structType := reflect.TypeOf(s)
 	structName := structType.Name()
-
-	validationErrors := &StructValidationErrors{
-		Struct:       structName,
-		Errors:       map[string]*FieldValidationError{},
-		StructErrors: map[string]*StructValidationErrors{},
-	}
 
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
 		return v.validateStructRecursive(top, current, structValue.Elem().Interface())
@@ -179,6 +174,12 @@ func (v *Validator) validateStructRecursive(top interface{}, current interface{}
 
 	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
 		panic("interface passed for validation is not a struct")
+	}
+
+	validationErrors := &StructValidationErrors{
+		Struct:       structName,
+		Errors:       map[string]*FieldValidationError{},
+		StructErrors: map[string]*StructValidationErrors{},
 	}
 
 	var numFields = structValue.NumField()
@@ -255,7 +256,7 @@ func (v *Validator) ValidateFieldByTag(f interface{}, tag string) *FieldValidati
 	return v.ValidateFieldByTagAndValue(nil, f, tag)
 }
 
-// ValidateFieldByTagAndValue allows validation of a single field, still using tag style validation to check multiple errors
+// ValidateFieldByTagAndValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
 func (v *Validator) ValidateFieldByTagAndValue(val interface{}, f interface{}, tag string) *FieldValidationError {
 
 	return v.validateFieldByNameAndTagAndValue(nil, val, f, "", tag)
