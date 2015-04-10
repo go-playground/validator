@@ -1,12 +1,12 @@
 /*
 Package validator implements value validations for structs and individual fields based on tags. It can also handle Cross Field validation and even Cross Field Cross Struct validation for nested structs.
 
-Built In Validator
+Validate
 
-	myValidator = validator.NewValidator("validate", validator.BakedInValidators)
+	validate := validator.New("validate", validator.BakedInValidators)
 
-	errs := myValidator.ValidateStruct(//your struct)
-	valErr := myValidator.ValidateFieldByTag(field, "omitempty,min=1,max=10")
+	errs := validate.Struct(//your struct)
+	valErr := validate.Field(field, "omitempty,min=1,max=10")
 
 A simple example usage:
 
@@ -25,17 +25,17 @@ A simple example usage:
 	}
 
 	// errs will contain a hierarchical list of errors
-	// using the StructValidationErrors struct
+	// using the StructErrors struct
 	// or nil if no errors exist
-	errs := myValidator.ValidateStruct(user)
+	errs := validate.Struct(user)
 
 	// in this case 1 error Name is required
 	errs.Struct will be "User"
 	errs.StructErrors will be empty <-- fields that were structs
-	errs.Errors will have 1 error of type FieldValidationError
+	errs.Errors will have 1 error of type FieldError
 
 	NOTE: Anonymous Structs - they don't have names so expect the Struct name
-	within StructValidationErrors to be blank.
+	within StructErrors to be blank.
 
 Error Handling
 
@@ -45,7 +45,7 @@ The error can be used like so
 	fieldErr.Field    // "Name"
 	fieldErr.ErrorTag // "required"
 
-Both StructValidationErrors and FieldValidationError implement the Error interface but it's
+Both StructErrors and FieldError implement the Error interface but it's
 intended use is for development + debugging, not a production error message.
 
 	fieldErr.Error() // Field validation for "Name" failed on the "required" tag
@@ -67,7 +67,7 @@ I needed to know the field and what validation failed so that I could provide an
 	}
 
 The hierarchical error structure is hard to work with sometimes.. Agreed Flatten function to the rescue!
-Flatten will return a map of FieldValidationError's but the field name will be namespaced.
+Flatten will return a map of FieldError's but the field name will be namespaced.
 
 	// if UserDetail Details field failed validation
 	Field will be "Sub.Details"
@@ -89,7 +89,7 @@ Custom functions can be added
 		return true
 	}
 
-	myValidator.AddFunction("custom tag name", customFunc)
+	validate.AddFunction("custom tag name", customFunc)
 	// NOTES: using the same tag name as an existing function
 	//        will overwrite the existing one
 
@@ -97,11 +97,11 @@ Cross Field Validation
 
 Cross Field Validation can be implemented, for example Start & End Date range validation
 
-	// NOTE: when calling myValidator.validateStruct(val) val will be the top level struct passed
+	// NOTE: when calling validate.Struct(val) val will be the top level struct passed
 	//       into the function
-	//       when calling myValidator.ValidateFieldByTagAndValue(val, field, tag) val will be
+	//       when calling validate.FieldWithValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
-	//       when calling myValidator.ValidateFieldByTag(field, tag) val will be nil
+	//       when calling validate.Field(field, tag) val will be nil
 	//
 	// Because of the specific requirements and field names within each persons project that
 	// uses this library it is likely that custom functions will need to be created for your
@@ -225,29 +225,29 @@ Here is a list of the current built in validators:
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
-		Validation on End field using ValidateByStruct Usage(gtfield=Start)
-		Validating by field ValidateFieldByTagAndValue(start, end, "gtfield")
+		Validation on End field using validate.Struct Usage(gtfield=Start)
+		Validating by field validate.FieldWithValue(start, end, "gtfield")
 
 	gtefield
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
-		Validation on End field using ValidateByStruct Usage(gtefield=Start)
-		Validating by field ValidateFieldByTagAndValue(start, end, "gtefield")
+		Validation on End field using validate.Struct Usage(gtefield=Start)
+		Validating by field validate.FieldWithValue(start, end, "gtefield")
 
 	ltfield
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
-		Validation on End field using ValidateByStruct Usage(ltfield=Start)
-		Validating by field ValidateFieldByTagAndValue(start, end, "ltfield")
+		Validation on End field using validate.Struct Usage(ltfield=Start)
+		Validating by field validate.FieldWithValue(start, end, "ltfield")
 
 	ltefield
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
-		Validation on End field using ValidateByStruct Usage(ltefield=Start)
-		Validating by field ValidateFieldByTagAndValue(start, end, "ltefield")
+		Validation on End field using validate.Struct Usage(ltefield=Start)
+		Validating by field validate.FieldWithValue(start, end, "ltefield")
 
 	alpha
 		This validates that a strings value contains alpha characters only
@@ -329,6 +329,6 @@ This package panics when bad input is provided, this is by design, bad code like
 		TestField: "Test"
 	}
 
-	myValidator.ValidateStruct(t) // this will panic
+	validate.Struct(t) // this will panic
 */
 package validator
