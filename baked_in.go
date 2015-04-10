@@ -11,7 +11,7 @@ import (
 // BakedInValidators is the default map of ValidationFunc
 // you can add, remove or even replace items to suite your needs,
 // or even disregard and use your own map if so desired.
-var BakedInValidators = map[string]ValidationFunc{
+var BakedInValidators = map[string]Func{
 	"required":    hasValue,
 	"len":         hasLengthOf,
 	"min":         hasMinOf,
