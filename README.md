@@ -1,7 +1,7 @@
-Package go-validate-yourself
+Package validator
 ================
-[![Build Status](https://travis-ci.org/bluesuncorp/go-validate-yourself.svg?branch=v5)](https://travis-ci.org/bluesuncorp/go-validate-yourself)
-[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v5)
+[![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5)](https://travis-ci.org/bluesuncorp/validator)
+[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
 
 Package validator implements value validations for structs and individual fields based on tags.
 It is even capable of Cross Field and even Cross Field Cross Struct validation.
@@ -11,20 +11,20 @@ Installation
 
 Just use go get.
 
-	go get gopkg.in/bluesuncorp/go-validate-yourself.v5
+	go get gopkg.in/bluesuncorp/validator.v5
 
 or to update
 
-	go get -u gopkg.in/bluesuncorp/go-validate-yourself.v5
+	go get -u gopkg.in/bluesuncorp/validator.v5
 
 And then just import the package into your own code.
 
-	import "gopkg.in/bluesuncorp/go-validate-yourself.v5"
+	import "gopkg.in/bluesuncorp/validator.v5"
 
 Usage
 =====
 
-Please see http://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v5 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v5 for detailed usage docs.
 
 Contributing
 ============
