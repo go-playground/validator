@@ -2,7 +2,7 @@ language: go
 
 notificaitons:
   email:
-    recipients: dean.karn@gmail.com
+    recipients: bluesuncorp01@gmail.com
     on_success: change
     on_failure: always
 

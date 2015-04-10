@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joeybloggs/go-validate-yourself"
+	"gopkg.in/bluesuncorp/go-validate-yourself.v4"
 	. "gopkg.in/check.v1"
 )
 

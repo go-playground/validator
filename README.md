@@ -1,7 +1,7 @@
 Package go-validate-yourself
 ================
-[![Build Status](https://travis-ci.org/joeybloggs/go-validate-yourself.svg?branch=v4)](https://travis-ci.org/joeybloggs/go-validate-yourself)
-[![GoDoc](https://godoc.org/gopkg.in/joeybloggs/go-validate-yourself.v4?status.svg)](https://godoc.org/gopkg.in/joeybloggs/go-validate-yourself.v4)
+[![Build Status](https://travis-ci.org/bluesuncorp/go-validate-yourself.svg?branch=v4)](https://travis-ci.org/bluesuncorp/go-validate-yourself)
+[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v4?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v4)
 
 Package validator implements value validations for structs and individual fields based on tags.
 
@@ -10,20 +10,20 @@ Installation
 
 Just use go get.
 
-	go get gopkg.in/joeybloggs/go-validate-yourself.v4
+	go get gopkg.in/bluesuncorp/go-validate-yourself.v4
 
 or to update
 
-	go get -u gopkg.in/joeybloggs/go-validate-yourself.v4
+	go get -u gopkg.in/bluesuncorp/go-validate-yourself.v4
 
 And then just import the package into your own code.
 
-	import "gopkg.in/joeybloggs/go-validate-yourself.v4"
+	import "gopkg.in/bluesuncorp/go-validate-yourself.v4"
 
 Usage
 =====
 
-Please see http://godoc.org/gopkg.in/joeybloggs/go-validate-yourself.v4 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/bluesuncorp/go-validate-yourself.v4 for detailed usage docs.
 
 Contributing
 ============

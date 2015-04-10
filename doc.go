@@ -55,7 +55,7 @@ intended use is for development + debugging, not a production error message.
 
 Why not a better error message? because this library intends for you to handle your own error messages
 
-Why should I handle my own errors? Many reasons, for me building an internationalized application
+Why should I handle my own errors? Many reasons, for us building an internationalized application
 I needed to know the field and what validation failed so that I could provide an error in the users specific language.
 
 	if fieldErr.Field == "Name" {
