@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/bluesuncorp/go-validate-yourself.v5"
+	"gopkg.in/bluesuncorp/validator.v5"
 	. "gopkg.in/check.v1"
 )
 
