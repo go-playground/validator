@@ -292,14 +292,22 @@ Here is a list of the current built in validators:
 		This may not conform to all possibilities of any rfc standard, but neither
 		does any email provider accept all posibilities...
 		(Usage: email)
+
 	url
 		This validates that a string value contains a valid url
 		This will accept any url the golang request uri accepts but must contain
 		a schema for example http:// or rtmp://
 		(Usage: url)
+
 	uri
 		This validates that a string value contains a valid uri
 		This will accept any uri the golang request uri accepts (Usage: uri)
+
+	base64
+		This validates that a string value contains a valid base64 value.
+		Although an empty string is valid base64 this will report an empty string
+		as an error, if you wish to accept an empty string as valid you can use
+		this with the omitempty tag. (Usage: base64)
 
 Validator notes:
 

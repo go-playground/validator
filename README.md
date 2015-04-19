@@ -11,7 +11,7 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/bluesuncorp/validator.v5
+	go get -u gopkg.in/bluesuncorp/validator.v5
 
 or to update
 
@@ -29,12 +29,12 @@ Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v5 for detailed usage
 How to Contribute
 =================
 
-There will be always be a development branch for each version i.e. `v1-development`. In order to contribute, 
+There will always be a development branch for each version i.e. `v1-development`. In order to contribute, 
 please make your pull requests against those branches.
 
-If changes made fails the test or are broken, please create an issue, for discussion and create a pull request against
-the highest development branch for example this package has a v1 and v1-development branch
-however, there will also be a v2-development brach even though v2 doesn't exist yet.
+If the changes being proposed or requested are breaking changes, please create an issue, for discussion 
+or create a pull request against the highest development branch for example this package has a 
+v1 and v1-development branch however, there will also be a v2-development brach even though v2 doesn't exist yet.
 
 I strongly encourage everyone whom creates a custom validation function to contribute them and
 help make this package even better.
