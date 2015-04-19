@@ -37,6 +37,11 @@ var BakedInValidators = map[string]Func{
 	"email":       isEmail,
 	"url":         isURL,
 	"uri":         isURI,
+	"base64":      isBase64,
+}
+
+func isBase64(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(base64Regex, field)
 }
 
 func isURI(top interface{}, current interface{}, field interface{}, param string) bool {

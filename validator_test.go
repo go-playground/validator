@@ -10,6 +10,11 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+// NOTES:
+// - Run "go test" to run tests
+// - Run "gocov test | gocov report" to report on test converage by file
+// - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
+
 type I interface {
 	Foo() string
 }
@@ -135,6 +140,26 @@ func newValidatorFunc(val interface{}, current interface{}, field interface{}, p
 func isEqualFunc(val interface{}, current interface{}, field interface{}, param string) bool {
 
 	return current.(string) == field.(string)
+}
+
+func (ms *MySuite) TestBase64Validation(c *C) {
+
+	s := "dW5pY29ybg=="
+
+	err := validate.Field(s, "base64")
+	c.Assert(err, IsNil)
+
+	s = "dGhpIGlzIGEgdGVzdCBiYXNlNjQ="
+	err = validate.Field(s, "base64")
+	c.Assert(err, IsNil)
+
+	s = ""
+	err = validate.Field(s, "base64")
+	c.Assert(err, NotNil)
+
+	s = "dW5pY29ybg== foo bar"
+	err = validate.Field(s, "base64")
+	c.Assert(err, NotNil)
 }
 
 func (ms *MySuite) TestStructOnlyValidation(c *C) {
