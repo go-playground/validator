@@ -1,6 +1,6 @@
 Package validator
 ================
-[![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5)](https://travis-ci.org/bluesuncorp/validator)
+[![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5.0.2)](https://travis-ci.org/bluesuncorp/validator)
 [![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
 
 Package validator implements value validations for structs and individual fields based on tags.
