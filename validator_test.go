@@ -6,8 +6,7 @@ import (
 	"testing"
 	"time"
 
-	// "gopkg.in/bluesuncorp/validator.v5"
-	"github.com/joeybloggs/validator"
+	"gopkg.in/bluesuncorp/validator.v5"
 	. "gopkg.in/check.v1"
 )
 
