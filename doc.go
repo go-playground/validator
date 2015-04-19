@@ -1,5 +1,5 @@
 /*
-Package validator implements value validations for structs and individual fields based on tags. It can also handle Cross Field validation and even Cross Field Cross Struct validation for nested structs.
+Package validator implements value validations for structs and individual fields based on tags. It can also handle Cross Field and Cross Struct validation for nested structs.
 
 Validate
 
@@ -250,56 +250,64 @@ Here is a list of the current built in validators:
 		Validating by field validate.FieldWithValue(start, end, "ltefield")
 
 	alpha
-		This validates that a strings value contains alpha characters only
+		This validates that a string value contains alpha characters only
 		(Usage: alpha)
 
 	alphanum
-		This validates that a strings value contains alphanumeric characters only
+		This validates that a string value contains alphanumeric characters only
 		(Usage: alphanum)
 
 	numeric
-		This validates that a strings value contains a basic numeric value.
+		This validates that a string value contains a basic numeric value.
 		basic excludes exponents etc...
 		(Usage: numeric)
 
 	hexadecimal
-		This validates that a strings value contains a valid hexadecimal.
+		This validates that a string value contains a valid hexadecimal.
 		(Usage: hexadecimal)
 
 	hexcolor
-		This validates that a strings value contains a valid hex color including
+		This validates that a string value contains a valid hex color including
 		hashtag (#)
 		(Usage: hexcolor)
 
 	rgb
-		This validates that a strings value contains a valid rgb color
+		This validates that a string value contains a valid rgb color
 		(Usage: rgb)
 
 	rgba
-		This validates that a strings value contains a valid rgba color
+		This validates that a string value contains a valid rgba color
 		(Usage: rgba)
 
 	hsl
-		This validates that a strings value contains a valid hsl color
+		This validates that a string value contains a valid hsl color
 		(Usage: hsl)
 
 	hsla
-		This validates that a strings value contains a valid hsla color
+		This validates that a string value contains a valid hsla color
 		(Usage: hsla)
 
 	email
-		This validates that a strings value contains a valid email
+		This validates that a string value contains a valid email
 		This may not conform to all possibilities of any rfc standard, but neither
 		does any email provider accept all posibilities...
 		(Usage: email)
+
 	url
-		This validates that a strings value contains a valid url
+		This validates that a string value contains a valid url
 		This will accept any url the golang request uri accepts but must contain
 		a schema for example http:// or rtmp://
 		(Usage: url)
+
 	uri
-		This validates that a strings value contains a valid uri
+		This validates that a string value contains a valid uri
 		This will accept any uri the golang request uri accepts (Usage: uri)
+
+	base64
+		This validates that a string value contains a valid base64 value.
+		Although an empty string is valid base64 this will report an empty string
+		as an error, if you wish to accept an empty string as valid you can use
+		this with the omitempty tag. (Usage: base64)
 
 Validator notes:
 
@@ -314,7 +322,7 @@ Validator notes:
 		used within the validator function and even be precompiled for better efficiency
 		within regexes.go.
 
-		And the best reason, you can sumit a pull request and we can keep on adding to the
+		And the best reason, you can submit a pull request and we can keep on adding to the
 		validation library of this package!
 
 Panics
