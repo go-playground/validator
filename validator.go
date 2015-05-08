@@ -200,7 +200,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		}
 
 		// if no validation and not a struct (which may containt fields for validation)
-		if tag == "" && valueField.Kind() != reflect.Struct && valueField.Kind() != reflect.Interface {
+		if tag == "" && ((valueField.Kind() != reflect.Struct && valueField.Kind() != reflect.Interface) || valueField.Type() == reflect.TypeOf(time.Time{})) {
 			continue
 		}
 
