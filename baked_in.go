@@ -17,11 +17,13 @@ var BakedInValidators = map[string]Func{
 	"min":         hasMinOf,
 	"max":         hasMaxOf,
 	"eq":          isEq,
+	"ne":          isNe,
 	"lt":          isLt,
 	"lte":         isLte,
 	"gt":          isGt,
 	"gte":         isGte,
 	"eqfield":     isEqField,
+	"nefield":     isNeField,
 	"gtefield":    isGteField,
 	"gtfield":     isGtField,
 	"ltefield":    isLteField,
@@ -40,6 +42,14 @@ var BakedInValidators = map[string]Func{
 	"url":         isURL,
 	"uri":         isURI,
 	"base64":      isBase64,
+}
+
+func isNeField(top interface{}, current interface{}, field interface{}, param string) bool {
+	return !isEqField(top, current, field, param)
+}
+
+func isNe(top interface{}, current interface{}, field interface{}, param string) bool {
+	return !isEq(top, current, field, param)
 }
 
 func isEqField(top interface{}, current interface{}, field interface{}, param string) bool {
