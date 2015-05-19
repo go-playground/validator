@@ -192,6 +192,16 @@ Here is a list of the current built in validators:
 		the string length is at least that number of characters. For slices,
 		arrays, and maps, validates the number of items. (Usage: min=10)
 
+	eq
+		For strings & numbers, eq will ensure that the value is
+		equal to the parameter given. For slices, arrays, and maps,
+		validates the number of items. (Usage: eq=10)
+
+	ne
+		For strings & numbers, eq will ensure that the value is not
+		equal to the parameter given. For slices, arrays, and maps,
+		validates the number of items. (Usage: eq=10)
+
 	gt
 		For numbers, this will ensure that the value is greater than the
 		parameter given. For strings, it checks that the string length
@@ -220,6 +230,20 @@ Here is a list of the current built in validators:
 		(Usage: lte=10)
 		For time.Time ensures the time value is less than or equal to time.Now.UTC()
 		(Usage: lte)
+
+	eqfield
+		This will validate the field value against another fields value either within
+		a struct or passed in field.
+		usage examples are for validation of a password and confirm password:
+		Validation on Password field using validate.Struct Usage(eqfield=ConfirmPassword)
+		Validating by field validate.FieldWithValue(password, confirmpassword, "eqfield")
+
+	nefield
+		This will validate the field value against another fields value either within
+		a struct or passed in field.
+		usage examples are for ensuring two colors are not the same:
+		Validation on Color field using validate.Struct Usage(nefield=Color2)
+		Validating by field validate.FieldWithValue(color1, color2, "nefield")
 
 	gtfield
 		Only valid for Numbers and time.Time types, this will validate the field value

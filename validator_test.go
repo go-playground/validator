@@ -142,6 +142,238 @@ func isEqualFunc(val interface{}, current interface{}, field interface{}, param 
 	return current.(string) == field.(string)
 }
 
+func (ms *MySuite) TestIsNeFieldValidation(c *C) {
+
+	var j uint64
+	var k float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+	now := time.Now().UTC()
+
+	var j2 uint64
+	var k2 float64
+	s2 := "abcdef"
+	i2 := 3
+	j2 = 2
+	k2 = 1.5434456
+	arr2 := []string{"test", "test2"}
+	arr3 := []string{"test"}
+	now2 := now
+
+	err := validate.FieldWithValue(s, s2, "nefield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(i2, i, "nefield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(j2, j, "nefield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(k2, k, "nefield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(arr2, arr, "nefield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(now2, now, "nefield")
+	c.Assert(err, NotNil)
+
+	err = validate.FieldWithValue(arr3, arr, "nefield")
+	c.Assert(err, NotNil)
+
+	type Test struct {
+		Start *time.Time `validate:"nefield=End"`
+		End   *time.Time
+	}
+
+	sv := &Test{
+		Start: &now,
+		End:   &now,
+	}
+
+	errs := validate.Struct(sv)
+	c.Assert(errs, NotNil)
+
+	now3 := time.Now().UTC()
+
+	sv = &Test{
+		Start: &now,
+		End:   &now3,
+	}
+
+	errs = validate.Struct(sv)
+	c.Assert(errs, IsNil)
+
+	channel := make(chan string)
+
+	c.Assert(func() { validate.FieldWithValue(nil, 1, "nefield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validate.FieldWithValue(5, channel, "nefield") }, PanicMatches, "Bad field type chan string")
+	c.Assert(func() { validate.FieldWithValue(5, now, "nefield") }, PanicMatches, "Bad Top Level field type")
+
+	type Test2 struct {
+		Start *time.Time `validate:"nefield=NonExistantField"`
+		End   *time.Time
+	}
+
+	sv2 := &Test2{
+		Start: &now,
+		End:   &now,
+	}
+
+	c.Assert(func() { validate.Struct(sv2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
+func (ms *MySuite) TestIsNeValidation(c *C) {
+
+	var j uint64
+	var k float64
+	s := "abcdef"
+	i := 3
+	j = 2
+	k = 1.5434
+	arr := []string{"test"}
+	now := time.Now().UTC()
+
+	err := validate.Field(s, "ne=abcd")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(i, "ne=1")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(j, "ne=1")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(k, "ne=1.543")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(arr, "ne=2")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(arr, "ne=1")
+	c.Assert(err, NotNil)
+
+	c.Assert(func() { validate.Field(now, "ne=now") }, PanicMatches, "Bad field type time.Time")
+}
+
+func (ms *MySuite) TestIsEqFieldValidation(c *C) {
+
+	var j uint64
+	var k float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+	now := time.Now().UTC()
+
+	var j2 uint64
+	var k2 float64
+	s2 := "abcd"
+	i2 := 1
+	j2 = 1
+	k2 = 1.543
+	arr2 := []string{"test"}
+	arr3 := []string{"test", "test2"}
+	now2 := now
+
+	err := validate.FieldWithValue(s, s2, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(i2, i, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(j2, j, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(k2, k, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(arr2, arr, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(now2, now, "eqfield")
+	c.Assert(err, IsNil)
+
+	err = validate.FieldWithValue(arr3, arr, "eqfield")
+	c.Assert(err, NotNil)
+
+	type Test struct {
+		Start *time.Time `validate:"eqfield=End"`
+		End   *time.Time
+	}
+
+	sv := &Test{
+		Start: &now,
+		End:   &now,
+	}
+
+	errs := validate.Struct(sv)
+	c.Assert(errs, IsNil)
+
+	now3 := time.Now().UTC()
+
+	sv = &Test{
+		Start: &now,
+		End:   &now3,
+	}
+
+	errs = validate.Struct(sv)
+	c.Assert(errs, NotNil)
+
+	channel := make(chan string)
+
+	c.Assert(func() { validate.FieldWithValue(nil, 1, "eqfield") }, PanicMatches, "struct not passed for cross validation")
+	c.Assert(func() { validate.FieldWithValue(5, channel, "eqfield") }, PanicMatches, "Bad field type chan string")
+	c.Assert(func() { validate.FieldWithValue(5, now, "eqfield") }, PanicMatches, "Bad Top Level field type")
+
+	type Test2 struct {
+		Start *time.Time `validate:"eqfield=NonExistantField"`
+		End   *time.Time
+	}
+
+	sv2 := &Test2{
+		Start: &now,
+		End:   &now,
+	}
+
+	c.Assert(func() { validate.Struct(sv2) }, PanicMatches, "Field \"NonExistantField\" not found in struct")
+}
+
+func (ms *MySuite) TestIsEqValidation(c *C) {
+
+	var j uint64
+	var k float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+	now := time.Now().UTC()
+
+	err := validate.Field(s, "eq=abcd")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(i, "eq=1")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(j, "eq=1")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(k, "eq=1.543")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(arr, "eq=1")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(arr, "eq=2")
+	c.Assert(err, NotNil)
+
+	c.Assert(func() { validate.Field(now, "eq=now") }, PanicMatches, "Bad field type time.Time")
+}
+
 func (ms *MySuite) TestBase64Validation(c *C) {
 
 	s := "dW5pY29ybg=="
