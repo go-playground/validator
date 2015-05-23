@@ -25,7 +25,7 @@ const (
 	tagKeySeparator = "="
 	structOnlyTag   = "structonly"
 	omitempty       = "omitempty"
-	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag\n"
+	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
 	structErrMsg    = "Struct:%s\n"
 )
 
@@ -65,12 +65,14 @@ func (e *StructErrors) Error() string {
 
 	for _, err := range e.Errors {
 		buff.WriteString(err.Error())
+		buff.WriteString("\n")
 	}
 
 	for _, err := range e.StructErrors {
 		buff.WriteString(err.Error())
+		buff.WriteString("\n\n")
 	}
-	buff.WriteString("\n\n")
+
 	return buff.String()
 }
 
