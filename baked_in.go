@@ -5,43 +5,77 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // BakedInValidators is the default map of ValidationFunc
 // you can add, remove or even replace items to suite your needs,
 // or even disregard and use your own map if so desired.
 var BakedInValidators = map[string]Func{
-	"required":    hasValue,
-	"len":         hasLengthOf,
-	"min":         hasMinOf,
-	"max":         hasMaxOf,
-	"eq":          isEq,
-	"ne":          isNe,
-	"lt":          isLt,
-	"lte":         isLte,
-	"gt":          isGt,
-	"gte":         isGte,
-	"eqfield":     isEqField,
-	"nefield":     isNeField,
-	"gtefield":    isGteField,
-	"gtfield":     isGtField,
-	"ltefield":    isLteField,
-	"ltfield":     isLtField,
-	"alpha":       isAlpha,
-	"alphanum":    isAlphanum,
-	"numeric":     isNumeric,
-	"number":      isNumber,
-	"hexadecimal": isHexadecimal,
-	"hexcolor":    isHexcolor,
-	"rgb":         isRgb,
-	"rgba":        isRgba,
-	"hsl":         isHsl,
-	"hsla":        isHsla,
-	"email":       isEmail,
-	"url":         isURL,
-	"uri":         isURI,
-	"base64":      isBase64,
+	"required":     hasValue,
+	"len":          hasLengthOf,
+	"min":          hasMinOf,
+	"max":          hasMaxOf,
+	"eq":           isEq,
+	"ne":           isNe,
+	"lt":           isLt,
+	"lte":          isLte,
+	"gt":           isGt,
+	"gte":          isGte,
+	"eqfield":      isEqField,
+	"nefield":      isNeField,
+	"gtefield":     isGteField,
+	"gtfield":      isGtField,
+	"ltefield":     isLteField,
+	"ltfield":      isLtField,
+	"alpha":        isAlpha,
+	"alphanum":     isAlphanum,
+	"numeric":      isNumeric,
+	"number":       isNumber,
+	"hexadecimal":  isHexadecimal,
+	"hexcolor":     isHexcolor,
+	"rgb":          isRgb,
+	"rgba":         isRgba,
+	"hsl":          isHsl,
+	"hsla":         isHsla,
+	"email":        isEmail,
+	"url":          isURL,
+	"uri":          isURI,
+	"base64":       isBase64,
+	"contains":     contains,
+	"containsany":  containsAny,
+	"containsrune": containsRune,
+	"excludes":     excludes,
+	"excludesall":  excludesAll,
+	"excludesrune": excludesRune,
+}
+
+func excludesRune(top interface{}, current interface{}, field interface{}, param string) bool {
+	return !containsRune(top, current, field, param)
+}
+
+func excludesAll(top interface{}, current interface{}, field interface{}, param string) bool {
+	return !containsAny(top, current, field, param)
+}
+
+func excludes(top interface{}, current interface{}, field interface{}, param string) bool {
+	return !contains(top, current, field, param)
+}
+
+func containsRune(top interface{}, current interface{}, field interface{}, param string) bool {
+	r, _ := utf8.DecodeRuneInString(param)
+
+	return strings.ContainsRune(field.(string), r)
+}
+
+func containsAny(top interface{}, current interface{}, field interface{}, param string) bool {
+	return strings.ContainsAny(field.(string), param)
+}
+
+func contains(top interface{}, current interface{}, field interface{}, param string) bool {
+	return strings.Contains(field.(string), param)
 }
 
 func isNeField(top interface{}, current interface{}, field interface{}, param string) bool {

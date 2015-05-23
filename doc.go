@@ -333,6 +333,30 @@ Here is a list of the current built in validators:
 		as an error, if you wish to accept an empty string as valid you can use
 		this with the omitempty tag. (Usage: base64)
 
+	contains
+		This validates that a string value contains the substring value.
+		(Usage: contains=@)
+
+	containsany
+		This validates that a string value contains any Unicode code points
+		in the substring value. (Usage: containsany=!@#?)
+
+	containsrune
+		This validates that a string value contains the supplied rune value.
+		(Usage: containsrune=@)
+
+	excludes
+		This validates that a string value does not contain the substring value.
+		(Usage: excludes=@)
+
+	excludesall
+		This validates that a string value does not contain any Unicode code
+		points in the substring value. (Usage: excludesall=!@#?)
+
+	excludesrune
+		This validates that a string value does not contain the supplied rune value.
+		(Usage: excludesrune=@)
+
 Validator notes:
 
 	regex

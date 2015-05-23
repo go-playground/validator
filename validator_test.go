@@ -142,6 +142,76 @@ func isEqualFunc(val interface{}, current interface{}, field interface{}, param 
 	return current.(string) == field.(string)
 }
 
+func (ms *MySuite) TestExcludesRuneValidation(c *C) {
+
+	s := "a☺b☻c☹d"
+	s2 := "abcd"
+
+	err := validate.Field(s, "excludesrune=☻")
+	c.Assert(err, NotNil)
+
+	err = validate.Field(s2, "excludesrune=☻")
+	c.Assert(err, IsNil)
+}
+
+func (ms *MySuite) TestExcludesAllValidation(c *C) {
+
+	s := "abcd@!jfk"
+	s2 := "abcdefg"
+
+	err := validate.Field(s, "excludesall=@!{}[]")
+	c.Assert(err, NotNil)
+
+	err = validate.Field(s2, "excludesall=@!{}[]")
+	c.Assert(err, IsNil)
+}
+
+func (ms *MySuite) TestExcludesValidation(c *C) {
+
+	s := "abcd@!jfk"
+
+	err := validate.Field(s, "excludes=@")
+	c.Assert(err, NotNil)
+
+	err = validate.Field(s, "excludes=q")
+	c.Assert(err, IsNil)
+}
+
+func (ms *MySuite) TestContainsRuneValidation(c *C) {
+
+	s := "a☺b☻c☹d"
+	s2 := "abcd"
+
+	err := validate.Field(s, "containsrune=☻")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(s2, "containsrune=☻")
+	c.Assert(err, NotNil)
+}
+
+func (ms *MySuite) TestContainsAnyValidation(c *C) {
+
+	s := "abcd@!jfk"
+	s2 := "abcdefg"
+
+	err := validate.Field(s, "containsany=@!{}[]")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(s2, "containsany=@!{}[]")
+	c.Assert(err, NotNil)
+}
+
+func (ms *MySuite) TestContainsValidation(c *C) {
+
+	s := "abcd@!jfk"
+
+	err := validate.Field(s, "contains=@")
+	c.Assert(err, IsNil)
+
+	err = validate.Field(s, "contains=q")
+	c.Assert(err, NotNil)
+}
+
 func (ms *MySuite) TestIsNeFieldValidation(c *C) {
 
 	var j uint64
