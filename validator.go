@@ -70,7 +70,6 @@ func (e *StructErrors) Error() string {
 
 	for _, err := range e.StructErrors {
 		buff.WriteString(err.Error())
-		buff.WriteString("\n\n")
 	}
 
 	return buff.String()
