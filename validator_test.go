@@ -13,6 +13,14 @@ import (
 // - Run "go test" to run tests
 // - Run "gocov test | gocov report" to report on test converage by file
 // - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
+//
+//
+// go test -cpuprofile cpu.out
+// ./validator.test -test.bench=. -test.cpuprofile=cpu.prof
+// go tool pprof validator.test cpu.prof
+//
+//
+// go test -memprofile mem.out
 
 type I interface {
 	Foo() string
@@ -2309,4 +2317,26 @@ func TestInvalidValidatorFunction(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
+}
+
+func BenchmarkValidateField(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field("1", "len=1")
+	}
+}
+
+func BenchmarkValidateStruct(b *testing.B) {
+	type Test struct {
+		StringVal string `bson:"required,lt=10"`
+		Int64Val  int64  `bson:"gt=0,lt=10"`
+	}
+
+	t := &Test{
+		StringVal: "test",
+		Int64Val:  5,
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(t)
+	}
 }

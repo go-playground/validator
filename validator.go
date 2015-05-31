@@ -166,8 +166,6 @@ func (v *Validate) Struct(s interface{}) *StructErrors {
 func (v *Validate) structRecursive(top interface{}, current interface{}, s interface{}) *StructErrors {
 
 	structValue := reflect.ValueOf(s)
-	structType := reflect.TypeOf(s)
-	structName := structType.Name()
 
 	if structValue.Kind() == reflect.Ptr && !structValue.IsNil() {
 		return v.structRecursive(top, current, structValue.Elem().Interface())
@@ -176,6 +174,9 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 	if structValue.Kind() != reflect.Struct && structValue.Kind() != reflect.Interface {
 		panic("interface passed for validation is not a struct")
 	}
+
+	structType := reflect.TypeOf(s)
+	structName := structType.Name()
 
 	validationErrors := &StructErrors{
 		Struct:       structName,
@@ -339,7 +340,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{}, f interface{}, name string, valTag string) (*FieldError, error) {
 
 	vals := strings.Split(valTag, tagKeySeparator)
-	key := strings.Trim(vals[0], " ")
+	key := strings.TrimSpace(vals[0])
 
 	if len(key) == 0 {
 		panic(fmt.Sprintf("Invalid validation tag on field %s", name))
@@ -364,7 +365,7 @@ func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{
 
 	param := ""
 	if len(vals) > 1 {
-		param = strings.Trim(vals[1], " ")
+		param = strings.TrimSpace(vals[1])
 	}
 
 	if err := valFunc(val, current, f, param); !err {
