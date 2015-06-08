@@ -195,12 +195,14 @@ func New(tagName string, funcs map[string]Func) *Validate {
 
 // SetTag sets tagName of the Validator to one of your choosing after creation
 // perhaps to dodge a tag name conflict in a specific section of code
+// NOTE: this method is not thread-safe
 func (v *Validate) SetTag(tagName string) {
 	v.tagName = tagName
 }
 
 // AddFunction adds a validation Func to a Validate's map of validators denoted by the key
 // NOTE: if the key already exists, it will get replaced.
+// NOTE: this method is not thread-safe
 func (v *Validate) AddFunction(key string, f Func) error {
 
 	if len(key) == 0 {
