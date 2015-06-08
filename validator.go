@@ -306,7 +306,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 				cField.isTime = true
 
-				if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, cField); fieldError != nil {
+				if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
 					validationErrors.Errors[fieldError.Field] = fieldError
 					// free up memory reference
 					fieldError = nil
@@ -331,7 +331,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 		default:
 
-			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, cField); fieldError != nil {
+			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
 				validationErrors.Errors[fieldError.Field] = fieldError
 				// free up memory reference
 				fieldError = nil
@@ -361,14 +361,17 @@ func (v *Validate) Field(f interface{}, tag string) *FieldError {
 // FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
 func (v *Validate) FieldWithValue(val interface{}, f interface{}, tag string) *FieldError {
 
-	return v.fieldWithNameAndValue(nil, val, f, tag, "", nil)
+	return v.fieldWithNameAndValue(nil, val, f, tag, "", true, nil)
 }
 
-func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f interface{}, tag string, name string, cacheField *cachedField) *FieldError {
+var cacheFields = map[string][]*cacheTags{}
+
+func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f interface{}, tag string, name string, isSingleField bool, cacheField *cachedField) *FieldError {
 
 	// var fieldType reflect.Type
 	// var fieldKind reflect.Kind
 	var cField *cachedField
+	var ok bool
 
 	// This is a double check if coming from validate.Struct but need to be here in case function is called directly
 	if tag == noValidationTag {
@@ -382,14 +385,30 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	if cacheField == nil {
 		valueField := reflect.ValueOf(f)
 
-		cField = &cachedField{name: name, kind: valueField.Kind()}
-		// fieldKind = valueField.Kind()
-
-		if cField.kind == reflect.Ptr && !valueField.IsNil() {
-			return v.fieldWithNameAndValue(val, current, valueField.Elem().Interface(), tag, name, cacheField)
+		if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
+			// valueField = valueField.Elem()
+			// f = valueField.Interface()
+			return v.fieldWithNameAndValue(val, current, valueField.Elem().Interface(), tag, name, isSingleField, cacheField)
 		}
 
-		cField.typ = valueField.Type()
+		// if !ok {
+		// cacheFields[cField.tag] = cField
+
+		// valueField = valueField.Elem()
+
+		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag, typ: valueField.Type()}
+		// fieldKind = valueField.Kind()
+
+		// if cField.kind == reflect.Ptr && !valueField.IsNil() {
+		// 	return v.fieldWithNameAndValue(val, current, valueField.Elem().Interface(), tag, name, isSingleField, cacheField)
+		// }
+
+		// cField.typ = valueField.Type()
+		// cField.tag = tag
+
+		// if isSingleField {
+		// 	cacheFields[cField.tag] = cField
+		// }
 		// cField.tags = make([][]string, 0)
 		// fieldType = valueField.Type()
 		// for _, t := range strings.Split(tag, tagSeparator) {
@@ -413,6 +432,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		// 	// vals := strings.Split(valTag, tagKeySeparator)
 		// 	// key := strings.TrimSpace(vals[0])
 		// }
+		// }
 	} else {
 		cField = cacheField
 		// fieldType = cacheField.typ
@@ -429,39 +449,52 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	}
 
 	if len(cField.tags) == 0 {
-		for _, t := range strings.Split(tag, tagSeparator) {
 
-			orVals := strings.Split(t, orSeparator)
-			// fmt.Println(len(orVals) - 1)
-			cTag := &cacheTags{isOrVal: len(orVals) > 1, keyVals: make([][]string, len(orVals))}
-			cField.tags = append(cField.tags, cTag)
+		if isSingleField {
+			cField.tags, ok = cacheFields[tag]
+		}
 
-			for i, val := range orVals {
-				vals := strings.Split(val, tagKeySeparator)
+		if !ok {
 
-				key := strings.TrimSpace(vals[0])
+			for _, t := range strings.Split(tag, tagSeparator) {
 
-				if len(key) == 0 {
-					panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+				orVals := strings.Split(t, orSeparator)
+				// fmt.Println(len(orVals) - 1)
+				cTag := &cacheTags{isOrVal: len(orVals) > 1, keyVals: make([][]string, len(orVals))}
+				cField.tags = append(cField.tags, cTag)
+
+				for i, val := range orVals {
+					vals := strings.Split(val, tagKeySeparator)
+
+					key := strings.TrimSpace(vals[0])
+
+					if len(key) == 0 {
+						panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+					}
+
+					param := ""
+					if len(vals) > 1 {
+						param = strings.TrimSpace(vals[1])
+					}
+
+					// fmt.Println(cTag.keyVals)
+					cTag.keyVals[i] = []string{key, param}
+					// cTag.keyVals = append(cTag.keyVals, []string{key, param})
+
+					// for vals := range strings.Split(t, tagKeySeparator) {
+					// cField.tags = append(cField.tags, cacheTags{ isOrVal: len(orVals) > 1, []string{key, param})
+
 				}
 
-				param := ""
-				if len(vals) > 1 {
-					param = strings.TrimSpace(vals[1])
-				}
-
-				// fmt.Println(cTag.keyVals)
-				cTag.keyVals[i] = []string{key, param}
-				// cTag.keyVals = append(cTag.keyVals, []string{key, param})
-
-				// for vals := range strings.Split(t, tagKeySeparator) {
-				// cField.tags = append(cField.tags, cacheTags{ isOrVal: len(orVals) > 1, []string{key, param})
-
+				// }
+				// vals := strings.Split(valTag, tagKeySeparator)
+				// key := strings.TrimSpace(vals[0])
 			}
 
-			// }
-			// vals := strings.Split(valTag, tagKeySeparator)
-			// key := strings.TrimSpace(vals[0])
+			if isSingleField && !ok {
+				// fmt.Println(cField.tag)
+				cacheFields[cField.tag] = cField.tags
+			}
 		}
 	}
 
