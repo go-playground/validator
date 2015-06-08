@@ -244,8 +244,10 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 	var structName string
 	var numFields int
+	var cs *cachedStruct
+	var isCached bool
 
-	cs, isCached := structCache.Get(structType)
+	cs, isCached = structCache.Get(structType)
 
 	if isCached {
 		structName = cs.name
