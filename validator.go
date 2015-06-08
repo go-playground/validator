@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
@@ -51,8 +52,45 @@ type cachedStruct struct {
 	fields   []*cachedField
 }
 
-var structCache = map[reflect.Type]*cachedStruct{}
-var fieldsCache = map[string][]*cachedTags{}
+type structsCacheMap struct {
+	lock sync.RWMutex
+	m    map[reflect.Type]*cachedStruct
+}
+
+func (s *structsCacheMap) Get(key reflect.Type) (*cachedStruct, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	value, ok := s.m[key]
+	return value, ok
+}
+
+func (s *structsCacheMap) Set(key reflect.Type, value *cachedStruct) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.m[key] = value
+}
+
+var structCache = &structsCacheMap{m: map[reflect.Type]*cachedStruct{}}
+
+type fieldsCacheMap struct {
+	lock sync.RWMutex
+	m    map[string][]*cachedTags
+}
+
+func (s *fieldsCacheMap) Get(key string) ([]*cachedTags, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	value, ok := s.m[key]
+	return value, ok
+}
+
+func (s *fieldsCacheMap) Set(key string, value []*cachedTags) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.m[key] = value
+}
+
+var fieldsCache = &fieldsCacheMap{m: map[string][]*cachedTags{}}
 
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
@@ -205,7 +243,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 	var structName string
 	var numFields int
 
-	cs, isCached := structCache[structType]
+	cs, isCached := structCache.Get(structType)
 
 	if isCached {
 		structName = cs.name
@@ -214,7 +252,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		structName = structType.Name()
 		numFields = structValue.NumField()
 		cs = &cachedStruct{name: structName, children: numFields}
-		structCache[structType] = cs
+		structCache.Set(structType, cs)
 	}
 
 	validationErrors := &StructErrors{
@@ -374,7 +412,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	if len(cField.tags) == 0 {
 
 		if isSingleField {
-			cField.tags, isCached = fieldsCache[tag]
+			cField.tags, isCached = fieldsCache.Get(tag)
 		}
 
 		if !isCached {
@@ -404,7 +442,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			}
 
 			if isSingleField {
-				fieldsCache[cField.tag] = cField.tags
+				fieldsCache.Set(cField.tag, cField.tags)
 			}
 		}
 	}
