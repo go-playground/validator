@@ -276,6 +276,11 @@ func TestExcludesAllValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	username := "joeybloggs "
+
+	err := validate.Field(username, "excludesall=@ ")
+	NotEqual(t, err, nil)
 }
 
 func TestExcludesValidation(t *testing.T) {
