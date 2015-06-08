@@ -11,7 +11,7 @@ Installation
 
 Use go get.
 
-	go get -u gopkg.in/bluesuncorp/validator.v5
+	go get gopkg.in/bluesuncorp/validator.v5
 
 or to update
 
