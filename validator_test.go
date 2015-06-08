@@ -2377,3 +2377,21 @@ func BenchmarkValidateStruct(b *testing.B) {
 		validate.Struct(invalidFoo)
 	}
 }
+
+func BenchmarkTemplateParallel(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.Struct(validFoo)
+			validate.Struct(invalidFoo)
+		}
+	})
+}
