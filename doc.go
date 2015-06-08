@@ -10,7 +10,7 @@ Validate
 
 A simple example usage:
 
-	type UserDetail {
+	type UserDetail struct {
 		Details string `validate:"-"`
 	}
 
