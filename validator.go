@@ -438,7 +438,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 					param := ""
 					if len(vals) > 1 {
-						param = strings.TrimSpace(vals[1])
+						param = vals[1]
 					}
 
 					cTag.keyVals[i] = []string{key, param}
@@ -506,12 +506,12 @@ func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{
 
 	if err := valFunc(val, current, f, param); err {
 		return nil, nil
-	} else {
-		return &FieldError{
-			Field: name,
-			Tag:   key,
-			Value: f,
-			Param: param,
-		}, errors.New(key)
 	}
+
+	return &FieldError{
+		Field: name,
+		Tag:   key,
+		Value: f,
+		Param: param,
+	}, errors.New(key)
 }
