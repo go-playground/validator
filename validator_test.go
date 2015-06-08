@@ -2336,36 +2336,44 @@ func BenchmarkValidateStruct(b *testing.B) {
 	// 	Int64Val  int64  `bson:"gt=0,lt=10"`
 	// }
 
-	tFail := &TestString{
-		Required:  "",
-		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
-		OmitEmpty: "12345678901",
-		Sub: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "",
-		},
-		Iface: &Impl{
-			F: "12",
-		},
-	}
+	// tFail := &TestString{
+	// 	Required:  "",
+	// 	Len:       "",
+	// 	Min:       "",
+	// 	Max:       "12345678901",
+	// 	MinMax:    "",
+	// 	Lt:        "0123456789",
+	// 	Lte:       "01234567890",
+	// 	Gt:        "1",
+	// 	Gte:       "1",
+	// 	OmitEmpty: "12345678901",
+	// 	Sub: &SubTest{
+	// 		Test: "",
+	// 	},
+	// 	Anonymous: struct {
+	// 		A string `validate:"required"`
+	// 	}{
+	// 		A: "",
+	// 	},
+	// 	Iface: &Impl{
+	// 		F: "12",
+	// 	},
+	// }
 
 	// t := &Test{
 	// 	StringVal: "test",
 	// 	Int64Val:  5,
 	// }
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
 	for n := 0; n < b.N; n++ {
-		validate.Struct(tFail)
+		validate.Struct(validFoo)
+		validate.Struct(invalidFoo)
 	}
 }
