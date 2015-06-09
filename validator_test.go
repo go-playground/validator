@@ -2044,6 +2044,8 @@ func TestFlattening(t *testing.T) {
 
 func TestStructStringValidation(t *testing.T) {
 
+	validate.SetMaxStructPoolSize(11)
+
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
