@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	utf8HexComma    = "0x2C"
 	tagSeparator    = ","
 	orSeparator     = "|"
 	noValidationTag = "-"
@@ -428,7 +429,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 				cField.tags = append(cField.tags, cTag)
 
 				for i, val := range orVals {
-					vals := strings.Split(val, tagKeySeparator)
+					vals := strings.SplitN(val, tagKeySeparator, 2)
 
 					key := strings.TrimSpace(vals[0])
 
@@ -438,7 +439,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 					param := ""
 					if len(vals) > 1 {
-						param = vals[1]
+						param = strings.Replace(vals[1], utf8HexComma, ",", -1)
 					}
 
 					cTag.keyVals[i] = []string{key, param}
