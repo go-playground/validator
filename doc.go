@@ -143,6 +143,11 @@ NOTE: Baked In Cross field validation only compares fields on the same struct,
 if cross field + cross struct validation is needed your own custom validator
 should be implemented.
 
+NOTE2: comma is the default separator of validation tags, if you wish to have a comma
+included within the parameter i.e. excludesall=, you will need to use the UTF-8 hex
+representation 0x2C, which is replaced in the code as a comma, so the above will
+become excludesall=0x2C
+
 Here is a list of the current built in validators:
 
 	-

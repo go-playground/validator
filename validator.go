@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	utf8HexComma    = "0x2C"
 	tagSeparator    = ","
 	orSeparator     = "|"
 	noValidationTag = "-"
@@ -29,6 +30,48 @@ const (
 	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
 	structErrMsg    = "Struct:%s\n"
 )
+
+var structPool *pool
+
+// Pool holds a channelStructErrors.
+type pool struct {
+	pool chan *StructErrors
+}
+
+// NewPool creates a new pool of Clients.
+func newPool(max int) *pool {
+	return &pool{
+		pool: make(chan *StructErrors, max),
+	}
+}
+
+// Borrow a StructErrors from the pool.
+func (p *pool) Borrow() *StructErrors {
+	var c *StructErrors
+
+	select {
+	case c = <-p.pool:
+	default:
+		c = &StructErrors{
+			Errors:       map[string]*FieldError{},
+			StructErrors: map[string]*StructErrors{},
+		}
+	}
+
+	return c
+}
+
+// Return returns a StructErrors to the pool.
+func (p *pool) Return(c *StructErrors) {
+
+	// c.Struct = ""
+
+	select {
+	case p.pool <- c:
+	default:
+		// let it go, let it go...
+	}
+}
 
 type cachedTags struct {
 	keyVals [][]string
@@ -187,6 +230,9 @@ type Validate struct {
 
 // New creates a new Validate instance for use.
 func New(tagName string, funcs map[string]Func) *Validate {
+
+	structPool = newPool(10)
+
 	return &Validate{
 		tagName:         tagName,
 		validationFuncs: funcs,
@@ -198,6 +244,16 @@ func New(tagName string, funcs map[string]Func) *Validate {
 // NOTE: this method is not thread-safe
 func (v *Validate) SetTag(tagName string) {
 	v.tagName = tagName
+}
+
+// SetStructPoolMax sets the  struct pools max size. this may be usefull for fine grained
+// performance tuning towards your application, however, the default should be fine for
+// nearly all cases. only increase if you have a deeply nested struct structure.
+// NOTE: this method is not thread-safe
+// NOTE: this is only here to keep compatibility with v5, in v6 the method will be removed
+// and the max pool size will be passed into the New function
+func (v *Validate) SetMaxStructPoolSize(max int) {
+	structPool = newPool(max)
 }
 
 // AddFunction adds a validation Func to a Validate's map of validators denoted by the key
@@ -259,11 +315,8 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		structCache.Set(structType, cs)
 	}
 
-	validationErrors := &StructErrors{
-		Struct:       structName,
-		Errors:       map[string]*FieldError{},
-		StructErrors: map[string]*StructErrors{},
-	}
+	validationErrors := structPool.Borrow()
+	validationErrors.Struct = structName
 
 	for i := 0; i < numFields; i++ {
 
@@ -359,6 +412,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 	}
 
 	if len(validationErrors.Errors) == 0 && len(validationErrors.StructErrors) == 0 {
+		structPool.Return(validationErrors)
 		return nil
 	}
 
@@ -428,7 +482,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 				cField.tags = append(cField.tags, cTag)
 
 				for i, val := range orVals {
-					vals := strings.Split(val, tagKeySeparator)
+					vals := strings.SplitN(val, tagKeySeparator, 2)
 
 					key := strings.TrimSpace(vals[0])
 
@@ -438,7 +492,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 					param := ""
 					if len(vals) > 1 {
-						param = vals[1]
+						param = strings.Replace(vals[1], utf8HexComma, ",", -1)
 					}
 
 					cTag.keyVals[i] = []string{key, param}
