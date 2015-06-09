@@ -281,6 +281,16 @@ func TestExcludesAllValidation(t *testing.T) {
 
 	err := validate.Field(username, "excludesall=@ ")
 	NotEqual(t, err, nil)
+
+	excluded := ","
+
+	err = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C?")
+	NotEqual(t, err, nil)
+
+	excluded = "="
+
+	err = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C=?")
+	NotEqual(t, err, nil)
 }
 
 func TestExcludesValidation(t *testing.T) {
