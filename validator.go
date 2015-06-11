@@ -246,7 +246,7 @@ func (v *Validate) SetTag(tagName string) {
 	v.tagName = tagName
 }
 
-// SetStructPoolMax sets the  struct pools max size. this may be usefull for fine grained
+// SetMaxStructPoolSize sets the  struct pools max size. this may be usefull for fine grained
 // performance tuning towards your application, however, the default should be fine for
 // nearly all cases. only increase if you have a deeply nested struct structure.
 // NOTE: this method is not thread-safe
