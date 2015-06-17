@@ -57,6 +57,62 @@ var BakedInValidators = map[string]Func{
 	"uuid3":        isUUID3,
 	"uuid4":        isUUID4,
 	"uuid5":        isUUID5,
+	"ascii":        isASCII,
+	"printascii":   isPrintableASCII,
+	"multibyte":    hasMultiByteCharacter,
+	"datauri":      isDataURI,
+	"latitude":     isLatitude,
+	"longitude":    isLongitude,
+	"ssn":          isSSN,
+}
+
+func isSSN(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	if len(field.(string)) != 11 {
+		return false
+	}
+
+	return matchesRegex(sSNRegex, field)
+}
+
+func isLongitude(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(longitudeRegex, field)
+}
+
+func isLatitude(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(latitudeRegex, field)
+}
+
+func isDataURI(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	uri := strings.SplitN(field.(string), ",", 2)
+
+	if len(uri) != 2 {
+		return false
+	}
+
+	if !matchesRegex(dataURIRegex, uri[0]) {
+		return false
+	}
+
+	return isBase64(top, current, uri[1], param)
+}
+
+func hasMultiByteCharacter(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	if len(field.(string)) == 0 {
+		return true
+	}
+
+	return matchesRegex(multibyteRegex, field)
+}
+
+func isPrintableASCII(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(printableASCIIRegex, field)
+}
+
+func isASCII(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(aSCIIRegex, field)
 }
 
 func isUUID5(top interface{}, current interface{}, field interface{}, param string) bool {

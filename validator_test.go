@@ -226,6 +226,226 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestSSNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"00-90-8787", false},
+		{"66690-76", false},
+		{"191 60 2869", true},
+		{"191-60-2869", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ssn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ssn") {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLongitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-180.000", true},
+		{"180.1", false},
+		{"+73.234", true},
+		{"+382.3811", false},
+		{"23.11111111", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "longitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "longitude") {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLatitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-90.000", true},
+		{"+90", true},
+		{"47.1231231", true},
+		{"+99.9", false},
+		{"108", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "latitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "latitude") {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestDataURIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
+		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
+		{"image/gif;base64,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+		{"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
+			"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
+			"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
+			"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
+			"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
+			"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true},
+		{"data:image/png;base64,12345", false},
+		{"", false},
+		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "datauri")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "datauri") {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestMultibyteValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"abc", false},
+		{"123", false},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", true},
+		{"あいうえお foobar", true},
+		{"test＠example.com", true},
+		{"test＠example.com", true},
+		{"1234abcDEｘｙｚ", true},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "multibyte")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "multibyte") {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestPrintableASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"newline\n", false},
+		{"\x19test\x7F", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "printascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "printascii") {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ascii") {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
 func TestUUID5Validation(t *testing.T) {
 	tests := []struct {
 		param    string

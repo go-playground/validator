@@ -168,7 +168,7 @@ Here is a list of the current built in validators:
 		verify it has been assigned.
 
 	omitempty
-		Allows conitional validation, for example if a field is not set with
+		Allows conditional validation, for example if a field is not set with
 		a value (Determined by the required validator) then other validation
 		such as min or max won't run, but if a value is set validation will run.
 		(Usage: omitempty)
@@ -389,6 +389,38 @@ Here is a list of the current built in validators:
 	uuid5
 		This validates that a string value contains a valid version 5 UUID.
 		(Usage: uuid5)
+
+	ascii
+		This validates that a string value contains only ASCII characters.
+		NOTE: if the string is blank, this validates as true.
+		(Usage: ascii)
+
+	asciiprint
+		This validates that a string value contains only printable ASCII characters.
+		NOTE: if the string is blank, this validates as true.
+		(Usage: asciiprint)
+
+	multibyte
+		This validates that a string value contains one or more multibyte characters.
+		NOTE: if the string is blank, this validates as true.
+		(Usage: multibyte)
+
+	datauri
+		This validates that a string value contains a valid DataURI.
+		NOTE: this will also validate that the data portion is valid base64
+		(Usage: datauri)
+
+	latitude
+		This validates that a string value contains a valid latitude.
+		(Usage: latitude)
+
+	longitude
+		This validates that a string value contains a valid longitude.
+		(Usage: longitude)
+
+	ssn
+		This validates that a string value contains a valid U.S. Social Security Number.
+		(Usage: ssn)
 
 Validator notes:
 
