@@ -1736,9 +1736,18 @@ func TestRgba(t *testing.T) {
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
 
+	s = "rgba(12%,55%,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	Equal(t, err, nil)
+
 	s = "rgba( 0,  31, 255, 0.5)"
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
+
+	s = "rgba(12%,55,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgba")
 
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgba")
@@ -1768,6 +1777,15 @@ func TestRgb(t *testing.T) {
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgb")
 	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 100%)"
+	err = validate.Field(s, "rgb")
+	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 55)"
+	err = validate.Field(s, "rgb")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgb")
 
 	s = "rgb(1,349,275)"
 	err = validate.Field(s, "rgb")
