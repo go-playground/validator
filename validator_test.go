@@ -352,6 +352,7 @@ func TestMultibyteValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", true},
 		{"abc", false},
 		{"123", false},
 		{"<>@;.-=", false},
