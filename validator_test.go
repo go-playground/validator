@@ -226,6 +226,443 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestSSNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"00-90-8787", false},
+		{"66690-76", false},
+		{"191 60 2869", true},
+		{"191-60-2869", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ssn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ssn") {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLongitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-180.000", true},
+		{"180.1", false},
+		{"+73.234", true},
+		{"+382.3811", false},
+		{"23.11111111", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "longitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "longitude") {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLatitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-90.000", true},
+		{"+90", true},
+		{"47.1231231", true},
+		{"+99.9", false},
+		{"108", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "latitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "latitude") {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestDataURIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
+		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
+		{"image/gif;base64,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+		{"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
+			"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
+			"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
+			"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
+			"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
+			"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true},
+		{"data:image/png;base64,12345", false},
+		{"", false},
+		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "datauri")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "datauri") {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestMultibyteValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"abc", false},
+		{"123", false},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", true},
+		{"あいうえお foobar", true},
+		{"test＠example.com", true},
+		{"test＠example.com", true},
+		{"1234abcDEｘｙｚ", true},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "multibyte")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "multibyte") {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestPrintableASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"newline\n", false},
+		{"\x19test\x7F", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "printascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "printascii") {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ascii") {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID5Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"987fbc97-4bed-5078-af07-9141ba07c9f3", true},
+		{"987fbc97-4bed-5078-9f07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid5")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid5") {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-5078-af07-9141ba07c9f3", false},
+		{"934859", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", true},
+		{"625e63f3-58f5-40b7-83a1-a72ad31acffb", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid4")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid4") {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID3Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"412452646", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-4078-8f07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid3")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid3") {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"a987fbc94bed3078cf079141ba07c9f3", false},
+		{"934859", false},
+		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
+		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid") {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn") {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN13Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3-8362-2119-5", false},
+		{"01234567890ab", false},
+		{"978 3 8362 2119 0", false},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn13")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn13") {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN10Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3423214121", false},
+		{"978-3836221191", false},
+		{"3-423-21412-1", false},
+		{"3 423 21412 1", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn10")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn10") {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
 func TestExcludesRuneValidation(t *testing.T) {
 
 	tests := []struct {
@@ -1736,9 +2173,18 @@ func TestRgba(t *testing.T) {
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
 
+	s = "rgba(12%,55%,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	Equal(t, err, nil)
+
 	s = "rgba( 0,  31, 255, 0.5)"
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
+
+	s = "rgba(12%,55,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgba")
 
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgba")
@@ -1768,6 +2214,15 @@ func TestRgb(t *testing.T) {
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgb")
 	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 100%)"
+	err = validate.Field(s, "rgb")
+	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 55)"
+	err = validate.Field(s, "rgb")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgb")
 
 	s = "rgb(1,349,275)"
 	err = validate.Field(s, "rgb")
@@ -2335,163 +2790,3 @@ func TestInvalidValidatorFunction(t *testing.T) {
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
 }
-
-func BenchmarkValidateField(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		validate.Field("1", "len=1")
-	}
-}
-
-func BenchmarkValidateStructSimple(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
-		validate.Struct(invalidFoo)
-	}
-}
-
-// func BenchmarkTemplateParallelSimple(b *testing.B) {
-
-// 	type Foo struct {
-// 		StringValue string `validate:"min=5,max=10"`
-// 		IntValue    int    `validate:"min=5,max=10"`
-// 	}
-
-// 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-// 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			validate.Struct(validFoo)
-// 			validate.Struct(invalidFoo)
-// 		}
-// 	})
-// }
-
-func BenchmarkValidateStructLarge(b *testing.B) {
-
-	tFail := &TestString{
-		Required:  "",
-		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
-		OmitEmpty: "12345678901",
-		Sub: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "",
-		},
-		Iface: &Impl{
-			F: "12",
-		},
-	}
-
-	tSuccess := &TestString{
-		Required:  "Required",
-		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
-		OmitEmpty: "",
-		Sub: &SubTest{
-			Test: "1",
-		},
-		SubIgnore: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "1",
-		},
-		Iface: &Impl{
-			F: "123",
-		},
-	}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(tSuccess)
-		validate.Struct(tFail)
-	}
-}
-
-// func BenchmarkTemplateParallelLarge(b *testing.B) {
-
-// 	tFail := &TestString{
-// 		Required:  "",
-// 		Len:       "",
-// 		Min:       "",
-// 		Max:       "12345678901",
-// 		MinMax:    "",
-// 		Lt:        "0123456789",
-// 		Lte:       "01234567890",
-// 		Gt:        "1",
-// 		Gte:       "1",
-// 		OmitEmpty: "12345678901",
-// 		Sub: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "",
-// 		},
-// 		Iface: &Impl{
-// 			F: "12",
-// 		},
-// 	}
-
-// 	tSuccess := &TestString{
-// 		Required:  "Required",
-// 		Len:       "length==10",
-// 		Min:       "min=1",
-// 		Max:       "1234567890",
-// 		MinMax:    "12345",
-// 		Lt:        "012345678",
-// 		Lte:       "0123456789",
-// 		Gt:        "01234567890",
-// 		Gte:       "0123456789",
-// 		OmitEmpty: "",
-// 		Sub: &SubTest{
-// 			Test: "1",
-// 		},
-// 		SubIgnore: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "1",
-// 		},
-// 		Iface: &Impl{
-// 			F: "123",
-// 		},
-// 	}
-
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			validate.Struct(tSuccess)
-// 			validate.Struct(tFail)
-// 		}
-// 	})
-// }
