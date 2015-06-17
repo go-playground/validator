@@ -53,6 +53,26 @@ var BakedInValidators = map[string]Func{
 	"isbn":         isISBN,
 	"isbn10":       isISBN10,
 	"isbn13":       isISBN13,
+	"uuid":         isUUID,
+	"uuid3":        isUUID3,
+	"uuid4":        isUUID4,
+	"uuid5":        isUUID5,
+}
+
+func isUUID5(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID5Regex, field)
+}
+
+func isUUID4(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID4Regex, field)
+}
+
+func isUUID3(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID3Regex, field)
+}
+
+func isUUID(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUIDRegex, field)
 }
 
 func isISBN(top interface{}, current interface{}, field interface{}, param string) bool {

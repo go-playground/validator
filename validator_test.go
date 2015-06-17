@@ -226,6 +226,124 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestUUID5Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"987fbc97-4bed-5078-af07-9141ba07c9f3", true},
+		{"987fbc97-4bed-5078-9f07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid5")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid5") {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-5078-af07-9141ba07c9f3", false},
+		{"934859", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", true},
+		{"625e63f3-58f5-40b7-83a1-a72ad31acffb", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid4")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid4") {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID3Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"412452646", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-4078-8f07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid3")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid3") {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"a987fbc94bed3078cf079141ba07c9f3", false},
+		{"934859", false},
+		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
+		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid") {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
 func TestISBNValidation(t *testing.T) {
 	tests := []struct {
 		param    string

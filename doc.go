@@ -374,6 +374,22 @@ Here is a list of the current built in validators:
 		This validates that a string value contains a valid isbn13 value.
 		(Usage: isbn13)
 
+	uuid
+		This validates that a string value contains a valid UUID.
+		(Usage: uuid)
+
+	uuid3
+		This validates that a string value contains a valid version 3 UUID.
+		(Usage: uuid3)
+
+	uuid4
+		This validates that a string value contains a valid version 4 UUID.
+		(Usage: uuid4)
+
+	uuid5
+		This validates that a string value contains a valid version 5 UUID.
+		(Usage: uuid5)
+
 Validator notes:
 
 	regex

@@ -17,6 +17,10 @@ const (
 	base64RegexString       = "(?:^(?:[A-Za-z0-9+\\/]{4}\\n?)*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)$)"
 	iSBN10RegexString       = "^(?:[0-9]{9}X|[0-9]{10})$"
 	iSBN13RegexString       = "^(?:(?:97(?:8|9))[0-9]{10})$"
+	uUID3RegexString        = "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$"
+	uUID4RegexString        = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+	uUID5RegexString        = "^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+	uUIDRegexString         = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 )
 
 var (
@@ -34,6 +38,10 @@ var (
 	base64Regex       = regexp.MustCompile(base64RegexString)
 	iSBN10Regex       = regexp.MustCompile(iSBN10RegexString)
 	iSBN13Regex       = regexp.MustCompile(iSBN13RegexString)
+	uUID3Regex        = regexp.MustCompile(uUID3RegexString)
+	uUID4Regex        = regexp.MustCompile(uUID4RegexString)
+	uUID5Regex        = regexp.MustCompile(uUID5RegexString)
+	uUIDRegex         = regexp.MustCompile(uUIDRegexString)
 )
 
 func matchesRegex(regex *regexp.Regexp, field interface{}) bool {
