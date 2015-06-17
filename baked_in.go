@@ -50,6 +50,65 @@ var BakedInValidators = map[string]Func{
 	"excludes":     excludes,
 	"excludesall":  excludesAll,
 	"excludesrune": excludesRune,
+	"isbn":         isISBN,
+	"isbn10":       isISBN10,
+	"isbn13":       isISBN13,
+}
+
+func isISBN(top interface{}, current interface{}, field interface{}, param string) bool {
+	return isISBN10(top, current, field, param) || isISBN13(top, current, field, param)
+}
+
+func isISBN13(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	s := strings.Replace(strings.Replace(field.(string), "-", "", 4), " ", "", 4)
+
+	if !matchesRegex(iSBN13Regex, s) {
+		return false
+	}
+
+	var checksum int32
+	var i int32
+
+	factor := []int32{1, 3}
+
+	for i = 0; i < 12; i++ {
+		checksum += factor[i%2] * int32(s[i]-'0')
+	}
+
+	if (int32(s[12]-'0'))-((10-(checksum%10))%10) == 0 {
+		return true
+	}
+
+	return false
+}
+
+func isISBN10(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	s := strings.Replace(strings.Replace(field.(string), "-", "", 3), " ", "", 3)
+
+	if !matchesRegex(iSBN10Regex, s) {
+		return false
+	}
+
+	var checksum int32
+	var i int32
+
+	for i = 0; i < 9; i++ {
+		checksum += (i + 1) * int32(s[i]-'0')
+	}
+
+	if s[9] == 'X' {
+		checksum += 10 * 10
+	} else {
+		checksum += 10 * int32(s[9]-'0')
+	}
+
+	if checksum%11 == 0 {
+		return true
+	}
+
+	return false
 }
 
 func excludesRune(top interface{}, current interface{}, field interface{}, param string) bool {

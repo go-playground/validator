@@ -362,6 +362,18 @@ Here is a list of the current built in validators:
 		This validates that a string value does not contain the supplied rune value.
 		(Usage: excludesrune=@)
 
+	isbn
+		This validates that a string value contains a valid isbn10 or isbn13 value.
+		(Usage: isbn)
+
+	isbn10
+		This validates that a string value contains a valid isbn10 value.
+		(Usage: isbn10)
+
+	isbn13
+		This validates that a string value contains a valid isbn13 value.
+		(Usage: isbn13)
+
 Validator notes:
 
 	regex

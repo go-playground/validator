@@ -226,6 +226,104 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestISBNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn") {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN13Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3-8362-2119-5", false},
+		{"01234567890ab", false},
+		{"978 3 8362 2119 0", false},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn13")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn13") {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN10Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3423214121", false},
+		{"978-3836221191", false},
+		{"3-423-21412-1", false},
+		{"3 423 21412 1", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn10")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn10") {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
 func TestExcludesRuneValidation(t *testing.T) {
 
 	tests := []struct {
