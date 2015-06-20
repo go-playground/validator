@@ -27,6 +27,7 @@ const (
 	tagKeySeparator = "="
 	structOnlyTag   = "structonly"
 	omitempty       = "omitempty"
+	required        = "required"
 	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
 	structErrMsg    = "Struct:%s\n"
 )
@@ -388,6 +389,24 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 				if strings.Contains(cField.tag, structOnlyTag) {
 					cs.children--
 					continue
+				}
+
+				if valueField.Kind() == reflect.Ptr && valueField.IsNil() {
+
+					if strings.Contains(cField.tag, omitempty) {
+						continue
+					}
+
+					if strings.Contains(cField.tag, required) {
+
+						validationErrors.Errors[cField.name] = &FieldError{
+							Field: cField.name,
+							Tag:   required,
+							Value: valueField.Interface(),
+						}
+
+						continue
+					}
 				}
 
 				if structErrors := v.structRecursive(top, valueField.Interface(), valueField.Interface()); structErrors != nil {
