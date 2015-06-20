@@ -226,6 +226,98 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestNilStructPointerValidation(t *testing.T) {
+	type Inner struct {
+		Data string
+	}
+
+	type Outer struct {
+		Inner *Inner `validate:"omitempty"`
+	}
+
+	inner := &Inner{
+		Data: "test",
+	}
+
+	outer := &Outer{
+		Inner: inner,
+	}
+
+	errs := validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	outer = &Outer{
+		Inner: nil,
+	}
+
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	type Inner2 struct {
+		Data string
+	}
+
+	type Outer2 struct {
+		Inner2 *Inner2 `validate:"required"`
+	}
+
+	inner2 := &Inner2{
+		Data: "test",
+	}
+
+	outer2 := &Outer2{
+		Inner2: inner2,
+	}
+
+	errs = validate.Struct(outer2)
+	Equal(t, errs, nil)
+
+	outer2 = &Outer2{
+		Inner2: nil,
+	}
+
+	errs = validate.Struct(outer2)
+	NotEqual(t, errs, nil)
+
+	type Inner3 struct {
+		Data string
+	}
+
+	type Outer3 struct {
+		Inner3 *Inner3
+	}
+
+	inner3 := &Inner3{
+		Data: "test",
+	}
+
+	outer3 := &Outer3{
+		Inner3: inner3,
+	}
+
+	errs = validate.Struct(outer3)
+	Equal(t, errs, nil)
+
+	type Inner4 struct {
+		Data string
+	}
+
+	type Outer4 struct {
+		Inner4 *Inner4 `validate:"-"`
+	}
+
+	inner4 := &Inner4{
+		Data: "test",
+	}
+
+	outer4 := &Outer4{
+		Inner4: inner4,
+	}
+
+	errs = validate.Struct(outer4)
+	Equal(t, errs, nil)
+}
+
 func TestSSNValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -1100,7 +1192,7 @@ func TestStructOnlyValidation(t *testing.T) {
 		InnerStruct: nil,
 	}
 
-	errs := validate.Struct(outer).Flatten()
+	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
 
 	inner := &Inner{
@@ -1111,9 +1203,8 @@ func TestStructOnlyValidation(t *testing.T) {
 		InnerStruct: inner,
 	}
 
-	errs = validate.Struct(outer).Flatten()
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs), 0)
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
 }
 
 func TestGtField(t *testing.T) {
