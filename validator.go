@@ -28,6 +28,8 @@ const (
 	structOnlyTag   = "structonly"
 	omitempty       = "omitempty"
 	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg     = "Field validation for \"%s\" index \"%d\" failed on the \"%s\" tag"
+	mapErrMsg       = "Field validation for \"%s\" key \"%s\" failed on the \"%s\" tag"
 	structErrMsg    = "Struct:%s\n"
 )
 
@@ -63,8 +65,6 @@ func (p *pool) Borrow() *StructErrors {
 
 // Return returns a StructErrors to the pool.
 func (p *pool) Return(c *StructErrors) {
-
-	// c.Struct = ""
 
 	select {
 	case p.pool <- c:
@@ -135,15 +135,62 @@ func (s *fieldsCacheMap) Set(key string, value []*cachedTags) {
 
 var fieldsCache = &fieldsCacheMap{m: map[string][]*cachedTags{}}
 
+// // SliceError contains a fields error for a single index within an array or slice
+// // NOTE: library only checks the first dimension of the array so if you have a multidimensional
+// // array [][]string that validations after the "dive" tag are applied to []string not each
+// // string within it. It is not a dificulty with traversing the chain, but how to add validations
+// // to what dimension of an array and even how to report on them in any meaningful fashion.
+// type SliceError struct {
+// 	Index uint64
+// 	Field string
+// 	Tag   string
+// 	Kind  reflect.Kind
+// 	Type  reflect.Type
+// 	Param string
+// 	Value interface{}
+// }
+
+// // This is intended for use in development + debugging and not intended to be a production error message.
+// // it also allows SliceError to be used as an Error interface
+// func (e *SliceError) Error() string {
+// 	return fmt.Sprintf(sliceErrMsg, e.Field, e.Index, e.Tag)
+// }
+
+// // MapError contains a fields error for a single key within a map
+// // NOTE: library only checks the first dimension of the array so if you have a multidimensional
+// // array [][]string that validations after the "dive" tag are applied to []string not each
+// // string within it. It is not a dificulty with traversing the chain, but how to add validations
+// // to what dimension of an array and even how to report on them in any meaningful fashion.
+// type MapError struct {
+// 	Key   interface{}
+// 	Field string
+// 	Tag   string
+// 	Kind  reflect.Kind
+// 	Type  reflect.Type
+// 	Param string
+// 	Value interface{}
+// }
+
+// // This is intended for use in development + debugging and not intended to be a production error message.
+// // it also allows MapError to be used as an Error interface
+// func (e *MapError) Error() string {
+// 	return fmt.Sprintf(mapErrMsg, e.Field, e.Key, e.Tag)
+// }
+
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 type FieldError struct {
-	Field string
-	Tag   string
-	Kind  reflect.Kind
-	Type  reflect.Type
-	Param string
-	Value interface{}
+	Field               string
+	Tag                 string
+	Kind                reflect.Kind
+	Type                reflect.Type
+	Param               string
+	Value               interface{}
+	IsSliceOrArrayError bool
+	IsMapError          bool
+	Key                 interface{}
+	Index               uint64
+	DiveErrors          []*error // counld be FieldError, StructErrors
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
@@ -162,6 +209,11 @@ type StructErrors struct {
 	// Struct Fields of type struct and their errors
 	// key = Field Name of current struct, but internally Struct will be the actual struct name unless anonymous struct, it will be blank
 	StructErrors map[string]*StructErrors
+
+	IsSliceOrArrayError bool
+	IsMapError          bool
+	Key                 interface{}
+	Index               uint64
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
