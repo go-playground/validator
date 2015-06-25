@@ -199,12 +199,13 @@ type FieldError struct {
 	Type             reflect.Type
 	Param            string
 	Value            interface{}
-	isPlaceholderErr bool
+	IsPlaceholderErr bool
 	IsSliceOrArray   bool
 	IsMap            bool
 	// Key              interface{}
 	// Index            int
-	SliceOrArrayErrs []error               // counld be FieldError, StructErrors
+	// SliceOrArrayErrs []error               // counld be FieldError, StructErrors
+	SliceOrArrayErrs map[int]error         // counld be FieldError, StructErrors
 	MapErrs          map[interface{}]error // counld be FieldError, StructErrors
 }
 
@@ -707,7 +708,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 					Kind:             cField.kind,
 					Type:             cField.typ,
 					Value:            f,
-					isPlaceholderErr: true,
+					IsPlaceholderErr: true,
 					IsSliceOrArray:   true,
 					// Index:            i,
 					SliceOrArrayErrs: errs,
@@ -750,9 +751,9 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	return nil
 }
 
-func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) []error {
+func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[int]error {
 
-	errs := make([]error, 0)
+	errs := make(map[int]error, 0)
 
 	for i := 0; i < valueField.Len(); i++ {
 
@@ -764,7 +765,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 			if cField.isTimeSubtype || idxField.Type() == reflect.TypeOf(time.Time{}) {
 
 				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
-					errs = append(errs, fieldError)
+					errs[i] = fieldError
 				}
 
 				continue
@@ -778,25 +779,25 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 
 				if strings.Contains(cField.tag, required) {
 
-					errs = append(errs, &FieldError{
+					errs[i] = &FieldError{
 						Field: cField.name,
 						Tag:   required,
 						Value: idxField.Interface(),
 						Kind:  reflect.Ptr,
 						Type:  cField.sliceSubtype,
-					})
+					}
 
 					continue
 				}
 			}
 
 			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
-				errs = append(errs, structErrors)
+				errs[i] = structErrors
 			}
 
 		default:
 			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
-				errs = append(errs, fieldError)
+				errs[i] = fieldError
 			}
 		}
 	}

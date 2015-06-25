@@ -237,8 +237,42 @@ func TestArrayDiveValidation(t *testing.T) {
 	}
 
 	errs := validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
 
-	fmt.Println(errs)
+	fieldErr, ok := errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs")
+
+	test = &Test{
+		Errs: []string{"ok", "ok", ""},
+	}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs")
+
+	fmt.Println(errs.Errors["Errs"].IsPlaceholderErr)
 
 	// type TestMap struct {
 	// 	Errs *map[int]string `validate:"gt=0,dive,required"`
