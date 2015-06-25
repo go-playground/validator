@@ -32,6 +32,8 @@ const (
 	sliceErrMsg     = "Field validation for \"%s\" index \"%d\" failed on the \"%s\" tag"
 	mapErrMsg       = "Field validation for \"%s\" key \"%s\" failed on the \"%s\" tag"
 	structErrMsg    = "Struct:%s\n"
+	diveTag         = "dive"
+	diveSplit       = "," + diveTag
 )
 
 var structPool *pool
@@ -80,13 +82,23 @@ type cachedTags struct {
 }
 
 type cachedField struct {
-	index  int
-	name   string
-	tags   []*cachedTags
-	tag    string
-	kind   reflect.Kind
-	typ    reflect.Type
-	isTime bool
+	index          int
+	name           string
+	tags           []*cachedTags
+	tag            string
+	kind           reflect.Kind
+	typ            reflect.Type
+	isTime         bool
+	isSliceOrArray bool
+	isMap          bool
+	isTimeSubtype  bool
+	sliceSubtype   reflect.Type
+	mapSubtype     reflect.Type
+	sliceSubKind   reflect.Kind
+	mapSubKind     reflect.Kind
+	// DiveMaxDepth   uint64            // zero means no depth
+	// DiveTags map[uint64]string // map of dive depth and associated tag as string]
+	diveTag string
 }
 
 type cachedStruct struct {
@@ -181,17 +193,19 @@ var fieldsCache = &fieldsCacheMap{m: map[string][]*cachedTags{}}
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 type FieldError struct {
-	Field               string
-	Tag                 string
-	Kind                reflect.Kind
-	Type                reflect.Type
-	Param               string
-	Value               interface{}
-	IsSliceOrArrayError bool
-	IsMapError          bool
-	Key                 interface{}
-	Index               uint64
-	DiveErrors          []*error // counld be FieldError, StructErrors
+	Field            string
+	Tag              string
+	Kind             reflect.Kind
+	Type             reflect.Type
+	Param            string
+	Value            interface{}
+	isPlaceholderErr bool
+	IsSliceOrArray   bool
+	IsMap            bool
+	// Key              interface{}
+	// Index            int
+	SliceOrArrayErrs []error               // counld be FieldError, StructErrors
+	MapErrs          map[interface{}]error // counld be FieldError, StructErrors
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
@@ -211,10 +225,12 @@ type StructErrors struct {
 	// key = Field Name of current struct, but internally Struct will be the actual struct name unless anonymous struct, it will be blank
 	StructErrors map[string]*StructErrors
 
-	IsSliceOrArrayError bool
-	IsMapError          bool
-	Key                 interface{}
-	Index               uint64
+	// Index int
+	// Key   interface{}
+	// IsSliceOrArrayError bool
+	// IsMapError          bool
+	// Key                 interface{}
+	// Index               uint64
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
@@ -393,7 +409,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 			typeField = structType.Field(i)
 
-			cField = &cachedField{index: i, tag: typeField.Tag.Get(v.tagName)}
+			cField = &cachedField{index: i, tag: typeField.Tag.Get(v.tagName), isTime: valueField.Type() == reflect.TypeOf(time.Time{})}
 
 			if cField.tag == noValidationTag {
 				cs.children--
@@ -426,9 +442,9 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 				continue
 			}
 
-			if cField.isTime || valueField.Type() == reflect.TypeOf(time.Time{}) {
+			if cField.isTime {
 
-				cField.isTime = true
+				// cField.isTime = true
 
 				if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
 					validationErrors.Errors[fieldError.Field] = fieldError
@@ -468,8 +484,31 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 				}
 			}
 
-		default:
+		case reflect.Slice, reflect.Array:
+			cField.isSliceOrArray = true
+			cField.sliceSubtype = cField.typ.Elem()
+			cField.isTimeSubtype = cField.sliceSubtype == reflect.TypeOf(time.Time{})
+			cField.sliceSubKind = cField.sliceSubtype.Kind()
 
+			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
+				validationErrors.Errors[fieldError.Field] = fieldError
+				// free up memory reference
+				fieldError = nil
+			}
+
+		case reflect.Map:
+			cField.isMap = true
+			cField.mapSubtype = cField.typ.Elem()
+			cField.isTimeSubtype = cField.mapSubtype == reflect.TypeOf(time.Time{})
+			cField.mapSubKind = cField.mapSubtype.Kind()
+
+			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
+				validationErrors.Errors[fieldError.Field] = fieldError
+				// free up memory reference
+				fieldError = nil
+			}
+
+		default:
 			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
 				validationErrors.Errors[fieldError.Field] = fieldError
 				// free up memory reference
@@ -506,6 +545,8 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 	var cField *cachedField
 	var isCached bool
+	// var isInDive bool
+	var valueField reflect.Value
 
 	// This is a double check if coming from validate.Struct but need to be here in case function is called directly
 	if tag == noValidationTag {
@@ -516,8 +557,10 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		return nil
 	}
 
+	valueField = reflect.ValueOf(f)
+
 	if cacheField == nil {
-		valueField := reflect.ValueOf(f)
+		// valueField = reflect.ValueOf(f)
 
 		if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
 			valueField = valueField.Elem()
@@ -525,6 +568,19 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		}
 
 		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag, typ: valueField.Type()}
+
+		switch cField.kind {
+		case reflect.Slice, reflect.Array:
+			cField.isSliceOrArray = true
+			cField.sliceSubtype = cField.typ.Elem()
+			cField.isTimeSubtype = cField.sliceSubtype == reflect.TypeOf(time.Time{})
+			cField.sliceSubKind = cField.sliceSubtype.Kind()
+		case reflect.Map:
+			cField.isMap = true
+			cField.mapSubtype = cField.typ.Elem()
+			cField.isTimeSubtype = cField.mapSubtype == reflect.TypeOf(time.Time{})
+			cField.mapSubKind = cField.mapSubtype.Kind()
+		}
 	} else {
 		cField = cacheField
 	}
@@ -546,11 +602,37 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 		if !isCached {
 
-			for _, t := range strings.Split(tag, tagSeparator) {
+			for k, t := range strings.Split(tag, tagSeparator) {
+
+				if t == diveTag {
+
+					if k == 0 {
+						cField.diveTag = tag[4:]
+					} else {
+						cField.diveTag = strings.SplitN(tag, diveSplit, 2)[1][1:]
+					}
+
+					break
+				}
 
 				orVals := strings.Split(t, orSeparator)
 				cTag := &cachedTags{isOrVal: len(orVals) > 1, keyVals: make([][]string, len(orVals))}
+
+				// if isInDive {
+
+				// s, ok := cField.DiveTags[cField.DiveMaxDepth]
+
+				// if ok {
+				// 	cField.DiveTags[cField.DiveMaxDepth] = cField.DiveTags[cField.DiveMaxDepth] + tagSeparator + tag
+				// } else {
+				// cField.DiveTags[cField.DiveMaxDepth] = tag
+				// }
+
+				// continue
+
+				// } else {
 				cField.tags = append(cField.tags, cTag)
+				// }
 
 				for i, val := range orVals {
 					vals := strings.SplitN(val, tagKeySeparator, 2)
@@ -614,8 +696,179 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		}
 	}
 
+	if len(cField.diveTag) > 0 {
+
+		if cField.isSliceOrArray {
+
+			if errs := v.traverseSliceOrArray(val, current, valueField, cField); errs != nil && len(errs) > 0 {
+
+				return &FieldError{
+					Field:            cField.name,
+					Kind:             cField.kind,
+					Type:             cField.typ,
+					Value:            f,
+					isPlaceholderErr: true,
+					IsSliceOrArray:   true,
+					// Index:            i,
+					SliceOrArrayErrs: errs,
+				}
+			}
+			// return if error here
+		} else if cField.isMap {
+			// return if error here
+		} else {
+			// throw error, if not a slice or map then should not have gotten here
+		}
+
+		// dive tags need to be passed to traverse
+		// traverse needs to call a SliceOrArray recursive function to meet depth requirements
+
+		// for depth, diveTag := range cField.DiveTags {
+
+		// 	// error returned should be added to SliceOrArrayErrs
+		// 	if errs := v.traverseSliceOrArrayField(val, current, depth, currentDepth+1, diveTag, cField, valueField); len(errs) > 0 {
+		// 		// result := &FieldError{
+		// 		// 	Field:            cField.name,
+		// 		// 	Kind:             cField.kind,
+		// 		// 	Type:             cField.typ,
+		// 		// 	Value:            valueField.Index(i).Interface(),
+		// 		// 	isPlaceholderErr: true,
+		// 		// 	IsSliceOrArray:true,
+		// 		// 	Index:i,
+		// 		// 	SliceOrArrayErrs:
+		// 		// }
+		// 	}
+
+		// 	for _, tag := range diveTag {
+
+		// 		fmt.Println("Depth:", depth, " Tag:", tag, " SliceType:", cField.SliceSubtype, " MapType:", cField.MapSubtype, " Kind:", cField.kind)
+
+		// 	}
+		// }
+	}
+
 	return nil
 }
+
+func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) []error {
+
+	errs := make([]error, 0)
+
+	for i := 0; i < valueField.Len(); i++ {
+
+		idxField := valueField.Index(i)
+
+		switch cField.sliceSubKind {
+		case reflect.Struct, reflect.Interface:
+
+			if cField.isTimeSubtype || idxField.Type() == reflect.TypeOf(time.Time{}) {
+
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
+					errs = append(errs, fieldError)
+				}
+
+				continue
+			}
+
+			if idxField.Kind() == reflect.Ptr && idxField.IsNil() {
+
+				if strings.Contains(cField.tag, omitempty) {
+					continue
+				}
+
+				if strings.Contains(cField.tag, required) {
+
+					errs = append(errs, &FieldError{
+						Field: cField.name,
+						Tag:   required,
+						Value: idxField.Interface(),
+						Kind:  reflect.Ptr,
+						Type:  cField.sliceSubtype,
+					})
+
+					continue
+				}
+			}
+
+			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
+				errs = append(errs, structErrors)
+			}
+
+		default:
+			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
+				errs = append(errs, fieldError)
+			}
+		}
+	}
+
+	return errs
+}
+
+// func (v *Validate) traverseSliceOrArrayField(val interface{}, current interface{}, depth uint64, currentDepth uint64, diveTags []*cachedTags, cField *cachedField, valueField reflect.Value) []error {
+
+// 	for i := 0; i < valueField.Len(); i++ {
+
+// 		if depth != currentDepth {
+
+// 			switch cField.SliceSubKind {
+// 			case reflect.Slice, reflect.Array:
+// 				return v.fieldWithNameAndValue(val, current, valueField.Index(i).Interface(), cField.tag, cField.name, false, cField, currentDepth)
+
+// 				// type FieldError struct {
+// 				// 	Field            string
+// 				// 	Tag              string
+// 				// 	Kind             reflect.Kind
+// 				// 	Type             reflect.Type
+// 				// 	Param            string
+// 				// 	Value            interface{}
+// 				// 	HasErr           bool
+// 				// 	IsSliceOrArray   bool
+// 				// 	IsMap            bool
+// 				// 	Key              interface{}
+// 				// 	Index            uint64
+// 				// 	SliceOrArrayErrs []*error               // counld be FieldError, StructErrors
+// 				// 	MapErrs          map[interface{}]*error // counld be FieldError, StructErrors
+// 				// }
+
+// 				// result := &FieldError{
+// 				// 	Field:            cField.name,
+// 				// 	Kind:             cField.kind,
+// 				// 	Type:             cField.typ,
+// 				// 	Value:            valueField.Index(i).Interface(),
+// 				// 	isPlaceholderErr: true,
+// 				// 	IsSliceOrArray:true,
+// 				// 	Index:i,
+// 				// 	SliceOrArrayErrs:
+// 				// }
+// 				// validationErrors.Errors[fieldError.Field] = fieldError
+// 				// // free up memory reference
+// 				// fieldError = nil
+// 				// }
+// 			default:
+// 				panic("attempting to dive deeper, but Kind is not a Slice nor Array")
+// 			}
+// 		}
+
+// 		// switch cField.SliceSubKind {
+// 		// case reflect.Struct, reflect.Interface:
+// 		//  // need to check if required tag and or omitempty just like in struct recirsive
+// 		// 	if cField.isTimeSubtype || valueField.Type() == reflect.TypeOf(time.Time{}) {
+
+// 		// 		if fieldError := v.fieldWithNameAndValue(top, current, valueField.Index(i).Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
+// 		// 			validationErrors.Errors[fieldError.Field] = fieldError
+// 		// 			// free up memory reference
+// 		// 			fieldError = nil
+// 		// 		}
+// 		// 	}
+// 		// }
+// 		fmt.Println(valueField.Index(i))
+// 	}
+// 	// fmt.Println(v)
+// 	// for _, item := range arr {
+
+// 	// }
+// 	return nil
+// }
 
 func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{}, f interface{}, key string, param string, name string) (*FieldError, error) {
 

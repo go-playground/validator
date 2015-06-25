@@ -226,6 +226,38 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestArrayDiveValidation(t *testing.T) {
+
+	type Test struct {
+		Errs []string `validate:"gt=0,dive,required"`
+	}
+
+	test := &Test{
+		Errs: []string{"ok", "", "ok"},
+	}
+
+	errs := validate.Struct(test)
+
+	fmt.Println(errs)
+
+	// type TestMap struct {
+	// 	Errs *map[int]string `validate:"gt=0,dive,required"`
+	// }
+
+	// m := map[int]string{}
+	// m[1] = "ok"
+	// m[2] = ""
+	// m[3] = "ok"
+
+	// testMap := &TestMap{
+	// 	Errs: &m,
+	// }
+
+	// errs = validate.Struct(testMap)
+
+	// fmt.Println(errs)
+}
+
 func TestNilStructPointerValidation(t *testing.T) {
 	type Inner struct {
 		Data string
