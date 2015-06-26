@@ -209,21 +209,14 @@ func (e *StructErrors) Error() string {
 
 	for _, err := range e.Errors {
 		buff.WriteString(err.Error())
+		buff.WriteString("\n")
 	}
-
-	var i uint64
 
 	for _, err := range e.StructErrors {
-
-		if i != 0 {
-			buff.WriteString("\n")
-		}
-
 		buff.WriteString(err.Error())
-		i++
 	}
 
-	return buff.String()
+	return strings.TrimSpace(buff.String())
 }
 
 // Flatten flattens the StructErrors hierarchical structure into a flat namespace style field name
