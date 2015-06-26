@@ -97,6 +97,7 @@ type cachedField struct {
 	mapSubtype     reflect.Type
 	sliceSubKind   reflect.Kind
 	mapSubKind     reflect.Kind
+	dive           bool
 	diveTag        string
 }
 
@@ -174,6 +175,7 @@ func (e *FieldError) Error() string {
 		if e.IsSliceOrArray {
 
 			for j, err := range e.SliceOrArrayErrs {
+				buff.WriteString("\n")
 				buff.WriteString(fmt.Sprintf(sliceErrMsg, e.Field, j, "\n"+err.Error()))
 			}
 
@@ -184,7 +186,7 @@ func (e *FieldError) Error() string {
 			}
 		}
 
-		return buff.String()
+		return strings.TrimSpace(buff.String())
 	}
 
 	return fmt.Sprintf(fieldErrMsg, e.Field, e.Tag)
@@ -553,6 +555,8 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
 
 		if cField.typ != reflect.TypeOf(time.Time{}) {
+
+			fmt.Println(cField.typ)
 			panic("Invalid field passed to ValidateFieldWithTag")
 		}
 	}
@@ -569,8 +573,14 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 				if t == diveTag {
 
+					cField.dive = true
+
 					if k == 0 {
-						cField.diveTag = tag[5:]
+						if len(tag) == 4 {
+							cField.diveTag = ""
+						} else {
+							cField.diveTag = tag[5:]
+						}
 					} else {
 						cField.diveTag = strings.SplitN(tag, diveSplit, 2)[1][1:]
 					}
@@ -644,7 +654,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		}
 	}
 
-	if len(cField.diveTag) > 0 {
+	if cField.dive {
 
 		if cField.isSliceOrArray {
 
@@ -680,12 +690,17 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 
 		idxField := valueField.Index(i)
 
+		if cField.sliceSubKind == reflect.Ptr && !idxField.IsNil() {
+			idxField = idxField.Elem()
+			cField.sliceSubKind = idxField.Kind()
+		}
+
 		switch cField.sliceSubKind {
 		case reflect.Struct, reflect.Interface:
 
 			if cField.isTimeSubtype || idxField.Type() == reflect.TypeOf(time.Time{}) {
 
-				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, false, nil); fieldError != nil {
 					errs[i] = fieldError
 				}
 
