@@ -380,7 +380,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 			typeField = structType.Field(i)
 
-			cField = &cachedField{index: i, tag: typeField.Tag.Get(v.tagName), isTime: valueField.Type() == reflect.TypeOf(time.Time{})}
+			cField = &cachedField{index: i, tag: typeField.Tag.Get(v.tagName), isTime: (valueField.Type() == reflect.TypeOf(time.Time{}) || valueField.Type() == reflect.TypeOf(&time.Time{}))}
 
 			if cField.tag == noValidationTag {
 				cs.children--
@@ -538,12 +538,12 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 		case reflect.Slice, reflect.Array:
 			cField.isSliceOrArray = true
 			cField.sliceSubtype = cField.typ.Elem()
-			cField.isTimeSubtype = cField.sliceSubtype == reflect.TypeOf(time.Time{})
+			cField.isTimeSubtype = (cField.sliceSubtype == reflect.TypeOf(time.Time{}) || cField.sliceSubtype == reflect.TypeOf(&time.Time{}))
 			cField.sliceSubKind = cField.sliceSubtype.Kind()
 		case reflect.Map:
 			cField.isMap = true
 			cField.mapSubtype = cField.typ.Elem()
-			cField.isTimeSubtype = cField.mapSubtype == reflect.TypeOf(time.Time{})
+			cField.isTimeSubtype = (cField.mapSubtype == reflect.TypeOf(time.Time{}) || cField.mapSubtype == reflect.TypeOf(&time.Time{}))
 			cField.mapSubKind = cField.mapSubtype.Kind()
 		}
 	} else {
@@ -555,8 +555,6 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
 
 		if cField.typ != reflect.TypeOf(time.Time{}) {
-
-			fmt.Println(cField.typ)
 			panic("Invalid field passed to ValidateFieldWithTag")
 		}
 	}
@@ -698,7 +696,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 		switch cField.sliceSubKind {
 		case reflect.Struct, reflect.Interface:
 
-			if cField.isTimeSubtype || idxField.Type() == reflect.TypeOf(time.Time{}) {
+			if cField.isTimeSubtype {
 
 				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, false, nil); fieldError != nil {
 					errs[i] = fieldError
@@ -722,9 +720,9 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 						Kind:  reflect.Ptr,
 						Type:  cField.sliceSubtype,
 					}
-
-					continue
 				}
+
+				continue
 			}
 
 			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
