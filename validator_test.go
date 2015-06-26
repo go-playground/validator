@@ -226,17 +226,78 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestMapDiveValidation(t *testing.T) {
+}
+
 func TestArrayDiveValidation(t *testing.T) {
 
-	type Test struct {
-		Errs []string `validate:"gt=0,dive,required"`
+	// type Test struct {
+	// 	Errs []string `validate:"gt=0,dive,required"`
+	// }
+
+	// test := &Test{
+	// 	Errs: []string{"ok", "", "ok"},
+	// }
+
+	// errs := validate.Struct(test)
+	// NotEqual(t, errs, nil)
+	// Equal(t, len(errs.Errors), 1)
+
+	// fieldErr, ok := errs.Errors["Errs"]
+	// Equal(t, ok, true)
+	// Equal(t, fieldErr.IsPlaceholderErr, true)
+	// Equal(t, fieldErr.IsSliceOrArray, true)
+	// Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	// innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
+	// Equal(t, ok, true)
+	// Equal(t, innerErr.Tag, required)
+	// Equal(t, innerErr.IsPlaceholderErr, false)
+	// Equal(t, innerErr.Field, "Errs")
+
+	// test = &Test{
+	// 	Errs: []string{"ok", "ok", ""},
+	// }
+
+	// errs = validate.Struct(test)
+	// NotEqual(t, errs, nil)
+	// Equal(t, len(errs.Errors), 1)
+
+	// fieldErr, ok = errs.Errors["Errs"]
+	// Equal(t, ok, true)
+	// Equal(t, fieldErr.IsPlaceholderErr, true)
+	// Equal(t, fieldErr.IsSliceOrArray, true)
+	// Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	// innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	// Equal(t, ok, true)
+	// Equal(t, innerErr.Tag, required)
+	// Equal(t, innerErr.IsPlaceholderErr, false)
+	// Equal(t, innerErr.Field, "Errs")
+
+	type TestMultiDimensional struct {
+		Errs [][]string `validate:"gt=0,dive,dive,required"`
 	}
 
-	test := &Test{
-		Errs: []string{"ok", "", "ok"},
+	var errArray [][]string
+
+	errArray = append(errArray, []string{"ok", "", ""})
+	errArray = append(errArray, []string{"ok", "", ""})
+	// fmt.Println(len(errArray))
+	// errArray = append(errArray, []string{"", "ok", "ok"})
+	// errArray = append(errArray, []string{"", "", "ok"})
+	// errArray = append(errArray, []string{"", "", "ok"})
+
+	tm := &TestMultiDimensional{
+		Errs: errArray,
 	}
 
-	errs := validate.Struct(test)
+	errs := validate.Struct(tm)
+	fmt.Println(errs)
+	// validate.Struct(tm)
+
+	// fmt.Printf("%#v\n", errs.Errors["Errs"].SliceOrArrayErrs)
+
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.Errors), 1)
 
@@ -244,52 +305,28 @@ func TestArrayDiveValidation(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, fieldErr.IsPlaceholderErr, true)
 	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
 
-	innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
+	sliceError1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
 	Equal(t, ok, true)
-	Equal(t, innerErr.Tag, required)
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.Field, "Errs")
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
 
-	test = &Test{
-		Errs: []string{"ok", "ok", ""},
-	}
-
-	errs = validate.Struct(test)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
+	innerSliceError1, ok := sliceError1.SliceOrArrayErrs[1].(*FieldError)
 	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.Tag, required)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+	// fmt.Println(fieldErr.SliceOrArrayErrs)
 
-	innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerErr.Tag, required)
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.Field, "Errs")
+	// Equal(t, fieldErr.IsPlaceholderErr, true)
+	// Equal(t, fieldErr.IsSliceOrArray, true)
+	// Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
 
-	fmt.Println(errs.Errors["Errs"].IsPlaceholderErr)
-
-	// type TestMap struct {
-	// 	Errs *map[int]string `validate:"gt=0,dive,required"`
-	// }
-
-	// m := map[int]string{}
-	// m[1] = "ok"
-	// m[2] = ""
-	// m[3] = "ok"
-
-	// testMap := &TestMap{
-	// 	Errs: &m,
-	// }
-
-	// errs = validate.Struct(testMap)
-
-	// fmt.Println(errs)
+	// fmt.Println(fieldErr.SliceOrArrayErrs)
+	// fmt.Println(len(fieldErr.SliceOrArrayErrs))
 }
 
 func TestNilStructPointerValidation(t *testing.T) {

@@ -29,11 +29,12 @@ const (
 	omitempty       = "omitempty"
 	required        = "required"
 	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
-	sliceErrMsg     = "Field validation for \"%s\" index \"%d\" failed on the \"%s\" tag"
-	mapErrMsg       = "Field validation for \"%s\" key \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg     = "Field validation for \"%s\" failed at index \"%d\" failed with error(s): %s"
+	mapErrMsg       = "Field validation for \"%s\" failed with key \"%v\" failed with error(s): %s"
 	structErrMsg    = "Struct:%s\n"
 	diveTag         = "dive"
 	diveSplit       = "," + diveTag
+	indexFieldName  = "%s[%d]"
 )
 
 var structPool *pool
@@ -96,9 +97,7 @@ type cachedField struct {
 	mapSubtype     reflect.Type
 	sliceSubKind   reflect.Kind
 	mapSubKind     reflect.Kind
-	// DiveMaxDepth   uint64            // zero means no depth
-	// DiveTags map[uint64]string // map of dive depth and associated tag as string]
-	diveTag string
+	diveTag        string
 }
 
 type cachedStruct struct {
@@ -148,48 +147,6 @@ func (s *fieldsCacheMap) Set(key string, value []*cachedTags) {
 
 var fieldsCache = &fieldsCacheMap{m: map[string][]*cachedTags{}}
 
-// // SliceError contains a fields error for a single index within an array or slice
-// // NOTE: library only checks the first dimension of the array so if you have a multidimensional
-// // array [][]string that validations after the "dive" tag are applied to []string not each
-// // string within it. It is not a dificulty with traversing the chain, but how to add validations
-// // to what dimension of an array and even how to report on them in any meaningful fashion.
-// type SliceError struct {
-// 	Index uint64
-// 	Field string
-// 	Tag   string
-// 	Kind  reflect.Kind
-// 	Type  reflect.Type
-// 	Param string
-// 	Value interface{}
-// }
-
-// // This is intended for use in development + debugging and not intended to be a production error message.
-// // it also allows SliceError to be used as an Error interface
-// func (e *SliceError) Error() string {
-// 	return fmt.Sprintf(sliceErrMsg, e.Field, e.Index, e.Tag)
-// }
-
-// // MapError contains a fields error for a single key within a map
-// // NOTE: library only checks the first dimension of the array so if you have a multidimensional
-// // array [][]string that validations after the "dive" tag are applied to []string not each
-// // string within it. It is not a dificulty with traversing the chain, but how to add validations
-// // to what dimension of an array and even how to report on them in any meaningful fashion.
-// type MapError struct {
-// 	Key   interface{}
-// 	Field string
-// 	Tag   string
-// 	Kind  reflect.Kind
-// 	Type  reflect.Type
-// 	Param string
-// 	Value interface{}
-// }
-
-// // This is intended for use in development + debugging and not intended to be a production error message.
-// // it also allows MapError to be used as an Error interface
-// func (e *MapError) Error() string {
-// 	return fmt.Sprintf(mapErrMsg, e.Field, e.Key, e.Tag)
-// }
-
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 type FieldError struct {
@@ -202,9 +159,6 @@ type FieldError struct {
 	IsPlaceholderErr bool
 	IsSliceOrArray   bool
 	IsMap            bool
-	// Key              interface{}
-	// Index            int
-	// SliceOrArrayErrs []error               // counld be FieldError, StructErrors
 	SliceOrArrayErrs map[int]error         // counld be FieldError, StructErrors
 	MapErrs          map[interface{}]error // counld be FieldError, StructErrors
 }
@@ -212,6 +166,40 @@ type FieldError struct {
 // This is intended for use in development + debugging and not intended to be a production error message.
 // it also allows FieldError to be used as an Error interface
 func (e *FieldError) Error() string {
+
+	if e.IsPlaceholderErr {
+
+		buff := bytes.NewBufferString("")
+
+		if e.IsSliceOrArray {
+
+			for i, err := range e.SliceOrArrayErrs {
+
+				if i != 0 {
+					buff.WriteString("\n")
+				}
+
+				buff.WriteString(fmt.Sprintf(sliceErrMsg, e.Field, i, err))
+			}
+
+		} else if e.IsMap {
+
+			var i uint64
+
+			for key, err := range e.MapErrs {
+
+				if i != 0 {
+					buff.WriteString("\n")
+				}
+
+				buff.WriteString(fmt.Sprintf(mapErrMsg, e.Field, key, err))
+				i++
+			}
+		}
+
+		return buff.String()
+	}
+
 	return fmt.Sprintf(fieldErrMsg, e.Field, e.Tag)
 }
 
@@ -225,13 +213,6 @@ type StructErrors struct {
 	// Struct Fields of type struct and their errors
 	// key = Field Name of current struct, but internally Struct will be the actual struct name unless anonymous struct, it will be blank
 	StructErrors map[string]*StructErrors
-
-	// Index int
-	// Key   interface{}
-	// IsSliceOrArrayError bool
-	// IsMapError          bool
-	// Key                 interface{}
-	// Index               uint64
 }
 
 // This is intended for use in development + debugging and not intended to be a production error message.
@@ -241,11 +222,19 @@ func (e *StructErrors) Error() string {
 
 	for _, err := range e.Errors {
 		buff.WriteString(err.Error())
-		buff.WriteString("\n")
 	}
 
+	var i uint64
+
 	for _, err := range e.StructErrors {
+
+		if i != 0 {
+			buff.WriteString("\n")
+		}
+
 		buff.WriteString(err.Error())
+
+		i++
 	}
 
 	return buff.String()
@@ -445,8 +434,6 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 			if cField.isTime {
 
-				// cField.isTime = true
-
 				if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
 					validationErrors.Errors[fieldError.Field] = fieldError
 					// free up memory reference
@@ -532,13 +519,11 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 
 // Field allows validation of a single field, still using tag style validation to check multiple errors
 func (v *Validate) Field(f interface{}, tag string) *FieldError {
-
 	return v.FieldWithValue(nil, f, tag)
 }
 
 // FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
 func (v *Validate) FieldWithValue(val interface{}, f interface{}, tag string) *FieldError {
-
 	return v.fieldWithNameAndValue(nil, val, f, tag, "", true, nil)
 }
 
@@ -546,7 +531,6 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 	var cField *cachedField
 	var isCached bool
-	// var isInDive bool
 	var valueField reflect.Value
 
 	// This is a double check if coming from validate.Struct but need to be here in case function is called directly
@@ -561,7 +545,6 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	valueField = reflect.ValueOf(f)
 
 	if cacheField == nil {
-		// valueField = reflect.ValueOf(f)
 
 		if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
 			valueField = valueField.Elem()
@@ -608,7 +591,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 				if t == diveTag {
 
 					if k == 0 {
-						cField.diveTag = tag[4:]
+						cField.diveTag = tag[5:]
 					} else {
 						cField.diveTag = strings.SplitN(tag, diveSplit, 2)[1][1:]
 					}
@@ -618,22 +601,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 				orVals := strings.Split(t, orSeparator)
 				cTag := &cachedTags{isOrVal: len(orVals) > 1, keyVals: make([][]string, len(orVals))}
-
-				// if isInDive {
-
-				// s, ok := cField.DiveTags[cField.DiveMaxDepth]
-
-				// if ok {
-				// 	cField.DiveTags[cField.DiveMaxDepth] = cField.DiveTags[cField.DiveMaxDepth] + tagSeparator + tag
-				// } else {
-				// cField.DiveTags[cField.DiveMaxDepth] = tag
-				// }
-
-				// continue
-
-				// } else {
 				cField.tags = append(cField.tags, cTag)
-				// }
 
 				for i, val := range orVals {
 					vals := strings.SplitN(val, tagKeySeparator, 2)
@@ -710,42 +678,16 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 					Value:            f,
 					IsPlaceholderErr: true,
 					IsSliceOrArray:   true,
-					// Index:            i,
 					SliceOrArrayErrs: errs,
 				}
 			}
-			// return if error here
+
 		} else if cField.isMap {
 			// return if error here
 		} else {
 			// throw error, if not a slice or map then should not have gotten here
+			panic("dive error! can't dive on a non slice or map")
 		}
-
-		// dive tags need to be passed to traverse
-		// traverse needs to call a SliceOrArray recursive function to meet depth requirements
-
-		// for depth, diveTag := range cField.DiveTags {
-
-		// 	// error returned should be added to SliceOrArrayErrs
-		// 	if errs := v.traverseSliceOrArrayField(val, current, depth, currentDepth+1, diveTag, cField, valueField); len(errs) > 0 {
-		// 		// result := &FieldError{
-		// 		// 	Field:            cField.name,
-		// 		// 	Kind:             cField.kind,
-		// 		// 	Type:             cField.typ,
-		// 		// 	Value:            valueField.Index(i).Interface(),
-		// 		// 	isPlaceholderErr: true,
-		// 		// 	IsSliceOrArray:true,
-		// 		// 	Index:i,
-		// 		// 	SliceOrArrayErrs:
-		// 		// }
-		// 	}
-
-		// 	for _, tag := range diveTag {
-
-		// 		fmt.Println("Depth:", depth, " Tag:", tag, " SliceType:", cField.SliceSubtype, " MapType:", cField.MapSubtype, " Kind:", cField.kind)
-
-		// 	}
-		// }
 	}
 
 	return nil
@@ -753,7 +695,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[int]error {
 
-	errs := make(map[int]error, 0)
+	errs := map[int]error{}
 
 	for i := 0; i < valueField.Len(); i++ {
 
@@ -796,7 +738,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 			}
 
 		default:
-			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, true, nil); fieldError != nil {
+			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(indexFieldName, cField.name, i), false, nil); fieldError != nil {
 				errs[i] = fieldError
 			}
 		}
@@ -804,72 +746,6 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 
 	return errs
 }
-
-// func (v *Validate) traverseSliceOrArrayField(val interface{}, current interface{}, depth uint64, currentDepth uint64, diveTags []*cachedTags, cField *cachedField, valueField reflect.Value) []error {
-
-// 	for i := 0; i < valueField.Len(); i++ {
-
-// 		if depth != currentDepth {
-
-// 			switch cField.SliceSubKind {
-// 			case reflect.Slice, reflect.Array:
-// 				return v.fieldWithNameAndValue(val, current, valueField.Index(i).Interface(), cField.tag, cField.name, false, cField, currentDepth)
-
-// 				// type FieldError struct {
-// 				// 	Field            string
-// 				// 	Tag              string
-// 				// 	Kind             reflect.Kind
-// 				// 	Type             reflect.Type
-// 				// 	Param            string
-// 				// 	Value            interface{}
-// 				// 	HasErr           bool
-// 				// 	IsSliceOrArray   bool
-// 				// 	IsMap            bool
-// 				// 	Key              interface{}
-// 				// 	Index            uint64
-// 				// 	SliceOrArrayErrs []*error               // counld be FieldError, StructErrors
-// 				// 	MapErrs          map[interface{}]*error // counld be FieldError, StructErrors
-// 				// }
-
-// 				// result := &FieldError{
-// 				// 	Field:            cField.name,
-// 				// 	Kind:             cField.kind,
-// 				// 	Type:             cField.typ,
-// 				// 	Value:            valueField.Index(i).Interface(),
-// 				// 	isPlaceholderErr: true,
-// 				// 	IsSliceOrArray:true,
-// 				// 	Index:i,
-// 				// 	SliceOrArrayErrs:
-// 				// }
-// 				// validationErrors.Errors[fieldError.Field] = fieldError
-// 				// // free up memory reference
-// 				// fieldError = nil
-// 				// }
-// 			default:
-// 				panic("attempting to dive deeper, but Kind is not a Slice nor Array")
-// 			}
-// 		}
-
-// 		// switch cField.SliceSubKind {
-// 		// case reflect.Struct, reflect.Interface:
-// 		//  // need to check if required tag and or omitempty just like in struct recirsive
-// 		// 	if cField.isTimeSubtype || valueField.Type() == reflect.TypeOf(time.Time{}) {
-
-// 		// 		if fieldError := v.fieldWithNameAndValue(top, current, valueField.Index(i).Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
-// 		// 			validationErrors.Errors[fieldError.Field] = fieldError
-// 		// 			// free up memory reference
-// 		// 			fieldError = nil
-// 		// 		}
-// 		// 	}
-// 		// }
-// 		fmt.Println(valueField.Index(i))
-// 	}
-// 	// fmt.Println(v)
-// 	// for _, item := range arr {
-
-// 	// }
-// 	return nil
-// }
 
 func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{}, f interface{}, key string, param string, name string) (*FieldError, error) {
 
