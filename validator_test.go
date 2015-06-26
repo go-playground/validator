@@ -227,6 +227,18 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 }
 
 func TestMapDiveValidation(t *testing.T) {
+
+	type Test struct {
+		Errs map[int]string `validate:"gt=0,dive,required"`
+	}
+
+	test := &Test{
+		Errs: map[int]string{0: "ok", 1: "", 4: "ok"},
+	}
+
+	errs := validate.Struct(test)
+
+	fmt.Println(errs)
 }
 
 func TestArrayDiveValidation(t *testing.T) {
@@ -509,7 +521,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	Equal(t, innerSliceError1.IsPlaceholderErr, false)
 	Equal(t, innerSliceError1.IsSliceOrArray, false)
 	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceError1.Field, "Errs[2]")
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
 	Equal(t, innerSliceError1.Tag, required)
 
 	type TestMultiDimensionalTimeTime2 struct {
@@ -551,7 +563,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	Equal(t, innerSliceError1.IsPlaceholderErr, false)
 	Equal(t, innerSliceError1.IsSliceOrArray, false)
 	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceError1.Field, "Errs[2]")
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
 	Equal(t, innerSliceError1.Tag, required)
 }
 

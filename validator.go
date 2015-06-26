@@ -20,21 +20,22 @@ import (
 )
 
 const (
-	utf8HexComma    = "0x2C"
-	tagSeparator    = ","
-	orSeparator     = "|"
-	noValidationTag = "-"
-	tagKeySeparator = "="
-	structOnlyTag   = "structonly"
-	omitempty       = "omitempty"
-	required        = "required"
-	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
-	sliceErrMsg     = "Field validation for \"%s\" failed at index \"%d\" failed with error(s): %s"
-	mapErrMsg       = "Field validation for \"%s\" failed with key \"%v\" failed with error(s): %s"
-	structErrMsg    = "Struct:%s\n"
-	diveTag         = "dive"
-	diveSplit       = "," + diveTag
-	indexFieldName  = "%s[%d]"
+	utf8HexComma        = "0x2C"
+	tagSeparator        = ","
+	orSeparator         = "|"
+	noValidationTag     = "-"
+	tagKeySeparator     = "="
+	structOnlyTag       = "structonly"
+	omitempty           = "omitempty"
+	required            = "required"
+	fieldErrMsg         = "Field validation for \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg         = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
+	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
+	structErrMsg        = "Struct:%s\n"
+	diveTag             = "dive"
+	diveSplit           = "," + diveTag
+	arrayIndexFieldName = "%s[%d]"
+	mapIndexFieldName   = "%s[%v]"
 )
 
 var structPool *pool
@@ -670,7 +671,18 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			}
 
 		} else if cField.isMap {
-			// return if error here
+			if errs := v.traverseMap(val, current, valueField, cField); errs != nil && len(errs) > 0 {
+
+				return &FieldError{
+					Field:            cField.name,
+					Kind:             cField.kind,
+					Type:             cField.typ,
+					Value:            f,
+					IsPlaceholderErr: true,
+					IsMap:            true,
+					MapErrs:          errs,
+				}
+			}
 		} else {
 			// throw error, if not a slice or map then should not have gotten here
 			panic("dive error! can't dive on a non slice or map")
@@ -678,6 +690,65 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	}
 
 	return nil
+}
+
+func (v *Validate) traverseMap(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[interface{}]error {
+
+	errs := map[interface{}]error{}
+
+	for _, key := range valueField.MapKeys() {
+
+		idxField := valueField.MapIndex(key)
+
+		if cField.sliceSubKind == reflect.Ptr && !idxField.IsNil() {
+			idxField = idxField.Elem()
+			cField.sliceSubKind = idxField.Kind()
+		}
+
+		switch cField.sliceSubKind {
+		case reflect.Struct, reflect.Interface:
+
+			if cField.isTimeSubtype {
+
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(mapIndexFieldName, cField.name, key.Interface()), false, nil); fieldError != nil {
+					errs[key.Interface()] = fieldError
+				}
+
+				continue
+			}
+
+			if idxField.Kind() == reflect.Ptr && idxField.IsNil() {
+
+				if strings.Contains(cField.tag, omitempty) {
+					continue
+				}
+
+				if strings.Contains(cField.tag, required) {
+
+					errs[key.Interface()] = &FieldError{
+						Field: cField.name,
+						Tag:   required,
+						Value: idxField.Interface(),
+						Kind:  reflect.Ptr,
+						Type:  cField.sliceSubtype,
+					}
+				}
+
+				continue
+			}
+
+			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
+				errs[key.Interface()] = structErrors
+			}
+
+		default:
+			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(mapIndexFieldName, cField.name, key.Interface()), false, nil); fieldError != nil {
+				errs[key.Interface()] = fieldError
+			}
+		}
+	}
+
+	return errs
 }
 
 func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[int]error {
@@ -698,7 +769,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 
 			if cField.isTimeSubtype {
 
-				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, cField.name, false, nil); fieldError != nil {
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(arrayIndexFieldName, cField.name, i), false, nil); fieldError != nil {
 					errs[i] = fieldError
 				}
 
@@ -730,7 +801,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 			}
 
 		default:
-			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(indexFieldName, cField.name, i), false, nil); fieldError != nil {
+			if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(arrayIndexFieldName, cField.name, i), false, nil); fieldError != nil {
 				errs[i] = fieldError
 			}
 		}
