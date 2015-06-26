@@ -173,27 +173,14 @@ func (e *FieldError) Error() string {
 
 		if e.IsSliceOrArray {
 
-			for i, err := range e.SliceOrArrayErrs {
-
-				if i != 0 {
-					buff.WriteString("\n")
-				}
-
-				buff.WriteString(fmt.Sprintf(sliceErrMsg, e.Field, i, err))
+			for j, err := range e.SliceOrArrayErrs {
+				buff.WriteString(fmt.Sprintf(sliceErrMsg, e.Field, j, "\n"+err.Error()))
 			}
 
 		} else if e.IsMap {
 
-			var i uint64
-
 			for key, err := range e.MapErrs {
-
-				if i != 0 {
-					buff.WriteString("\n")
-				}
-
-				buff.WriteString(fmt.Sprintf(mapErrMsg, e.Field, key, err))
-				i++
+				buff.WriteString(fmt.Sprintf(mapErrMsg, e.Field, key, "\n"+err.Error()))
 			}
 		}
 
@@ -233,7 +220,6 @@ func (e *StructErrors) Error() string {
 		}
 
 		buff.WriteString(err.Error())
-
 		i++
 	}
 
