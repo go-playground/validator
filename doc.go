@@ -173,6 +173,25 @@ Here is a list of the current built in validators:
 		such as min or max won't run, but if a value is set validation will run.
 		(Usage: omitempty)
 
+	dive
+		This tells the validator to dive into a slice, array or map and validate that
+		level of the slice, array or map with the validation tags that follow.
+		Multidimensional nesting is also supported, each level you with to dive will
+		require another dive tag. (Usage: dive)
+		Example: [][]string with validation tag "gt=0,dive,len=1,dive,required"
+		gt=0 will be applied to []
+		len=1 will be applied to []string
+		required will be applied to string
+		Example2: [][]string with validation tag "gt=0,dive,dive,required"
+		gt=0 will be applied to []
+		[]string will be spared validation
+		required will be applied to string
+		NOTE: in Example2 if the required validation failed, but all others passed
+		the hierarchy of FieldError's in the middle with have their IsPlaceHolder field
+		set to true. If a FieldError has IsSliceOrMap=true or IsMap=true then the
+		FieldError is a Slice or Map field and if IsPlaceHolder=true then contains errors
+		within its SliceOrArrayErrs or MapErrs fields.
+
 	required
 		This validates that the value is not the data types default value.
 		For numbers ensures value is not zero. For strings ensures value is
