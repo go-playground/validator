@@ -226,6 +226,487 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestMapDiveValidation(t *testing.T) {
+
+	m := map[int]string{0: "ok", 3: "", 4: "ok"}
+
+	err := validate.Field(m, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsMap, true)
+	Equal(t, len(err.MapErrs), 1)
+
+	err = validate.Field(m, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsMap, false)
+	Equal(t, len(err.MapErrs), 0)
+
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+
+	type TestMapStruct struct {
+		Errs map[int]Inner `validate:"gt=0,dive"`
+	}
+
+	mi := map[int]Inner{0: Inner{"ok"}, 3: Inner{""}, 4: Inner{"ok"}}
+
+	ms := &TestMapStruct{
+		Errs: mi,
+	}
+
+	errs := validate.Struct(ms)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
+
+	fieldError := errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	structErr, ok := fieldError.MapErrs[3].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(structErr.Errors), 1)
+
+	innerErr := structErr.Errors["Name"]
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Name")
+	Equal(t, innerErr.Tag, "required")
+
+	type TestMapTimeStruct struct {
+		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
+	}
+
+	t1 := time.Now().UTC()
+
+	mta := map[int]*time.Time{0: &t1, 3: nil, 4: nil}
+
+	mt := &TestMapTimeStruct{
+		Errs: mta,
+	}
+
+	errs = validate.Struct(mt)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 2)
+
+	innerErr, ok = fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Errs[3]")
+	Equal(t, innerErr.Tag, "required")
+
+	type TestMapStructPtr struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,required"`
+	}
+
+	mip := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp := &TestMapStructPtr{
+		Errs: mip,
+	}
+
+	errs = validate.Struct(msp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerFieldError.IsPlaceholderErr, false)
+	Equal(t, innerFieldError.IsMap, false)
+	Equal(t, len(innerFieldError.MapErrs), 0)
+	Equal(t, innerFieldError.Field, "Errs[3]")
+	Equal(t, innerFieldError.Tag, "required")
+
+	type TestMapStructPtr2 struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
+	}
+
+	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp2 := &TestMapStructPtr2{
+		Errs: mip2,
+	}
+
+	errs = validate.Struct(msp2)
+	Equal(t, errs, nil)
+}
+
+func TestArrayDiveValidation(t *testing.T) {
+
+	arr := []string{"ok", "", "ok"}
+
+	err := validate.Field(arr, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsSliceOrArray, true)
+	Equal(t, len(err.SliceOrArrayErrs), 1)
+
+	err = validate.Field(arr, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsSliceOrArray, false)
+	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type BadDive struct {
+		Name string `validate:"dive"`
+	}
+
+	bd := &BadDive{
+		Name: "TEST",
+	}
+
+	PanicMatches(t, func() { validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
+
+	type Test struct {
+		Errs []string `validate:"gt=0,dive,required"`
+	}
+
+	test := &Test{
+		Errs: []string{"ok", "", "ok"},
+	}
+
+	errs := validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok := errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs[1]")
+
+	test = &Test{
+		Errs: []string{"ok", "ok", ""},
+	}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs[2]")
+
+	type TestMultiDimensional struct {
+		Errs [][]string `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errArray [][]string
+
+	errArray = append(errArray, []string{"ok", "", ""})
+	errArray = append(errArray, []string{"ok", "", ""})
+
+	tm := &TestMultiDimensional{
+		Errs: errArray,
+	}
+
+	errs = validate.Struct(tm)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok := sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.Tag, required)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+
+	type TestMultiDimensionalStructs struct {
+		Errs [][]Inner `validate:"gt=0,dive,dive"`
+	}
+
+	var errStructArray [][]Inner
+
+	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+
+	tms := &TestMultiDimensionalStructs{
+		Errs: errStructArray,
+	}
+
+	errs = validate.Struct(tms)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok := sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 := innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive"`
+	}
+
+	var errStructPtrArray [][]*Inner
+
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp := &TestMultiDimensionalStructsPtr{
+		Errs: errStructPtrArray,
+	}
+
+	errs = validate.Struct(tmsp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr2 struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errStructPtr2Array [][]*Inner
+
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp2 := &TestMultiDimensionalStructsPtr2{
+		Errs: errStructPtr2Array,
+	}
+
+	errs = validate.Struct(tmsp2)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerSliceStructError2, ok := sliceError1.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceStructError2.IsPlaceholderErr, false)
+	Equal(t, innerSliceStructError2.IsSliceOrArray, false)
+	Equal(t, len(innerSliceStructError2.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceStructError2.Field, "Errs[2][2]")
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr3 struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive,omitempty"`
+	}
+
+	var errStructPtr3Array [][]*Inner
+
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp3 := &TestMultiDimensionalStructsPtr3{
+		Errs: errStructPtr3Array,
+	}
+
+	errs = validate.Struct(tmsp3)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalTimeTime struct {
+		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errTimePtr3Array [][]*time.Time
+
+	t1 := time.Now().UTC()
+	t2 := time.Now().UTC()
+	t3 := time.Now().UTC().Add(time.Hour * 24)
+
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, &t2, &t3})
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, &t2, nil})
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, nil, nil})
+
+	tmtp3 := &TestMultiDimensionalTimeTime{
+		Errs: errTimePtr3Array,
+	}
+
+	errs = validate.Struct(tmtp3)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
+	Equal(t, innerSliceError1.Tag, required)
+
+	type TestMultiDimensionalTimeTime2 struct {
+		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errTimeArray [][]*time.Time
+
+	t1 = time.Now().UTC()
+	t2 = time.Now().UTC()
+	t3 = time.Now().UTC().Add(time.Hour * 24)
+
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, &t2, &t3})
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, &t2, nil})
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, nil, nil})
+
+	tmtp := &TestMultiDimensionalTimeTime2{
+		Errs: errTimeArray,
+	}
+
+	errs = validate.Struct(tmtp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
+	Equal(t, innerSliceError1.Tag, required)
+}
+
 func TestNilStructPointerValidation(t *testing.T) {
 	type Inner struct {
 		Data string
@@ -2863,7 +3344,7 @@ func TestInvalidField(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to ValidateFieldWithTag")
+	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to fieldWithNameAndValue")
 }
 
 func TestInvalidTagField(t *testing.T) {
