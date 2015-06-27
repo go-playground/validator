@@ -228,20 +228,75 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 
 func TestMapDiveValidation(t *testing.T) {
 
-	type Test struct {
-		Errs map[int]string `validate:"gt=0,dive,required"`
+	m := map[int]string{0: "ok", 3: "", 4: "ok"}
+
+	err := validate.Field(m, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsMap, true)
+	Equal(t, len(err.MapErrs), 1)
+
+	err = validate.Field(m, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsMap, false)
+	Equal(t, len(err.MapErrs), 0)
+
+	type Inner struct {
+		Name string `validate:"required"`
 	}
 
-	test := &Test{
-		Errs: map[int]string{0: "ok", 1: "", 4: "ok"},
+	type TestMapStruct struct {
+		Errs map[int]Inner `validate:"gt=0,dive"`
 	}
 
-	errs := validate.Struct(test)
+	mi := map[int]Inner{0: Inner{"ok"}, 3: Inner{""}, 4: Inner{"ok"}}
+
+	ms := &TestMapStruct{
+		Errs: mi,
+	}
+
+	errs := validate.Struct(ms)
 
 	fmt.Println(errs)
+
+	// type Test struct {
+	// 	Errs map[int]string `validate:"gt=0,dive,required"`
+	// }
+
+	// test := &Test{
+	// 	Errs: map[int]string{0: "ok", 1: "", 4: "ok"},
+	// }
+
+	// errs := validate.Struct(test)
+	// NotEqual(t, errs, nil)
 }
 
 func TestArrayDiveValidation(t *testing.T) {
+
+	arr := []string{"ok", "", "ok"}
+
+	err := validate.Field(arr, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsSliceOrArray, true)
+	Equal(t, len(err.SliceOrArrayErrs), 1)
+
+	err = validate.Field(arr, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsSliceOrArray, false)
+	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type BadDive struct {
+		Name string `validate:"dive"`
+	}
+
+	bd := &BadDive{
+		Name: "TEST",
+	}
+
+	PanicMatches(t, func() { validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
 
 	type Test struct {
 		Errs []string `validate:"gt=0,dive,required"`
@@ -3204,7 +3259,7 @@ func TestInvalidField(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to ValidateFieldWithTag")
+	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to fieldWithNameAndValue")
 }
 
 func TestInvalidTagField(t *testing.T) {

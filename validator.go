@@ -20,20 +20,20 @@ import (
 )
 
 const (
-	utf8HexComma        = "0x2C"
-	tagSeparator        = ","
-	orSeparator         = "|"
-	noValidationTag     = "-"
-	tagKeySeparator     = "="
-	structOnlyTag       = "structonly"
-	omitempty           = "omitempty"
-	required            = "required"
-	fieldErrMsg         = "Field validation for \"%s\" failed on the \"%s\" tag"
-	sliceErrMsg         = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
-	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
-	structErrMsg        = "Struct:%s\n"
-	diveTag             = "dive"
-	diveSplit           = "," + diveTag
+	utf8HexComma    = "0x2C"
+	tagSeparator    = ","
+	orSeparator     = "|"
+	noValidationTag = "-"
+	tagKeySeparator = "="
+	structOnlyTag   = "structonly"
+	omitempty       = "omitempty"
+	required        = "required"
+	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg     = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
+	mapErrMsg       = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
+	structErrMsg    = "Struct:%s\n"
+	diveTag         = "dive"
+	// diveSplit           = "," + diveTag
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
@@ -457,7 +457,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		case reflect.Slice, reflect.Array:
 			cField.isSliceOrArray = true
 			cField.sliceSubtype = cField.typ.Elem()
-			cField.isTimeSubtype = cField.sliceSubtype == reflect.TypeOf(time.Time{})
+			cField.isTimeSubtype = (cField.sliceSubtype == reflect.TypeOf(time.Time{}) || cField.sliceSubtype == reflect.TypeOf(&time.Time{}))
 			cField.sliceSubKind = cField.sliceSubtype.Kind()
 
 			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
@@ -469,7 +469,7 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		case reflect.Map:
 			cField.isMap = true
 			cField.mapSubtype = cField.typ.Elem()
-			cField.isTimeSubtype = cField.mapSubtype == reflect.TypeOf(time.Time{})
+			cField.isTimeSubtype = (cField.mapSubtype == reflect.TypeOf(time.Time{}) || cField.mapSubtype == reflect.TypeOf(&time.Time{}))
 			cField.mapSubKind = cField.mapSubtype.Kind()
 
 			if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, cField); fieldError != nil {
@@ -537,11 +537,13 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 		switch cField.kind {
 		case reflect.Slice, reflect.Array:
+			isSingleField = false // cached tags mean nothing because it will be split up while diving
 			cField.isSliceOrArray = true
 			cField.sliceSubtype = cField.typ.Elem()
 			cField.isTimeSubtype = (cField.sliceSubtype == reflect.TypeOf(time.Time{}) || cField.sliceSubtype == reflect.TypeOf(&time.Time{}))
 			cField.sliceSubKind = cField.sliceSubtype.Kind()
 		case reflect.Map:
+			isSingleField = false // cached tags mean nothing because it will be split up while diving
 			cField.isMap = true
 			cField.mapSubtype = cField.typ.Elem()
 			cField.isTimeSubtype = (cField.mapSubtype == reflect.TypeOf(time.Time{}) || cField.mapSubtype == reflect.TypeOf(&time.Time{}))
@@ -556,7 +558,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	case reflect.Struct, reflect.Interface, reflect.Invalid:
 
 		if cField.typ != reflect.TypeOf(time.Time{}) {
-			panic("Invalid field passed to ValidateFieldWithTag")
+			panic("Invalid field passed to fieldWithNameAndValue")
 		}
 	}
 
@@ -568,22 +570,12 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 		if !isCached {
 
-			for k, t := range strings.Split(tag, tagSeparator) {
+			for _, t := range strings.Split(tag, tagSeparator) {
 
 				if t == diveTag {
 
 					cField.dive = true
-
-					if k == 0 {
-						if len(tag) == 4 {
-							cField.diveTag = ""
-						} else {
-							cField.diveTag = tag[5:]
-						}
-					} else {
-						cField.diveTag = strings.SplitN(tag, diveSplit, 2)[1][1:]
-					}
-
+					cField.diveTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
 					break
 				}
 
@@ -700,12 +692,14 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 
 		idxField := valueField.MapIndex(key)
 
-		if cField.sliceSubKind == reflect.Ptr && !idxField.IsNil() {
+		if cField.mapSubKind == reflect.Ptr && !idxField.IsNil() {
 			idxField = idxField.Elem()
-			cField.sliceSubKind = idxField.Kind()
+			cField.mapSubKind = idxField.Kind()
 		}
 
-		switch cField.sliceSubKind {
+		// fmt.Println(cField.sliceSubKind)
+
+		switch cField.mapSubKind {
 		case reflect.Struct, reflect.Interface:
 
 			if cField.isTimeSubtype {
@@ -730,7 +724,7 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 						Tag:   required,
 						Value: idxField.Interface(),
 						Kind:  reflect.Ptr,
-						Type:  cField.sliceSubtype,
+						Type:  cField.mapSubtype,
 					}
 				}
 
