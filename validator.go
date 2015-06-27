@@ -697,8 +697,6 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 			cField.mapSubKind = idxField.Kind()
 		}
 
-		// fmt.Println(cField.sliceSubKind)
-
 		switch cField.mapSubKind {
 		case reflect.Struct, reflect.Interface:
 
@@ -720,7 +718,7 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 				if strings.Contains(cField.tag, required) {
 
 					errs[key.Interface()] = &FieldError{
-						Field: cField.name,
+						Field: fmt.Sprintf(mapIndexFieldName, cField.name, key.Interface()),
 						Tag:   required,
 						Value: idxField.Interface(),
 						Kind:  reflect.Ptr,
@@ -779,7 +777,7 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 				if strings.Contains(cField.tag, required) {
 
 					errs[i] = &FieldError{
-						Field: cField.name,
+						Field: fmt.Sprintf(arrayIndexFieldName, cField.name, i),
 						Tag:   required,
 						Value: idxField.Interface(),
 						Kind:  reflect.Ptr,

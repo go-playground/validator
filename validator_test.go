@@ -257,19 +257,95 @@ func TestMapDiveValidation(t *testing.T) {
 	}
 
 	errs := validate.Struct(ms)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
 
-	fmt.Println(errs)
+	fieldError := errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
 
-	// type Test struct {
-	// 	Errs map[int]string `validate:"gt=0,dive,required"`
-	// }
+	structErr, ok := fieldError.MapErrs[3].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(structErr.Errors), 1)
 
-	// test := &Test{
-	// 	Errs: map[int]string{0: "ok", 1: "", 4: "ok"},
-	// }
+	innerErr := structErr.Errors["Name"]
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Name")
+	Equal(t, innerErr.Tag, "required")
 
-	// errs := validate.Struct(test)
-	// NotEqual(t, errs, nil)
+	type TestMapTimeStruct struct {
+		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
+	}
+
+	t1 := time.Now().UTC()
+
+	mta := map[int]*time.Time{0: &t1, 3: nil, 4: nil}
+
+	mt := &TestMapTimeStruct{
+		Errs: mta,
+	}
+
+	errs = validate.Struct(mt)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 2)
+
+	innerErr, ok = fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Errs[3]")
+	Equal(t, innerErr.Tag, "required")
+
+	type TestMapStructPtr struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,required"`
+	}
+
+	mip := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp := &TestMapStructPtr{
+		Errs: mip,
+	}
+
+	errs = validate.Struct(msp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerFieldError.IsPlaceholderErr, false)
+	Equal(t, innerFieldError.IsMap, false)
+	Equal(t, len(innerFieldError.MapErrs), 0)
+	Equal(t, innerFieldError.Field, "Errs[3]")
+	Equal(t, innerFieldError.Tag, "required")
+
+	type TestMapStructPtr2 struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
+	}
+
+	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp2 := &TestMapStructPtr2{
+		Errs: mip2,
+	}
+
+	errs = validate.Struct(msp2)
+	Equal(t, errs, nil)
 }
 
 func TestArrayDiveValidation(t *testing.T) {
@@ -437,6 +513,8 @@ func TestArrayDiveValidation(t *testing.T) {
 	errs = validate.Struct(tmsp)
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
 
 	fieldErr, ok = errs.Errors["Errs"]
 	Equal(t, ok, true)
@@ -483,7 +561,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	Equal(t, fieldErr.IsSliceOrArray, true)
 	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
 
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
 	Equal(t, ok, true)
 	Equal(t, sliceError1.IsPlaceholderErr, true)
 	Equal(t, sliceError1.IsSliceOrArray, true)
@@ -492,6 +570,13 @@ func TestArrayDiveValidation(t *testing.T) {
 	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
 	Equal(t, ok, true)
 	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerSliceStructError2, ok := sliceError1.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceStructError2.IsPlaceholderErr, false)
+	Equal(t, innerSliceStructError2.IsSliceOrArray, false)
+	Equal(t, len(innerSliceStructError2.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceStructError2.Field, "Errs[2][2]")
 
 	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
 	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
