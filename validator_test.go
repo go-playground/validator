@@ -226,6 +226,1016 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestMapDiveValidation(t *testing.T) {
+
+	m := map[int]string{0: "ok", 3: "", 4: "ok"}
+
+	err := validate.Field(m, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsMap, true)
+	Equal(t, len(err.MapErrs), 1)
+
+	err = validate.Field(m, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsMap, false)
+	Equal(t, len(err.MapErrs), 0)
+
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+
+	type TestMapStruct struct {
+		Errs map[int]Inner `validate:"gt=0,dive"`
+	}
+
+	mi := map[int]Inner{0: Inner{"ok"}, 3: Inner{""}, 4: Inner{"ok"}}
+
+	ms := &TestMapStruct{
+		Errs: mi,
+	}
+
+	errs := validate.Struct(ms)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
+
+	fieldError := errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	structErr, ok := fieldError.MapErrs[3].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(structErr.Errors), 1)
+
+	innerErr := structErr.Errors["Name"]
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Name")
+	Equal(t, innerErr.Tag, "required")
+
+	type TestMapTimeStruct struct {
+		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
+	}
+
+	t1 := time.Now().UTC()
+
+	mta := map[int]*time.Time{0: &t1, 3: nil, 4: nil}
+
+	mt := &TestMapTimeStruct{
+		Errs: mta,
+	}
+
+	errs = validate.Struct(mt)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 2)
+
+	innerErr, ok = fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.IsMap, false)
+	Equal(t, len(innerErr.MapErrs), 0)
+	Equal(t, innerErr.Field, "Errs[3]")
+	Equal(t, innerErr.Tag, "required")
+
+	type TestMapStructPtr struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,required"`
+	}
+
+	mip := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp := &TestMapStructPtr{
+		Errs: mip,
+	}
+
+	errs = validate.Struct(msp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerFieldError.IsPlaceholderErr, false)
+	Equal(t, innerFieldError.IsMap, false)
+	Equal(t, len(innerFieldError.MapErrs), 0)
+	Equal(t, innerFieldError.Field, "Errs[3]")
+	Equal(t, innerFieldError.Tag, "required")
+
+	type TestMapStructPtr2 struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
+	}
+
+	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp2 := &TestMapStructPtr2{
+		Errs: mip2,
+	}
+
+	errs = validate.Struct(msp2)
+	Equal(t, errs, nil)
+}
+
+func TestArrayDiveValidation(t *testing.T) {
+
+	arr := []string{"ok", "", "ok"}
+
+	err := validate.Field(arr, "len=3,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, true)
+	Equal(t, err.IsSliceOrArray, true)
+	Equal(t, len(err.SliceOrArrayErrs), 1)
+
+	err = validate.Field(arr, "len=2,dive,required")
+	NotEqual(t, err, nil)
+	Equal(t, err.IsPlaceholderErr, false)
+	Equal(t, err.IsSliceOrArray, false)
+	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type BadDive struct {
+		Name string `validate:"dive"`
+	}
+
+	bd := &BadDive{
+		Name: "TEST",
+	}
+
+	PanicMatches(t, func() { validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
+
+	type Test struct {
+		Errs []string `validate:"gt=0,dive,required"`
+	}
+
+	test := &Test{
+		Errs: []string{"ok", "", "ok"},
+	}
+
+	errs := validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok := errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs[1]")
+
+	test = &Test{
+		Errs: []string{"ok", "ok", ""},
+	}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerErr.Tag, required)
+	Equal(t, innerErr.IsPlaceholderErr, false)
+	Equal(t, innerErr.Field, "Errs[2]")
+
+	type TestMultiDimensional struct {
+		Errs [][]string `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errArray [][]string
+
+	errArray = append(errArray, []string{"ok", "", ""})
+	errArray = append(errArray, []string{"ok", "", ""})
+
+	tm := &TestMultiDimensional{
+		Errs: errArray,
+	}
+
+	errs = validate.Struct(tm)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok := sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.Tag, required)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+
+	type TestMultiDimensionalStructs struct {
+		Errs [][]Inner `validate:"gt=0,dive,dive"`
+	}
+
+	var errStructArray [][]Inner
+
+	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+
+	tms := &TestMultiDimensionalStructs{
+		Errs: errStructArray,
+	}
+
+	errs = validate.Struct(tms)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok := sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 := innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive"`
+	}
+
+	var errStructPtrArray [][]*Inner
+
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp := &TestMultiDimensionalStructsPtr{
+		Errs: errStructPtrArray,
+	}
+
+	errs = validate.Struct(tmsp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr2 struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errStructPtr2Array [][]*Inner
+
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp2 := &TestMultiDimensionalStructsPtr2{
+		Errs: errStructPtr2Array,
+	}
+
+	errs = validate.Struct(tmsp2)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerSliceStructError2, ok := sliceError1.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceStructError2.IsPlaceholderErr, false)
+	Equal(t, innerSliceStructError2.IsSliceOrArray, false)
+	Equal(t, len(innerSliceStructError2.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceStructError2.Field, "Errs[2][2]")
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalStructsPtr3 struct {
+		Errs [][]*Inner `validate:"gt=0,dive,dive,omitempty"`
+	}
+
+	var errStructPtr3Array [][]*Inner
+
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+
+	tmsp3 := &TestMultiDimensionalStructsPtr3{
+		Errs: errStructPtr3Array,
+	}
+
+	errs = validate.Struct(tmsp3)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, len(innerSliceStructError1.Errors), 1)
+
+	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
+	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
+	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+
+	type TestMultiDimensionalTimeTime struct {
+		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errTimePtr3Array [][]*time.Time
+
+	t1 := time.Now().UTC()
+	t2 := time.Now().UTC()
+	t3 := time.Now().UTC().Add(time.Hour * 24)
+
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, &t2, &t3})
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, &t2, nil})
+	errTimePtr3Array = append(errTimePtr3Array, []*time.Time{&t1, nil, nil})
+
+	tmtp3 := &TestMultiDimensionalTimeTime{
+		Errs: errTimePtr3Array,
+	}
+
+	errs = validate.Struct(tmtp3)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
+	Equal(t, innerSliceError1.Tag, required)
+
+	type TestMultiDimensionalTimeTime2 struct {
+		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+	}
+
+	var errTimeArray [][]*time.Time
+
+	t1 = time.Now().UTC()
+	t2 = time.Now().UTC()
+	t3 = time.Now().UTC().Add(time.Hour * 24)
+
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, &t2, &t3})
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, &t2, nil})
+	errTimeArray = append(errTimeArray, []*time.Time{&t1, nil, nil})
+
+	tmtp := &TestMultiDimensionalTimeTime2{
+		Errs: errTimeArray,
+	}
+
+	errs = validate.Struct(tmtp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldErr, ok = errs.Errors["Errs"]
+	Equal(t, ok, true)
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
+
+	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, sliceError1.IsPlaceholderErr, true)
+	Equal(t, sliceError1.IsSliceOrArray, true)
+	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
+
+	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSliceError1.IsPlaceholderErr, false)
+	Equal(t, innerSliceError1.IsSliceOrArray, false)
+	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
+	Equal(t, innerSliceError1.Field, "Errs[2][1]")
+	Equal(t, innerSliceError1.Tag, required)
+}
+
+func TestNilStructPointerValidation(t *testing.T) {
+	type Inner struct {
+		Data string
+	}
+
+	type Outer struct {
+		Inner *Inner `validate:"omitempty"`
+	}
+
+	inner := &Inner{
+		Data: "test",
+	}
+
+	outer := &Outer{
+		Inner: inner,
+	}
+
+	errs := validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	outer = &Outer{
+		Inner: nil,
+	}
+
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	type Inner2 struct {
+		Data string
+	}
+
+	type Outer2 struct {
+		Inner2 *Inner2 `validate:"required"`
+	}
+
+	inner2 := &Inner2{
+		Data: "test",
+	}
+
+	outer2 := &Outer2{
+		Inner2: inner2,
+	}
+
+	errs = validate.Struct(outer2)
+	Equal(t, errs, nil)
+
+	outer2 = &Outer2{
+		Inner2: nil,
+	}
+
+	errs = validate.Struct(outer2)
+	NotEqual(t, errs, nil)
+
+	type Inner3 struct {
+		Data string
+	}
+
+	type Outer3 struct {
+		Inner3 *Inner3
+	}
+
+	inner3 := &Inner3{
+		Data: "test",
+	}
+
+	outer3 := &Outer3{
+		Inner3: inner3,
+	}
+
+	errs = validate.Struct(outer3)
+	Equal(t, errs, nil)
+
+	type Inner4 struct {
+		Data string
+	}
+
+	type Outer4 struct {
+		Inner4 *Inner4 `validate:"-"`
+	}
+
+	inner4 := &Inner4{
+		Data: "test",
+	}
+
+	outer4 := &Outer4{
+		Inner4: inner4,
+	}
+
+	errs = validate.Struct(outer4)
+	Equal(t, errs, nil)
+}
+
+func TestSSNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"00-90-8787", false},
+		{"66690-76", false},
+		{"191 60 2869", true},
+		{"191-60-2869", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ssn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ssn") {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLongitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-180.000", true},
+		{"180.1", false},
+		{"+73.234", true},
+		{"+382.3811", false},
+		{"23.11111111", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "longitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "longitude") {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestLatitudeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"-90.000", true},
+		{"+90", true},
+		{"47.1231231", true},
+		{"+99.9", false},
+		{"108", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "latitude")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "latitude") {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestDataURIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
+		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
+		{"image/gif;base64,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+		{"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
+			"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
+			"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
+			"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
+			"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
+			"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true},
+		{"data:image/png;base64,12345", false},
+		{"", false},
+		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "datauri")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "datauri") {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestMultibyteValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"abc", false},
+		{"123", false},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", true},
+		{"あいうえお foobar", true},
+		{"test＠example.com", true},
+		{"test＠example.com", true},
+		{"1234abcDEｘｙｚ", true},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "multibyte")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "multibyte") {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestPrintableASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"newline\n", false},
+		{"\x19test\x7F", false},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "printascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "printascii") {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestASCIIValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "ascii")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ascii") {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID5Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"987fbc97-4bed-5078-af07-9141ba07c9f3", true},
+		{"987fbc97-4bed-5078-9f07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid5")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid5") {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-5078-af07-9141ba07c9f3", false},
+		{"934859", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", true},
+		{"625e63f3-58f5-40b7-83a1-a72ad31acffb", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid4")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid4") {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUID3Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"412452646", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-4078-8f07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid3")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid3") {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestUUIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"a987fbc94bed3078cf079141ba07c9f3", false},
+		{"934859", false},
+		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
+		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "uuid")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid") {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn") {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN13Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3-8362-2119-5", false},
+		{"01234567890ab", false},
+		{"978 3 8362 2119 0", false},
+		{"9784873113685", true},
+		{"978-4-87311-368-5", true},
+		{"978 3401013190", true},
+		{"978-3-8362-2119-1", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn13")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn13") {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
+func TestISBN10Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"3423214121", false},
+		{"978-3836221191", false},
+		{"3-423-21412-1", false},
+		{"3 423 21412 1", false},
+		{"3836221195", true},
+		{"1-61729-085-8", true},
+		{"3 423 21412 0", true},
+		{"3 401 01319 X", true},
+	}
+
+	for i, test := range tests {
+
+		err := validate.Field(test.param, "isbn10")
+
+		if test.expected == true {
+			if !IsEqual(t, err, nil) {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		} else {
+			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn10") {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			}
+		}
+	}
+}
+
 func TestExcludesRuneValidation(t *testing.T) {
 
 	tests := []struct {
@@ -663,7 +1673,7 @@ func TestStructOnlyValidation(t *testing.T) {
 		InnerStruct: nil,
 	}
 
-	errs := validate.Struct(outer).Flatten()
+	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
 
 	inner := &Inner{
@@ -674,9 +1684,8 @@ func TestStructOnlyValidation(t *testing.T) {
 		InnerStruct: inner,
 	}
 
-	errs = validate.Struct(outer).Flatten()
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs), 0)
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
 }
 
 func TestGtField(t *testing.T) {
@@ -1736,9 +2745,18 @@ func TestRgba(t *testing.T) {
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
 
+	s = "rgba(12%,55%,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	Equal(t, err, nil)
+
 	s = "rgba( 0,  31, 255, 0.5)"
 	err = validate.Field(s, "rgba")
 	Equal(t, err, nil)
+
+	s = "rgba(12%,55,100%,0.12)"
+	err = validate.Field(s, "rgba")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgba")
 
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgba")
@@ -1768,6 +2786,15 @@ func TestRgb(t *testing.T) {
 	s = "rgb(0,  31, 255)"
 	err = validate.Field(s, "rgb")
 	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 100%)"
+	err = validate.Field(s, "rgb")
+	Equal(t, err, nil)
+
+	s = "rgb(10%,  50%, 55)"
+	err = validate.Field(s, "rgb")
+	NotEqual(t, err, nil)
+	Equal(t, err.Tag, "rgb")
 
 	s = "rgb(1,349,275)"
 	err = validate.Field(s, "rgb")
@@ -2317,7 +3344,7 @@ func TestInvalidField(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to ValidateFieldWithTag")
+	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to fieldWithNameAndValue")
 }
 
 func TestInvalidTagField(t *testing.T) {
@@ -2335,163 +3362,3 @@ func TestInvalidValidatorFunction(t *testing.T) {
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
 }
-
-func BenchmarkValidateField(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		validate.Field("1", "len=1")
-	}
-}
-
-func BenchmarkValidateStructSimple(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
-		validate.Struct(invalidFoo)
-	}
-}
-
-// func BenchmarkTemplateParallelSimple(b *testing.B) {
-
-// 	type Foo struct {
-// 		StringValue string `validate:"min=5,max=10"`
-// 		IntValue    int    `validate:"min=5,max=10"`
-// 	}
-
-// 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-// 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			validate.Struct(validFoo)
-// 			validate.Struct(invalidFoo)
-// 		}
-// 	})
-// }
-
-func BenchmarkValidateStructLarge(b *testing.B) {
-
-	tFail := &TestString{
-		Required:  "",
-		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
-		OmitEmpty: "12345678901",
-		Sub: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "",
-		},
-		Iface: &Impl{
-			F: "12",
-		},
-	}
-
-	tSuccess := &TestString{
-		Required:  "Required",
-		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
-		OmitEmpty: "",
-		Sub: &SubTest{
-			Test: "1",
-		},
-		SubIgnore: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "1",
-		},
-		Iface: &Impl{
-			F: "123",
-		},
-	}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(tSuccess)
-		validate.Struct(tFail)
-	}
-}
-
-// func BenchmarkTemplateParallelLarge(b *testing.B) {
-
-// 	tFail := &TestString{
-// 		Required:  "",
-// 		Len:       "",
-// 		Min:       "",
-// 		Max:       "12345678901",
-// 		MinMax:    "",
-// 		Lt:        "0123456789",
-// 		Lte:       "01234567890",
-// 		Gt:        "1",
-// 		Gte:       "1",
-// 		OmitEmpty: "12345678901",
-// 		Sub: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "",
-// 		},
-// 		Iface: &Impl{
-// 			F: "12",
-// 		},
-// 	}
-
-// 	tSuccess := &TestString{
-// 		Required:  "Required",
-// 		Len:       "length==10",
-// 		Min:       "min=1",
-// 		Max:       "1234567890",
-// 		MinMax:    "12345",
-// 		Lt:        "012345678",
-// 		Lte:       "0123456789",
-// 		Gt:        "01234567890",
-// 		Gte:       "0123456789",
-// 		OmitEmpty: "",
-// 		Sub: &SubTest{
-// 			Test: "1",
-// 		},
-// 		SubIgnore: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "1",
-// 		},
-// 		Iface: &Impl{
-// 			F: "123",
-// 		},
-// 	}
-
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			validate.Struct(tSuccess)
-// 			validate.Struct(tFail)
-// 		}
-// 	})
-// }
