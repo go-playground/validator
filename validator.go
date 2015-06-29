@@ -248,7 +248,6 @@ func (e *FieldError) Error() string {
 // This is now needed because of the new dive functionality
 func (e *FieldError) Flatten() map[string]*FieldError {
 
-	// return e.flatten(false)
 	errs := map[string]*FieldError{}
 
 	if e.IsPlaceholderErr {
@@ -276,18 +275,31 @@ func (e *FieldError) Flatten() map[string]*FieldError {
 					}
 				}
 			}
-
 		}
 
 		if e.IsMap {
-			// for _, err := range e.MapErrs {
+			for key, err := range e.MapErrs {
 
-			// 	if flat := err.Flatten(); flat != nil && len(flat) > 0 {
-			// 		for k, v := range flat {
-			// 			errs[k] = v
-			// 		}
-			// 	}
-			// }
+				fe, ok := err.(*FieldError)
+
+				if ok {
+
+					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+						}
+					}
+				} else {
+
+					se := err.(*StructErrors)
+
+					if flat := se.flatten(false); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v].%s.%s", key, se.Struct, k)] = v
+						}
+					}
+				}
+			}
 		}
 
 		return errs
@@ -340,7 +352,7 @@ func (e *StructErrors) flatten(isFromStruct bool) map[string]*FieldError {
 
 			for k, fe := range flat {
 
-				if isFromStruct && f.Field[0:1] == "[" {
+				if isFromStruct && k[0:1] == "[" {
 					errs[f.Field+k] = fe
 				} else {
 					errs[k] = fe

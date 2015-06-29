@@ -266,6 +266,11 @@ func TestFlattenValidation(t *testing.T) {
 	Equal(t, flatFieldErr.Field, "Name")
 	Equal(t, flatFieldErr.Tag, "required")
 
+	structErrFlatten, ok := errs.Flatten()["Errs[0][1].Inner.Name"]
+	Equal(t, ok, true)
+	Equal(t, structErrFlatten.Field, "Name")
+	Equal(t, structErrFlatten.Tag, "required")
+
 	// expect Errs[0][1].Inner.Name = error
 	// fmt.Println((fieldErr.SliceOrArrayErrs[0].(*FieldError)).Field)
 	// fmt.Println((fieldErr.SliceOrArrayErrs[0].(*FieldError)).IsPlaceholderErr)
