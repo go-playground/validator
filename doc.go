@@ -176,7 +176,7 @@ Here is a list of the current built in validators:
 	dive
 		This tells the validator to dive into a slice, array or map and validate that
 		level of the slice, array or map with the validation tags that follow.
-		Multidimensional nesting is also supported, each level you with to dive will
+		Multidimensional nesting is also supported, each level you wish to dive will
 		require another dive tag. (Usage: dive)
 		Example: [][]string with validation tag "gt=0,dive,len=1,dive,required"
 		gt=0 will be applied to []
