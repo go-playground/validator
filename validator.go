@@ -20,20 +20,19 @@ import (
 )
 
 const (
-	utf8HexComma    = "0x2C"
-	tagSeparator    = ","
-	orSeparator     = "|"
-	noValidationTag = "-"
-	tagKeySeparator = "="
-	structOnlyTag   = "structonly"
-	omitempty       = "omitempty"
-	required        = "required"
-	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
-	sliceErrMsg     = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
-	mapErrMsg       = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
-	structErrMsg    = "Struct:%s\n"
-	diveTag         = "dive"
-	// diveSplit           = "," + diveTag
+	utf8HexComma        = "0x2C"
+	tagSeparator        = ","
+	orSeparator         = "|"
+	noValidationTag     = "-"
+	tagKeySeparator     = "="
+	structOnlyTag       = "structonly"
+	omitempty           = "omitempty"
+	required            = "required"
+	fieldErrMsg         = "Field validation for \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg         = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
+	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
+	structErrMsg        = "Struct:%s\n"
+	diveTag             = "dive"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
@@ -193,6 +192,82 @@ func (e *FieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, e.Field, e.Tag)
 }
 
+// Flatten flattens the FieldError hierarchical structure into a flat namespace style field name
+// for those that want/need it.
+// This is now needed because of the new dive functionality
+func (e *FieldError) Flatten() map[string]*FieldError {
+
+	errs := map[string]*FieldError{}
+
+	if e.IsPlaceholderErr {
+
+		if e.IsSliceOrArray {
+			for key, err := range e.SliceOrArrayErrs {
+
+				fe, ok := err.(*FieldError)
+
+				if ok {
+
+					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
+
+						}
+					}
+				} else {
+
+					se := err.(*StructErrors)
+
+					if flat := se.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v].%s.%s", key, se.Struct, k)] = v
+						}
+					}
+				}
+			}
+		}
+
+		if e.IsMap {
+			for key, err := range e.MapErrs {
+
+				fe, ok := err.(*FieldError)
+
+				if ok {
+
+					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
+						}
+					}
+				} else {
+
+					se := err.(*StructErrors)
+
+					if flat := se.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v].%s.%s", key, se.Struct, k)] = v
+						}
+					}
+				}
+			}
+		}
+
+		return errs
+	}
+
+	errs[e.Field] = e
+
+	return errs
+}
+
 // StructErrors is hierarchical list of field and struct validation errors
 // for a non hierarchical representation please see the Flatten method for StructErrors
 type StructErrors struct {
@@ -234,7 +309,17 @@ func (e *StructErrors) Flatten() map[string]*FieldError {
 
 	for _, f := range e.Errors {
 
-		errs[f.Field] = f
+		if flat := f.Flatten(); flat != nil && len(flat) > 0 {
+
+			for k, fe := range flat {
+
+				if f.IsPlaceholderErr {
+					errs[f.Field+k] = fe
+				} else {
+					errs[k] = fe
+				}
+			}
+		}
 	}
 
 	for key, val := range e.StructErrors {
