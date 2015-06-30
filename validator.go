@@ -20,20 +20,19 @@ import (
 )
 
 const (
-	utf8HexComma    = "0x2C"
-	tagSeparator    = ","
-	orSeparator     = "|"
-	noValidationTag = "-"
-	tagKeySeparator = "="
-	structOnlyTag   = "structonly"
-	omitempty       = "omitempty"
-	required        = "required"
-	fieldErrMsg     = "Field validation for \"%s\" failed on the \"%s\" tag"
-	sliceErrMsg     = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
-	mapErrMsg       = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
-	structErrMsg    = "Struct:%s\n"
-	diveTag         = "dive"
-	// diveSplit           = "," + diveTag
+	utf8HexComma        = "0x2C"
+	tagSeparator        = ","
+	orSeparator         = "|"
+	noValidationTag     = "-"
+	tagKeySeparator     = "="
+	structOnlyTag       = "structonly"
+	omitempty           = "omitempty"
+	required            = "required"
+	fieldErrMsg         = "Field validation for \"%s\" failed on the \"%s\" tag"
+	sliceErrMsg         = "Field validation for \"%s\" failed at index \"%d\" with error(s): %s"
+	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
+	structErrMsg        = "Struct:%s\n"
+	diveTag             = "dive"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
@@ -193,6 +192,82 @@ func (e *FieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, e.Field, e.Tag)
 }
 
+// Flatten flattens the FieldError hierarchical structure into a flat namespace style field name
+// for those that want/need it.
+// This is now needed because of the new dive functionality
+func (e *FieldError) Flatten() map[string]*FieldError {
+
+	errs := map[string]*FieldError{}
+
+	if e.IsPlaceholderErr {
+
+		if e.IsSliceOrArray {
+			for key, err := range e.SliceOrArrayErrs {
+
+				fe, ok := err.(*FieldError)
+
+				if ok {
+
+					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
+
+						}
+					}
+				} else {
+
+					se := err.(*StructErrors)
+
+					if flat := se.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v].%s.%s", key, se.Struct, k)] = v
+						}
+					}
+				}
+			}
+		}
+
+		if e.IsMap {
+			for key, err := range e.MapErrs {
+
+				fe, ok := err.(*FieldError)
+
+				if ok {
+
+					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
+						}
+					}
+				} else {
+
+					se := err.(*StructErrors)
+
+					if flat := se.Flatten(); flat != nil && len(flat) > 0 {
+						for k, v := range flat {
+							errs[fmt.Sprintf("[%#v].%s.%s", key, se.Struct, k)] = v
+						}
+					}
+				}
+			}
+		}
+
+		return errs
+	}
+
+	errs[e.Field] = e
+
+	return errs
+}
+
 // StructErrors is hierarchical list of field and struct validation errors
 // for a non hierarchical representation please see the Flatten method for StructErrors
 type StructErrors struct {
@@ -234,7 +309,17 @@ func (e *StructErrors) Flatten() map[string]*FieldError {
 
 	for _, f := range e.Errors {
 
-		errs[f.Field] = f
+		if flat := f.Flatten(); flat != nil && len(flat) > 0 {
+
+			for k, fe := range flat {
+
+				if f.IsPlaceholderErr {
+					errs[f.Field+k] = fe
+				} else {
+					errs[k] = fe
+				}
+			}
+		}
 	}
 
 	for key, val := range e.StructErrors {
@@ -353,7 +438,6 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 		structName = structType.Name()
 		numFields = structValue.NumField()
 		cs = &cachedStruct{name: structName, children: numFields}
-		structCache.Set(structType, cs)
 	}
 
 	validationErrors := structPool.Borrow()
@@ -429,24 +513,62 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 					continue
 				}
 
-				if valueField.Kind() == reflect.Ptr && valueField.IsNil() {
+				if (valueField.Kind() == reflect.Ptr || cField.kind == reflect.Interface) && valueField.IsNil() {
 
 					if strings.Contains(cField.tag, omitempty) {
-						continue
+						goto CACHEFIELD
 					}
 
-					if strings.Contains(cField.tag, required) {
+					tags := strings.Split(cField.tag, tagSeparator)
+
+					if len(tags) > 0 {
+
+						var param string
+						vals := strings.SplitN(tags[0], tagKeySeparator, 2)
+
+						if len(vals) > 1 {
+							param = vals[1]
+						}
 
 						validationErrors.Errors[cField.name] = &FieldError{
 							Field: cField.name,
-							Tag:   required,
+							Tag:   vals[0],
+							Param: param,
 							Value: valueField.Interface(),
+							Kind:  valueField.Kind(),
+							Type:  valueField.Type(),
 						}
 
-						continue
+						goto CACHEFIELD
 					}
 				}
 
+				// if we get here, the field is interface and could be a struct or a field
+				// and we need to check the inner type and validate
+				if cField.kind == reflect.Interface {
+
+					valueField = valueField.Elem()
+
+					if valueField.Kind() == reflect.Ptr && !valueField.IsNil() {
+						valueField = valueField.Elem()
+					}
+
+					if valueField.Kind() == reflect.Struct {
+						goto VALIDATESTRUCT
+					}
+
+					// sending nil for cField as it was type interface and could be anything
+					// each time and so must be calculated each time and can't be cached reliably
+					if fieldError := v.fieldWithNameAndValue(top, current, valueField.Interface(), cField.tag, cField.name, false, nil); fieldError != nil {
+						validationErrors.Errors[fieldError.Field] = fieldError
+						// free up memory reference
+						fieldError = nil
+					}
+
+					goto CACHEFIELD
+				}
+
+			VALIDATESTRUCT:
 				if structErrors := v.structRecursive(top, valueField.Interface(), valueField.Interface()); structErrors != nil {
 					validationErrors.StructErrors[cField.name] = structErrors
 					// free up memory map no longer needed
@@ -486,10 +608,13 @@ func (v *Validate) structRecursive(top interface{}, current interface{}, s inter
 			}
 		}
 
+	CACHEFIELD:
 		if !isCached {
 			cs.fields = append(cs.fields, cField)
 		}
 	}
+
+	structCache.Set(structType, cs)
 
 	if len(validationErrors.Errors) == 0 && len(validationErrors.StructErrors) == 0 {
 		structPool.Return(validationErrors)
@@ -709,19 +834,29 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 				continue
 			}
 
-			if idxField.Kind() == reflect.Ptr && idxField.IsNil() {
+			if (idxField.Kind() == reflect.Ptr || idxField.Kind() == reflect.Interface) && idxField.IsNil() {
 
-				if strings.Contains(cField.tag, omitempty) {
+				if strings.Contains(cField.diveTag, omitempty) {
 					continue
 				}
 
-				if strings.Contains(cField.tag, required) {
+				tags := strings.Split(cField.diveTag, tagSeparator)
+
+				if len(tags) > 0 {
+
+					var param string
+					vals := strings.SplitN(tags[0], tagKeySeparator, 2)
+
+					if len(vals) > 1 {
+						param = vals[1]
+					}
 
 					errs[key.Interface()] = &FieldError{
 						Field: fmt.Sprintf(mapIndexFieldName, cField.name, key.Interface()),
-						Tag:   required,
+						Tag:   vals[0],
+						Param: param,
 						Value: idxField.Interface(),
-						Kind:  reflect.Ptr,
+						Kind:  idxField.Kind(),
 						Type:  cField.mapSubtype,
 					}
 				}
@@ -729,6 +864,30 @@ func (v *Validate) traverseMap(val interface{}, current interface{}, valueField 
 				continue
 			}
 
+			// if we get here, the field is interface and could be a struct or a field
+			// and we need to check the inner type and validate
+			if idxField.Kind() == reflect.Interface {
+
+				idxField = idxField.Elem()
+
+				if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
+					idxField = idxField.Elem()
+				}
+
+				if idxField.Kind() == reflect.Struct {
+					goto VALIDATESTRUCT
+				}
+
+				// sending nil for cField as it was type interface and could be anything
+				// each time and so must be calculated each time and can't be cached reliably
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(mapIndexFieldName, cField.name, key.Interface()), false, nil); fieldError != nil {
+					errs[key.Interface()] = fieldError
+				}
+
+				continue
+			}
+
+		VALIDATESTRUCT:
 			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
 				errs[key.Interface()] = structErrors
 			}
@@ -768,19 +927,29 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 				continue
 			}
 
-			if idxField.Kind() == reflect.Ptr && idxField.IsNil() {
+			if (idxField.Kind() == reflect.Ptr || idxField.Kind() == reflect.Interface) && idxField.IsNil() {
 
-				if strings.Contains(cField.tag, omitempty) {
+				if strings.Contains(cField.diveTag, omitempty) {
 					continue
 				}
 
-				if strings.Contains(cField.tag, required) {
+				tags := strings.Split(cField.diveTag, tagSeparator)
+
+				if len(tags) > 0 {
+
+					var param string
+					vals := strings.SplitN(tags[0], tagKeySeparator, 2)
+
+					if len(vals) > 1 {
+						param = vals[1]
+					}
 
 					errs[i] = &FieldError{
 						Field: fmt.Sprintf(arrayIndexFieldName, cField.name, i),
-						Tag:   required,
+						Tag:   vals[0],
+						Param: param,
 						Value: idxField.Interface(),
-						Kind:  reflect.Ptr,
+						Kind:  idxField.Kind(),
 						Type:  cField.sliceSubtype,
 					}
 				}
@@ -788,6 +957,30 @@ func (v *Validate) traverseSliceOrArray(val interface{}, current interface{}, va
 				continue
 			}
 
+			// if we get here, the field is interface and could be a struct or a field
+			// and we need to check the inner type and validate
+			if idxField.Kind() == reflect.Interface {
+
+				idxField = idxField.Elem()
+
+				if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
+					idxField = idxField.Elem()
+				}
+
+				if idxField.Kind() == reflect.Struct {
+					goto VALIDATESTRUCT
+				}
+
+				// sending nil for cField as it was type interface and could be anything
+				// each time and so must be calculated each time and can't be cached reliably
+				if fieldError := v.fieldWithNameAndValue(val, current, idxField.Interface(), cField.diveTag, fmt.Sprintf(arrayIndexFieldName, cField.name, i), false, nil); fieldError != nil {
+					errs[i] = fieldError
+				}
+
+				continue
+			}
+
+		VALIDATESTRUCT:
 			if structErrors := v.structRecursive(val, current, idxField.Interface()); structErrors != nil {
 				errs[i] = structErrors
 			}
