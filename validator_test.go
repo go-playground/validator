@@ -233,7 +233,7 @@ func TestFlattenValidation(t *testing.T) {
 	}
 
 	type TestMultiDimensionalStructsPtr struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive"`
+		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
 	}
 
 	var errStructPtrArray [][]*Inner
@@ -271,9 +271,116 @@ func TestFlattenValidation(t *testing.T) {
 	Equal(t, structErrFlatten.Field, "Name")
 	Equal(t, structErrFlatten.Tag, "required")
 
-	// expect Errs[0][1].Inner.Name = error
-	// fmt.Println((fieldErr.SliceOrArrayErrs[0].(*FieldError)).Field)
-	// fmt.Println((fieldErr.SliceOrArrayErrs[0].(*FieldError)).IsPlaceholderErr)
+	errStructPtrArray = [][]*Inner{}
+	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, nil, &Inner{"ok"}})
+
+	tmsp = &TestMultiDimensionalStructsPtr{
+		Errs: errStructPtrArray,
+	}
+
+	errs = validate.Struct(tmsp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+	// for full test coverage
+	fmt.Sprint(errs.Error())
+
+	fieldErr = errs.Errors["Errs"]
+	Equal(t, fieldErr.IsPlaceholderErr, true)
+	Equal(t, fieldErr.IsSliceOrArray, true)
+	Equal(t, fieldErr.Field, "Errs")
+	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
+
+	innerSlice1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerSlice1.IsPlaceholderErr, true)
+	Equal(t, innerSlice1.Field, "Errs[0]")
+
+	flatFieldErr, ok = fieldErr.Flatten()["[0][1]"]
+	Equal(t, ok, true)
+	Equal(t, flatFieldErr.Field, "Errs[0][1]")
+	Equal(t, flatFieldErr.Tag, "required")
+
+	type TestMapStructPtr struct {
+		Errs map[int]*Inner `validate:"gt=0,dive,required"`
+	}
+
+	mip := map[int]*Inner{0: &Inner{"ok"}, 3: &Inner{""}, 4: &Inner{"ok"}}
+
+	msp := &TestMapStructPtr{
+		Errs: mip,
+	}
+
+	errs = validate.Struct(msp)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError := errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	innerStructError, ok := fieldError.MapErrs[3].(*StructErrors)
+	Equal(t, ok, true)
+	Equal(t, innerStructError.Struct, "Inner")
+	Equal(t, len(innerStructError.Errors), 1)
+
+	innerInnerFieldError, ok := innerStructError.Errors["Name"]
+	Equal(t, ok, true)
+	Equal(t, innerInnerFieldError.IsPlaceholderErr, false)
+	Equal(t, innerInnerFieldError.IsSliceOrArray, false)
+	Equal(t, innerInnerFieldError.Field, "Name")
+	Equal(t, innerInnerFieldError.Tag, "required")
+
+	flatErrs, ok := errs.Flatten()["Errs[3].Inner.Name"]
+	Equal(t, ok, true)
+	Equal(t, flatErrs.Field, "Name")
+	Equal(t, flatErrs.Tag, "required")
+
+	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+
+	msp2 := &TestMapStructPtr{
+		Errs: mip2,
+	}
+
+	errs = validate.Struct(msp2)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	fieldError = errs.Errors["Errs"]
+	Equal(t, fieldError.IsPlaceholderErr, true)
+	Equal(t, fieldError.IsMap, true)
+	Equal(t, len(fieldError.MapErrs), 1)
+
+	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
+	Equal(t, ok, true)
+	Equal(t, innerFieldError.IsPlaceholderErr, false)
+	Equal(t, innerFieldError.IsSliceOrArray, false)
+	Equal(t, innerFieldError.Field, "Errs[3]")
+	Equal(t, innerFieldError.Tag, "required")
+
+	flatErrs, ok = errs.Flatten()["Errs[3]"]
+	Equal(t, ok, true)
+	Equal(t, flatErrs.Field, "Errs[3]")
+	Equal(t, flatErrs.Tag, "required")
+
+	type TestMapInnerArrayStruct struct {
+		Errs map[int][]string `validate:"gt=0,dive,dive,required"`
+	}
+
+	mias := map[int][]string{0: []string{"ok"}, 3: []string{"ok", ""}, 4: []string{"ok"}}
+
+	mia := &TestMapInnerArrayStruct{
+		Errs: mias,
+	}
+
+	errs = validate.Struct(mia)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.Errors), 1)
+
+	flatErrs, ok = errs.Flatten()["Errs[3][1]"]
+	Equal(t, ok, true)
+	Equal(t, flatErrs.Field, "Errs[3][1]")
+	Equal(t, flatErrs.Tag, "required")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {

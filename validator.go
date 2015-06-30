@@ -261,7 +261,12 @@ func (e *FieldError) Flatten() map[string]*FieldError {
 
 					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
 						for k, v := range flat {
-							errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
+
 						}
 					}
 				} else {
@@ -286,7 +291,11 @@ func (e *FieldError) Flatten() map[string]*FieldError {
 
 					if flat := fe.Flatten(); flat != nil && len(flat) > 0 {
 						for k, v := range flat {
-							errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							if fe.IsPlaceholderErr {
+								errs[fmt.Sprintf("[%#v]%s", key, k)] = v
+							} else {
+								errs[fmt.Sprintf("[%#v]", key)] = v
+							}
 						}
 					}
 				} else {
@@ -352,7 +361,13 @@ func (e *StructErrors) flatten(isFromStruct bool) map[string]*FieldError {
 
 			for k, fe := range flat {
 
-				if isFromStruct && k[0:1] == "[" {
+				// fmt.Println(k)
+				// if isFromStruct && k[0:1] == "[" {
+				// 	errs[f.Field+k] = fe
+				// } else {
+				// 	errs[k] = fe
+				// }
+				if f.IsPlaceholderErr {
 					errs[f.Field+k] = fe
 				} else {
 					errs[k] = fe
