@@ -1,39 +1,3 @@
-Package validator
-================
-[![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5.1)](https://travis-ci.org/bluesuncorp/validator)
-[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v5)](https://coveralls.io/r/bluesuncorp/validator?branch=v5)
-[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
-
-Package validator implements value validations for structs and individual fields based on tags.
-
-It has the following **unique** features:
-
--   Cross Field and Cross Struct validations.  
--   Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.  
--   Handles type interface by determining it's underlying type prior to validation.  
-
-Installation
-------------
-
-Use go get.
-
-	go get gopkg.in/bluesuncorp/validator.v5
-
-or to update
-
-	go get -u gopkg.in/bluesuncorp/validator.v5
-
-Then import the validator package into your own code.
-
-	import "gopkg.in/bluesuncorp/validator.v5"
-
-Usage and documentation
-------
-
-Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v5 for detailed usage docs.
-
-##### Example:
-```go
 package main
 
 import (
@@ -119,34 +83,3 @@ func main() {
 
 	// save user to database
 }
-```
-
-Benchmarks
-------
-###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3
-```go
-$ go test -cpu=4 -bench=. -benchmem=true
-PASS
-BenchmarkValidateField-4	 		 3000000	       436 ns/op	     192 B/op	       2 allocs/op
-BenchmarkValidateStructSimple-4	  	  500000	      2863 ns/op	     784 B/op	      13 allocs/op
-BenchmarkTemplateParallelSimple-4	  500000	      3044 ns/op	     784 B/op	      13 allocs/op
-BenchmarkValidateStructLarge-4	  	  100000	     15226 ns/op	    4853 B/op	      74 allocs/op
-BenchmarkTemplateParallelLarge-4	  100000	     14637 ns/op	    4856 B/op	      74 allocs/op
-```
-
-How to Contribute
-------
-
-There will always be a development branch for each version i.e. `v1-development`. In order to contribute, 
-please make your pull requests against those branches.
-
-If the changes being proposed or requested are breaking changes, please create an issue, for discussion 
-or create a pull request against the highest development branch for example this package has a 
-v1 and v1-development branch however, there will also be a v2-development brach even though v2 doesn't exist yet.
-
-I strongly encourage everyone whom creates a custom validation function to contribute them and
-help make this package even better.
-
-License
-------
-Distributed under MIT License, please see license file in code for more details.
