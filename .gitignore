@@ -25,3 +25,4 @@ _testmain.go
 *.test
 *.out
 cover.html
+README.html
