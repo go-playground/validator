@@ -14,6 +14,11 @@ import (
 // - Run "gocov test | gocov report" to report on test converage by file
 // - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
 //
+// or
+//
+// -- may be a good idea to change to output path to somewherelike /tmp
+// go test -coverprofile cover.out && go tool cover -html=cover.out -o cover.html
+//
 //
 // go test -cpuprofile cpu.out
 // ./validator.test -test.bench=. -test.cpuprofile=cpu.prof
@@ -3764,4 +3769,24 @@ func TestInvalidValidatorFunction(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
+}
+
+func TestPoolObjectMaxSizeValidation(t *testing.T) {
+	// this will ensure that the pool objects are let go
+	// when the pool is saturated
+	validate.SetMaxStructPoolSize(0)
+
+	tSuccess := &TestSlice{
+		Required:  []int{1},
+		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		Min:       []int{1, 2},
+		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		MinMax:    []int{1, 2, 3, 4, 5},
+		OmitEmpty: []int{},
+	}
+
+	for i := 0; i < 2; i++ {
+		err := validate.Struct(tSuccess)
+		Equal(t, err, nil)
+	}
 }
