@@ -121,6 +121,19 @@ func main() {
 }
 ```
 
+Benchmarks
+------
+###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3
+```go
+$ go test -cpu=4 -bench=. -benchmem=true
+PASS
+BenchmarkValidateField-4	 		 3000000	       436 ns/op	     192 B/op	       2 allocs/op
+BenchmarkValidateStructSimple-4	  	  500000	      2863 ns/op	     784 B/op	      13 allocs/op
+BenchmarkTemplateParallelSimple-4	  500000	      3044 ns/op	     784 B/op	      13 allocs/op
+BenchmarkValidateStructLarge-4	  	  100000	     15226 ns/op	    4853 B/op	      74 allocs/op
+BenchmarkTemplateParallelLarge-4	  100000	     14637 ns/op	    4856 B/op	      74 allocs/op
+```
+
 How to Contribute
 ------
 
