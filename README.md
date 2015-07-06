@@ -1,5 +1,7 @@
 Package validator
 ================
+
+[![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5.1)](https://travis-ci.org/bluesuncorp/validator)
 [![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v5)](https://coveralls.io/r/bluesuncorp/validator?branch=v5)
 [![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
