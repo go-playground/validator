@@ -231,6 +231,18 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestBadKeyValidation(t *testing.T) {
+	type Test struct {
+		Name string `validate:"required, "`
+	}
+
+	tst := &Test{
+		Name: "test",
+	}
+
+	PanicMatches(t, func() { validate.Struct(tst) }, "Invalid validation tag on field Name")
+}
+
 func TestFlattenValidation(t *testing.T) {
 
 	type Inner struct {
@@ -606,13 +618,29 @@ func TestInterfaceErrValidation(t *testing.T) {
 	Equal(t, err.IsPlaceholderErr, false)
 	Equal(t, err.IsSliceOrArray, false)
 	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type MyStruct struct {
+		A, B string
+		C    interface{}
+	}
+
+	var a MyStruct
+
+	a.A = "value"
+	a.C = "nu"
+
+	errs = validate.Struct(a)
+	Equal(t, errs, nil)
 }
 
 func TestMapDiveValidation(t *testing.T) {
 
+	n := map[int]interface{}{0: nil}
+	err := validate.Field(n, "omitempty,required")
+
 	m := map[int]string{0: "ok", 3: "", 4: "ok"}
 
-	err := validate.Field(m, "len=3,dive,required")
+	err = validate.Field(m, "len=3,dive,required")
 	NotEqual(t, err, nil)
 	Equal(t, err.IsPlaceholderErr, true)
 	Equal(t, err.IsMap, true)
