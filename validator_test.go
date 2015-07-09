@@ -606,6 +606,19 @@ func TestInterfaceErrValidation(t *testing.T) {
 	Equal(t, err.IsPlaceholderErr, false)
 	Equal(t, err.IsSliceOrArray, false)
 	Equal(t, len(err.SliceOrArrayErrs), 0)
+
+	type MyStruct struct {
+		A, B string
+		C    interface{}
+	}
+
+	var a MyStruct
+
+	a.A = "value"
+	a.C = "nu"
+
+	errs = validate.Struct(a)
+	Equal(t, errs, nil)
 }
 
 func TestMapDiveValidation(t *testing.T) {

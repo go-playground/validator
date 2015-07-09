@@ -610,7 +610,7 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	var valueField reflect.Value
 
 	// This is a double check if coming from validate.Struct but need to be here in case function is called directly
-	if tag == noValidationTag {
+	if tag == noValidationTag || tag == "" {
 		return nil
 	}
 

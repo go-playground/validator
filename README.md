@@ -1,5 +1,7 @@
 Package validator
 ================
+
+[![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5.1)](https://travis-ci.org/bluesuncorp/validator)
 [![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v5)](https://coveralls.io/r/bluesuncorp/validator?branch=v5)
 [![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
@@ -127,11 +129,11 @@ Benchmarks
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkValidateField-4	 		 3000000	       436 ns/op	     192 B/op	       2 allocs/op
-BenchmarkValidateStructSimple-4	  	  500000	      2863 ns/op	     784 B/op	      13 allocs/op
-BenchmarkTemplateParallelSimple-4	  500000	      3044 ns/op	     784 B/op	      13 allocs/op
-BenchmarkValidateStructLarge-4	  	  100000	     15226 ns/op	    4853 B/op	      74 allocs/op
-BenchmarkTemplateParallelLarge-4	  100000	     14637 ns/op	    4856 B/op	      74 allocs/op
+BenchmarkValidateField-4	 		 3000000	       429 ns/op	     192 B/op	       2 allocs/op
+BenchmarkValidateStructSimple-4	  	  500000	      2877 ns/op	     657 B/op	      10 allocs/op
+BenchmarkTemplateParallelSimple-4	  500000	      3097 ns/op	     657 B/op	      10 allocs/op
+BenchmarkValidateStructLarge-4	  	  100000	     15228 ns/op	    4350 B/op	      62 allocs/op
+BenchmarkTemplateParallelLarge-4	  100000	     14257 ns/op	    4354 B/op	      62 allocs/op
 ```
 
 How to Contribute
