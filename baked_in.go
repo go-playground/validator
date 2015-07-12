@@ -546,7 +546,7 @@ func hasLengthOf(top interface{}, current interface{}, field interface{}, param 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) == p
+		return int64(len([]rune(st.String()))) == p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
