@@ -213,6 +213,7 @@ func TestValidation(t *testing.T) {
 	errs := validate.Struct(tst)
 
 	fmt.Println(errs)
+	fmt.Println(errs == nil)
 }
 
 // func AssertStruct(t *testing.T, s *StructErrors, structFieldName string, expectedStructName string) *StructErrors {
