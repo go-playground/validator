@@ -50,6 +50,141 @@ var BakedInValidators = map[string]Func{
 	"excludes":     excludes,
 	"excludesall":  excludesAll,
 	"excludesrune": excludesRune,
+	"isbn":         isISBN,
+	"isbn10":       isISBN10,
+	"isbn13":       isISBN13,
+	"uuid":         isUUID,
+	"uuid3":        isUUID3,
+	"uuid4":        isUUID4,
+	"uuid5":        isUUID5,
+	"ascii":        isASCII,
+	"printascii":   isPrintableASCII,
+	"multibyte":    hasMultiByteCharacter,
+	"datauri":      isDataURI,
+	"latitude":     isLatitude,
+	"longitude":    isLongitude,
+	"ssn":          isSSN,
+}
+
+func isSSN(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	if len(field.(string)) != 11 {
+		return false
+	}
+
+	return matchesRegex(sSNRegex, field)
+}
+
+func isLongitude(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(longitudeRegex, field)
+}
+
+func isLatitude(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(latitudeRegex, field)
+}
+
+func isDataURI(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	uri := strings.SplitN(field.(string), ",", 2)
+
+	if len(uri) != 2 {
+		return false
+	}
+
+	if !matchesRegex(dataURIRegex, uri[0]) {
+		return false
+	}
+
+	return isBase64(top, current, uri[1], param)
+}
+
+func hasMultiByteCharacter(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	if len(field.(string)) == 0 {
+		return true
+	}
+
+	return matchesRegex(multibyteRegex, field)
+}
+
+func isPrintableASCII(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(printableASCIIRegex, field)
+}
+
+func isASCII(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(aSCIIRegex, field)
+}
+
+func isUUID5(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID5Regex, field)
+}
+
+func isUUID4(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID4Regex, field)
+}
+
+func isUUID3(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUID3Regex, field)
+}
+
+func isUUID(top interface{}, current interface{}, field interface{}, param string) bool {
+	return matchesRegex(uUIDRegex, field)
+}
+
+func isISBN(top interface{}, current interface{}, field interface{}, param string) bool {
+	return isISBN10(top, current, field, param) || isISBN13(top, current, field, param)
+}
+
+func isISBN13(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	s := strings.Replace(strings.Replace(field.(string), "-", "", 4), " ", "", 4)
+
+	if !matchesRegex(iSBN13Regex, s) {
+		return false
+	}
+
+	var checksum int32
+	var i int32
+
+	factor := []int32{1, 3}
+
+	for i = 0; i < 12; i++ {
+		checksum += factor[i%2] * int32(s[i]-'0')
+	}
+
+	if (int32(s[12]-'0'))-((10-(checksum%10))%10) == 0 {
+		return true
+	}
+
+	return false
+}
+
+func isISBN10(top interface{}, current interface{}, field interface{}, param string) bool {
+
+	s := strings.Replace(strings.Replace(field.(string), "-", "", 3), " ", "", 3)
+
+	if !matchesRegex(iSBN10Regex, s) {
+		return false
+	}
+
+	var checksum int32
+	var i int32
+
+	for i = 0; i < 9; i++ {
+		checksum += (i + 1) * int32(s[i]-'0')
+	}
+
+	if s[9] == 'X' {
+		checksum += 10 * 10
+	} else {
+		checksum += 10 * int32(s[9]-'0')
+	}
+
+	if checksum%11 == 0 {
+		return true
+	}
+
+	return false
 }
 
 func excludesRune(top interface{}, current interface{}, field interface{}, param string) bool {

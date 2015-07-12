@@ -24,3 +24,5 @@ _testmain.go
 *.prof
 *.test
 *.out
+cover.html
+README.html
