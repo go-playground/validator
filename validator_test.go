@@ -204,11 +204,21 @@ func PanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
 
 func TestValidation(t *testing.T) {
 
-	type Test struct {
+	type Inner struct {
 		Name string
 	}
 
-	tst := &Test{Name: "Dean"}
+	type Test struct {
+		// Name string `validate:"required"`
+		Inner *Inner `validate:"required"`
+	}
+
+	inner := &Inner{
+		Name: "",
+	}
+
+	// tst := &Test{Name: "Dean"}
+	tst := &Test{Inner: inner}
 
 	errs := validate.Struct(tst)
 
