@@ -592,7 +592,7 @@ func isGte(top interface{}, current interface{}, field interface{}, param string
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) >= p
+		return int64(utf8.RuneCountInString(st.String())) >= p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -637,7 +637,7 @@ func isGt(top interface{}, current interface{}, field interface{}, param string)
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) > p
+		return int64(utf8.RuneCountInString(st.String())) > p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -681,7 +681,7 @@ func hasLengthOf(top interface{}, current interface{}, field interface{}, param 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) == p
+		return int64(utf8.RuneCountInString(st.String())) == p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -875,7 +875,7 @@ func isLte(top interface{}, current interface{}, field interface{}, param string
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) <= p
+		return int64(utf8.RuneCountInString(st.String())) <= p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -920,7 +920,7 @@ func isLt(top interface{}, current interface{}, field interface{}, param string)
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) < p
+		return int64(utf8.RuneCountInString(st.String())) < p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
