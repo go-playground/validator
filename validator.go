@@ -18,12 +18,14 @@ import (
 
 const (
 	utf8HexComma      = "0x2C"
+	utf8Pipe          = "0x7C"
 	tagSeparator      = ","
 	orSeparator       = "|"
 	tagKeySeparator   = "="
 	structOnlyTag     = "structonly"
 	omitempty         = "omitempty"
 	skipValidationTag = "-"
+	diveTag           = "dive"
 	fieldErrMsg       = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
 	invaldField       = "Invalid field passed to traverseField"
 )
@@ -49,11 +51,11 @@ type Config struct {
 }
 
 // Func accepts all values needed for file and cross field validation
-// top     = top level struct when validating by struct otherwise nil
-// current = current level struct when validating by struct otherwise optional comparison value
-// f       = field value for validation
-// param   = parameter used in validation i.e. gt=0 param would be 0
-type Func func(top interface{}, current interface{}, f interface{}, param string) bool
+// topStruct     = top level struct when validating by struct otherwise nil
+// currentStruct = current level struct when validating by struct otherwise optional comparison value
+// field         = field value for validation
+// param         = parameter used in validation i.e. gt=0 param would be 0
+type Func func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool
 
 // ValidationErrors is a type of map[string]*FieldError
 // it exists to allow for multiple errors passed from this library
@@ -131,12 +133,15 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	errPrefix += typ.Name() + "."
 	numFields := current.NumField()
 
+	var fld reflect.StructField
+
 	for i := 0; i < numFields; i++ {
-		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, typ.Field(i).Tag.Get(v.config.TagName))
+		fld = typ.Field(i)
+		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name)
 	}
 }
 
-func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string) {
+func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string) {
 
 	if tag == skipValidationTag {
 		return
@@ -171,8 +176,8 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				param = vals[1]
 			}
 
-			errs[errPrefix+typ.Name()] = &FieldError{
-				Field: typ.Name(),
+			errs[errPrefix+name] = &FieldError{
+				Field: name,
 				Tag:   vals[0],
 				Param: param,
 				Value: current.Interface(),
@@ -199,6 +204,9 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				current = current.Elem()
 				kind = current.Kind()
 			}
+
+			// changed current, so have to get inner type again
+			typ = current.Type()
 
 			if kind != reflect.Struct {
 				goto FALLTHROUGH
@@ -229,34 +237,122 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		}
 	}
 
-	// for _, t := range strings.Split(tag, tagSeparator) {
+	var dive bool
+	// var diveSubTag string
 
-	// 			if t == diveTag {
+	for _, t := range strings.Split(tag, tagSeparator) {
 
-	// 				cField.dive = true
-	// 				cField.diveTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
-	// 				break
-	// 			}
+		if t == diveTag {
 
-	// 			orVals := strings.Split(t, orSeparator)
-	// 			cTag := &cachedTags{isOrVal: len(orVals) > 1, keyVals: make([][]string, len(orVals))}
-	// 			cField.tags = append(cField.tags, cTag)
+			dive = true
+			// diveSubTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
+			break
+		}
 
-	// 			for i, val := range orVals {
-	// 				vals := strings.SplitN(val, tagKeySeparator, 2)
+		// no use in checking tags if it's empty and is ok to be
+		// omitempty needs to be the first tag if you wish to use it
+		if t == omitempty && !hasValue(topStruct, currentStruct, current, typ, kind, "") {
+			return
+		}
 
-	// 				key := strings.TrimSpace(vals[0])
+		// if strings.Contains(tag, omitempty) && !hasValue(topStruct, currentStruct, current, "") {
+		// 	return
+		// }
 
-	// 				if len(key) == 0 {
-	// 					panic(fmt.Sprintf("Invalid validation tag on field %s", name))
-	// 				}
+		var key string
+		var param string
 
-	// 				param := ""
-	// 				if len(vals) > 1 {
-	// 					param = strings.Replace(vals[1], utf8HexComma, ",", -1)
-	// 				}
+		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
+		if strings.Index(t, orSeparator) == -1 {
+			vals := strings.SplitN(t, tagKeySeparator, 2)
+			key = vals[0]
 
-	// 				cTag.keyVals[i] = []string{key, param}
-	// 			}
-	// 		}
+			if len(key) == 0 {
+				panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+			}
+
+			if len(vals) > 1 {
+				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+			}
+		} else {
+			key = t
+		}
+
+		if v.validateField(topStruct, currentStruct, current, typ, kind, errPrefix, errs, key, param, name) {
+			return
+		}
+	}
+
+	if dive {
+		// traverse slice or map here
+		// or panic ;)
+	}
+}
+
+// validateField validates a field based on the provided key tag and param and return true if there is an error false if all ok
+func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, key string, param string, name string) bool {
+
+	// check if key is orVals, it could be!
+	orVals := strings.Split(key, orSeparator)
+
+	if len(orVals) > 1 {
+
+		var errTag string
+
+		for _, val := range orVals {
+			vals := strings.SplitN(val, tagKeySeparator, 2)
+
+			if len(vals[0]) == 0 {
+				panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+			}
+
+			param := ""
+			if len(vals) > 1 {
+				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+			}
+
+			// validate and keep track!
+			valFunc, ok := v.config.ValidationFuncs[vals[0]]
+			if !ok {
+				panic(fmt.Sprintf("Undefined validation function on field %s", name))
+			}
+
+			if valFunc(topStruct, currentStruct, current, currentType, currentKind, param) {
+				return false
+			}
+
+			errTag += orSeparator + vals[0]
+		}
+
+		errs[errPrefix+name] = &FieldError{
+			Field: name,
+			Tag:   errTag[1:],
+			Value: current.Interface(),
+			Param: param,
+			Type:  currentType,
+			Kind:  currentKind,
+		}
+
+		return true
+	}
+
+	valFunc, ok := v.config.ValidationFuncs[key]
+	if !ok {
+		panic(fmt.Sprintf("Undefined validation function on field %s", name))
+	}
+
+	if valFunc(topStruct, currentStruct, current, currentType, currentKind, param) {
+		return false
+	}
+
+	errs[errPrefix+name] = &FieldError{
+		Field: name,
+		Tag:   key,
+		Value: current.Interface(),
+		Param: param,
+		Type:  currentType,
+		Kind:  currentKind,
+	}
+
+	return true
 }

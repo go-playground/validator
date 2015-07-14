@@ -209,16 +209,17 @@ func TestValidation(t *testing.T) {
 	}
 
 	type Test struct {
-		// Name string `validate:"required"`
-		Inner *Inner `validate:"required"`
+		Name string   `validate:"required"`
+		Arr  []string `validate:"required"`
+		// Inner *Inner `validate:"required"`
 	}
 
-	inner := &Inner{
-		Name: "",
-	}
+	// inner := &Inner{
+	// 	Name: "",
+	// }
 
-	// tst := &Test{Name: "Dean"}
-	tst := &Test{Inner: inner}
+	tst := &Test{Name: "Dean"}
+	// tst := &Test{Inner: inner}
 
 	errs := validate.Struct(tst)
 
