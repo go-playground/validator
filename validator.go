@@ -101,6 +101,28 @@ func New(config Config) *Validate {
 	return &Validate{config: config}
 }
 
+// Field allows validation of a single field, still using tag style validation to check multiple errors
+func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
+
+	errs := map[string]*FieldError{}
+	fieldVal := reflect.ValueOf(field)
+
+	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
+
+	return errs
+}
+
+// FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
+func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
+
+	errs := map[string]*FieldError{}
+	topVal := reflect.ValueOf(val)
+
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
+
+	return errs
+}
+
 // Struct validates a struct, even it's nested structs, and returns a struct containing the errors
 // NOTE: Nested Arrays, or Maps of structs do not get validated only the Array or Map itself; the reason is that there is no good
 // way to represent or report which struct within the array has the error, besides can validate the struct prior to adding it to
@@ -139,30 +161,6 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		fld = typ.Field(i)
 		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name)
 	}
-}
-
-// Field allows validation of a single field, still using tag style validation to check multiple errors
-func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
-
-	errs := map[string]*FieldError{}
-	fieldVal := reflect.ValueOf(field)
-
-	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
-
-	return errs
-
-	// return v.FieldWithValue(nil, field, tag)
-}
-
-// FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
-func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
-
-	errs := map[string]*FieldError{}
-	topVal := reflect.ValueOf(val)
-
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
-
-	return errs
 }
 
 func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string) {
@@ -275,13 +273,13 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		// no use in checking tags if it's empty and is ok to be
 		// omitempty needs to be the first tag if you wish to use it
-		if t == omitempty && !hasValue(topStruct, currentStruct, current, typ, kind, "") {
-			return
-		}
+		if t == omitempty {
 
-		// if strings.Contains(tag, omitempty) && !hasValue(topStruct, currentStruct, current, "") {
-		// 	return
-		// }
+			if !hasValue(topStruct, currentStruct, current, typ, kind, "") {
+				return
+			}
+			continue
+		}
 
 		var key string
 		var param string
