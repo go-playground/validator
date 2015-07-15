@@ -141,6 +141,30 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	}
 }
 
+// Field allows validation of a single field, still using tag style validation to check multiple errors
+func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
+
+	errs := map[string]*FieldError{}
+	fieldVal := reflect.ValueOf(field)
+
+	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
+
+	return errs
+
+	// return v.FieldWithValue(nil, field, tag)
+}
+
+// FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
+func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
+
+	errs := map[string]*FieldError{}
+	topVal := reflect.ValueOf(val)
+
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
+
+	return errs
+}
+
 func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string) {
 
 	if tag == skipValidationTag {

@@ -13,9 +13,9 @@ import (
 // or even disregard and use your own map if so desired.
 var BakedInValidators = map[string]Func{
 	"required": hasValue,
-	// "len":          hasLengthOf,
-	"min": hasMinOf,
-	"max": hasMaxOf,
+	"len":      hasLengthOf,
+	"min":      hasMinOf,
+	"max":      hasMaxOf,
 	// "eq":           isEq,
 	// "ne":           isNe,
 	// "lt":           isLt,
@@ -621,7 +621,7 @@ func isGte(topStruct reflect.Value, currentStruct reflect.Value, field reflect.V
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // func isGt(top interface{}, current interface{}, field interface{}, param string) bool {
@@ -665,43 +665,41 @@ func isGte(topStruct reflect.Value, currentStruct reflect.Value, field reflect.V
 // 	panic(fmt.Sprintf("Bad field type %T", field))
 // }
 
-// // length tests whether a variable's length is equal to a given
-// // value. For strings it tests the number of characters whereas
-// // for maps and slices it tests the number of items.
-// func hasLengthOf(top interface{}, current interface{}, field interface{}, param string) bool {
+// length tests whether a variable's length is equal to a given
+// value. For strings it tests the number of characters whereas
+// for maps and slices it tests the number of items.
+func hasLengthOf(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-// 	st := reflect.ValueOf(field)
+	switch fieldKind {
 
-// 	switch st.Kind() {
+	case reflect.String:
+		p := asInt(param)
 
-// 	case reflect.String:
-// 		p := asInt(param)
+		return int64(utf8.RuneCountInString(field.String())) == p
 
-// 		return int64(utf8.RuneCountInString(st.String())) == p
+	case reflect.Slice, reflect.Map, reflect.Array:
+		p := asInt(param)
 
-// 	case reflect.Slice, reflect.Map, reflect.Array:
-// 		p := asInt(param)
+		return int64(field.Len()) == p
 
-// 		return int64(st.Len()) == p
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		p := asInt(param)
 
-// 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-// 		p := asInt(param)
+		return field.Int() == p
 
-// 		return st.Int() == p
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		p := asUint(param)
 
-// 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-// 		p := asUint(param)
+		return field.Uint() == p
 
-// 		return st.Uint() == p
+	case reflect.Float32, reflect.Float64:
+		p := asFloat(param)
 
-// 	case reflect.Float32, reflect.Float64:
-// 		p := asFloat(param)
+		return field.Float() == p
+	}
 
-// 		return st.Float() == p
-// 	}
-
-// 	panic(fmt.Sprintf("Bad field type %T", field))
-// }
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
 
 // min tests whether a variable value is larger or equal to a given
 // number. For number types, it's a simple lesser-than test; for
@@ -902,7 +900,7 @@ func isLte(topStruct reflect.Value, currentStruct reflect.Value, field reflect.V
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // func isLt(top interface{}, current interface{}, field interface{}, param string) bool {

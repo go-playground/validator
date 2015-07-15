@@ -2,11 +2,11 @@ package validator
 
 import "testing"
 
-// func BenchmarkValidateField(b *testing.B) {
-// 	for n := 0; n < b.N; n++ {
-// 		validate.Field("1", "len=1")
-// 	}
-// }
+func BenchmarkValidateField(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field("1", "len=1")
+	}
+}
 
 func BenchmarkValidateStructSimple(b *testing.B) {
 
