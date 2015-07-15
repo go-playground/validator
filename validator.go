@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -260,14 +261,14 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	}
 
 	var dive bool
-	// var diveSubTag string
+	var diveSubTag string
 
 	for _, t := range strings.Split(tag, tagSeparator) {
 
 		if t == diveTag {
 
 			dive = true
-			// diveSubTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
+			diveSubTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
 			break
 		}
 
@@ -308,6 +309,27 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	if dive {
 		// traverse slice or map here
 		// or panic ;)
+		switch kind {
+		case reflect.Slice, reflect.Array:
+
+		case reflect.Map:
+			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
+		}
+	}
+}
+
+// func (v *Validate) traverseSlice(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[int]error {
+func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
+
+	for i := 0; i < current.Len(); i++ {
+
+		idxField := current.Index(i)
+
+		if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
+			idxField = idxField.Elem()
+		}
+
+		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, name+"["+strconv.Itoa(i)+"]")
 	}
 }
 
