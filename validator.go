@@ -12,23 +12,24 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	utf8HexComma      = "0x2C"
-	utf8Pipe          = "0x7C"
-	tagSeparator      = ","
-	orSeparator       = "|"
-	tagKeySeparator   = "="
-	structOnlyTag     = "structonly"
-	omitempty         = "omitempty"
-	skipValidationTag = "-"
-	diveTag           = "dive"
-	fieldErrMsg       = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
-	invaldField       = "Invalid field passed to traverseField"
+	utf8HexComma        = "0x2C"
+	utf8Pipe            = "0x7C"
+	tagSeparator        = ","
+	orSeparator         = "|"
+	tagKeySeparator     = "="
+	structOnlyTag       = "structonly"
+	omitempty           = "omitempty"
+	skipValidationTag   = "-"
+	diveTag             = "dive"
+	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
+	invaldField         = "Invalid field passed to traverseField"
+	arrayIndexFieldName = "%s[%d]"
+	mapIndexFieldName   = "%s[%v]"
 )
 
 var (
@@ -133,7 +134,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 	errs := map[string]*FieldError{}
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, "", errs)
+	v.tranverseStruct(sv, sv, sv, "", errs, true)
 
 	if len(errs) == 0 {
 		return nil
@@ -142,7 +143,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 	return errs
 }
 
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors) {
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -153,7 +154,11 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	}
 
 	typ := current.Type()
-	errPrefix += typ.Name() + "."
+
+	if useStructName {
+		errPrefix += typ.Name() + "."
+	}
+
 	numFields := current.NumField()
 
 	var fld reflect.StructField
@@ -246,7 +251,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 					return
 				}
 
-				v.tranverseStruct(topStruct, current, current, errPrefix, errs)
+				v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
 				return
 			}
 
@@ -311,14 +316,17 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		// or panic ;)
 		switch kind {
 		case reflect.Slice, reflect.Array:
-
-		case reflect.Map:
 			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
+		case reflect.Map:
+			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
+		default:
+			// throw error, if not a slice or map then should not have gotten here
+			// bad dive tag usage
+			panic("dive error! can't dive on a non slice or map")
 		}
 	}
 }
 
-// func (v *Validate) traverseSlice(val interface{}, current interface{}, valueField reflect.Value, cField *cachedField) map[int]error {
 func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
 
 	for i := 0; i < current.Len(); i++ {
@@ -329,7 +337,21 @@ func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.
 			idxField = idxField.Elem()
 		}
 
-		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, name+"["+strconv.Itoa(i)+"]")
+		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
+	}
+}
+
+func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
+
+	for _, key := range current.MapKeys() {
+
+		idxField := current.MapIndex(key)
+
+		if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
+			idxField = idxField.Elem()
+		}
+
+		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
 	}
 }
 
