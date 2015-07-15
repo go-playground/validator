@@ -111,6 +111,10 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 
 	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
 
+	if len(errs) == 0 {
+		return nil
+	}
+
 	return errs
 }
 
@@ -121,6 +125,10 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	topVal := reflect.ValueOf(val)
 
 	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
+
+	if len(errs) == 0 {
+		return nil
+	}
 
 	return errs
 }
@@ -321,7 +329,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
 		default:
 			// throw error, if not a slice or map then should not have gotten here
-			// bad dive tag usage
+			// bad dive tag
 			panic("dive error! can't dive on a non slice or map")
 		}
 	}

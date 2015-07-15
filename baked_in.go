@@ -408,7 +408,7 @@ func hasValue(topStruct reflect.Value, currentStruct reflect.Value, field reflec
 		return !field.IsNil() && int64(field.Len()) > 0
 
 	default:
-		return field.IsValid() && field != reflect.Zero(fieldType).Interface()
+		return field.IsValid() && field.Interface() != reflect.Zero(fieldType).Interface()
 	}
 }
 

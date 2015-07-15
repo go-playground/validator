@@ -125,6 +125,20 @@ func IsEqual(t *testing.T, val1, val2 interface{}) bool {
 		return true
 	}
 
+	switch v1.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v1.IsNil() {
+			v1 = reflect.ValueOf(nil)
+		}
+	}
+
+	switch v2.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v2.IsNil() {
+			v2 = reflect.ValueOf(nil)
+		}
+	}
+
 	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
 	v2Underlying := reflect.Zero(reflect.TypeOf(v2)).Interface()
 
@@ -143,13 +157,16 @@ func IsEqual(t *testing.T, val1, val2 interface{}) bool {
 	}
 
 CASE1:
+	// fmt.Println("CASE 1")
 	return reflect.DeepEqual(v1.Interface(), v2.Interface())
-
 CASE2:
+	// fmt.Println("CASE 2")
 	return reflect.DeepEqual(v1.Interface(), v2)
 CASE3:
+	// fmt.Println("CASE 3")
 	return reflect.DeepEqual(v1, v2.Interface())
 CASE4:
+	// fmt.Println("CASE 4")
 	return reflect.DeepEqual(v1, v2)
 }
 
@@ -202,29 +219,38 @@ func PanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
 	fn()
 }
 
+func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
+
+	val, ok := errs[key]
+	EqualSkip(t, 2, ok, true)
+	NotEqualSkip(t, 2, val, nil)
+	EqualSkip(t, 2, val.Field, field)
+	EqualSkip(t, 2, val.Tag, expectedTag)
+}
+
 func TestValidation(t *testing.T) {
 
-	type Inner struct {
-		Name string
-	}
-
-	type Test struct {
-		Name string   `validate:"required"`
-		Arr  []string `validate:"required"`
-		// Inner *Inner `validate:"required"`
-	}
-
-	// inner := &Inner{
-	// 	Name: "",
+	// type Inner struct {
+	// 	Name string
 	// }
 
-	tst := &Test{Name: "Dean"}
-	// tst := &Test{Inner: inner}
+	// type Test struct {
+	// 	Name string   `validate:"required"`
+	// 	Arr  []string `validate:"required"`
+	// 	// Inner *Inner `validate:"required"`
+	// }
 
-	errs := validate.Struct(tst)
+	// // inner := &Inner{
+	// // 	Name: "",
+	// // }
 
-	fmt.Println(errs)
-	fmt.Println(errs == nil)
+	// tst := &Test{Name: "Dean"}
+	// // tst := &Test{Inner: inner}
+
+	// errs := validate.Struct(tst)
+
+	// fmt.Println(errs)
+	// fmt.Println(errs == nil)
 }
 
 // func AssertStruct(t *testing.T, s *StructErrors, structFieldName string, expectedStructName string) *StructErrors {
@@ -2972,873 +2998,774 @@ func TestValidation(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // }
 
-// func TestUrl(t *testing.T) {
-
-// 	var tests = []struct {
-// 		param    string
-// 		expected bool
-// 	}{
-// 		{"http://foo.bar#com", true},
-// 		{"http://foobar.com", true},
-// 		{"https://foobar.com", true},
-// 		{"foobar.com", false},
-// 		{"http://foobar.coffee/", true},
-// 		{"http://foobar.中文网/", true},
-// 		{"http://foobar.org/", true},
-// 		{"http://foobar.org:8080/", true},
-// 		{"ftp://foobar.ru/", true},
-// 		{"http://user:pass@www.foobar.com/", true},
-// 		{"http://127.0.0.1/", true},
-// 		{"http://duckduckgo.com/?q=%2F", true},
-// 		{"http://localhost:3000/", true},
-// 		{"http://foobar.com/?foo=bar#baz=qux", true},
-// 		{"http://foobar.com?foo=bar", true},
-// 		{"http://www.xn--froschgrn-x9a.net/", true},
-// 		{"", false},
-// 		{"xyz://foobar.com", true},
-// 		{"invalid.", false},
-// 		{".com", false},
-// 		{"rtmp://foobar.com", true},
-// 		{"http://www.foo_bar.com/", true},
-// 		{"http://localhost:3000/", true},
-// 		{"http://foobar.com#baz=qux", true},
-// 		{"http://foobar.com/t$-_.+!*\\'(),", true},
-// 		{"http://www.foobar.com/~foobar", true},
-// 		{"http://www.-foobar.com/", true},
-// 		{"http://www.foo---bar.com/", true},
-// 		{"mailto:someone@example.com", true},
-// 		{"irc://irc.server.org/channel", true},
-// 		{"irc://#channel@network", true},
-// 		{"/abs/test/dir", false},
-// 		{"./rel/test/dir", false},
-// 	}
-// 	for i, test := range tests {
-
-// 		err := validate.Field(test.param, "url")
-
-// 		if test.expected == true {
-// 			if !IsEqual(t, err, nil) {
-// 				t.Fatalf("Index: %d URL failed Error: %s", i, err)
-// 			}
-// 		} else {
-// 			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "url") {
-// 				t.Fatalf("Index: %d URL failed Error: %s", i, err)
-// 			}
-// 		}
-// 	}
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "url") }, "Bad field type int")
-// }
-
-// func TestUri(t *testing.T) {
-
-// 	var tests = []struct {
-// 		param    string
-// 		expected bool
-// 	}{
-// 		{"http://foo.bar#com", true},
-// 		{"http://foobar.com", true},
-// 		{"https://foobar.com", true},
-// 		{"foobar.com", false},
-// 		{"http://foobar.coffee/", true},
-// 		{"http://foobar.中文网/", true},
-// 		{"http://foobar.org/", true},
-// 		{"http://foobar.org:8080/", true},
-// 		{"ftp://foobar.ru/", true},
-// 		{"http://user:pass@www.foobar.com/", true},
-// 		{"http://127.0.0.1/", true},
-// 		{"http://duckduckgo.com/?q=%2F", true},
-// 		{"http://localhost:3000/", true},
-// 		{"http://foobar.com/?foo=bar#baz=qux", true},
-// 		{"http://foobar.com?foo=bar", true},
-// 		{"http://www.xn--froschgrn-x9a.net/", true},
-// 		{"", false},
-// 		{"xyz://foobar.com", true},
-// 		{"invalid.", false},
-// 		{".com", false},
-// 		{"rtmp://foobar.com", true},
-// 		{"http://www.foo_bar.com/", true},
-// 		{"http://localhost:3000/", true},
-// 		{"http://foobar.com#baz=qux", true},
-// 		{"http://foobar.com/t$-_.+!*\\'(),", true},
-// 		{"http://www.foobar.com/~foobar", true},
-// 		{"http://www.-foobar.com/", true},
-// 		{"http://www.foo---bar.com/", true},
-// 		{"mailto:someone@example.com", true},
-// 		{"irc://irc.server.org/channel", true},
-// 		{"irc://#channel@network", true},
-// 		{"/abs/test/dir", true},
-// 		{"./rel/test/dir", false},
-// 	}
-// 	for i, test := range tests {
-
-// 		err := validate.Field(test.param, "uri")
-
-// 		if test.expected == true {
-// 			if !IsEqual(t, err, nil) {
-// 				t.Fatalf("Index: %d URI failed Error: %s", i, err)
-// 			}
-// 		} else {
-// 			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uri") {
-// 				t.Fatalf("Index: %d URI failed Error: %s", i, err)
-// 			}
-// 		}
-// 	}
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "uri") }, "Bad field type int")
-// }
-
-// func TestOrTag(t *testing.T) {
-// 	s := "rgba(0,31,255,0.5)"
-// 	err := validate.Field(s, "rgb|rgba")
-// 	Equal(t, err, nil)
-
-// 	s = "rgba(0,31,255,0.5)"
-// 	err = validate.Field(s, "rgb|rgba|len=18")
-// 	Equal(t, err, nil)
-
-// 	s = "this ain't right"
-// 	err = validate.Field(s, "rgb|rgba")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb|rgba")
-
-// 	s = "this ain't right"
-// 	err = validate.Field(s, "rgb|rgba|len=10")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb|rgba|len")
-
-// 	s = "this is right"
-// 	err = validate.Field(s, "rgb|rgba|len=13")
-// 	Equal(t, err, nil)
-
-// 	s = ""
-// 	err = validate.Field(s, "omitempty,rgb|rgba")
-// 	Equal(t, err, nil)
-// }
-
-// func TestHsla(t *testing.T) {
-
-// 	s := "hsla(360,100%,100%,1)"
-// 	err := validate.Field(s, "hsla")
-// 	Equal(t, err, nil)
-
-// 	s = "hsla(360,100%,100%,0.5)"
-// 	err = validate.Field(s, "hsla")
-// 	Equal(t, err, nil)
-
-// 	s = "hsla(0,0%,0%, 0)"
-// 	err = validate.Field(s, "hsla")
-// 	Equal(t, err, nil)
-
-// 	s = "hsl(361,100%,50%,1)"
-// 	err = validate.Field(s, "hsla")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsla")
-
-// 	s = "hsl(361,100%,50%)"
-// 	err = validate.Field(s, "hsla")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsla")
-
-// 	s = "hsla(361,100%,50%)"
-// 	err = validate.Field(s, "hsla")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsla")
-
-// 	s = "hsla(360,101%,50%)"
-// 	err = validate.Field(s, "hsla")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsla")
-
-// 	s = "hsla(360,100%,101%)"
-// 	err = validate.Field(s, "hsla")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsla")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "hsla") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestHsl(t *testing.T) {
-
-// 	s := "hsl(360,100%,50%)"
-// 	err := validate.Field(s, "hsl")
-// 	Equal(t, err, nil)
-
-// 	s = "hsl(0,0%,0%)"
-// 	err = validate.Field(s, "hsl")
-// 	Equal(t, err, nil)
-
-// 	s = "hsl(361,100%,50%)"
-// 	err = validate.Field(s, "hsl")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsl")
-
-// 	s = "hsl(361,101%,50%)"
-// 	err = validate.Field(s, "hsl")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsl")
-
-// 	s = "hsl(361,100%,101%)"
-// 	err = validate.Field(s, "hsl")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsl")
-
-// 	s = "hsl(-10,100%,100%)"
-// 	err = validate.Field(s, "hsl")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hsl")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "hsl") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestRgba(t *testing.T) {
-
-// 	s := "rgba(0,31,255,0.5)"
-// 	err := validate.Field(s, "rgba")
-// 	Equal(t, err, nil)
-
-// 	s = "rgba(0,31,255,0.12)"
-// 	err = validate.Field(s, "rgba")
-// 	Equal(t, err, nil)
-
-// 	s = "rgba(12%,55%,100%,0.12)"
-// 	err = validate.Field(s, "rgba")
-// 	Equal(t, err, nil)
-
-// 	s = "rgba( 0,  31, 255, 0.5)"
-// 	err = validate.Field(s, "rgba")
-// 	Equal(t, err, nil)
-
-// 	s = "rgba(12%,55,100%,0.12)"
-// 	err = validate.Field(s, "rgba")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgba")
-
-// 	s = "rgb(0,  31, 255)"
-// 	err = validate.Field(s, "rgba")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgba")
-
-// 	s = "rgb(1,349,275,0.5)"
-// 	err = validate.Field(s, "rgba")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgba")
-
-// 	s = "rgb(01,31,255,0.5)"
-// 	err = validate.Field(s, "rgba")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgba")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "rgba") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestRgb(t *testing.T) {
-
-// 	s := "rgb(0,31,255)"
-// 	err := validate.Field(s, "rgb")
-// 	Equal(t, err, nil)
-
-// 	s = "rgb(0,  31, 255)"
-// 	err = validate.Field(s, "rgb")
-// 	Equal(t, err, nil)
-
-// 	s = "rgb(10%,  50%, 100%)"
-// 	err = validate.Field(s, "rgb")
-// 	Equal(t, err, nil)
-
-// 	s = "rgb(10%,  50%, 55)"
-// 	err = validate.Field(s, "rgb")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb")
-
-// 	s = "rgb(1,349,275)"
-// 	err = validate.Field(s, "rgb")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb")
-
-// 	s = "rgb(01,31,255)"
-// 	err = validate.Field(s, "rgb")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb")
-
-// 	s = "rgba(0,31,255)"
-// 	err = validate.Field(s, "rgb")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "rgb")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "rgb") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestEmail(t *testing.T) {
-
-// 	s := "test@mail.com"
-// 	err := validate.Field(s, "email")
-// 	Equal(t, err, nil)
-
-// 	s = ""
-// 	err = validate.Field(s, "email")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "email")
-
-// 	s = "test@email"
-// 	err = validate.Field(s, "email")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "email")
-
-// 	s = "test@email."
-// 	err = validate.Field(s, "email")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "email")
-
-// 	s = "@email.com"
-// 	err = validate.Field(s, "email")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "email")
-
-// 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "email") }, "interface conversion: interface is bool, not string")
-// }
-
-// func TestHexColor(t *testing.T) {
-
-// 	s := "#fff"
-// 	err := validate.Field(s, "hexcolor")
-// 	Equal(t, err, nil)
-
-// 	s = "#c2c2c2"
-// 	err = validate.Field(s, "hexcolor")
-// 	Equal(t, err, nil)
-
-// 	s = "fff"
-// 	err = validate.Field(s, "hexcolor")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hexcolor")
-
-// 	s = "fffFF"
-// 	err = validate.Field(s, "hexcolor")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hexcolor")
-
-// 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "hexcolor") }, "interface conversion: interface is bool, not string")
-// }
-
-// func TestHexadecimal(t *testing.T) {
-
-// 	s := "ff0044"
-// 	err := validate.Field(s, "hexadecimal")
-// 	Equal(t, err, nil)
-
-// 	s = "abcdefg"
-// 	err = validate.Field(s, "hexadecimal")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "hexadecimal")
-
-// 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "hexadecimal") }, "interface conversion: interface is bool, not string")
-// }
-
-// func TestNumber(t *testing.T) {
-
-// 	s := "1"
-// 	err := validate.Field(s, "number")
-// 	Equal(t, err, nil)
-
-// 	s = "+1"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "-1"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "1.12"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "+1.12"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "-1.12"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "1."
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	s = "1.o"
-// 	err = validate.Field(s, "number")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "number")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "number") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestNumeric(t *testing.T) {
-
-// 	s := "1"
-// 	err := validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "+1"
-// 	err = validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "-1"
-// 	err = validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "1.12"
-// 	err = validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "+1.12"
-// 	err = validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "-1.12"
-// 	err = validate.Field(s, "numeric")
-// 	Equal(t, err, nil)
-
-// 	s = "1."
-// 	err = validate.Field(s, "numeric")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "numeric")
-
-// 	s = "1.o"
-// 	err = validate.Field(s, "numeric")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "numeric")
-
-// 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "numeric") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestAlphaNumeric(t *testing.T) {
-
-// 	s := "abcd123"
-// 	err := validate.Field(s, "alphanum")
-// 	Equal(t, err, nil)
-
-// 	s = "abc!23"
-// 	err = validate.Field(s, "alphanum")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "alphanum")
-
-// 	PanicMatches(t, func() { validate.Field(1, "alphanum") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestAlpha(t *testing.T) {
-
-// 	s := "abcd"
-// 	err := validate.Field(s, "alpha")
-// 	Equal(t, err, nil)
-
-// 	s = "abc1"
-// 	err = validate.Field(s, "alpha")
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Tag, "alpha")
-
-// 	PanicMatches(t, func() { validate.Field(1, "alpha") }, "interface conversion: interface is int, not string")
-// }
-
-// func TestFlattening(t *testing.T) {
-
-// 	tSuccess := &TestString{
-// 		Required:  "Required",
-// 		Len:       "length==10",
-// 		Min:       "min=1",
-// 		Max:       "1234567890",
-// 		MinMax:    "12345",
-// 		Lt:        "012345678",
-// 		Lte:       "0123456789",
-// 		Gt:        "01234567890",
-// 		Gte:       "0123456789",
-// 		OmitEmpty: "",
-// 		Sub: &SubTest{
-// 			Test: "1",
-// 		},
-// 		SubIgnore: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "1",
-// 		},
-// 		Iface: &Impl{
-// 			F: "123",
-// 		},
-// 	}
-
-// 	err1 := validate.Struct(tSuccess).Flatten()
-// 	Equal(t, len(err1), 0)
-
-// 	tFail := &TestString{
-// 		Required:  "",
-// 		Len:       "",
-// 		Min:       "",
-// 		Max:       "12345678901",
-// 		MinMax:    "",
-// 		OmitEmpty: "12345678901",
-// 		Sub: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "",
-// 		},
-// 		Iface: &Impl{
-// 			F: "12",
-// 		},
-// 	}
-
-// 	err2 := validate.Struct(tFail).Flatten()
-
-// 	// Assert Top Level
-// 	NotEqual(t, err2, nil)
-
-// 	// Assert Fields
-// 	AssertMapFieldError(t, err2, "Len", "len")
-// 	AssertMapFieldError(t, err2, "Gt", "gt")
-// 	AssertMapFieldError(t, err2, "Gte", "gte")
-
-// 	// Assert Struct Field
-// 	AssertMapFieldError(t, err2, "Sub.Test", "required")
-
-// 	// Assert Anonymous Struct Field
-// 	AssertMapFieldError(t, err2, "Anonymous.A", "required")
-
-// 	// Assert Interface Field
-// 	AssertMapFieldError(t, err2, "Iface.F", "len")
-// }
-
-// func TestStructStringValidation(t *testing.T) {
-
-// 	validate.SetMaxStructPoolSize(11)
-
-// 	tSuccess := &TestString{
-// 		Required:  "Required",
-// 		Len:       "length==10",
-// 		Min:       "min=1",
-// 		Max:       "1234567890",
-// 		MinMax:    "12345",
-// 		Lt:        "012345678",
-// 		Lte:       "0123456789",
-// 		Gt:        "01234567890",
-// 		Gte:       "0123456789",
-// 		OmitEmpty: "",
-// 		Sub: &SubTest{
-// 			Test: "1",
-// 		},
-// 		SubIgnore: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "1",
-// 		},
-// 		Iface: &Impl{
-// 			F: "123",
-// 		},
-// 	}
-
-// 	err := validate.Struct(tSuccess)
-// 	Equal(t, err, nil)
-
-// 	tFail := &TestString{
-// 		Required:  "",
-// 		Len:       "",
-// 		Min:       "",
-// 		Max:       "12345678901",
-// 		MinMax:    "",
-// 		Lt:        "0123456789",
-// 		Lte:       "01234567890",
-// 		Gt:        "1",
-// 		Gte:       "1",
-// 		OmitEmpty: "12345678901",
-// 		Sub: &SubTest{
-// 			Test: "",
-// 		},
-// 		Anonymous: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "",
-// 		},
-// 		Iface: &Impl{
-// 			F: "12",
-// 		},
-// 	}
-
-// 	err = validate.Struct(tFail)
-
-// 	// Assert Top Level
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Struct, "TestString")
-// 	Equal(t, len(err.Errors), 10)
-// 	Equal(t, len(err.StructErrors), 3)
-
-// 	// Assert Fields
-// 	AssertFieldError(t, err, "Required", "required")
-// 	AssertFieldError(t, err, "Len", "len")
-// 	AssertFieldError(t, err, "Min", "min")
-// 	AssertFieldError(t, err, "Max", "max")
-// 	AssertFieldError(t, err, "MinMax", "min")
-// 	AssertFieldError(t, err, "Gt", "gt")
-// 	AssertFieldError(t, err, "Gte", "gte")
-// 	AssertFieldError(t, err, "OmitEmpty", "max")
-
-// 	// Assert Anonymous embedded struct
-// 	AssertStruct(t, err, "Anonymous", "")
-
-// 	// Assert SubTest embedded struct
-// 	val := AssertStruct(t, err, "Sub", "SubTest")
-// 	Equal(t, len(val.Errors), 1)
-// 	Equal(t, len(val.StructErrors), 0)
-
-// 	AssertFieldError(t, val, "Test", "required")
-
-// 	errors := err.Error()
-// 	NotEqual(t, errors, nil)
-// }
-
-// func TestStructInt32Validation(t *testing.T) {
-
-// 	tSuccess := &TestInt32{
-// 		Required:  1,
-// 		Len:       10,
-// 		Min:       1,
-// 		Max:       10,
-// 		MinMax:    5,
-// 		Lt:        9,
-// 		Lte:       10,
-// 		Gt:        11,
-// 		Gte:       10,
-// 		OmitEmpty: 0,
-// 	}
-
-// 	err := validate.Struct(tSuccess)
-// 	Equal(t, err, nil)
-
-// 	tFail := &TestInt32{
-// 		Required:  0,
-// 		Len:       11,
-// 		Min:       -1,
-// 		Max:       11,
-// 		MinMax:    -1,
-// 		Lt:        10,
-// 		Lte:       11,
-// 		Gt:        10,
-// 		Gte:       9,
-// 		OmitEmpty: 11,
-// 	}
-
-// 	err = validate.Struct(tFail)
-
-// 	// Assert Top Level
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Struct, "TestInt32")
-// 	Equal(t, len(err.Errors), 10)
-// 	Equal(t, len(err.StructErrors), 0)
-
-// 	// Assert Fields
-// 	AssertFieldError(t, err, "Required", "required")
-// 	AssertFieldError(t, err, "Len", "len")
-// 	AssertFieldError(t, err, "Min", "min")
-// 	AssertFieldError(t, err, "Max", "max")
-// 	AssertFieldError(t, err, "MinMax", "min")
-// 	AssertFieldError(t, err, "Lt", "lt")
-// 	AssertFieldError(t, err, "Lte", "lte")
-// 	AssertFieldError(t, err, "Gt", "gt")
-// 	AssertFieldError(t, err, "Gte", "gte")
-// 	AssertFieldError(t, err, "OmitEmpty", "max")
-// }
-
-// func TestStructUint64Validation(t *testing.T) {
-
-// 	tSuccess := &TestUint64{
-// 		Required:  1,
-// 		Len:       10,
-// 		Min:       1,
-// 		Max:       10,
-// 		MinMax:    5,
-// 		OmitEmpty: 0,
-// 	}
-
-// 	err := validate.Struct(tSuccess)
-// 	Equal(t, err, nil)
-
-// 	tFail := &TestUint64{
-// 		Required:  0,
-// 		Len:       11,
-// 		Min:       0,
-// 		Max:       11,
-// 		MinMax:    0,
-// 		OmitEmpty: 11,
-// 	}
-
-// 	err = validate.Struct(tFail)
-
-// 	// Assert Top Level
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Struct, "TestUint64")
-// 	Equal(t, len(err.Errors), 6)
-// 	Equal(t, len(err.StructErrors), 0)
-
-// 	// Assert Fields
-// 	AssertFieldError(t, err, "Required", "required")
-// 	AssertFieldError(t, err, "Len", "len")
-// 	AssertFieldError(t, err, "Min", "min")
-// 	AssertFieldError(t, err, "Max", "max")
-// 	AssertFieldError(t, err, "MinMax", "min")
-// 	AssertFieldError(t, err, "OmitEmpty", "max")
-// }
-
-// func TestStructFloat64Validation(t *testing.T) {
-
-// 	tSuccess := &TestFloat64{
-// 		Required:  1,
-// 		Len:       10,
-// 		Min:       1,
-// 		Max:       10,
-// 		MinMax:    5,
-// 		OmitEmpty: 0,
-// 	}
-
-// 	err := validate.Struct(tSuccess)
-// 	Equal(t, err, nil)
-
-// 	tFail := &TestFloat64{
-// 		Required:  0,
-// 		Len:       11,
-// 		Min:       0,
-// 		Max:       11,
-// 		MinMax:    0,
-// 		OmitEmpty: 11,
-// 	}
-
-// 	err = validate.Struct(tFail)
-
-// 	// Assert Top Level
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Struct, "TestFloat64")
-// 	Equal(t, len(err.Errors), 6)
-// 	Equal(t, len(err.StructErrors), 0)
-
-// 	// Assert Fields
-// 	AssertFieldError(t, err, "Required", "required")
-// 	AssertFieldError(t, err, "Len", "len")
-// 	AssertFieldError(t, err, "Min", "min")
-// 	AssertFieldError(t, err, "Max", "max")
-// 	AssertFieldError(t, err, "MinMax", "min")
-// 	AssertFieldError(t, err, "OmitEmpty", "max")
-// }
-
-// func TestStructSliceValidation(t *testing.T) {
-
-// 	tSuccess := &TestSlice{
-// 		Required:  []int{1},
-// 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-// 		Min:       []int{1, 2},
-// 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-// 		MinMax:    []int{1, 2, 3, 4, 5},
-// 		OmitEmpty: []int{},
-// 	}
-
-// 	err := validate.Struct(tSuccess)
-// 	Equal(t, err, nil)
-
-// 	tFail := &TestSlice{
-// 		Required:  []int{},
-// 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
-// 		Min:       []int{},
-// 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
-// 		MinMax:    []int{},
-// 		OmitEmpty: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
-// 	}
-
-// 	err = validate.Struct(tFail)
-
-// 	// Assert Top Level
-// 	NotEqual(t, err, nil)
-// 	Equal(t, err.Struct, "TestSlice")
-// 	Equal(t, len(err.Errors), 6)
-// 	Equal(t, len(err.StructErrors), 0)
-
-// 	// Assert Fields
-// 	AssertFieldError(t, err, "Required", "required")
-// 	AssertFieldError(t, err, "Len", "len")
-// 	AssertFieldError(t, err, "Min", "min")
-// 	AssertFieldError(t, err, "Max", "max")
-// 	AssertFieldError(t, err, "MinMax", "min")
-// 	AssertFieldError(t, err, "OmitEmpty", "max")
-// }
-
-// func TestInvalidStruct(t *testing.T) {
-// 	s := &SubTest{
-// 		Test: "1",
-// 	}
-
-// 	PanicMatches(t, func() { validate.Struct(s.Test) }, "interface passed for validation is not a struct")
-// }
-
-// func TestInvalidField(t *testing.T) {
-// 	s := &SubTest{
-// 		Test: "1",
-// 	}
-
-// 	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to fieldWithNameAndValue")
-// }
-
-// func TestInvalidTagField(t *testing.T) {
-// 	s := &SubTest{
-// 		Test: "1",
-// 	}
-
-// 	PanicMatches(t, func() { validate.Field(s.Test, "") }, fmt.Sprintf("Invalid validation tag on field %s", ""))
-// }
-
-// func TestInvalidValidatorFunction(t *testing.T) {
-// 	s := &SubTest{
-// 		Test: "1",
-// 	}
-
-// 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
-// }
-
-// func TestPoolObjectMaxSizeValidation(t *testing.T) {
-// 	// this will ensure that the pool objects are let go
-// 	// when the pool is saturated
-// 	validate.SetMaxStructPoolSize(0)
-
-// 	tSuccess := &TestSlice{
-// 		Required:  []int{1},
-// 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-// 		Min:       []int{1, 2},
-// 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-// 		MinMax:    []int{1, 2, 3, 4, 5},
-// 		OmitEmpty: []int{},
-// 	}
-
-// 	for i := 0; i < 2; i++ {
-// 		err := validate.Struct(tSuccess)
-// 		Equal(t, err, nil)
-// 	}
-// }
+func TestUrl(t *testing.T) {
+
+	var tests = []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"https://foobar.com", true},
+		{"foobar.com", false},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", true},
+		{"http://user:pass@www.foobar.com/", true},
+		{"http://127.0.0.1/", true},
+		{"http://duckduckgo.com/?q=%2F", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/?foo=bar#baz=qux", true},
+		{"http://foobar.com?foo=bar", true},
+		{"http://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"xyz://foobar.com", true},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", true},
+		{"http://www.foo_bar.com/", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com#baz=qux", true},
+		{"http://foobar.com/t$-_.+!*\\'(),", true},
+		{"http://www.foobar.com/~foobar", true},
+		{"http://www.-foobar.com/", true},
+		{"http://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", true},
+		{"irc://irc.server.org/channel", true},
+		{"irc://#channel@network", true},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+	}
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "url")
+
+		if test.expected == true {
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "url" {
+					t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "url") }, "Bad field type int")
+}
+
+func TestUri(t *testing.T) {
+
+	var tests = []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"https://foobar.com", true},
+		{"foobar.com", false},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", true},
+		{"http://user:pass@www.foobar.com/", true},
+		{"http://127.0.0.1/", true},
+		{"http://duckduckgo.com/?q=%2F", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/?foo=bar#baz=qux", true},
+		{"http://foobar.com?foo=bar", true},
+		{"http://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"xyz://foobar.com", true},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", true},
+		{"http://www.foo_bar.com/", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com#baz=qux", true},
+		{"http://foobar.com/t$-_.+!*\\'(),", true},
+		{"http://www.foobar.com/~foobar", true},
+		{"http://www.-foobar.com/", true},
+		{"http://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", true},
+		{"irc://irc.server.org/channel", true},
+		{"irc://#channel@network", true},
+		{"/abs/test/dir", true},
+		{"./rel/test/dir", false},
+	}
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "uri")
+
+		if test.expected == true {
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uri" {
+					t.Fatalf("Index: %d URI failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "uri") }, "Bad field type int")
+}
+
+func TestOrTag(t *testing.T) {
+	s := "rgba(0,31,255,0.5)"
+	errs := validate.Field(s, "rgb|rgba")
+	Equal(t, errs, nil)
+
+	s = "rgba(0,31,255,0.5)"
+	errs = validate.Field(s, "rgb|rgba|len=18")
+	Equal(t, errs, nil)
+
+	s = "this ain't right"
+	errs = validate.Field(s, "rgb|rgba")
+	NotEqual(t, errs, nil)
+	// Equal(t, err.Tag, "rgb|rgba")
+	AssertError(t, errs, "", "", "rgb|rgba")
+
+	s = "this ain't right"
+	errs = validate.Field(s, "rgb|rgba|len=10")
+	NotEqual(t, errs, nil)
+	// Equal(t, err.Tag, "rgb|rgba|len")
+	AssertError(t, errs, "", "", "rgb|rgba|len")
+
+	s = "this is right"
+	errs = validate.Field(s, "rgb|rgba|len=13")
+	Equal(t, errs, nil)
+
+	s = ""
+	errs = validate.Field(s, "omitempty,rgb|rgba")
+	Equal(t, errs, nil)
+}
+
+func TestHsla(t *testing.T) {
+
+	s := "hsla(360,100%,100%,1)"
+	errs := validate.Field(s, "hsla")
+	Equal(t, errs, nil)
+
+	s = "hsla(360,100%,100%,0.5)"
+	errs = validate.Field(s, "hsla")
+	Equal(t, errs, nil)
+
+	s = "hsla(0,0%,0%, 0)"
+	errs = validate.Field(s, "hsla")
+	Equal(t, errs, nil)
+
+	s = "hsl(361,100%,50%,1)"
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
+
+	s = "hsl(361,100%,50%)"
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
+
+	s = "hsla(361,100%,50%)"
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
+
+	s = "hsla(360,101%,50%)"
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
+
+	s = "hsla(360,100%,101%)"
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "hsla") }, "interface conversion: interface is int, not string")
+}
+
+func TestHsl(t *testing.T) {
+
+	s := "hsl(360,100%,50%)"
+	errs := validate.Field(s, "hsl")
+	Equal(t, errs, nil)
+
+	s = "hsl(0,0%,0%)"
+	errs = validate.Field(s, "hsl")
+	Equal(t, errs, nil)
+
+	s = "hsl(361,100%,50%)"
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
+
+	s = "hsl(361,101%,50%)"
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
+
+	s = "hsl(361,100%,101%)"
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
+
+	s = "hsl(-10,100%,100%)"
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "hsl") }, "interface conversion: interface is int, not string")
+}
+
+func TestRgba(t *testing.T) {
+
+	s := "rgba(0,31,255,0.5)"
+	errs := validate.Field(s, "rgba")
+	Equal(t, errs, nil)
+
+	s = "rgba(0,31,255,0.12)"
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
+
+	s = "rgba(12%,55%,100%,0.12)"
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
+
+	s = "rgba( 0,  31, 255, 0.5)"
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
+
+	s = "rgba(12%,55,100%,0.12)"
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
+
+	s = "rgb(0,  31, 255)"
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
+
+	s = "rgb(1,349,275,0.5)"
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
+
+	s = "rgb(01,31,255,0.5)"
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "rgba") }, "interface conversion: interface is int, not string")
+}
+
+func TestRgb(t *testing.T) {
+
+	s := "rgb(0,31,255)"
+	errs := validate.Field(s, "rgb")
+	Equal(t, errs, nil)
+
+	s = "rgb(0,  31, 255)"
+	errs = validate.Field(s, "rgb")
+	Equal(t, errs, nil)
+
+	s = "rgb(10%,  50%, 100%)"
+	errs = validate.Field(s, "rgb")
+	Equal(t, errs, nil)
+
+	s = "rgb(10%,  50%, 55)"
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
+
+	s = "rgb(1,349,275)"
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
+
+	s = "rgb(01,31,255)"
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
+
+	s = "rgba(0,31,255)"
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "rgb") }, "interface conversion: interface is int, not string")
+}
+
+func TestEmail(t *testing.T) {
+
+	s := "test@mail.com"
+	errs := validate.Field(s, "email")
+	Equal(t, errs, nil)
+
+	s = ""
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
+
+	s = "test@email"
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
+
+	s = "test@email."
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
+
+	s = "@email.com"
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
+
+	i := true
+	PanicMatches(t, func() { validate.Field(i, "email") }, "interface conversion: interface is bool, not string")
+}
+
+func TestHexColor(t *testing.T) {
+
+	s := "#fff"
+	errs := validate.Field(s, "hexcolor")
+	Equal(t, errs, nil)
+
+	s = "#c2c2c2"
+	errs = validate.Field(s, "hexcolor")
+	Equal(t, errs, nil)
+
+	s = "fff"
+	errs = validate.Field(s, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
+
+	s = "fffFF"
+	errs = validate.Field(s, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
+
+	i := true
+	PanicMatches(t, func() { validate.Field(i, "hexcolor") }, "interface conversion: interface is bool, not string")
+}
+
+func TestHexadecimal(t *testing.T) {
+
+	s := "ff0044"
+	errs := validate.Field(s, "hexadecimal")
+	Equal(t, errs, nil)
+
+	s = "abcdefg"
+	errs = validate.Field(s, "hexadecimal")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexadecimal")
+
+	i := true
+	PanicMatches(t, func() { validate.Field(i, "hexadecimal") }, "interface conversion: interface is bool, not string")
+}
+
+func TestNumber(t *testing.T) {
+
+	s := "1"
+	errs := validate.Field(s, "number")
+	Equal(t, errs, nil)
+
+	s = "+1"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "-1"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "1.12"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "+1.12"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "-1.12"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "1."
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	s = "1.o"
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "number") }, "interface conversion: interface is int, not string")
+}
+
+func TestNumeric(t *testing.T) {
+
+	s := "1"
+	errs := validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "+1"
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "-1"
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "1.12"
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "+1.12"
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "-1.12"
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
+
+	s = "1."
+	errs = validate.Field(s, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
+
+	s = "1.o"
+	errs = validate.Field(s, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
+
+	i := 1
+	PanicMatches(t, func() { validate.Field(i, "numeric") }, "interface conversion: interface is int, not string")
+}
+
+func TestAlphaNumeric(t *testing.T) {
+
+	s := "abcd123"
+	errs := validate.Field(s, "alphanum")
+	Equal(t, errs, nil)
+
+	s = "abc!23"
+	errs = validate.Field(s, "alphanum")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alphanum")
+
+	PanicMatches(t, func() { validate.Field(1, "alphanum") }, "interface conversion: interface is int, not string")
+}
+
+func TestAlpha(t *testing.T) {
+
+	s := "abcd"
+	errs := validate.Field(s, "alpha")
+	Equal(t, errs, nil)
+
+	s = "abc1"
+	errs = validate.Field(s, "alpha")
+	NotEqual(t, errs, nil)
+
+	AssertError(t, errs, "", "", "alpha")
+
+	PanicMatches(t, func() { validate.Field(1, "alpha") }, "interface conversion: interface is int, not string")
+}
+
+func TestStructStringValidation(t *testing.T) {
+
+	tSuccess := &TestString{
+		Required:  "Required",
+		Len:       "length==10",
+		Min:       "min=1",
+		Max:       "1234567890",
+		MinMax:    "12345",
+		Lt:        "012345678",
+		Lte:       "0123456789",
+		Gt:        "01234567890",
+		Gte:       "0123456789",
+		OmitEmpty: "",
+		Sub: &SubTest{
+			Test: "1",
+		},
+		SubIgnore: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A string `validate:"required"`
+		}{
+			A: "1",
+		},
+		Iface: &Impl{
+			F: "123",
+		},
+	}
+
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
+
+	tFail := &TestString{
+		Required:  "",
+		Len:       "",
+		Min:       "",
+		Max:       "12345678901",
+		MinMax:    "",
+		Lt:        "0123456789",
+		Lte:       "01234567890",
+		Gt:        "1",
+		Gte:       "1",
+		OmitEmpty: "12345678901",
+		Sub: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A string `validate:"required"`
+		}{
+			A: "",
+		},
+		Iface: &Impl{
+			F: "12",
+		},
+	}
+
+	errs = validate.Struct(tFail)
+
+	// Assert Top Level
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 13)
+
+	// Assert Fields
+	AssertError(t, errs, "TestString.Required", "Required", "required")
+	AssertError(t, errs, "TestString.Len", "Len", "len")
+	AssertError(t, errs, "TestString.Min", "Min", "min")
+	AssertError(t, errs, "TestString.Max", "Max", "max")
+	AssertError(t, errs, "TestString.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestString.Lt", "Lt", "lt")
+	AssertError(t, errs, "TestString.Lte", "Lte", "lte")
+	AssertError(t, errs, "TestString.Gt", "Gt", "gt")
+	AssertError(t, errs, "TestString.Gte", "Gte", "gte")
+	AssertError(t, errs, "TestString.OmitEmpty", "OmitEmpty", "max")
+
+	// Nested Struct Field Errs
+	AssertError(t, errs, "TestString.Anonymous.A", "A", "required")
+	AssertError(t, errs, "TestString.Sub.Test", "Test", "required")
+	AssertError(t, errs, "TestString.Iface.F", "F", "len")
+}
+
+func TestStructInt32Validation(t *testing.T) {
+
+	tSuccess := &TestInt32{
+		Required:  1,
+		Len:       10,
+		Min:       1,
+		Max:       10,
+		MinMax:    5,
+		Lt:        9,
+		Lte:       10,
+		Gt:        11,
+		Gte:       10,
+		OmitEmpty: 0,
+	}
+
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
+
+	tFail := &TestInt32{
+		Required:  0,
+		Len:       11,
+		Min:       -1,
+		Max:       11,
+		MinMax:    -1,
+		Lt:        10,
+		Lte:       11,
+		Gt:        10,
+		Gte:       9,
+		OmitEmpty: 11,
+	}
+
+	errs = validate.Struct(tFail)
+
+	// Assert Top Level
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 10)
+
+	// Assert Fields
+	AssertError(t, errs, "TestInt32.Required", "Required", "required")
+	AssertError(t, errs, "TestInt32.Len", "Len", "len")
+	AssertError(t, errs, "TestInt32.Min", "Min", "min")
+	AssertError(t, errs, "TestInt32.Max", "Max", "max")
+	AssertError(t, errs, "TestInt32.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestInt32.Lt", "Lt", "lt")
+	AssertError(t, errs, "TestInt32.Lte", "Lte", "lte")
+	AssertError(t, errs, "TestInt32.Gt", "Gt", "gt")
+	AssertError(t, errs, "TestInt32.Gte", "Gte", "gte")
+	AssertError(t, errs, "TestInt32.OmitEmpty", "OmitEmpty", "max")
+}
+
+func TestStructUint64Validation(t *testing.T) {
+
+	tSuccess := &TestUint64{
+		Required:  1,
+		Len:       10,
+		Min:       1,
+		Max:       10,
+		MinMax:    5,
+		OmitEmpty: 0,
+	}
+
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
+
+	tFail := &TestUint64{
+		Required:  0,
+		Len:       11,
+		Min:       0,
+		Max:       11,
+		MinMax:    0,
+		OmitEmpty: 11,
+	}
+
+	errs = validate.Struct(tFail)
+
+	// Assert Top Level
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
+
+	// Assert Fields
+	AssertError(t, errs, "TestUint64.Required", "Required", "required")
+	AssertError(t, errs, "TestUint64.Len", "Len", "len")
+	AssertError(t, errs, "TestUint64.Min", "Min", "min")
+	AssertError(t, errs, "TestUint64.Max", "Max", "max")
+	AssertError(t, errs, "TestUint64.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestUint64.OmitEmpty", "OmitEmpty", "max")
+}
+
+func TestStructFloat64Validation(t *testing.T) {
+
+	tSuccess := &TestFloat64{
+		Required:  1,
+		Len:       10,
+		Min:       1,
+		Max:       10,
+		MinMax:    5,
+		OmitEmpty: 0,
+	}
+
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
+
+	tFail := &TestFloat64{
+		Required:  0,
+		Len:       11,
+		Min:       0,
+		Max:       11,
+		MinMax:    0,
+		OmitEmpty: 11,
+	}
+
+	errs = validate.Struct(tFail)
+
+	// Assert Top Level
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
+
+	// Assert Fields
+	AssertError(t, errs, "TestFloat64.Required", "Required", "required")
+	AssertError(t, errs, "TestFloat64.Len", "Len", "len")
+	AssertError(t, errs, "TestFloat64.Min", "Min", "min")
+	AssertError(t, errs, "TestFloat64.Max", "Max", "max")
+	AssertError(t, errs, "TestFloat64.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestFloat64.OmitEmpty", "OmitEmpty", "max")
+}
+
+func TestStructSliceValidation(t *testing.T) {
+
+	tSuccess := &TestSlice{
+		Required:  []int{1},
+		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		Min:       []int{1, 2},
+		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		MinMax:    []int{1, 2, 3, 4, 5},
+		OmitEmpty: []int{},
+	}
+
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
+
+	tFail := &TestSlice{
+		Required:  []int{},
+		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
+		Min:       []int{},
+		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
+		MinMax:    []int{},
+		OmitEmpty: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
+	}
+
+	errs = validate.Struct(tFail)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
+
+	// Assert Field Errors
+	AssertError(t, errs, "TestSlice.Required", "Required", "required")
+	AssertError(t, errs, "TestSlice.Len", "Len", "len")
+	AssertError(t, errs, "TestSlice.Min", "Min", "min")
+	AssertError(t, errs, "TestSlice.Max", "Max", "max")
+	AssertError(t, errs, "TestSlice.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestSlice.OmitEmpty", "OmitEmpty", "max")
+}
+
+func TestInvalidStruct(t *testing.T) {
+	s := &SubTest{
+		Test: "1",
+	}
+
+	PanicMatches(t, func() { validate.Struct(s.Test) }, "value passed for validation is not a struct")
+}
+
+func TestInvalidField(t *testing.T) {
+	s := &SubTest{
+		Test: "1",
+	}
+
+	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to traverseField")
+}
+
+func TestInvalidTagField(t *testing.T) {
+	s := &SubTest{
+		Test: "1",
+	}
+
+	PanicMatches(t, func() { validate.Field(s.Test, "") }, fmt.Sprintf("Invalid validation tag on field %s", ""))
+}
+
+func TestInvalidValidatorFunction(t *testing.T) {
+	s := &SubTest{
+		Test: "1",
+	}
+
+	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
+}
