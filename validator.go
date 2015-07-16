@@ -10,10 +10,12 @@ package validator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
+	"unicode"
 )
 
 const (
@@ -27,7 +29,7 @@ const (
 	skipValidationTag   = "-"
 	diveTag             = "dive"
 	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
-	invaldField         = "Invalid field passed to traverseField"
+	invalidField        = "Invalid field passed to traverseField"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
@@ -103,6 +105,24 @@ func New(config Config) *Validate {
 	return &Validate{config: config}
 }
 
+// RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
+// NOTE: if the key already exists, it will get replaced.
+// NOTE: this method is not thread-safe
+func (v *Validate) RegisterValidation(key string, f Func) error {
+
+	if len(key) == 0 {
+		return errors.New("Function Key cannot be empty")
+	}
+
+	if f == nil {
+		return errors.New("Function cannot be empty")
+	}
+
+	v.config.ValidationFuncs[key] = f
+
+	return nil
+}
+
 // Field allows validation of a single field, still using tag style validation to check multiple errors
 func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 
@@ -173,6 +193,11 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 	for i := 0; i < numFields; i++ {
 		fld = typ.Field(i)
+
+		if !unicode.IsUpper(rune(fld.Name[0])) {
+			continue
+		}
+
 		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name)
 	}
 }
@@ -228,7 +253,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	switch kind {
 
 	case reflect.Invalid:
-		panic(invaldField)
+		panic(invalidField)
 	case reflect.Struct, reflect.Interface:
 
 		if kind == reflect.Interface {
@@ -251,7 +276,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if typ != timeType && typ != timePtrType {
 
-			if isStructField {
+			if isStructField || kind == reflect.Struct {
 
 				// required passed validationa above so stop here
 				// if only validating the structs existance.
@@ -262,8 +287,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
 				return
 			}
-
-			panic(invaldField)
+			panic(invalidField)
 		}
 	FALLTHROUGH:
 		fallthrough
@@ -345,7 +369,7 @@ func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.
 			idxField = idxField.Elem()
 		}
 
-		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
+		v.traverseField(topStruct, currentStruct, idxField, errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
 	}
 }
 
@@ -359,7 +383,7 @@ func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Va
 			idxField = idxField.Elem()
 		}
 
-		v.traverseField(topStruct, currentStruct, current, errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
+		v.traverseField(topStruct, currentStruct, idxField, errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
 	}
 }
 
