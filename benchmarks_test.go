@@ -2,13 +2,19 @@ package validator
 
 import "testing"
 
-func BenchmarkValidateField(b *testing.B) {
+func BenchmarkField(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		validate.Field("1", "len=1")
 	}
 }
 
-func BenchmarkValidateStructSimple(b *testing.B) {
+func BenchmarkFieldOrTag(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field("rgba(0,0,0,1)", "rgb|rgba")
+	}
+}
+
+func BenchmarkStructSimple(b *testing.B) {
 
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
@@ -24,7 +30,7 @@ func BenchmarkValidateStructSimple(b *testing.B) {
 	}
 }
 
-func BenchmarkTemplateParallelSimple(b *testing.B) {
+func BenchmarkStructSimpleParallel(b *testing.B) {
 
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
@@ -42,7 +48,7 @@ func BenchmarkTemplateParallelSimple(b *testing.B) {
 	})
 }
 
-func BenchmarkValidateStructLarge(b *testing.B) {
+func BenchmarkStructComplex(b *testing.B) {
 
 	tFail := &TestString{
 		Required:  "",
@@ -101,7 +107,7 @@ func BenchmarkValidateStructLarge(b *testing.B) {
 	}
 }
 
-func BenchmarkTemplateParallelLarge(b *testing.B) {
+func BenchmarkStructComplexParallel(b *testing.B) {
 
 	tFail := &TestString{
 		Required:  "",
