@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
@@ -38,7 +39,13 @@ const (
 var (
 	timeType    = reflect.TypeOf(time.Time{})
 	timePtrType = reflect.TypeOf(&time.Time{})
+	errsPool    = &sync.Pool{New: newValidationErrors}
 )
+
+// returns new ValidationErrors to the pool
+func newValidationErrors() interface{} {
+	return map[string]*FieldError{}
+}
 
 // Validate implements the Validate Struct
 // NOTE: Fields within are not thread safe and that is on purpose
@@ -91,18 +98,10 @@ type FieldError struct {
 	Type  reflect.Type
 	Param string
 	Value interface{}
-	// IsPlaceholderErr bool
-	// IsSliceOrArray   bool
-	// IsMap            bool
-	// SliceOrArrayErrs map[int]error         // counld be FieldError, StructErrors
-	// MapErrs          map[interface{}]error // counld be FieldError, StructErrors
 }
 
 // New creates a new Validate instance for use.
 func New(config Config) *Validate {
-
-	// structPool = &sync.Pool{New: newStructErrors}
-
 	return &Validate{config: config}
 }
 
@@ -127,12 +126,13 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 // Field allows validation of a single field, still using tag style validation to check multiple errors
 func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 
-	errs := map[string]*FieldError{}
+	errs := errsPool.Get().(map[string]*FieldError)
 	fieldVal := reflect.ValueOf(field)
 
 	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
 
 	if len(errs) == 0 {
+		errsPool.Put(errs)
 		return nil
 	}
 
@@ -142,12 +142,13 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 // FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
 
-	errs := map[string]*FieldError{}
+	errs := errsPool.Get().(map[string]*FieldError)
 	topVal := reflect.ValueOf(val)
 
 	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
 
 	if len(errs) == 0 {
+		errsPool.Put(errs)
 		return nil
 	}
 
@@ -160,12 +161,13 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 // the Array or Map.
 func (v *Validate) Struct(current interface{}) ValidationErrors {
 
-	errs := map[string]*FieldError{}
+	errs := errsPool.Get().(map[string]*FieldError)
 	sv := reflect.ValueOf(current)
 
 	v.tranverseStruct(sv, sv, sv, "", errs, true)
 
 	if len(errs) == 0 {
+		errsPool.Put(errs)
 		return nil
 	}
 
