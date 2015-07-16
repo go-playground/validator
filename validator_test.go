@@ -239,6 +239,16 @@ func TestBadKeyValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function on field Name")
+
+	type Test2 struct {
+		Name string `validate:"required,,len=2"`
+	}
+
+	tst2 := &Test2{
+		Name: "test",
+	}
+
+	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field Name")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -2777,6 +2787,11 @@ func TestOrTag(t *testing.T) {
 	s = ""
 	errs = validate.Field(s, "omitempty,rgb|rgba")
 	Equal(t, errs, nil)
+
+	s = "this is right, but a blank or isn't"
+
+	PanicMatches(t, func() { validate.Field(s, "rgb||len=13") }, "Invalid validation tag on field")
+	PanicMatches(t, func() { validate.Field(s, "rgb|rgbaa|len=13") }, "Undefined validation function on field")
 }
 
 func TestHsla(t *testing.T) {
@@ -3390,5 +3405,5 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
+	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
 }

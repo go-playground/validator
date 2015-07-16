@@ -29,9 +29,10 @@ const (
 	skipValidationTag   = "-"
 	diveTag             = "dive"
 	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
-	invalidField        = "Invalid field passed to traverseField"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
+	invalidValidation   = "Invalid validation tag on field %s"
+	undefinedValidation = "Undefined validation function on field %s"
 )
 
 var (
@@ -251,9 +252,6 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	}
 
 	switch kind {
-
-	case reflect.Invalid:
-		panic(invalidField)
 	case reflect.Struct, reflect.Interface:
 
 		if kind == reflect.Interface {
@@ -276,7 +274,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if typ != timeType && typ != timePtrType {
 
-			if isStructField || kind == reflect.Struct {
+			if kind == reflect.Struct {
 
 				// required passed validationa above so stop here
 				// if only validating the structs existance.
@@ -287,7 +285,6 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
 				return
 			}
-			panic(invalidField)
 		}
 	FALLTHROUGH:
 		fallthrough
@@ -328,7 +325,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			key = vals[0]
 
 			if len(key) == 0 {
-				panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, name)))
 			}
 
 			if len(vals) > 1 {
@@ -401,7 +398,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 			vals := strings.SplitN(val, tagKeySeparator, 2)
 
 			if len(vals[0]) == 0 {
-				panic(fmt.Sprintf("Invalid validation tag on field %s", name))
+				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, name)))
 			}
 
 			param := ""
@@ -412,7 +409,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 			// validate and keep track!
 			valFunc, ok := v.config.ValidationFuncs[vals[0]]
 			if !ok {
-				panic(fmt.Sprintf("Undefined validation function on field %s", name))
+				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
 
 			if valFunc(topStruct, currentStruct, current, currentType, currentKind, param) {
@@ -436,7 +433,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 
 	valFunc, ok := v.config.ValidationFuncs[key]
 	if !ok {
-		panic(fmt.Sprintf("Undefined validation function on field %s", name))
+		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}
 
 	if valFunc(topStruct, currentStruct, current, currentType, currentKind, param) {
