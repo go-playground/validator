@@ -229,6 +229,18 @@ func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag st
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestCommaAndPipeObfuscationValidation(t *testing.T) {
+	s := "My Name Is, |joeybloggs|"
+
+	errs := validate.Field(s, "excludesall=0x2C")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
+
+	errs = validate.Field(s, "excludesall=0x7C")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
+}
+
 func TestBadKeyValidation(t *testing.T) {
 	type Test struct {
 		Name string `validate:"required, "`
