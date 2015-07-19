@@ -59,6 +59,5 @@ var (
 )
 
 func matchesRegex(regex *regexp.Regexp, value string) bool {
-	// fieldAsString := field.(string) //this will panic inherently
 	return regex.MatchString(value)
 }

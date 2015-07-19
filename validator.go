@@ -48,16 +48,36 @@ func newValidationErrors() interface{} {
 	return map[string]*FieldError{}
 }
 
-// Validate implements the Validate Struct
-// NOTE: Fields within are not thread safe and that is on purpose
-// Functions and Tags should all be predifined before use, so subscribe to the philosiphy
-// or make it thread safe on your end
+type tagCache struct {
+	tagVals [][]string
+	isOrVal bool
+}
+
+type tagCacheMap struct {
+	lock sync.RWMutex
+	m    map[string][]*tagCache
+}
+
+func (s *tagCacheMap) Get(key string) ([]*tagCache, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	value, ok := s.m[key]
+	return value, ok
+}
+
+func (s *tagCacheMap) Set(key string, value []*tagCache) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.m[key] = value
+}
+
+// Validate contains the validator settings passed in using the Config struct
 type Validate struct {
 	config Config
 }
 
-// Config contains the options that Validator with use
-// passed to the New function
+// Config contains the options that a Validator instance will use.
+// It is passed to the New() function
 type Config struct {
 	TagName         string
 	ValidationFuncs map[string]Func
@@ -71,20 +91,21 @@ type Config struct {
 type Func func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool
 
 // ValidationErrors is a type of map[string]*FieldError
-// it exists to allow for multiple errors passed from this library
-// and yet still comply to the error interface
+// it exists to allow for multiple errors to be passed from this library
+// and yet still subscribe to the error interface
 type ValidationErrors map[string]*FieldError
 
-// This is intended for use in development + debugging and not intended to be a production error message.
+// Error is intended for use in development + debugging and not intended to be a production error message.
 // It allows ValidationErrors to subscribe to the Error interface.
 // All information to create an error message specific to your application is contained within
-// the FieldError found in the ValidationErrors
+// the FieldError found within the ValidationErrors map
 func (ve ValidationErrors) Error() string {
 
 	buff := bytes.NewBufferString("")
 
 	for key, err := range ve {
 		buff.WriteString(fmt.Sprintf(fieldErrMsg, key, err.Field, err.Tag))
+		buff.WriteString("\n")
 	}
 
 	return strings.TrimSpace(buff.String())
@@ -107,7 +128,7 @@ func New(config Config) *Validate {
 }
 
 // RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
-// NOTE: if the key already exists, it will get replaced.
+// NOTE: if the key already exists, the previous validation function will be replaced.
 // NOTE: this method is not thread-safe
 func (v *Validate) RegisterValidation(key string, f Func) error {
 
@@ -124,7 +145,9 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 	return nil
 }
 
-// Field allows validation of a single field, still using tag style validation to check multiple errors
+// Field validates a single field using tag style validation and returns ValidationErrors
+// NOTE: it returns ValidationErrors instead of a single FieldError because this can also
+// validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 
 	errs := errsPool.Get().(map[string]*FieldError)
@@ -140,7 +163,9 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 	return errs
 }
 
-// FieldWithValue allows validation of a single field, possibly even against another fields value, still using tag style validation to check multiple errors
+// FieldWithValue validates a single field, against another fields value using tag style validation and returns ValidationErrors
+// NOTE: it returns ValidationErrors instead of a single FieldError because this can also
+// validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
 
 	errs := errsPool.Get().(map[string]*FieldError)
@@ -156,10 +181,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	return errs
 }
 
-// Struct validates a struct, even it's nested structs, and returns a struct containing the errors
-// NOTE: Nested Arrays, or Maps of structs do not get validated only the Array or Map itself; the reason is that there is no good
-// way to represent or report which struct within the array has the error, besides can validate the struct prior to adding it to
-// the Array or Map.
+// Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
 func (v *Validate) Struct(current interface{}) ValidationErrors {
 
 	errs := errsPool.Get().(map[string]*FieldError)
@@ -175,6 +197,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 	return errs
 }
 
+// tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
 func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
@@ -206,29 +229,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	}
 }
 
-type tagCache struct {
-	tagVals [][]string
-	isOrVal bool
-}
-
-type tagCacheMap struct {
-	lock sync.RWMutex
-	m    map[string][]*tagCache
-}
-
-func (s *tagCacheMap) Get(key string) ([]*tagCache, bool) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	value, ok := s.m[key]
-	return value, ok
-}
-
-func (s *tagCacheMap) Set(key string, value []*tagCache) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.m[key] = value
-}
-
+// traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
 func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string) {
 
 	if tag == skipValidationTag {
@@ -399,6 +400,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	}
 }
 
+// traverseSlice traverses a Slice or Array's elements and passes them to traverseField for validation
 func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
 
 	for i := 0; i < current.Len(); i++ {
@@ -413,6 +415,7 @@ func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.
 	}
 }
 
+// traverseMap traverses a map's elements and passes them to traverseField for validation
 func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
 
 	for _, key := range current.MapKeys() {
@@ -427,8 +430,7 @@ func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Va
 	}
 }
 
-// validateField validates a field based on the provided key tag and param and return true if there is an error false if all ok
-// func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, key string, param string, name string) bool {
+// validateField validates a field based on the provided tag's key and param values and returns true if there is an error or false if all ok
 func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, cTag *tagCache, name string) bool {
 
 	if cTag.isOrVal {

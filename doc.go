@@ -1,59 +1,9 @@
 /*
-Package validator implements value validations for structs and individual fields based on tags. It can also handle Cross Field and Cross Struct validation for nested structs.
+Package validator implements value validations for structs and individual fields based on tags.
+It can also handle Cross Field and Cross Struct validation for nested structs and has the ability
+to dive into arrays and maps of any type.
 
-Validate
-
-	validate := validator.New("validate", validator.BakedInValidators)
-
-	errs := validate.Struct(//your struct)
-	valErr := validate.Field(field, "omitempty,min=1,max=10")
-
-A simple example usage:
-
-	type UserDetail struct {
-		Details string `validate:"-"`
-	}
-
-	type User struct {
-		Name         string     `validate:"required,max=60"`
-		PreferedName string     `validate:"omitempty,max=60"`
-		Sub          UserDetail
-	}
-
-	user := &User {
-		Name: "",
-	}
-
-	// errs will contain a hierarchical list of errors
-	// using the StructErrors struct
-	// or nil if no errors exist
-	errs := validate.Struct(user)
-
-	// in this case 1 error Name is required
-	errs.Struct will be "User"
-	errs.StructErrors will be empty <-- fields that were structs
-	errs.Errors will have 1 error of type FieldError
-
-	NOTE: Anonymous Structs - they don't have names so expect the Struct name
-	within StructErrors to be blank.
-
-Error Handling
-
-The error can be used like so
-
-	fieldErr, _ := errs["Name"]
-	fieldErr.Field    // "Name"
-	fieldErr.ErrorTag // "required"
-
-Both StructErrors and FieldError implement the Error interface but it's
-intended use is for development + debugging, not a production error message.
-
-	fieldErr.Error() // Field validation for "Name" failed on the "required" tag
-	errs.Error()
-	// Struct: User
-	// Field validation for "Name" failed on the "required" tag
-
-Why not a better error message? because this library intends for you to handle your own error messages
+Why not a better error message? because this library intends for you to handle your own error messages.
 
 Why should I handle my own errors? Many reasons, for us building an internationalized application
 I needed to know the field and what validation failed so that I could provide an error in the users specific language.
@@ -66,21 +16,12 @@ I needed to know the field and what validation failed so that I could provide an
 		return "Translated string based on field"
 	}
 
-The hierarchical error structure is hard to work with sometimes.. Agreed Flatten function to the rescue!
-Flatten will return a map of FieldError's but the field name will be namespaced.
-
-	// if UserDetail Details field failed validation
-	Field will be "Sub.Details"
-
-	// for Name
-	Field will be "Name"
-
 Custom Functions
 
 Custom functions can be added
 
-	//Structure
-	func customFunc(top interface{}, current interface{}, field interface{}, param string) bool {
+	// Structure
+	func customFunc(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		if whatever {
 			return false
@@ -89,7 +30,7 @@ Custom functions can be added
 		return true
 	}
 
-	validate.AddFunction("custom tag name", customFunc)
+	validate.RegisterValidation("custom tag name", customFunc)
 	// NOTES: using the same tag name as an existing function
 	//        will overwrite the existing one
 
@@ -97,7 +38,7 @@ Cross Field Validation
 
 Cross Field Validation can be implemented, for example Start & End Date range validation
 
-	// NOTE: when calling validate.Struct(val) val will be the top level struct passed
+	// NOTE: when calling validate.Struct(val) topStruct will be the top level struct passed
 	//       into the function
 	//       when calling validate.FieldWithValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
@@ -106,18 +47,7 @@ Cross Field Validation can be implemented, for example Start & End Date range va
 	// Because of the specific requirements and field names within each persons project that
 	// uses this library it is likely that custom functions will need to be created for your
 	// Cross Field Validation needs, however there are some build in Generic Cross Field validations,
-	// see Baked In Validators and Tags below
-
-	func isDateRangeValid(val interface{}, field interface{}, param string) bool {
-
-		myStruct := val.(myStructType)
-
-		if myStruct.Start.After(field.(time.Time)) {
-			return false
-		}
-
-		return true
-	}
+	// see Baked In Validators eqfield, nefield, gtfield, gtefield, ltfield, ltefield and Tags below
 
 Multiple Validators
 
@@ -135,7 +65,7 @@ Bad Validator definitions are not handled by the library
 		Field `validate:"min=10,max=0"`
 	}
 
-	// this definition of min max will never validate
+	// this definition of min max will never succeed
 
 Baked In Validators and Tags
 
@@ -147,6 +77,11 @@ NOTE2: comma is the default separator of validation tags, if you wish to have a 
 included within the parameter i.e. excludesall=, you will need to use the UTF-8 hex
 representation 0x2C, which is replaced in the code as a comma, so the above will
 become excludesall=0x2C
+
+NOTE3: pipe is the default separator of or validation tags, if you wish to have a pipe
+included within the parameter i.e. excludesall=| you will need to use the UTF-8 hex
+representation 0x7C, which is replaced in the code as a pipe, so the above will
+become excludesall=0x7C
 
 Here is a list of the current built in validators:
 
@@ -162,14 +97,14 @@ Here is a list of the current built in validators:
 
 	structonly
 		When a field that is a nest struct in encountered and contains this flag
-		any validation on the nested struct such as "required" will be run, but
-		none of the nested struct fields will be validated. This is usefull if
-		inside of you program you know the struct will be valid, but need to
-		verify it has been assigned.
+		any validation on the nested struct will be run, but none of the nested
+		struct fields will be validated. This is usefull if inside of you program
+		you know the struct will be valid, but need to verify it has been assigned.
+		NOTE: only "required" and "omitempty" can be used on a struct itself.
 
 	omitempty
 		Allows conditional validation, for example if a field is not set with
-		a value (Determined by the required validator) then other validation
+		a value (Determined by the "required" validator) then other validation
 		such as min or max won't run, but if a value is set validation will run.
 		(Usage: omitempty)
 
