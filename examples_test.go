@@ -7,36 +7,28 @@ import (
 )
 
 func ExampleValidate_new() {
-	validator.New("validate", validator.BakedInValidators)
-}
-
-func ExampleValidate_addFunction() {
-	// This should be stored somewhere globally
-	var validate *validator.Validate
-
-	validate = validator.New("validate", validator.BakedInValidators)
-
-	fn := func(top interface{}, current interface{}, field interface{}, param string) bool {
-		return field.(string) == "hello"
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
 	}
 
-	validate.AddFunction("valueishello", fn)
-
-	message := "hello"
-	err := validate.Field(message, "valueishello")
-	fmt.Println(err)
-	//Output:
-	//<nil>
+	validator.New(config)
 }
 
 func ExampleValidate_field() {
 	// This should be stored somewhere globally
 	var validate *validator.Validate
 
-	validate = validator.New("validate", validator.BakedInValidators)
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+	}
+
+	validate = validator.New(config)
 
 	i := 0
-	err := validate.Field(i, "gt=1,lte=10")
+	errs := validate.Field(i, "gt=1,lte=10")
+	err := errs[""]
 	fmt.Println(err.Field)
 	fmt.Println(err.Tag)
 	fmt.Println(err.Kind) // NOTE: Kind and Type can be different i.e. time Kind=struct and Type=time.Time
@@ -56,7 +48,12 @@ func ExampleValidate_struct() {
 	// This should be stored somewhere globally
 	var validate *validator.Validate
 
-	validate = validator.New("validate", validator.BakedInValidators)
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+	}
+
+	validate = validator.New(config)
 
 	type ContactInformation struct {
 		Phone  string `validate:"required"`
@@ -83,10 +80,10 @@ func ExampleValidate_struct() {
 		ContactInformation: []*ContactInformation{contactInfo},
 	}
 
-	structError := validate.Struct(user)
-	for _, fieldError := range structError.Errors {
-		fmt.Println(fieldError.Field) // Phone
-		fmt.Println(fieldError.Tag)   // required
+	errs := validate.Struct(user)
+	for _, v := range errs {
+		fmt.Println(v.Field) // Phone
+		fmt.Println(v.Tag)   // required
 		//... and so forth
 		//Output:
 		//Phone
