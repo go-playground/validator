@@ -108,7 +108,7 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
-var validate = New("validate", BakedInValidators)
+var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
 
 func IsEqual(t *testing.T, val1, val2 interface{}) bool {
 	v1 := reflect.ValueOf(val1)
@@ -124,6 +124,20 @@ func IsEqual(t *testing.T, val1, val2 interface{}) bool {
 
 	if !v1.IsValid() && !v2.IsValid() {
 		return true
+	}
+
+	switch v1.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v1.IsNil() {
+			v1 = reflect.ValueOf(nil)
+		}
+	}
+
+	switch v2.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if v2.IsNil() {
+			v2 = reflect.ValueOf(nil)
+		}
 	}
 
 	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
@@ -144,13 +158,16 @@ func IsEqual(t *testing.T, val1, val2 interface{}) bool {
 	}
 
 CASE1:
+	// fmt.Println("CASE 1")
 	return reflect.DeepEqual(v1.Interface(), v2.Interface())
-
 CASE2:
+	// fmt.Println("CASE 2")
 	return reflect.DeepEqual(v1.Interface(), v2)
 CASE3:
+	// fmt.Println("CASE 3")
 	return reflect.DeepEqual(v1, v2.Interface())
 CASE4:
+	// fmt.Println("CASE 4")
 	return reflect.DeepEqual(v1, v2)
 }
 
@@ -203,32 +220,25 @@ func PanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
 	fn()
 }
 
-func AssertStruct(t *testing.T, s *StructErrors, structFieldName string, expectedStructName string) *StructErrors {
+func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
-	val, ok := s.StructErrors[structFieldName]
-	EqualSkip(t, 2, ok, true)
-	NotEqualSkip(t, 2, val, nil)
-	EqualSkip(t, 2, val.Struct, expectedStructName)
-
-	return val
-}
-
-func AssertFieldError(t *testing.T, s *StructErrors, field string, expectedTag string) {
-
-	val, ok := s.Errors[field]
+	val, ok := errs[key]
 	EqualSkip(t, 2, ok, true)
 	NotEqualSkip(t, 2, val, nil)
 	EqualSkip(t, 2, val.Field, field)
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
-func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, expectedTag string) {
+func TestCommaAndPipeObfuscationValidation(t *testing.T) {
+	s := "My Name Is, |joeybloggs|"
 
-	val, ok := s[field]
-	EqualSkip(t, 2, ok, true)
-	NotEqualSkip(t, 2, val, nil)
-	EqualSkip(t, 2, val.Field, field)
-	EqualSkip(t, 2, val.Tag, expectedTag)
+	errs := validate.Field(s, "excludesall=0x2C")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
+
+	errs = validate.Field(s, "excludesall=0x7C")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
 }
 
 func TestBadKeyValidation(t *testing.T) {
@@ -240,164 +250,17 @@ func TestBadKeyValidation(t *testing.T) {
 		Name: "test",
 	}
 
-	PanicMatches(t, func() { validate.Struct(tst) }, "Invalid validation tag on field Name")
-}
+	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function on field Name")
 
-func TestFlattenValidation(t *testing.T) {
-
-	type Inner struct {
-		Name string `validate:"required"`
+	type Test2 struct {
+		Name string `validate:"required,,len=2"`
 	}
 
-	type TestMultiDimensionalStructsPtr struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
+	tst2 := &Test2{
+		Name: "test",
 	}
 
-	var errStructPtrArray [][]*Inner
-
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{"ok"}})
-
-	tmsp := &TestMultiDimensionalStructsPtr{
-		Errs: errStructPtrArray,
-	}
-
-	errs := validate.Struct(tmsp)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-	// for full test coverage
-	fmt.Sprint(errs.Error())
-
-	fieldErr := errs.Errors["Errs"]
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, fieldErr.Field, "Errs")
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
-
-	innerSlice1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSlice1.IsPlaceholderErr, true)
-	Equal(t, innerSlice1.Field, "Errs[0]")
-
-	flatFieldErr, ok := fieldErr.Flatten()["[0][1].Inner.Name"]
-	Equal(t, ok, true)
-	Equal(t, flatFieldErr.Field, "Name")
-	Equal(t, flatFieldErr.Tag, "required")
-
-	structErrFlatten, ok := errs.Flatten()["Errs[0][1].Inner.Name"]
-	Equal(t, ok, true)
-	Equal(t, structErrFlatten.Field, "Name")
-	Equal(t, structErrFlatten.Tag, "required")
-
-	errStructPtrArray = [][]*Inner{}
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, nil, &Inner{"ok"}})
-
-	tmsp = &TestMultiDimensionalStructsPtr{
-		Errs: errStructPtrArray,
-	}
-
-	errs = validate.Struct(tmsp)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-	// for full test coverage
-	fmt.Sprint(errs.Error())
-
-	fieldErr = errs.Errors["Errs"]
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, fieldErr.Field, "Errs")
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
-
-	innerSlice1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSlice1.IsPlaceholderErr, true)
-	Equal(t, innerSlice1.Field, "Errs[0]")
-
-	flatFieldErr, ok = fieldErr.Flatten()["[0][1]"]
-	Equal(t, ok, true)
-	Equal(t, flatFieldErr.Field, "Errs[0][1]")
-	Equal(t, flatFieldErr.Tag, "required")
-
-	type TestMapStructPtr struct {
-		Errs map[int]*Inner `validate:"gt=0,dive,required"`
-	}
-
-	mip := map[int]*Inner{0: &Inner{"ok"}, 3: &Inner{""}, 4: &Inner{"ok"}}
-
-	msp := &TestMapStructPtr{
-		Errs: mip,
-	}
-
-	errs = validate.Struct(msp)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldError := errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 1)
-
-	innerStructError, ok := fieldError.MapErrs[3].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, innerStructError.Struct, "Inner")
-	Equal(t, len(innerStructError.Errors), 1)
-
-	innerInnerFieldError, ok := innerStructError.Errors["Name"]
-	Equal(t, ok, true)
-	Equal(t, innerInnerFieldError.IsPlaceholderErr, false)
-	Equal(t, innerInnerFieldError.IsSliceOrArray, false)
-	Equal(t, innerInnerFieldError.Field, "Name")
-	Equal(t, innerInnerFieldError.Tag, "required")
-
-	flatErrs, ok := errs.Flatten()["Errs[3].Inner.Name"]
-	Equal(t, ok, true)
-	Equal(t, flatErrs.Field, "Name")
-	Equal(t, flatErrs.Tag, "required")
-
-	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
-
-	msp2 := &TestMapStructPtr{
-		Errs: mip2,
-	}
-
-	errs = validate.Struct(msp2)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldError = errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 1)
-
-	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerFieldError.IsPlaceholderErr, false)
-	Equal(t, innerFieldError.IsSliceOrArray, false)
-	Equal(t, innerFieldError.Field, "Errs[3]")
-	Equal(t, innerFieldError.Tag, "required")
-
-	flatErrs, ok = errs.Flatten()["Errs[3]"]
-	Equal(t, ok, true)
-	Equal(t, flatErrs.Field, "Errs[3]")
-	Equal(t, flatErrs.Tag, "required")
-
-	type TestMapInnerArrayStruct struct {
-		Errs map[int][]string `validate:"gt=0,dive,dive,required"`
-	}
-
-	mias := map[int][]string{0: []string{"ok"}, 3: []string{"ok", ""}, 4: []string{"ok"}}
-
-	mia := &TestMapInnerArrayStruct{
-		Errs: mias,
-	}
-
-	errs = validate.Struct(mia)
-	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	flatErrs, ok = errs.Flatten()["Errs[3][1]"]
-	Equal(t, ok, true)
-	Equal(t, flatErrs.Field, "Errs[3][1]")
-	Equal(t, flatErrs.Tag, "required")
+	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field Name")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -408,10 +271,11 @@ func TestInterfaceErrValidation(t *testing.T) {
 	v2 = 1
 	v1 = v2
 
-	err := validate.Field(v1, "len=1")
-	Equal(t, err, nil)
-	err = validate.Field(v2, "len=1")
-	Equal(t, err, nil)
+	errs := validate.Field(v1, "len=1")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(v2, "len=1")
+	Equal(t, errs, nil)
 
 	type ExternalCMD struct {
 		Userid string      `json:"userid"`
@@ -425,10 +289,10 @@ func TestInterfaceErrValidation(t *testing.T) {
 		// Data:   1,
 	}
 
-	errs := validate.Struct(s)
+	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
-	Equal(t, errs.Errors["Data"].Field, "Data")
-	Equal(t, errs.Errors["Data"].Tag, "required")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "ExternalCMD.Data", "Data", "required")
 
 	type ExternalCMD2 struct {
 		Userid string      `json:"userid"`
@@ -444,9 +308,8 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(s2)
 	NotEqual(t, errs, nil)
-	Equal(t, errs.Errors["Data"].Field, "Data")
-	Equal(t, errs.Errors["Data"].Tag, "len")
-	Equal(t, errs.Errors["Data"].Param, "1")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "ExternalCMD2.Data", "Data", "len")
 
 	s3 := &ExternalCMD2{
 		Userid: "123456",
@@ -456,9 +319,8 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(s3)
 	NotEqual(t, errs, nil)
-	Equal(t, errs.Errors["Data"].Field, "Data")
-	Equal(t, errs.Errors["Data"].Tag, "len")
-	Equal(t, errs.Errors["Data"].Param, "1")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "ExternalCMD2.Data", "Data", "len")
 
 	type Inner struct {
 		Name string `validate:"required"`
@@ -476,9 +338,8 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(s4)
 	NotEqual(t, errs, nil)
-	Equal(t, errs.StructErrors["Data"].Struct, "Inner")
-	Equal(t, errs.StructErrors["Data"].Errors["Name"].Field, "Name")
-	Equal(t, errs.StructErrors["Data"].Errors["Name"].Tag, "required")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "ExternalCMD.Data.Name", "Name", "required")
 
 	type TestMapStructPtr struct {
 		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
@@ -492,23 +353,11 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldError := errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 1)
-
-	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerFieldError.IsPlaceholderErr, false)
-	Equal(t, innerFieldError.IsMap, false)
-	Equal(t, len(innerFieldError.MapErrs), 0)
-	Equal(t, innerFieldError.Field, "Errs[3]")
-	Equal(t, innerFieldError.Tag, "len")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "Errs[3]", "len")
 
 	type TestMultiDimensionalStructs struct {
-		Errs [][]interface{} `validate:"gt=0,dive,dive,len=2"`
+		Errs [][]interface{} `validate:"gt=0,dive,dive"`
 	}
 
 	var errStructArray [][]interface{}
@@ -522,31 +371,14 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(tms)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok := errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
-
-	sliceError1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok := sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerInnersliceError1 := innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+	Equal(t, len(errs), 4)
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][2].Name", "Name", "required")
 
 	type TestMultiDimensionalStructsPtr2 struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive,len=2"`
+		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
 	}
 
 	var errStructPtr2Array [][]*Inner
@@ -561,63 +393,37 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	errs = validate.Struct(tmsp2)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerSliceStructError2, ok := sliceError1.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSliceStructError2.IsPlaceholderErr, false)
-	Equal(t, innerSliceStructError2.IsSliceOrArray, false)
-	Equal(t, len(innerSliceStructError2.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceStructError2.Field, "Errs[2][2]")
-
-	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+	Equal(t, len(errs), 6)
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[1][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][2]", "Errs[2][2]", "required")
 
 	m := map[int]interface{}{0: "ok", 3: "", 4: "ok"}
 
-	err = validate.Field(m, "len=3,dive,len=2")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, true)
-	Equal(t, err.IsMap, true)
-	Equal(t, len(err.MapErrs), 1)
+	errs = validate.Field(m, "len=3,dive,len=2")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "[3]", "[3]", "len")
 
-	err = validate.Field(m, "len=2,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, false)
-	Equal(t, err.IsMap, false)
-	Equal(t, len(err.MapErrs), 0)
+	errs = validate.Field(m, "len=2,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "", "", "len")
 
 	arr := []interface{}{"ok", "", "ok"}
 
-	err = validate.Field(arr, "len=3,dive,len=2")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, true)
-	Equal(t, err.IsSliceOrArray, true)
-	Equal(t, len(err.SliceOrArrayErrs), 1)
+	errs = validate.Field(arr, "len=3,dive,len=2")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "[1]", "[1]", "len")
 
-	err = validate.Field(arr, "len=2,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, false)
-	Equal(t, err.IsSliceOrArray, false)
-	Equal(t, len(err.SliceOrArrayErrs), 0)
+	errs = validate.Field(arr, "len=2,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "", "", "len")
 
 	type MyStruct struct {
 		A, B string
@@ -636,21 +442,20 @@ func TestInterfaceErrValidation(t *testing.T) {
 func TestMapDiveValidation(t *testing.T) {
 
 	n := map[int]interface{}{0: nil}
-	err := validate.Field(n, "omitempty,required")
+	errs := validate.Field(n, "omitempty,required")
+	Equal(t, errs, nil)
 
 	m := map[int]string{0: "ok", 3: "", 4: "ok"}
 
-	err = validate.Field(m, "len=3,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, true)
-	Equal(t, err.IsMap, true)
-	Equal(t, len(err.MapErrs), 1)
+	errs = validate.Field(m, "len=3,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "[3]", "[3]", "required")
 
-	err = validate.Field(m, "len=2,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, false)
-	Equal(t, err.IsMap, false)
-	Equal(t, len(err.MapErrs), 0)
+	errs = validate.Field(m, "len=2,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "", "", "len")
 
 	type Inner struct {
 		Name string `validate:"required"`
@@ -666,27 +471,13 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs: mi,
 	}
 
-	errs := validate.Struct(ms)
+	errs = validate.Struct(ms)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestMapStruct.Errs[3].Name", "Name", "required")
+
 	// for full test coverage
 	fmt.Sprint(errs.Error())
-
-	fieldError := errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 1)
-
-	structErr, ok := fieldError.MapErrs[3].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(structErr.Errors), 1)
-
-	innerErr := structErr.Errors["Name"]
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.IsMap, false)
-	Equal(t, len(innerErr.MapErrs), 0)
-	Equal(t, innerErr.Field, "Name")
-	Equal(t, innerErr.Tag, "required")
 
 	type TestMapTimeStruct struct {
 		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
@@ -702,20 +493,9 @@ func TestMapDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(mt)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldError = errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 2)
-
-	innerErr, ok = fieldError.MapErrs[3].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.IsMap, false)
-	Equal(t, len(innerErr.MapErrs), 0)
-	Equal(t, innerErr.Field, "Errs[3]")
-	Equal(t, innerErr.Tag, "required")
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "TestMapTimeStruct.Errs[3]", "Errs[3]", "required")
+	AssertError(t, errs, "TestMapTimeStruct.Errs[4]", "Errs[4]", "required")
 
 	type TestMapStructPtr struct {
 		Errs map[int]*Inner `validate:"gt=0,dive,required"`
@@ -729,20 +509,8 @@ func TestMapDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldError = errs.Errors["Errs"]
-	Equal(t, fieldError.IsPlaceholderErr, true)
-	Equal(t, fieldError.IsMap, true)
-	Equal(t, len(fieldError.MapErrs), 1)
-
-	innerFieldError, ok := fieldError.MapErrs[3].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerFieldError.IsPlaceholderErr, false)
-	Equal(t, innerFieldError.IsMap, false)
-	Equal(t, len(innerFieldError.MapErrs), 0)
-	Equal(t, innerFieldError.Field, "Errs[3]")
-	Equal(t, innerFieldError.Tag, "required")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "Errs[3]", "required")
 
 	type TestMapStructPtr2 struct {
 		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
@@ -762,22 +530,15 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	arr := []string{"ok", "", "ok"}
 
-	err := validate.Field(arr, "len=3,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, true)
-	Equal(t, err.IsSliceOrArray, true)
-	Equal(t, len(err.SliceOrArrayErrs), 1)
+	errs := validate.Field(arr, "len=3,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "[1]", "[1]", "required")
 
-	// flat := err.Flatten()
-	// fe, ok := flat["[1]"]
-	// Equal(t, ok, true)
-	// Equal(t, fe.Tag, "required")
-
-	err = validate.Field(arr, "len=2,dive,required")
-	NotEqual(t, err, nil)
-	Equal(t, err.IsPlaceholderErr, false)
-	Equal(t, err.IsSliceOrArray, false)
-	Equal(t, len(err.SliceOrArrayErrs), 0)
+	errs = validate.Field(arr, "len=2,dive,required")
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "", "", "len")
 
 	type BadDive struct {
 		Name string `validate:"dive"`
@@ -797,27 +558,10 @@ func TestArrayDiveValidation(t *testing.T) {
 		Errs: []string{"ok", "", "ok"},
 	}
 
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	// flat = errs.Flatten()
-	// me, ok := flat["Errs[1]"]
-	// Equal(t, ok, true)
-	// Equal(t, me.Field, "Errs[1]")
-	// Equal(t, me.Tag, "required")
-
-	fieldErr, ok := errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
-
-	innerErr, ok := fieldErr.SliceOrArrayErrs[1].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerErr.Tag, required)
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.Field, "Errs[1]")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.Errs[1]", "Errs[1]", "required")
 
 	test = &Test{
 		Errs: []string{"ok", "ok", ""},
@@ -825,19 +569,8 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 1)
-
-	innerErr, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerErr.Tag, required)
-	Equal(t, innerErr.IsPlaceholderErr, false)
-	Equal(t, innerErr.Field, "Errs[2]")
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.Errs[2]", "Errs[2]", "required")
 
 	type TestMultiDimensional struct {
 		Errs [][]string `validate:"gt=0,dive,dive,required"`
@@ -854,28 +587,11 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tm)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
-
-	sliceError1, ok := fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-	Equal(t, sliceError1.Field, "Errs[0]")
-
-	innerSliceError1, ok := sliceError1.SliceOrArrayErrs[1].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSliceError1.IsPlaceholderErr, false)
-	Equal(t, innerSliceError1.Tag, required)
-	Equal(t, innerSliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceError1.Field, "Errs[0][1]")
+	Equal(t, len(errs), 4)
+	AssertError(t, errs, "TestMultiDimensional.Errs[0][1]", "Errs[0][1]", "required")
+	AssertError(t, errs, "TestMultiDimensional.Errs[0][2]", "Errs[0][2]", "required")
+	AssertError(t, errs, "TestMultiDimensional.Errs[1][1]", "Errs[1][1]", "required")
+	AssertError(t, errs, "TestMultiDimensional.Errs[1][2]", "Errs[1][2]", "required")
 
 	type Inner struct {
 		Name string `validate:"required"`
@@ -896,28 +612,11 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tms)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok := sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerInnersliceError1 := innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+	Equal(t, len(errs), 4)
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][2].Name", "Name", "required")
 
 	type TestMultiDimensionalStructsPtr struct {
 		Errs [][]*Inner `validate:"gt=0,dive,dive"`
@@ -935,43 +634,15 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmsp)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
+	Equal(t, len(errs), 6)
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[2][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[2][2]", "Errs[2][2]", "")
 	// for full test coverage
 	fmt.Sprint(errs.Error())
-
-	// flat := errs.Flatten()
-	// // fmt.Println(errs)
-	// fmt.Println(flat)
-	// expect Errs[0][1].Inner.Name
-	// me, ok := flat["Errs[1]"]
-	// Equal(t, ok, true)
-	// Equal(t, me.Field, "Errs[1]")
-	// Equal(t, me.Tag, "required")
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
-
-	// flat := fieldErr.Flatten()
-	// fmt.Println(errs)
-	// fmt.Println(flat)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
 
 	type TestMultiDimensionalStructsPtr2 struct {
 		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
@@ -989,35 +660,13 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmsp2)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerSliceStructError2, ok := sliceError1.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSliceStructError2.IsPlaceholderErr, false)
-	Equal(t, innerSliceStructError2.IsSliceOrArray, false)
-	Equal(t, len(innerSliceStructError2.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceStructError2.Field, "Errs[2][2]")
-
-	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+	Equal(t, len(errs), 6)
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[1][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][2]", "Errs[2][2]", "required")
 
 	type TestMultiDimensionalStructsPtr3 struct {
 		Errs [][]*Inner `validate:"gt=0,dive,dive,omitempty"`
@@ -1035,28 +684,12 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmsp3)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 3)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[0].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceStructError1, ok = sliceError1.SliceOrArrayErrs[1].(*StructErrors)
-	Equal(t, ok, true)
-	Equal(t, len(innerSliceStructError1.Errors), 1)
-
-	innerInnersliceError1 = innerSliceStructError1.Errors["Name"]
-	Equal(t, innerInnersliceError1.IsPlaceholderErr, false)
-	Equal(t, innerInnersliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerInnersliceError1.SliceOrArrayErrs), 0)
+	Equal(t, len(errs), 5)
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[0][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[0][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[1][1].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[1][2].Name", "Name", "required")
+	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[2][1].Name", "Name", "required")
 
 	type TestMultiDimensionalTimeTime struct {
 		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
@@ -1078,27 +711,10 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmtp3)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSliceError1.IsPlaceholderErr, false)
-	Equal(t, innerSliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceError1.Field, "Errs[2][1]")
-	Equal(t, innerSliceError1.Tag, required)
+	Equal(t, len(errs), 3)
+	AssertError(t, errs, "TestMultiDimensionalTimeTime.Errs[1][2]", "Errs[1][2]", "required")
+	AssertError(t, errs, "TestMultiDimensionalTimeTime.Errs[2][1]", "Errs[2][1]", "required")
+	AssertError(t, errs, "TestMultiDimensionalTimeTime.Errs[2][2]", "Errs[2][2]", "required")
 
 	type TestMultiDimensionalTimeTime2 struct {
 		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
@@ -1120,27 +736,10 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmtp)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.Errors), 1)
-
-	fieldErr, ok = errs.Errors["Errs"]
-	Equal(t, ok, true)
-	Equal(t, fieldErr.IsPlaceholderErr, true)
-	Equal(t, fieldErr.IsSliceOrArray, true)
-	Equal(t, len(fieldErr.SliceOrArrayErrs), 2)
-
-	sliceError1, ok = fieldErr.SliceOrArrayErrs[2].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, sliceError1.IsPlaceholderErr, true)
-	Equal(t, sliceError1.IsSliceOrArray, true)
-	Equal(t, len(sliceError1.SliceOrArrayErrs), 2)
-
-	innerSliceError1, ok = sliceError1.SliceOrArrayErrs[1].(*FieldError)
-	Equal(t, ok, true)
-	Equal(t, innerSliceError1.IsPlaceholderErr, false)
-	Equal(t, innerSliceError1.IsSliceOrArray, false)
-	Equal(t, len(innerSliceError1.SliceOrArrayErrs), 0)
-	Equal(t, innerSliceError1.Field, "Errs[2][1]")
-	Equal(t, innerSliceError1.Tag, required)
+	Equal(t, len(errs), 3)
+	AssertError(t, errs, "TestMultiDimensionalTimeTime2.Errs[1][2]", "Errs[1][2]", "required")
+	AssertError(t, errs, "TestMultiDimensionalTimeTime2.Errs[2][1]", "Errs[2][1]", "required")
+	AssertError(t, errs, "TestMultiDimensionalTimeTime2.Errs[2][2]", "Errs[2][2]", "required")
 }
 
 func TestNilStructPointerValidation(t *testing.T) {
@@ -1195,6 +794,7 @@ func TestNilStructPointerValidation(t *testing.T) {
 
 	errs = validate.Struct(outer2)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer2.Inner2", "Inner2", "required")
 
 	type Inner3 struct {
 		Data string
@@ -1249,15 +849,20 @@ func TestSSNValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "ssn")
+		errs := validate.Field(test.param, "ssn")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ssn") {
-				t.Fatalf("Index: %d SSN failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ssn" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1278,15 +883,20 @@ func TestLongitudeValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "longitude")
+		errs := validate.Field(test.param, "longitude")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "longitude") {
-				t.Fatalf("Index: %d Longitude failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "longitude" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1307,15 +917,20 @@ func TestLatitudeValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "latitude")
+		errs := validate.Field(test.param, "latitude")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "latitude") {
-				t.Fatalf("Index: %d Latitude failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "latitude" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1342,15 +957,20 @@ func TestDataURIValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "datauri")
+		errs := validate.Field(test.param, "datauri")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "datauri") {
-				t.Fatalf("Index: %d DataURI failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "datauri" {
+					t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1375,15 +995,20 @@ func TestMultibyteValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "multibyte")
+		errs := validate.Field(test.param, "multibyte")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "multibyte") {
-				t.Fatalf("Index: %d Multibyte failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "multibyte" {
+					t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1409,15 +1034,20 @@ func TestPrintableASCIIValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "printascii")
+		errs := validate.Field(test.param, "printascii")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "printascii") {
-				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "printascii" {
+					t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1442,15 +1072,20 @@ func TestASCIIValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "ascii")
+		errs := validate.Field(test.param, "ascii")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "ascii") {
-				t.Fatalf("Index: %d ASCII failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ascii" {
+					t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1472,15 +1107,20 @@ func TestUUID5Validation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "uuid5")
+		errs := validate.Field(test.param, "uuid5")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid5") {
-				t.Fatalf("Index: %d UUID5 failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uuid5" {
+					t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1501,15 +1141,20 @@ func TestUUID4Validation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "uuid4")
+		errs := validate.Field(test.param, "uuid4")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid4") {
-				t.Fatalf("Index: %d UUID4 failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uuid4" {
+					t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1529,15 +1174,20 @@ func TestUUID3Validation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "uuid3")
+		errs := validate.Field(test.param, "uuid3")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid3") {
-				t.Fatalf("Index: %d UUID3 failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uuid3" {
+					t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1560,15 +1210,20 @@ func TestUUIDValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "uuid")
+		errs := validate.Field(test.param, "uuid")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uuid") {
-				t.Fatalf("Index: %d UUID failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uuid" {
+					t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1593,15 +1248,20 @@ func TestISBNValidation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "isbn")
+		errs := validate.Field(test.param, "isbn")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn") {
-				t.Fatalf("Index: %d ISBN failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "isbn" {
+					t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1625,15 +1285,20 @@ func TestISBN13Validation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "isbn13")
+		errs := validate.Field(test.param, "isbn13")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn13") {
-				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "isbn13" {
+					t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1658,15 +1323,20 @@ func TestISBN10Validation(t *testing.T) {
 
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "isbn10")
+		errs := validate.Field(test.param, "isbn10")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "isbn10") {
-				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "isbn10" {
+					t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -1684,13 +1354,13 @@ func TestExcludesRuneValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1710,13 +1380,13 @@ func TestExcludesAllValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1725,18 +1395,21 @@ func TestExcludesAllValidation(t *testing.T) {
 
 	username := "joeybloggs "
 
-	err := validate.Field(username, "excludesall=@ ")
-	NotEqual(t, err, nil)
+	errs := validate.Field(username, "excludesall=@ ")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
 
 	excluded := ","
 
-	err = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C?")
-	NotEqual(t, err, nil)
+	errs = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C?")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
 
 	excluded = "="
 
-	err = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C=?")
-	NotEqual(t, err, nil)
+	errs = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C=?")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "excludesall")
 }
 
 func TestExcludesValidation(t *testing.T) {
@@ -1751,13 +1424,13 @@ func TestExcludesValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1777,13 +1450,13 @@ func TestContainsRuneValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1803,13 +1476,13 @@ func TestContainsAnyValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1829,13 +1502,13 @@ func TestContainsValidation(t *testing.T) {
 	}
 
 	for i, s := range tests {
-		err := validate.Field(s.Value, s.Tag)
+		errs := validate.Field(s.Value, s.Tag)
 
-		if (s.ExpectedNil && err != nil) || (!s.ExpectedNil && err == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, err)
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 
-		errs := validate.Struct(s)
+		errs = validate.Struct(s)
 
 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -1864,26 +1537,28 @@ func TestIsNeFieldValidation(t *testing.T) {
 	arr3 := []string{"test"}
 	now2 := now
 
-	err := validate.FieldWithValue(s, s2, "nefield")
-	Equal(t, err, nil)
+	errs := validate.FieldWithValue(s, s2, "nefield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(i2, i, "nefield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(i2, i, "nefield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(j2, j, "nefield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(j2, j, "nefield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(k2, k, "nefield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(k2, k, "nefield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(arr2, arr, "nefield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(arr2, arr, "nefield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(now2, now, "nefield")
-	NotEqual(t, err, nil)
+	errs = validate.FieldWithValue(now2, now, "nefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "nefield")
 
-	err = validate.FieldWithValue(arr3, arr, "nefield")
-	NotEqual(t, err, nil)
+	errs = validate.FieldWithValue(arr3, arr, "nefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "nefield")
 
 	type Test struct {
 		Start *time.Time `validate:"nefield=End"`
@@ -1895,8 +1570,9 @@ func TestIsNeFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	errs := validate.Struct(sv)
+	errs = validate.Struct(sv)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Start", "Start", "nefield")
 
 	now3 := time.Now().UTC()
 
@@ -1910,7 +1586,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 
 	channel := make(chan string)
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "nefield") }, "struct not passed for cross validation")
+	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "nefield") }, "struct or field value not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "nefield") }, "Bad field type chan string")
 	PanicMatches(t, func() { validate.FieldWithValue(5, now, "nefield") }, "Bad Top Level field type")
 
@@ -1938,23 +1614,24 @@ func TestIsNeValidation(t *testing.T) {
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
-	err := validate.Field(s, "ne=abcd")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "ne=abcd")
+	Equal(t, errs, nil)
 
-	err = validate.Field(i, "ne=1")
-	Equal(t, err, nil)
+	errs = validate.Field(i, "ne=1")
+	Equal(t, errs, nil)
 
-	err = validate.Field(j, "ne=1")
-	Equal(t, err, nil)
+	errs = validate.Field(j, "ne=1")
+	Equal(t, errs, nil)
 
-	err = validate.Field(k, "ne=1.543")
-	Equal(t, err, nil)
+	errs = validate.Field(k, "ne=1.543")
+	Equal(t, errs, nil)
 
-	err = validate.Field(arr, "ne=2")
-	Equal(t, err, nil)
+	errs = validate.Field(arr, "ne=2")
+	Equal(t, errs, nil)
 
-	err = validate.Field(arr, "ne=1")
-	NotEqual(t, err, nil)
+	errs = validate.Field(arr, "ne=1")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ne")
 
 	PanicMatches(t, func() { validate.Field(now, "ne=now") }, "Bad field type time.Time")
 }
@@ -1980,26 +1657,27 @@ func TestIsEqFieldValidation(t *testing.T) {
 	arr3 := []string{"test", "test2"}
 	now2 := now
 
-	err := validate.FieldWithValue(s, s2, "eqfield")
-	Equal(t, err, nil)
+	errs := validate.FieldWithValue(s, s2, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(i2, i, "eqfield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(i2, i, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(j2, j, "eqfield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(j2, j, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(k2, k, "eqfield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(k2, k, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(arr2, arr, "eqfield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(arr2, arr, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(now2, now, "eqfield")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(now2, now, "eqfield")
+	Equal(t, errs, nil)
 
-	err = validate.FieldWithValue(arr3, arr, "eqfield")
-	NotEqual(t, err, nil)
+	errs = validate.FieldWithValue(arr3, arr, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
 
 	type Test struct {
 		Start *time.Time `validate:"eqfield=End"`
@@ -2011,7 +1689,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	errs := validate.Struct(sv)
+	errs = validate.Struct(sv)
 	Equal(t, errs, nil)
 
 	now3 := time.Now().UTC()
@@ -2023,10 +1701,11 @@ func TestIsEqFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(sv)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Start", "Start", "eqfield")
 
 	channel := make(chan string)
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "eqfield") }, "struct not passed for cross validation")
+	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "eqfield") }, "struct or field value not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "eqfield") }, "Bad field type chan string")
 	PanicMatches(t, func() { validate.FieldWithValue(5, now, "eqfield") }, "Bad Top Level field type")
 
@@ -2054,23 +1733,24 @@ func TestIsEqValidation(t *testing.T) {
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
-	err := validate.Field(s, "eq=abcd")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "eq=abcd")
+	Equal(t, errs, nil)
 
-	err = validate.Field(i, "eq=1")
-	Equal(t, err, nil)
+	errs = validate.Field(i, "eq=1")
+	Equal(t, errs, nil)
 
-	err = validate.Field(j, "eq=1")
-	Equal(t, err, nil)
+	errs = validate.Field(j, "eq=1")
+	Equal(t, errs, nil)
 
-	err = validate.Field(k, "eq=1.543")
-	Equal(t, err, nil)
+	errs = validate.Field(k, "eq=1.543")
+	Equal(t, errs, nil)
 
-	err = validate.Field(arr, "eq=1")
-	Equal(t, err, nil)
+	errs = validate.Field(arr, "eq=1")
+	Equal(t, errs, nil)
 
-	err = validate.Field(arr, "eq=2")
-	NotEqual(t, err, nil)
+	errs = validate.Field(arr, "eq=2")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eq")
 
 	PanicMatches(t, func() { validate.Field(now, "eq=now") }, "Bad field type time.Time")
 }
@@ -2079,20 +1759,22 @@ func TestBase64Validation(t *testing.T) {
 
 	s := "dW5pY29ybg=="
 
-	err := validate.Field(s, "base64")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "base64")
+	Equal(t, errs, nil)
 
 	s = "dGhpIGlzIGEgdGVzdCBiYXNlNjQ="
-	err = validate.Field(s, "base64")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "base64")
+	Equal(t, errs, nil)
 
 	s = ""
-	err = validate.Field(s, "base64")
-	NotEqual(t, err, nil)
+	errs = validate.Field(s, "base64")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "base64")
 
 	s = "dW5pY29ybg== foo bar"
-	err = validate.Field(s, "base64")
-	NotEqual(t, err, nil)
+	errs = validate.Field(s, "base64")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "base64")
 }
 
 func TestStructOnlyValidation(t *testing.T) {
@@ -2148,16 +1830,16 @@ func TestGtField(t *testing.T) {
 		End:   &start,
 	}
 
-	errs2 := validate.Struct(timeTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "End", "gtfield")
+	errs = validate.Struct(timeTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest.End", "End", "gtfield")
 
-	err3 := validate.FieldWithValue(&start, &end, "gtfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(&start, &end, "gtfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(&end, &start, "gtfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtfield")
+	errs = validate.FieldWithValue(&end, &start, "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2177,16 +1859,16 @@ func TestGtField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(intTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtfield")
+	errs = validate.Struct(intTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "IntTest.Val2", "Val2", "gtfield")
 
-	err3 = validate.FieldWithValue(int(1), int(5), "gtfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(int(1), int(5), "gtfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(int(5), int(1), "gtfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtfield")
+	errs = validate.FieldWithValue(int(5), int(1), "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	type UIntTest struct {
 		Val1 uint `validate:"required"`
@@ -2206,16 +1888,16 @@ func TestGtField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(uIntTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtfield")
+	errs = validate.Struct(uIntTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "UIntTest.Val2", "Val2", "gtfield")
 
-	err3 = validate.FieldWithValue(uint(1), uint(5), "gtfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(uint(1), uint(5), "gtfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(uint(5), uint(1), "gtfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtfield")
+	errs = validate.FieldWithValue(uint(5), uint(1), "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	type FloatTest struct {
 		Val1 float64 `validate:"required"`
@@ -2235,16 +1917,16 @@ func TestGtField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(floatTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtfield")
+	errs = validate.Struct(floatTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "FloatTest.Val2", "Val2", "gtfield")
 
-	err3 = validate.FieldWithValue(float32(1), float32(5), "gtfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(float32(1), float32(5), "gtfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(float32(5), float32(1), "gtfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtfield")
+	errs = validate.FieldWithValue(float32(5), float32(1), "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtfield") }, "struct not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtfield") }, "Bad field type string")
@@ -2287,16 +1969,16 @@ func TestLtField(t *testing.T) {
 		End:   &start,
 	}
 
-	errs2 := validate.Struct(timeTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Start", "ltfield")
+	errs = validate.Struct(timeTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest.Start", "Start", "ltfield")
 
-	err3 := validate.FieldWithValue(&end, &start, "ltfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(&end, &start, "ltfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(&start, &end, "ltfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltfield")
+	errs = validate.FieldWithValue(&start, &end, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2316,16 +1998,16 @@ func TestLtField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(intTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltfield")
+	errs = validate.Struct(intTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "IntTest.Val2", "Val2", "ltfield")
 
-	err3 = validate.FieldWithValue(int(5), int(1), "ltfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(int(5), int(1), "ltfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(int(1), int(5), "ltfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltfield")
+	errs = validate.FieldWithValue(int(1), int(5), "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	type UIntTest struct {
 		Val1 uint `validate:"required"`
@@ -2345,16 +2027,16 @@ func TestLtField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(uIntTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltfield")
+	errs = validate.Struct(uIntTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "UIntTest.Val2", "Val2", "ltfield")
 
-	err3 = validate.FieldWithValue(uint(5), uint(1), "ltfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(uint(5), uint(1), "ltfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(uint(1), uint(5), "ltfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltfield")
+	errs = validate.FieldWithValue(uint(1), uint(5), "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	type FloatTest struct {
 		Val1 float64 `validate:"required"`
@@ -2374,16 +2056,16 @@ func TestLtField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(floatTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltfield")
+	errs = validate.Struct(floatTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "FloatTest.Val2", "Val2", "ltfield")
 
-	err3 = validate.FieldWithValue(float32(5), float32(1), "ltfield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(float32(5), float32(1), "ltfield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(float32(1), float32(5), "ltfield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltfield")
+	errs = validate.FieldWithValue(float32(1), float32(5), "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltfield") }, "struct not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltfield") }, "Bad field type string")
@@ -2426,16 +2108,16 @@ func TestLteField(t *testing.T) {
 		End:   &start,
 	}
 
-	errs2 := validate.Struct(timeTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Start", "ltefield")
+	errs = validate.Struct(timeTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest.Start", "Start", "ltefield")
 
-	err3 := validate.FieldWithValue(&end, &start, "ltefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(&end, &start, "ltefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(&start, &end, "ltefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltefield")
+	errs = validate.FieldWithValue(&start, &end, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2455,16 +2137,16 @@ func TestLteField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(intTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltefield")
+	errs = validate.Struct(intTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "IntTest.Val2", "Val2", "ltefield")
 
-	err3 = validate.FieldWithValue(int(5), int(1), "ltefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(int(5), int(1), "ltefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(int(1), int(5), "ltefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltefield")
+	errs = validate.FieldWithValue(int(1), int(5), "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	type UIntTest struct {
 		Val1 uint `validate:"required"`
@@ -2484,16 +2166,16 @@ func TestLteField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(uIntTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltefield")
+	errs = validate.Struct(uIntTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "UIntTest.Val2", "Val2", "ltefield")
 
-	err3 = validate.FieldWithValue(uint(5), uint(1), "ltefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(uint(5), uint(1), "ltefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(uint(1), uint(5), "ltefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltefield")
+	errs = validate.FieldWithValue(uint(1), uint(5), "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	type FloatTest struct {
 		Val1 float64 `validate:"required"`
@@ -2513,16 +2195,16 @@ func TestLteField(t *testing.T) {
 		Val2: 5,
 	}
 
-	errs2 = validate.Struct(floatTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "ltefield")
+	errs = validate.Struct(floatTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "FloatTest.Val2", "Val2", "ltefield")
 
-	err3 = validate.FieldWithValue(float32(5), float32(1), "ltefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(float32(5), float32(1), "ltefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(float32(1), float32(5), "ltefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "ltefield")
+	errs = validate.FieldWithValue(float32(1), float32(5), "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltefield") }, "struct not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltefield") }, "Bad field type string")
@@ -2565,16 +2247,16 @@ func TestGteField(t *testing.T) {
 		End:   &start,
 	}
 
-	errs2 := validate.Struct(timeTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "End", "gtefield")
+	errs = validate.Struct(timeTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest.End", "End", "gtefield")
 
-	err3 := validate.FieldWithValue(&start, &end, "gtefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(&start, &end, "gtefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(&end, &start, "gtefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtefield")
+	errs = validate.FieldWithValue(&end, &start, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2594,16 +2276,16 @@ func TestGteField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(intTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtefield")
+	errs = validate.Struct(intTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "IntTest.Val2", "Val2", "gtefield")
 
-	err3 = validate.FieldWithValue(int(1), int(5), "gtefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(int(1), int(5), "gtefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(int(5), int(1), "gtefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtefield")
+	errs = validate.FieldWithValue(int(5), int(1), "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	type UIntTest struct {
 		Val1 uint `validate:"required"`
@@ -2623,16 +2305,16 @@ func TestGteField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(uIntTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtefield")
+	errs = validate.Struct(uIntTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "UIntTest.Val2", "Val2", "gtefield")
 
-	err3 = validate.FieldWithValue(uint(1), uint(5), "gtefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(uint(1), uint(5), "gtefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(uint(5), uint(1), "gtefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtefield")
+	errs = validate.FieldWithValue(uint(5), uint(1), "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	type FloatTest struct {
 		Val1 float64 `validate:"required"`
@@ -2652,16 +2334,16 @@ func TestGteField(t *testing.T) {
 		Val2: 1,
 	}
 
-	errs2 = validate.Struct(floatTest).Flatten()
-	NotEqual(t, errs2, nil)
-	AssertMapFieldError(t, errs2, "Val2", "gtefield")
+	errs = validate.Struct(floatTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "FloatTest.Val2", "Val2", "gtefield")
 
-	err3 = validate.FieldWithValue(float32(1), float32(5), "gtefield")
-	Equal(t, err3, nil)
+	errs = validate.FieldWithValue(float32(1), float32(5), "gtefield")
+	Equal(t, errs, nil)
 
-	err3 = validate.FieldWithValue(float32(5), float32(1), "gtefield")
-	NotEqual(t, err3, nil)
-	Equal(t, err3.Tag, "gtefield")
+	errs = validate.FieldWithValue(float32(5), float32(1), "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtefield") }, "struct not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtefield") }, "Bad field type string")
@@ -2684,52 +2366,60 @@ func TestValidateByTagAndValue(t *testing.T) {
 
 	val := "test"
 	field := "test"
-	err := validate.FieldWithValue(val, field, "required")
-	Equal(t, err, nil)
+	errs := validate.FieldWithValue(val, field, "required")
+	Equal(t, errs, nil)
 
-	fn := func(val interface{}, current interface{}, field interface{}, param string) bool {
+	fn := func(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-		return current.(string) == field.(string)
+		return current.String() == field.String()
 	}
 
-	validate.AddFunction("isequaltestfunc", fn)
+	validate.RegisterValidation("isequaltestfunc", fn)
 
-	err = validate.FieldWithValue(val, field, "isequaltestfunc")
-	Equal(t, err, nil)
+	errs = validate.FieldWithValue(val, field, "isequaltestfunc")
+	Equal(t, errs, nil)
 
 	val = "unequal"
 
-	err = validate.FieldWithValue(val, field, "isequaltestfunc")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "isequaltestfunc")
+	errs = validate.FieldWithValue(val, field, "isequaltestfunc")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "isequaltestfunc")
 }
 
 func TestAddFunctions(t *testing.T) {
 
-	fn := func(val interface{}, current interface{}, field interface{}, param string) bool {
+	fn := func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		return true
 	}
 
-	validate := New("validateme", BakedInValidators)
+	config := Config{
+		TagName:         "validateme",
+		ValidationFuncs: BakedInValidators,
+	}
 
-	err := validate.AddFunction("new", fn)
-	Equal(t, err, nil)
+	validate := New(config)
 
-	err = validate.AddFunction("", fn)
-	NotEqual(t, err, nil)
+	errs := validate.RegisterValidation("new", fn)
+	Equal(t, errs, nil)
 
-	validate.AddFunction("new", nil)
-	NotEqual(t, err, nil)
+	errs = validate.RegisterValidation("", fn)
+	NotEqual(t, errs, nil)
 
-	err = validate.AddFunction("new", fn)
-	Equal(t, err, nil)
+	validate.RegisterValidation("new", nil)
+	NotEqual(t, errs, nil)
+
+	errs = validate.RegisterValidation("new", fn)
+	Equal(t, errs, nil)
 }
 
 func TestChangeTag(t *testing.T) {
 
-	validate := New("validateme", BakedInValidators)
-	validate.SetTag("val")
+	config := Config{
+		TagName:         "val",
+		ValidationFuncs: BakedInValidators,
+	}
+	validate := New(config)
 
 	type Test struct {
 		Name string `val:"len=4"`
@@ -2738,8 +2428,8 @@ func TestChangeTag(t *testing.T) {
 		Name: "TEST",
 	}
 
-	err := validate.Struct(s)
-	Equal(t, err, nil)
+	errs := validate.Struct(s)
+	Equal(t, errs, nil)
 }
 
 func TestUnexposedStruct(t *testing.T) {
@@ -2755,15 +2445,15 @@ func TestUnexposedStruct(t *testing.T) {
 		Name: "TEST",
 	}
 
-	err := validate.Struct(s)
-	Equal(t, err, nil)
+	errs := validate.Struct(s)
+	Equal(t, errs, nil)
 }
 
 func TestBadParams(t *testing.T) {
 
 	i := 1
-	err := validate.Field(i, "-")
-	Equal(t, err, nil)
+	errs := validate.Field(i, "-")
+	Equal(t, errs, nil)
 
 	PanicMatches(t, func() { validate.Field(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
 	PanicMatches(t, func() { validate.Field(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
@@ -2784,16 +2474,18 @@ func TestLength(t *testing.T) {
 func TestIsGt(t *testing.T) {
 
 	myMap := map[string]string{}
-	err := validate.Field(myMap, "gt=0")
-	NotEqual(t, err, nil)
+	errs := validate.Field(myMap, "gt=0")
+	NotEqual(t, errs, nil)
 
 	f := 1.23
-	err = validate.Field(f, "gt=5")
-	NotEqual(t, err, nil)
+	errs = validate.Field(f, "gt=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gt")
 
 	var ui uint = 5
-	err = validate.Field(ui, "gt=10")
-	NotEqual(t, err, nil)
+	errs = validate.Field(ui, "gt=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gt")
 
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "gt") }, "Bad field type bool")
@@ -2801,14 +2493,14 @@ func TestIsGt(t *testing.T) {
 	tm := time.Now().UTC()
 	tm = tm.Add(time.Hour * 24)
 
-	err = validate.Field(tm, "gt")
-	Equal(t, err, nil)
+	errs = validate.Field(tm, "gt")
+	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC()
 
-	err = validate.Field(t2, "gt")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "gt")
+	errs = validate.Field(t2, "gt")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gt")
 
 	type Test struct {
 		Now *time.Time `validate:"gt"`
@@ -2817,7 +2509,7 @@ func TestIsGt(t *testing.T) {
 		Now: &tm,
 	}
 
-	errs := validate.Struct(s)
+	errs = validate.Struct(s)
 	Equal(t, errs, nil)
 
 	s = &Test{
@@ -2826,6 +2518,7 @@ func TestIsGt(t *testing.T) {
 
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Now", "Now", "gt")
 }
 
 func TestIsGte(t *testing.T) {
@@ -2836,15 +2529,14 @@ func TestIsGte(t *testing.T) {
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
 
-	err := validate.Field(t1, "gte")
-	Equal(t, err, nil)
+	errs := validate.Field(t1, "gte")
+	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC()
 
-	err = validate.Field(t2, "gte")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "gte")
-	Equal(t, err.Type, reflect.TypeOf(time.Time{}))
+	errs = validate.Field(t2, "gte")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gte")
 
 	type Test struct {
 		Now *time.Time `validate:"gte"`
@@ -2853,7 +2545,7 @@ func TestIsGte(t *testing.T) {
 		Now: &t1,
 	}
 
-	errs := validate.Struct(s)
+	errs = validate.Struct(s)
 	Equal(t, errs, nil)
 
 	s = &Test{
@@ -2862,36 +2554,40 @@ func TestIsGte(t *testing.T) {
 
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Now", "Now", "gte")
 }
 
 func TestIsLt(t *testing.T) {
 
 	myMap := map[string]string{}
-	err := validate.Field(myMap, "lt=0")
-	NotEqual(t, err, nil)
+	errs := validate.Field(myMap, "lt=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "lt")
 
 	f := 1.23
-	err = validate.Field(f, "lt=0")
-	NotEqual(t, err, nil)
+	errs = validate.Field(f, "lt=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "lt")
 
 	var ui uint = 5
-	err = validate.Field(ui, "lt=0")
-	NotEqual(t, err, nil)
+	errs = validate.Field(ui, "lt=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "lt")
 
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "lt") }, "Bad field type bool")
 
 	t1 := time.Now().UTC()
 
-	err = validate.Field(t1, "lt")
-	Equal(t, err, nil)
+	errs = validate.Field(t1, "lt")
+	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC()
 	t2 = t2.Add(time.Hour * 24)
 
-	err = validate.Field(t2, "lt")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "lt")
+	errs = validate.Field(t2, "lt")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "lt")
 
 	type Test struct {
 		Now *time.Time `validate:"lt"`
@@ -2901,7 +2597,7 @@ func TestIsLt(t *testing.T) {
 		Now: &t1,
 	}
 
-	errs := validate.Struct(s)
+	errs = validate.Struct(s)
 	Equal(t, errs, nil)
 
 	s = &Test{
@@ -2910,6 +2606,7 @@ func TestIsLt(t *testing.T) {
 
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Now", "Now", "lt")
 }
 
 func TestIsLte(t *testing.T) {
@@ -2919,15 +2616,15 @@ func TestIsLte(t *testing.T) {
 
 	t1 := time.Now().UTC()
 
-	err := validate.Field(t1, "lte")
-	Equal(t, err, nil)
+	errs := validate.Field(t1, "lte")
+	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC()
 	t2 = t2.Add(time.Hour * 24)
 
-	err = validate.Field(t2, "lte")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "lte")
+	errs = validate.Field(t2, "lte")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "lte")
 
 	type Test struct {
 		Now *time.Time `validate:"lte"`
@@ -2937,7 +2634,7 @@ func TestIsLte(t *testing.T) {
 		Now: &t1,
 	}
 
-	errs := validate.Struct(s)
+	errs = validate.Struct(s)
 	Equal(t, errs, nil)
 
 	s = &Test{
@@ -2990,15 +2687,20 @@ func TestUrl(t *testing.T) {
 	}
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "url")
+		errs := validate.Field(test.param, "url")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d URL failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "url") {
-				t.Fatalf("Index: %d URL failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "url" {
+					t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -3049,15 +2751,20 @@ func TestUri(t *testing.T) {
 	}
 	for i, test := range tests {
 
-		err := validate.Field(test.param, "uri")
+		errs := validate.Field(test.param, "uri")
 
 		if test.expected == true {
-			if !IsEqual(t, err, nil) {
-				t.Fatalf("Index: %d URI failed Error: %s", i, err)
+			if !IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, err, nil) || !IsEqual(t, err.Tag, "uri") {
-				t.Fatalf("Index: %d URI failed Error: %s", i, err)
+			if IsEqual(t, errs, nil) {
+				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "uri" {
+					t.Fatalf("Index: %d URI failed Error: %s", i, errs)
+				}
 			}
 		}
 	}
@@ -3068,70 +2775,75 @@ func TestUri(t *testing.T) {
 
 func TestOrTag(t *testing.T) {
 	s := "rgba(0,31,255,0.5)"
-	err := validate.Field(s, "rgb|rgba")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "rgb|rgba")
+	Equal(t, errs, nil)
 
 	s = "rgba(0,31,255,0.5)"
-	err = validate.Field(s, "rgb|rgba|len=18")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgb|rgba|len=18")
+	Equal(t, errs, nil)
 
 	s = "this ain't right"
-	err = validate.Field(s, "rgb|rgba")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb|rgba")
+	errs = validate.Field(s, "rgb|rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb|rgba")
 
 	s = "this ain't right"
-	err = validate.Field(s, "rgb|rgba|len=10")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb|rgba|len")
+	errs = validate.Field(s, "rgb|rgba|len=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb|rgba|len")
 
 	s = "this is right"
-	err = validate.Field(s, "rgb|rgba|len=13")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgb|rgba|len=13")
+	Equal(t, errs, nil)
 
 	s = ""
-	err = validate.Field(s, "omitempty,rgb|rgba")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "omitempty,rgb|rgba")
+	Equal(t, errs, nil)
+
+	s = "this is right, but a blank or isn't"
+
+	PanicMatches(t, func() { validate.Field(s, "rgb||len=13") }, "Invalid validation tag on field")
+	PanicMatches(t, func() { validate.Field(s, "rgb|rgbaa|len=13") }, "Undefined validation function on field")
 }
 
 func TestHsla(t *testing.T) {
 
 	s := "hsla(360,100%,100%,1)"
-	err := validate.Field(s, "hsla")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "hsla")
+	Equal(t, errs, nil)
 
 	s = "hsla(360,100%,100%,0.5)"
-	err = validate.Field(s, "hsla")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "hsla")
+	Equal(t, errs, nil)
 
 	s = "hsla(0,0%,0%, 0)"
-	err = validate.Field(s, "hsla")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "hsla")
+	Equal(t, errs, nil)
 
 	s = "hsl(361,100%,50%,1)"
-	err = validate.Field(s, "hsla")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsla")
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 
 	s = "hsl(361,100%,50%)"
-	err = validate.Field(s, "hsla")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsla")
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 
 	s = "hsla(361,100%,50%)"
-	err = validate.Field(s, "hsla")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsla")
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 
 	s = "hsla(360,101%,50%)"
-	err = validate.Field(s, "hsla")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsla")
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 
 	s = "hsla(360,100%,101%)"
-	err = validate.Field(s, "hsla")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsla")
+	errs = validate.Field(s, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "hsla") }, "interface conversion: interface is int, not string")
@@ -3140,32 +2852,32 @@ func TestHsla(t *testing.T) {
 func TestHsl(t *testing.T) {
 
 	s := "hsl(360,100%,50%)"
-	err := validate.Field(s, "hsl")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "hsl")
+	Equal(t, errs, nil)
 
 	s = "hsl(0,0%,0%)"
-	err = validate.Field(s, "hsl")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "hsl")
+	Equal(t, errs, nil)
 
 	s = "hsl(361,100%,50%)"
-	err = validate.Field(s, "hsl")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsl")
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 
 	s = "hsl(361,101%,50%)"
-	err = validate.Field(s, "hsl")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsl")
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 
 	s = "hsl(361,100%,101%)"
-	err = validate.Field(s, "hsl")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsl")
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 
 	s = "hsl(-10,100%,100%)"
-	err = validate.Field(s, "hsl")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hsl")
+	errs = validate.Field(s, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "hsl") }, "interface conversion: interface is int, not string")
@@ -3174,40 +2886,40 @@ func TestHsl(t *testing.T) {
 func TestRgba(t *testing.T) {
 
 	s := "rgba(0,31,255,0.5)"
-	err := validate.Field(s, "rgba")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "rgba")
+	Equal(t, errs, nil)
 
 	s = "rgba(0,31,255,0.12)"
-	err = validate.Field(s, "rgba")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
 
 	s = "rgba(12%,55%,100%,0.12)"
-	err = validate.Field(s, "rgba")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
 
 	s = "rgba( 0,  31, 255, 0.5)"
-	err = validate.Field(s, "rgba")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgba")
+	Equal(t, errs, nil)
 
 	s = "rgba(12%,55,100%,0.12)"
-	err = validate.Field(s, "rgba")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgba")
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 
 	s = "rgb(0,  31, 255)"
-	err = validate.Field(s, "rgba")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgba")
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 
 	s = "rgb(1,349,275,0.5)"
-	err = validate.Field(s, "rgba")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgba")
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 
 	s = "rgb(01,31,255,0.5)"
-	err = validate.Field(s, "rgba")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgba")
+	errs = validate.Field(s, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "rgba") }, "interface conversion: interface is int, not string")
@@ -3216,36 +2928,36 @@ func TestRgba(t *testing.T) {
 func TestRgb(t *testing.T) {
 
 	s := "rgb(0,31,255)"
-	err := validate.Field(s, "rgb")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "rgb")
+	Equal(t, errs, nil)
 
 	s = "rgb(0,  31, 255)"
-	err = validate.Field(s, "rgb")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgb")
+	Equal(t, errs, nil)
 
 	s = "rgb(10%,  50%, 100%)"
-	err = validate.Field(s, "rgb")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "rgb")
+	Equal(t, errs, nil)
 
 	s = "rgb(10%,  50%, 55)"
-	err = validate.Field(s, "rgb")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb")
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 
 	s = "rgb(1,349,275)"
-	err = validate.Field(s, "rgb")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb")
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 
 	s = "rgb(01,31,255)"
-	err = validate.Field(s, "rgb")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb")
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 
 	s = "rgba(0,31,255)"
-	err = validate.Field(s, "rgb")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "rgb")
+	errs = validate.Field(s, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "rgb") }, "interface conversion: interface is int, not string")
@@ -3254,28 +2966,28 @@ func TestRgb(t *testing.T) {
 func TestEmail(t *testing.T) {
 
 	s := "test@mail.com"
-	err := validate.Field(s, "email")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "email")
+	Equal(t, errs, nil)
 
 	s = ""
-	err = validate.Field(s, "email")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "email")
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 
 	s = "test@email"
-	err = validate.Field(s, "email")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "email")
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 
 	s = "test@email."
-	err = validate.Field(s, "email")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "email")
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 
 	s = "@email.com"
-	err = validate.Field(s, "email")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "email")
+	errs = validate.Field(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "email") }, "interface conversion: interface is bool, not string")
@@ -3284,22 +2996,22 @@ func TestEmail(t *testing.T) {
 func TestHexColor(t *testing.T) {
 
 	s := "#fff"
-	err := validate.Field(s, "hexcolor")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "hexcolor")
+	Equal(t, errs, nil)
 
 	s = "#c2c2c2"
-	err = validate.Field(s, "hexcolor")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "hexcolor")
+	Equal(t, errs, nil)
 
 	s = "fff"
-	err = validate.Field(s, "hexcolor")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hexcolor")
+	errs = validate.Field(s, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
 
 	s = "fffFF"
-	err = validate.Field(s, "hexcolor")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hexcolor")
+	errs = validate.Field(s, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
 
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "hexcolor") }, "interface conversion: interface is bool, not string")
@@ -3308,13 +3020,13 @@ func TestHexColor(t *testing.T) {
 func TestHexadecimal(t *testing.T) {
 
 	s := "ff0044"
-	err := validate.Field(s, "hexadecimal")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "hexadecimal")
+	Equal(t, errs, nil)
 
 	s = "abcdefg"
-	err = validate.Field(s, "hexadecimal")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "hexadecimal")
+	errs = validate.Field(s, "hexadecimal")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexadecimal")
 
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "hexadecimal") }, "interface conversion: interface is bool, not string")
@@ -3323,43 +3035,43 @@ func TestHexadecimal(t *testing.T) {
 func TestNumber(t *testing.T) {
 
 	s := "1"
-	err := validate.Field(s, "number")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "number")
+	Equal(t, errs, nil)
 
 	s = "+1"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "-1"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "1.12"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "+1.12"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "-1.12"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "1."
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	s = "1.o"
-	err = validate.Field(s, "number")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "number")
+	errs = validate.Field(s, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "number") }, "interface conversion: interface is int, not string")
@@ -3368,38 +3080,38 @@ func TestNumber(t *testing.T) {
 func TestNumeric(t *testing.T) {
 
 	s := "1"
-	err := validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "+1"
-	err = validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "-1"
-	err = validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "1.12"
-	err = validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "+1.12"
-	err = validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "-1.12"
-	err = validate.Field(s, "numeric")
-	Equal(t, err, nil)
+	errs = validate.Field(s, "numeric")
+	Equal(t, errs, nil)
 
 	s = "1."
-	err = validate.Field(s, "numeric")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "numeric")
+	errs = validate.Field(s, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
 
 	s = "1.o"
-	err = validate.Field(s, "numeric")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "numeric")
+	errs = validate.Field(s, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
 
 	i := 1
 	PanicMatches(t, func() { validate.Field(i, "numeric") }, "interface conversion: interface is int, not string")
@@ -3408,13 +3120,13 @@ func TestNumeric(t *testing.T) {
 func TestAlphaNumeric(t *testing.T) {
 
 	s := "abcd123"
-	err := validate.Field(s, "alphanum")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "alphanum")
+	Equal(t, errs, nil)
 
 	s = "abc!23"
-	err = validate.Field(s, "alphanum")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "alphanum")
+	errs = validate.Field(s, "alphanum")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alphanum")
 
 	PanicMatches(t, func() { validate.Field(1, "alphanum") }, "interface conversion: interface is int, not string")
 }
@@ -3422,93 +3134,20 @@ func TestAlphaNumeric(t *testing.T) {
 func TestAlpha(t *testing.T) {
 
 	s := "abcd"
-	err := validate.Field(s, "alpha")
-	Equal(t, err, nil)
+	errs := validate.Field(s, "alpha")
+	Equal(t, errs, nil)
 
 	s = "abc1"
-	err = validate.Field(s, "alpha")
-	NotEqual(t, err, nil)
-	Equal(t, err.Tag, "alpha")
+	errs = validate.Field(s, "alpha")
+	NotEqual(t, errs, nil)
+
+	AssertError(t, errs, "", "", "alpha")
 
 	PanicMatches(t, func() { validate.Field(1, "alpha") }, "interface conversion: interface is int, not string")
 }
 
-func TestFlattening(t *testing.T) {
-
-	tSuccess := &TestString{
-		Required:  "Required",
-		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
-		OmitEmpty: "",
-		Sub: &SubTest{
-			Test: "1",
-		},
-		SubIgnore: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "1",
-		},
-		Iface: &Impl{
-			F: "123",
-		},
-	}
-
-	err1 := validate.Struct(tSuccess).Flatten()
-	Equal(t, len(err1), 0)
-
-	tFail := &TestString{
-		Required:  "",
-		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		OmitEmpty: "12345678901",
-		Sub: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "",
-		},
-		Iface: &Impl{
-			F: "12",
-		},
-	}
-
-	err2 := validate.Struct(tFail).Flatten()
-
-	// Assert Top Level
-	NotEqual(t, err2, nil)
-
-	// Assert Fields
-	AssertMapFieldError(t, err2, "Len", "len")
-	AssertMapFieldError(t, err2, "Gt", "gt")
-	AssertMapFieldError(t, err2, "Gte", "gte")
-
-	// Assert Struct Field
-	AssertMapFieldError(t, err2, "Sub.Test", "required")
-
-	// Assert Anonymous Struct Field
-	AssertMapFieldError(t, err2, "Anonymous.A", "required")
-
-	// Assert Interface Field
-	AssertMapFieldError(t, err2, "Iface.F", "len")
-}
-
 func TestStructStringValidation(t *testing.T) {
 
-	validate.SetMaxStructPoolSize(11)
-
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
@@ -3536,8 +3175,8 @@ func TestStructStringValidation(t *testing.T) {
 		},
 	}
 
-	err := validate.Struct(tSuccess)
-	Equal(t, err, nil)
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
 
 	tFail := &TestString{
 		Required:  "",
@@ -3563,36 +3202,28 @@ func TestStructStringValidation(t *testing.T) {
 		},
 	}
 
-	err = validate.Struct(tFail)
+	errs = validate.Struct(tFail)
 
 	// Assert Top Level
-	NotEqual(t, err, nil)
-	Equal(t, err.Struct, "TestString")
-	Equal(t, len(err.Errors), 10)
-	Equal(t, len(err.StructErrors), 3)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 13)
 
 	// Assert Fields
-	AssertFieldError(t, err, "Required", "required")
-	AssertFieldError(t, err, "Len", "len")
-	AssertFieldError(t, err, "Min", "min")
-	AssertFieldError(t, err, "Max", "max")
-	AssertFieldError(t, err, "MinMax", "min")
-	AssertFieldError(t, err, "Gt", "gt")
-	AssertFieldError(t, err, "Gte", "gte")
-	AssertFieldError(t, err, "OmitEmpty", "max")
+	AssertError(t, errs, "TestString.Required", "Required", "required")
+	AssertError(t, errs, "TestString.Len", "Len", "len")
+	AssertError(t, errs, "TestString.Min", "Min", "min")
+	AssertError(t, errs, "TestString.Max", "Max", "max")
+	AssertError(t, errs, "TestString.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestString.Lt", "Lt", "lt")
+	AssertError(t, errs, "TestString.Lte", "Lte", "lte")
+	AssertError(t, errs, "TestString.Gt", "Gt", "gt")
+	AssertError(t, errs, "TestString.Gte", "Gte", "gte")
+	AssertError(t, errs, "TestString.OmitEmpty", "OmitEmpty", "max")
 
-	// Assert Anonymous embedded struct
-	AssertStruct(t, err, "Anonymous", "")
-
-	// Assert SubTest embedded struct
-	val := AssertStruct(t, err, "Sub", "SubTest")
-	Equal(t, len(val.Errors), 1)
-	Equal(t, len(val.StructErrors), 0)
-
-	AssertFieldError(t, val, "Test", "required")
-
-	errors := err.Error()
-	NotEqual(t, errors, nil)
+	// Nested Struct Field Errs
+	AssertError(t, errs, "TestString.Anonymous.A", "A", "required")
+	AssertError(t, errs, "TestString.Sub.Test", "Test", "required")
+	AssertError(t, errs, "TestString.Iface.F", "F", "len")
 }
 
 func TestStructInt32Validation(t *testing.T) {
@@ -3610,8 +3241,8 @@ func TestStructInt32Validation(t *testing.T) {
 		OmitEmpty: 0,
 	}
 
-	err := validate.Struct(tSuccess)
-	Equal(t, err, nil)
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
 
 	tFail := &TestInt32{
 		Required:  0,
@@ -3626,25 +3257,23 @@ func TestStructInt32Validation(t *testing.T) {
 		OmitEmpty: 11,
 	}
 
-	err = validate.Struct(tFail)
+	errs = validate.Struct(tFail)
 
 	// Assert Top Level
-	NotEqual(t, err, nil)
-	Equal(t, err.Struct, "TestInt32")
-	Equal(t, len(err.Errors), 10)
-	Equal(t, len(err.StructErrors), 0)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 10)
 
 	// Assert Fields
-	AssertFieldError(t, err, "Required", "required")
-	AssertFieldError(t, err, "Len", "len")
-	AssertFieldError(t, err, "Min", "min")
-	AssertFieldError(t, err, "Max", "max")
-	AssertFieldError(t, err, "MinMax", "min")
-	AssertFieldError(t, err, "Lt", "lt")
-	AssertFieldError(t, err, "Lte", "lte")
-	AssertFieldError(t, err, "Gt", "gt")
-	AssertFieldError(t, err, "Gte", "gte")
-	AssertFieldError(t, err, "OmitEmpty", "max")
+	AssertError(t, errs, "TestInt32.Required", "Required", "required")
+	AssertError(t, errs, "TestInt32.Len", "Len", "len")
+	AssertError(t, errs, "TestInt32.Min", "Min", "min")
+	AssertError(t, errs, "TestInt32.Max", "Max", "max")
+	AssertError(t, errs, "TestInt32.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestInt32.Lt", "Lt", "lt")
+	AssertError(t, errs, "TestInt32.Lte", "Lte", "lte")
+	AssertError(t, errs, "TestInt32.Gt", "Gt", "gt")
+	AssertError(t, errs, "TestInt32.Gte", "Gte", "gte")
+	AssertError(t, errs, "TestInt32.OmitEmpty", "OmitEmpty", "max")
 }
 
 func TestStructUint64Validation(t *testing.T) {
@@ -3658,8 +3287,8 @@ func TestStructUint64Validation(t *testing.T) {
 		OmitEmpty: 0,
 	}
 
-	err := validate.Struct(tSuccess)
-	Equal(t, err, nil)
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
 
 	tFail := &TestUint64{
 		Required:  0,
@@ -3670,21 +3299,19 @@ func TestStructUint64Validation(t *testing.T) {
 		OmitEmpty: 11,
 	}
 
-	err = validate.Struct(tFail)
+	errs = validate.Struct(tFail)
 
 	// Assert Top Level
-	NotEqual(t, err, nil)
-	Equal(t, err.Struct, "TestUint64")
-	Equal(t, len(err.Errors), 6)
-	Equal(t, len(err.StructErrors), 0)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
 
 	// Assert Fields
-	AssertFieldError(t, err, "Required", "required")
-	AssertFieldError(t, err, "Len", "len")
-	AssertFieldError(t, err, "Min", "min")
-	AssertFieldError(t, err, "Max", "max")
-	AssertFieldError(t, err, "MinMax", "min")
-	AssertFieldError(t, err, "OmitEmpty", "max")
+	AssertError(t, errs, "TestUint64.Required", "Required", "required")
+	AssertError(t, errs, "TestUint64.Len", "Len", "len")
+	AssertError(t, errs, "TestUint64.Min", "Min", "min")
+	AssertError(t, errs, "TestUint64.Max", "Max", "max")
+	AssertError(t, errs, "TestUint64.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestUint64.OmitEmpty", "OmitEmpty", "max")
 }
 
 func TestStructFloat64Validation(t *testing.T) {
@@ -3698,8 +3325,8 @@ func TestStructFloat64Validation(t *testing.T) {
 		OmitEmpty: 0,
 	}
 
-	err := validate.Struct(tSuccess)
-	Equal(t, err, nil)
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
 
 	tFail := &TestFloat64{
 		Required:  0,
@@ -3710,21 +3337,19 @@ func TestStructFloat64Validation(t *testing.T) {
 		OmitEmpty: 11,
 	}
 
-	err = validate.Struct(tFail)
+	errs = validate.Struct(tFail)
 
 	// Assert Top Level
-	NotEqual(t, err, nil)
-	Equal(t, err.Struct, "TestFloat64")
-	Equal(t, len(err.Errors), 6)
-	Equal(t, len(err.StructErrors), 0)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
 
 	// Assert Fields
-	AssertFieldError(t, err, "Required", "required")
-	AssertFieldError(t, err, "Len", "len")
-	AssertFieldError(t, err, "Min", "min")
-	AssertFieldError(t, err, "Max", "max")
-	AssertFieldError(t, err, "MinMax", "min")
-	AssertFieldError(t, err, "OmitEmpty", "max")
+	AssertError(t, errs, "TestFloat64.Required", "Required", "required")
+	AssertError(t, errs, "TestFloat64.Len", "Len", "len")
+	AssertError(t, errs, "TestFloat64.Min", "Min", "min")
+	AssertError(t, errs, "TestFloat64.Max", "Max", "max")
+	AssertError(t, errs, "TestFloat64.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestFloat64.OmitEmpty", "OmitEmpty", "max")
 }
 
 func TestStructSliceValidation(t *testing.T) {
@@ -3738,8 +3363,8 @@ func TestStructSliceValidation(t *testing.T) {
 		OmitEmpty: []int{},
 	}
 
-	err := validate.Struct(tSuccess)
-	Equal(t, err, nil)
+	errs := validate.Struct(tSuccess)
+	Equal(t, errs, nil)
 
 	tFail := &TestSlice{
 		Required:  []int{},
@@ -3750,21 +3375,17 @@ func TestStructSliceValidation(t *testing.T) {
 		OmitEmpty: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 	}
 
-	err = validate.Struct(tFail)
+	errs = validate.Struct(tFail)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 6)
 
-	// Assert Top Level
-	NotEqual(t, err, nil)
-	Equal(t, err.Struct, "TestSlice")
-	Equal(t, len(err.Errors), 6)
-	Equal(t, len(err.StructErrors), 0)
-
-	// Assert Fields
-	AssertFieldError(t, err, "Required", "required")
-	AssertFieldError(t, err, "Len", "len")
-	AssertFieldError(t, err, "Min", "min")
-	AssertFieldError(t, err, "Max", "max")
-	AssertFieldError(t, err, "MinMax", "min")
-	AssertFieldError(t, err, "OmitEmpty", "max")
+	// Assert Field Errors
+	AssertError(t, errs, "TestSlice.Required", "Required", "required")
+	AssertError(t, errs, "TestSlice.Len", "Len", "len")
+	AssertError(t, errs, "TestSlice.Min", "Min", "min")
+	AssertError(t, errs, "TestSlice.Max", "Max", "max")
+	AssertError(t, errs, "TestSlice.MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestSlice.OmitEmpty", "OmitEmpty", "max")
 }
 
 func TestInvalidStruct(t *testing.T) {
@@ -3772,7 +3393,7 @@ func TestInvalidStruct(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Struct(s.Test) }, "interface passed for validation is not a struct")
+	PanicMatches(t, func() { validate.Struct(s.Test) }, "value passed for validation is not a struct")
 }
 
 func TestInvalidField(t *testing.T) {
@@ -3780,7 +3401,7 @@ func TestInvalidField(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to fieldWithNameAndValue")
+	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to traverseField")
 }
 
 func TestInvalidTagField(t *testing.T) {
@@ -3796,25 +3417,5 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, fmt.Sprintf("Undefined validation function on field %s", ""))
-}
-
-func TestPoolObjectMaxSizeValidation(t *testing.T) {
-	// this will ensure that the pool objects are let go
-	// when the pool is saturated
-	validate.SetMaxStructPoolSize(0)
-
-	tSuccess := &TestSlice{
-		Required:  []int{1},
-		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-		Min:       []int{1, 2},
-		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-		MinMax:    []int{1, 2, 3, 4, 5},
-		OmitEmpty: []int{},
-	}
-
-	for i := 0; i < 2; i++ {
-		err := validate.Struct(tSuccess)
-		Equal(t, err, nil)
-	}
+	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
 }

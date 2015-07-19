@@ -58,7 +58,6 @@ var (
 	sSNRegex            = regexp.MustCompile(sSNRegexString)
 )
 
-func matchesRegex(regex *regexp.Regexp, field interface{}) bool {
-	fieldAsString := field.(string) //this will panic inherently
-	return regex.MatchString(fieldAsString)
+func matchesRegex(regex *regexp.Regexp, value string) bool {
+	return regex.MatchString(value)
 }

@@ -66,26 +66,26 @@ var BakedInValidators = map[string]Func{
 	"ssn":          isSSN,
 }
 
-func isSSN(top interface{}, current interface{}, field interface{}, param string) bool {
+func isSSN(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if len(field.(string)) != 11 {
+	if field.Len() != 11 {
 		return false
 	}
 
-	return matchesRegex(sSNRegex, field)
+	return matchesRegex(sSNRegex, field.String())
 }
 
-func isLongitude(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(longitudeRegex, field)
+func isLongitude(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(longitudeRegex, field.String())
 }
 
-func isLatitude(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(latitudeRegex, field)
+func isLatitude(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(latitudeRegex, field.String())
 }
 
-func isDataURI(top interface{}, current interface{}, field interface{}, param string) bool {
+func isDataURI(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	uri := strings.SplitN(field.(string), ",", 2)
+	uri := strings.SplitN(field.String(), ",", 2)
 
 	if len(uri) != 2 {
 		return false
@@ -95,49 +95,51 @@ func isDataURI(top interface{}, current interface{}, field interface{}, param st
 		return false
 	}
 
-	return isBase64(top, current, uri[1], param)
+	fld := reflect.ValueOf(uri[1])
+
+	return isBase64(topStruct, currentStruct, fld, fld.Type(), fld.Kind(), param)
 }
 
-func hasMultiByteCharacter(top interface{}, current interface{}, field interface{}, param string) bool {
+func hasMultiByteCharacter(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if len(field.(string)) == 0 {
+	if field.Len() == 0 {
 		return true
 	}
 
-	return matchesRegex(multibyteRegex, field)
+	return matchesRegex(multibyteRegex, field.String())
 }
 
-func isPrintableASCII(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(printableASCIIRegex, field)
+func isPrintableASCII(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(printableASCIIRegex, field.String())
 }
 
-func isASCII(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(aSCIIRegex, field)
+func isASCII(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(aSCIIRegex, field.String())
 }
 
-func isUUID5(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(uUID5Regex, field)
+func isUUID5(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(uUID5Regex, field.String())
 }
 
-func isUUID4(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(uUID4Regex, field)
+func isUUID4(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(uUID4Regex, field.String())
 }
 
-func isUUID3(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(uUID3Regex, field)
+func isUUID3(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(uUID3Regex, field.String())
 }
 
-func isUUID(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(uUIDRegex, field)
+func isUUID(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(uUIDRegex, field.String())
 }
 
-func isISBN(top interface{}, current interface{}, field interface{}, param string) bool {
-	return isISBN10(top, current, field, param) || isISBN13(top, current, field, param)
+func isISBN(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return isISBN10(topStruct, currentStruct, field, fieldType, fieldKind, param) || isISBN13(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func isISBN13(top interface{}, current interface{}, field interface{}, param string) bool {
+func isISBN13(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	s := strings.Replace(strings.Replace(field.(string), "-", "", 4), " ", "", 4)
+	s := strings.Replace(strings.Replace(field.String(), "-", "", 4), " ", "", 4)
 
 	if !matchesRegex(iSBN13Regex, s) {
 		return false
@@ -159,9 +161,9 @@ func isISBN13(top interface{}, current interface{}, field interface{}, param str
 	return false
 }
 
-func isISBN10(top interface{}, current interface{}, field interface{}, param string) bool {
+func isISBN10(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	s := strings.Replace(strings.Replace(field.(string), "-", "", 3), " ", "", 3)
+	s := strings.Replace(strings.Replace(field.String(), "-", "", 3), " ", "", 3)
 
 	if !matchesRegex(iSBN10Regex, s) {
 		return false
@@ -187,179 +189,158 @@ func isISBN10(top interface{}, current interface{}, field interface{}, param str
 	return false
 }
 
-func excludesRune(top interface{}, current interface{}, field interface{}, param string) bool {
-	return !containsRune(top, current, field, param)
+func excludesRune(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !containsRune(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func excludesAll(top interface{}, current interface{}, field interface{}, param string) bool {
-	return !containsAny(top, current, field, param)
+func excludesAll(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !containsAny(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func excludes(top interface{}, current interface{}, field interface{}, param string) bool {
-	return !contains(top, current, field, param)
+func excludes(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !contains(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func containsRune(top interface{}, current interface{}, field interface{}, param string) bool {
+func containsRune(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	r, _ := utf8.DecodeRuneInString(param)
 
-	return strings.ContainsRune(field.(string), r)
+	return strings.ContainsRune(field.String(), r)
 }
 
-func containsAny(top interface{}, current interface{}, field interface{}, param string) bool {
-	return strings.ContainsAny(field.(string), param)
+func containsAny(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return strings.ContainsAny(field.String(), param)
 }
 
-func contains(top interface{}, current interface{}, field interface{}, param string) bool {
-	return strings.Contains(field.(string), param)
+func contains(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return strings.Contains(field.String(), param)
 }
 
-func isNeField(top interface{}, current interface{}, field interface{}, param string) bool {
-	return !isEqField(top, current, field, param)
+func isNeField(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !isEqField(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func isNe(top interface{}, current interface{}, field interface{}, param string) bool {
-	return !isEq(top, current, field, param)
+func isNe(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !isEq(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func isEqField(top interface{}, current interface{}, field interface{}, param string) bool {
+func isEqField(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if current == nil {
-		panic("struct not passed for cross validation")
+	// if current == nil {
+	if !current.IsValid() {
+		panic("struct or field value not passed for cross validation")
 	}
 
-	currentVal := reflect.ValueOf(current)
-
-	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
-		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	var currentFielVal reflect.Value
-
-	switch currentVal.Kind() {
+	switch current.Kind() {
 
 	case reflect.Struct:
 
-		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
-			currentFielVal = currentVal
+		if current.Type() == timeType || current.Type() == timePtrType {
 			break
 		}
 
-		f := currentVal.FieldByName(param)
+		current = current.FieldByName(param)
 
-		if f.Kind() == reflect.Invalid {
+		if current.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
-
-		currentFielVal = f
-
-	default:
-
-		currentFielVal = currentVal
 	}
 
-	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
-
-		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	fv := reflect.ValueOf(field)
-
-	switch fv.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
-		return fv.String() == currentFielVal.String()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.String() == current.String()
 
-		return fv.Int() == currentFielVal.Int()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() == current.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-
-		return fv.Uint() == currentFielVal.Uint()
+		return field.Uint() == current.Uint()
 
 	case reflect.Float32, reflect.Float64:
+		return field.Float() == current.Float()
 
-		return fv.Float() == currentFielVal.Float()
 	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) == int64(current.Len())
 
-		return int64(fv.Len()) == int64(currentFielVal.Len())
 	case reflect.Struct:
+		if fieldType == timeType || fieldType == timePtrType {
 
-		if fv.Type() == reflect.TypeOf(time.Time{}) {
-
-			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
+			if current.Type() != timeType && current.Type() != timePtrType {
 				panic("Bad Top Level field type")
 			}
 
-			t := currentFielVal.Interface().(time.Time)
-			fieldTime := field.(time.Time)
+			t := current.Interface().(time.Time)
+			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.Equal(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isEq(top interface{}, current interface{}, field interface{}, param string) bool {
+func isEq(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
-
-		return st.String() == param
+		return field.String() == param
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) == p
+		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() == p
+		return field.Int() == p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() == p
+		return field.Uint() == p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() == p
+		return field.Float() == p
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isBase64(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(base64Regex, field)
+func isBase64(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(base64Regex, field.String())
 }
 
-func isURI(top interface{}, current interface{}, field interface{}, param string) bool {
+func isURI(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
-		_, err := url.ParseRequestURI(field.(string))
+		_, err := url.ParseRequestURI(field.String())
 
 		return err == nil
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isURL(top interface{}, current interface{}, field interface{}, param string) bool {
-	st := reflect.ValueOf(field)
+func isURL(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
-		url, err := url.ParseRequestURI(field.(string))
+		url, err := url.ParseRequestURI(field.String())
 
 		if err != nil {
 			return false
@@ -372,594 +353,526 @@ func isURL(top interface{}, current interface{}, field interface{}, param string
 		return err == nil
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isEmail(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(emailRegex, field)
+func isEmail(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(emailRegex, field.String())
 }
 
-func isHsla(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(hslaRegex, field)
+func isHsla(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(hslaRegex, field.String())
 }
 
-func isHsl(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(hslRegex, field)
+func isHsl(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(hslRegex, field.String())
 }
 
-func isRgba(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(rgbaRegex, field)
+func isRgba(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(rgbaRegex, field.String())
 }
 
-func isRgb(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(rgbRegex, field)
+func isRgb(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(rgbRegex, field.String())
 }
 
-func isHexcolor(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(hexcolorRegex, field)
+func isHexcolor(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(hexcolorRegex, field.String())
 }
 
-func isHexadecimal(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(hexadecimalRegex, field)
+func isHexadecimal(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(hexadecimalRegex, field.String())
 }
 
-func isNumber(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(numberRegex, field)
+func isNumber(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(numberRegex, field.String())
 }
 
-func isNumeric(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(numericRegex, field)
+func isNumeric(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(numericRegex, field.String())
 }
 
-func isAlphanum(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(alphaNumericRegex, field)
+func isAlphanum(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(alphaNumericRegex, field.String())
 }
 
-func isAlpha(top interface{}, current interface{}, field interface{}, param string) bool {
-	return matchesRegex(alphaRegex, field)
+func isAlpha(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return matchesRegex(alphaRegex, field.String())
 }
 
-func hasValue(top interface{}, current interface{}, field interface{}, param string) bool {
+func hasValue(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.Slice, reflect.Map, reflect.Array:
-		return field != nil && int64(st.Len()) > 0
+		return !field.IsNil() && int64(field.Len()) > 0
 
 	default:
-		return field != nil && field != reflect.Zero(reflect.TypeOf(field)).Interface()
+		return field.IsValid() && field.Interface() != reflect.Zero(fieldType).Interface()
 	}
 }
 
-func isGteField(top interface{}, current interface{}, field interface{}, param string) bool {
+func isGteField(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if current == nil {
+	if !current.IsValid() {
 		panic("struct not passed for cross validation")
 	}
 
-	currentVal := reflect.ValueOf(current)
-
-	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
-		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	var currentFielVal reflect.Value
-
-	switch currentVal.Kind() {
+	switch current.Kind() {
 
 	case reflect.Struct:
 
-		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
-			currentFielVal = currentVal
+		if current.Type() == timeType || current.Type() == timePtrType {
 			break
 		}
 
-		f := currentVal.FieldByName(param)
+		current = current.FieldByName(param)
 
-		if f.Kind() == reflect.Invalid {
+		if current.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
-
-		currentFielVal = f
-
-	default:
-
-		currentFielVal = currentVal
 	}
 
-	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
-
-		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	fv := reflect.ValueOf(field)
-
-	switch fv.Kind() {
+	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() >= currentFielVal.Int()
+		return field.Int() >= current.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() >= currentFielVal.Uint()
+		return field.Uint() >= current.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() >= currentFielVal.Float()
+		return field.Float() >= current.Float()
 
 	case reflect.Struct:
 
-		if fv.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
+			if current.Type() != timeType && current.Type() != timePtrType {
 				panic("Bad Top Level field type")
 			}
 
-			t := currentFielVal.Interface().(time.Time)
-			fieldTime := field.(time.Time)
+			t := current.Interface().(time.Time)
+			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.After(t) || fieldTime.Equal(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGtField(top interface{}, current interface{}, field interface{}, param string) bool {
+func isGtField(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if current == nil {
+	if !current.IsValid() {
 		panic("struct not passed for cross validation")
 	}
 
-	currentVal := reflect.ValueOf(current)
-
-	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
-		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	var currentFielVal reflect.Value
-
-	switch currentVal.Kind() {
+	switch current.Kind() {
 
 	case reflect.Struct:
 
-		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
-			currentFielVal = currentVal
+		if current.Type() == timeType || current.Type() == timePtrType {
 			break
 		}
 
-		f := currentVal.FieldByName(param)
+		current = current.FieldByName(param)
 
-		if f.Kind() == reflect.Invalid {
+		if current.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
-
-		currentFielVal = f
-
-	default:
-
-		currentFielVal = currentVal
 	}
 
-	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
-
-		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	fv := reflect.ValueOf(field)
-
-	switch fv.Kind() {
+	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() > currentFielVal.Int()
+		return field.Int() > current.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() > currentFielVal.Uint()
+		return field.Uint() > current.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() > currentFielVal.Float()
+		return field.Float() > current.Float()
 
 	case reflect.Struct:
 
-		if fv.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
+			if current.Type() != timeType && current.Type() != timePtrType {
 				panic("Bad Top Level field type")
 			}
 
-			t := currentFielVal.Interface().(time.Time)
-			fieldTime := field.(time.Time)
+			t := current.Interface().(time.Time)
+			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.After(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGte(top interface{}, current interface{}, field interface{}, param string) bool {
+func isGte(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) >= p
+		return int64(utf8.RuneCountInString(field.String())) >= p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) >= p
+		return int64(field.Len()) >= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() >= p
+		return field.Int() >= p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() >= p
+		return field.Uint() >= p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() >= p
+		return field.Float() >= p
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(time.Time{}) {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			now := time.Now().UTC()
-			t := field.(time.Time)
+			t := field.Interface().(time.Time)
 
 			return t.After(now) || t.Equal(now)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGt(top interface{}, current interface{}, field interface{}, param string) bool {
+func isGt(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) > p
+		return int64(utf8.RuneCountInString(field.String())) > p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) > p
+		return int64(field.Len()) > p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() > p
+		return field.Int() > p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() > p
+		return field.Uint() > p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() > p
+		return field.Float() > p
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			return field.(time.Time).After(time.Now().UTC())
+			return field.Interface().(time.Time).After(time.Now().UTC())
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // length tests whether a variable's length is equal to a given
 // value. For strings it tests the number of characters whereas
 // for maps and slices it tests the number of items.
-func hasLengthOf(top interface{}, current interface{}, field interface{}, param string) bool {
+func hasLengthOf(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) == p
+		return int64(utf8.RuneCountInString(field.String())) == p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) == p
+		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() == p
+		return field.Int() == p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() == p
+		return field.Uint() == p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() == p
+		return field.Float() == p
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // min tests whether a variable value is larger or equal to a given
 // number. For number types, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMinOf(top interface{}, current interface{}, field interface{}, param string) bool {
+func hasMinOf(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	return isGte(top, current, field, param)
+	return isGte(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
-func isLteField(top interface{}, current interface{}, field interface{}, param string) bool {
+func isLteField(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if current == nil {
+	if !current.IsValid() {
 		panic("struct not passed for cross validation")
 	}
 
-	currentVal := reflect.ValueOf(current)
-
-	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
-		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	var currentFielVal reflect.Value
-
-	switch currentVal.Kind() {
+	switch current.Kind() {
 
 	case reflect.Struct:
 
-		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
-			currentFielVal = currentVal
+		if current.Type() == timeType || current.Type() == timePtrType {
 			break
 		}
 
-		f := currentVal.FieldByName(param)
+		current = current.FieldByName(param)
 
-		if f.Kind() == reflect.Invalid {
+		if current.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
-
-		currentFielVal = f
-
-	default:
-
-		currentFielVal = currentVal
 	}
 
-	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
-
-		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	fv := reflect.ValueOf(field)
-
-	switch fv.Kind() {
+	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() <= currentFielVal.Int()
+		return field.Int() <= current.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() <= currentFielVal.Uint()
+		return field.Uint() <= current.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() <= currentFielVal.Float()
+		return field.Float() <= current.Float()
 
 	case reflect.Struct:
 
-		if fv.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
+			if current.Type() != timeType && current.Type() != timePtrType {
 				panic("Bad Top Level field type")
 			}
 
-			t := currentFielVal.Interface().(time.Time)
-			fieldTime := field.(time.Time)
+			t := current.Interface().(time.Time)
+			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.Before(t) || fieldTime.Equal(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isLtField(top interface{}, current interface{}, field interface{}, param string) bool {
+func isLtField(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if current == nil {
+	if !current.IsValid() {
 		panic("struct not passed for cross validation")
 	}
 
-	currentVal := reflect.ValueOf(current)
-
-	if currentVal.Kind() == reflect.Ptr && !currentVal.IsNil() {
-		currentVal = reflect.ValueOf(currentVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	var currentFielVal reflect.Value
-
-	switch currentVal.Kind() {
+	switch current.Kind() {
 
 	case reflect.Struct:
 
-		if currentVal.Type() == reflect.TypeOf(time.Time{}) {
-			currentFielVal = currentVal
+		if current.Type() == timeType || current.Type() == timePtrType {
 			break
 		}
 
-		f := currentVal.FieldByName(param)
+		current = current.FieldByName(param)
 
-		if f.Kind() == reflect.Invalid {
+		if current.Kind() == reflect.Invalid {
 			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
 		}
-
-		currentFielVal = f
-
-	default:
-
-		currentFielVal = currentVal
 	}
 
-	if currentFielVal.Kind() == reflect.Ptr && !currentFielVal.IsNil() {
-
-		currentFielVal = reflect.ValueOf(currentFielVal.Elem().Interface())
+	if current.Kind() == reflect.Ptr && !current.IsNil() {
+		current = current.Elem()
 	}
 
-	fv := reflect.ValueOf(field)
-
-	switch fv.Kind() {
+	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return fv.Int() < currentFielVal.Int()
+		return field.Int() < current.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return fv.Uint() < currentFielVal.Uint()
+		return field.Uint() < current.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return fv.Float() < currentFielVal.Float()
+		return field.Float() < current.Float()
 
 	case reflect.Struct:
 
-		if fv.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			if currentFielVal.Type() != reflect.TypeOf(time.Time{}) {
+			if current.Type() != timeType && current.Type() != timePtrType {
 				panic("Bad Top Level field type")
 			}
 
-			t := currentFielVal.Interface().(time.Time)
-			fieldTime := field.(time.Time)
+			t := current.Interface().(time.Time)
+			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.Before(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isLte(top interface{}, current interface{}, field interface{}, param string) bool {
+func isLte(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) <= p
+		return int64(utf8.RuneCountInString(field.String())) <= p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) <= p
+		return int64(field.Len()) <= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() <= p
+		return field.Int() <= p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() <= p
+		return field.Uint() <= p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() <= p
+		return field.Float() <= p
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(time.Time{}) {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			now := time.Now().UTC()
-			t := field.(time.Time)
+			t := field.Interface().(time.Time)
 
 			return t.Before(now) || t.Equal(now)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isLt(top interface{}, current interface{}, field interface{}, param string) bool {
+func isLt(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	st := reflect.ValueOf(field)
-
-	switch st.Kind() {
+	switch fieldKind {
 
 	case reflect.String:
 		p := asInt(param)
 
-		return int64(len(st.String())) < p
+		return int64(utf8.RuneCountInString(field.String())) < p
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
 
-		return int64(st.Len()) < p
+		return int64(field.Len()) < p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asInt(param)
 
-		return st.Int() < p
+		return field.Int() < p
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		p := asUint(param)
 
-		return st.Uint() < p
+		return field.Uint() < p
 
 	case reflect.Float32, reflect.Float64:
 		p := asFloat(param)
 
-		return st.Float() < p
+		return field.Float() < p
 
 	case reflect.Struct:
 
-		if st.Type() == reflect.TypeOf(time.Time{}) {
+		if field.Type() == timeType || field.Type() == timePtrType {
 
-			return field.(time.Time).Before(time.Now().UTC())
+			return field.Interface().(time.Time).Before(time.Now().UTC())
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field))
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // max tests whether a variable value is lesser than a given
 // value. For numbers, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMaxOf(top interface{}, current interface{}, field interface{}, param string) bool {
+func hasMaxOf(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	return isLte(top, current, field, param)
+	return isLte(topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
 // asInt retuns the parameter as a int64

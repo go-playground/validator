@@ -2,9 +2,9 @@ Package validator
 ================
 
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/bluesuncorp/validator.svg?branch=v5.1)](https://travis-ci.org/bluesuncorp/validator)
-[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v5)](https://coveralls.io/r/bluesuncorp/validator?branch=v5)
-[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v5?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v5)
+[![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/487374/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
+[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v6)](https://coveralls.io/r/bluesuncorp/validator?branch=v6)
+[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v6?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v6)
 
 Package validator implements value validations for structs and individual fields based on tags.
 
@@ -19,20 +19,20 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/bluesuncorp/validator.v5
+	go get gopkg.in/bluesuncorp/validator.v6
 
 or to update
 
-	go get -u gopkg.in/bluesuncorp/validator.v5
+	go get -u gopkg.in/bluesuncorp/validator.v6
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/bluesuncorp/validator.v5"
+	import "gopkg.in/bluesuncorp/validator.v6"
 
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v5 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v6 for detailed usage docs.
 
 ##### Example:
 ```go
@@ -41,7 +41,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v5"
+	"gopkg.in/bluesuncorp/validator.v6"
 )
 
 // User contains user information
@@ -66,7 +66,12 @@ var validate *validator.Validate
 
 func main() {
 
-	validate = validator.New("validate", validator.BakedInValidators)
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+	}
+
+	validate = validator.New(config)
 
 	address := &Address{
 		Street: "Eavesdown Docks",
@@ -83,31 +88,14 @@ func main() {
 		Addresses:      []*Address{address},
 	}
 
-	// returns nil or *StructErrors
+	// returns nil or ValidationErrors ( map[string]*FieldError )
 	errs := validate.Struct(user)
 
 	if errs != nil {
 
-		// err will be of type *FieldError
-		err := errs.Errors["Age"]
-		fmt.Println(err.Error()) // output: Field validation for "Age" failed on the "lte" tag
-		fmt.Println(err.Field)   // output: Age
-		fmt.Println(err.Tag)     // output: lte
-		fmt.Println(err.Kind)    // output: uint8
-		fmt.Println(err.Type)    // output: uint8
-		fmt.Println(err.Param)   // output: 130
-		fmt.Println(err.Value)   // output: 135
-
-		// or if you prefer you can use the Flatten function
-		// NOTE: I find this usefull when using a more hard static approach of checking field errors.
-		// The above, is best for passing to some generic code to say parse the errors. i.e. I pass errs
-		// to a routine which loops through the errors, creates and translates the error message into the
-		// users locale and returns a map of map[string]string // field and error which I then use
-		// within the HTML rendering.
-
-		flat := errs.Flatten()
-		fmt.Println(flat) // output: map[Age:Field validation for "Age" failed on the "lte" tag Addresses[0].Address.City:Field validation for "City" failed on the "required" tag]
-		err = flat["Addresses[0].Address.City"]
+		fmt.Println(errs) // output: Key: "User.Age" Error:Field validation for "Age" failed on the "lte" tag
+		//	                         Key: "User.Addresses[0].City" Error:Field validation for "City" failed on the "required" tag
+		err := errs["User.Addresses[0].City"]
 		fmt.Println(err.Field) // output: City
 		fmt.Println(err.Tag)   // output: required
 		fmt.Println(err.Kind)  // output: string
@@ -126,14 +114,18 @@ func main() {
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3
+NOTE: allocations for structs are up from v5, however ns/op for parallel operations are way down.
+It was a decicion not to cache struct info because although it reduced allocation to v5 levels, it
+hurt parallel performance too much.
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkValidateField-4	 		 3000000	       429 ns/op	     192 B/op	       2 allocs/op
-BenchmarkValidateStructSimple-4	  	  500000	      2877 ns/op	     657 B/op	      10 allocs/op
-BenchmarkTemplateParallelSimple-4	  500000	      3097 ns/op	     657 B/op	      10 allocs/op
-BenchmarkValidateStructLarge-4	  	  100000	     15228 ns/op	    4350 B/op	      62 allocs/op
-BenchmarkTemplateParallelLarge-4	  100000	     14257 ns/op	    4354 B/op	      62 allocs/op
+BenchmarkField-4	 				 5000000	       314 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldOrTag-4	  			  500000	      2425 ns/op	      20 B/op	       2 allocs/op
+BenchmarkStructSimple-4	  			  500000	      3117 ns/op	     553 B/op	      14 allocs/op
+BenchmarkStructSimpleParallel-4	 	 1000000	      1149 ns/op	     553 B/op	      14 allocs/op
+BenchmarkStructComplex-4	  		  100000	     19580 ns/op	    3230 B/op	     102 allocs/op
+BenchmarkStructComplexParallel-4	  200000	      6686 ns/op	    3232 B/op	     102 allocs/op
 ```
 
 How to Contribute
