@@ -303,7 +303,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 			if kind == reflect.Struct {
 
-				// required passed validationa above so stop here
+				// required passed validation above so stop here
 				// if only validating the structs existance.
 				if strings.Contains(tag, structOnlyTag) {
 					return
@@ -404,14 +404,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
 
 	for i := 0; i < current.Len(); i++ {
-
-		idxField := current.Index(i)
-
-		if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
-			idxField = idxField.Elem()
-		}
-
-		v.traverseField(topStruct, currentStruct, idxField, errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
+		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
 	}
 }
 
@@ -419,19 +412,15 @@ func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.
 func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
 
 	for _, key := range current.MapKeys() {
-
-		idxField := current.MapIndex(key)
-
-		if idxField.Kind() == reflect.Ptr && !idxField.IsNil() {
-			idxField = idxField.Elem()
-		}
-
-		v.traverseField(topStruct, currentStruct, idxField, errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
+		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
 	}
 }
 
 // validateField validates a field based on the provided tag's key and param values and returns true if there is an error or false if all ok
 func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, cTag *tagCache, name string) bool {
+
+	var valFunc Func
+	var ok bool
 
 	if cTag.isOrVal {
 
@@ -439,7 +428,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 
 		for _, val := range cTag.tagVals {
 
-			valFunc, ok := v.config.ValidationFuncs[val[0]]
+			valFunc, ok = v.config.ValidationFuncs[val[0]]
 			if !ok {
 				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
@@ -462,7 +451,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 		return true
 	}
 
-	valFunc, ok := v.config.ValidationFuncs[cTag.tagVals[0][0]]
+	valFunc, ok = v.config.ValidationFuncs[cTag.tagVals[0][0]]
 	if !ok {
 		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}
