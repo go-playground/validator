@@ -254,10 +254,9 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			return
 		}
 
-		tags := strings.Split(tag, tagSeparator)
+		if len(tag) > 0 {
 
-		if len(tags) > 0 {
-
+			tags := strings.Split(tag, tagSeparator)
 			var param string
 			vals := strings.SplitN(tags[0], tagKeySeparator, 2)
 

@@ -229,6 +229,19 @@ func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag st
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestDatePtrValidationIssueValidation(t *testing.T) {
+
+	type Test struct {
+		LastViewed *time.Time
+		Reminder   *time.Time
+	}
+
+	test := &Test{}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+}
+
 func TestCommaAndPipeObfuscationValidation(t *testing.T) {
 	s := "My Name Is, |joeybloggs|"
 
@@ -634,13 +647,12 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(tmsp)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs), 6)
+	Equal(t, len(errs), 5)
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[0][1].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[0][2].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][1].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][2].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[2][1].Name", "Name", "required")
-	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[2][2]", "Errs[2][2]", "")
 	// for full test coverage
 	fmt.Sprint(errs.Error())
 
