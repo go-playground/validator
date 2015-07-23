@@ -2,19 +2,31 @@ package validator
 
 import "testing"
 
-func BenchmarkField(b *testing.B) {
+func BenchmarkFieldSuccess(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		validate.Field("1", "len=1")
 	}
 }
 
-func BenchmarkFieldOrTag(b *testing.B) {
+func BenchmarkFieldFailure(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field("2", "len=1")
+	}
+}
+
+func BenchmarkFieldOrTagSuccess(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		validate.Field("rgba(0,0,0,1)", "rgb|rgba")
 	}
 }
 
-func BenchmarkStructSimple(b *testing.B) {
+func BenchmarkFieldOrTagFailure(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field("#000", "rgb|rgba")
+	}
+}
+
+func BenchmarkStructSimpleSuccess(b *testing.B) {
 
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
@@ -22,15 +34,27 @@ func BenchmarkStructSimple(b *testing.B) {
 	}
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructSimpleFailure(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	for n := 0; n < b.N; n++ {
 		validate.Struct(invalidFoo)
 	}
 }
 
-func BenchmarkStructSimpleParallel(b *testing.B) {
+func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
@@ -38,41 +62,31 @@ func BenchmarkStructSimpleParallel(b *testing.B) {
 	}
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(validFoo)
+		}
+	})
+}
+
+func BenchmarkStructSimpleFailureParallel(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
 			validate.Struct(invalidFoo)
 		}
 	})
 }
 
-func BenchmarkStructComplex(b *testing.B) {
-
-	tFail := &TestString{
-		Required:  "",
-		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
-		OmitEmpty: "12345678901",
-		Sub: &SubTest{
-			Test: "",
-		},
-		Anonymous: struct {
-			A string `validate:"required"`
-		}{
-			A: "",
-		},
-		Iface: &Impl{
-			F: "12",
-		},
-	}
+func BenchmarkStructComplexSuccess(b *testing.B) {
 
 	tSuccess := &TestString{
 		Required:  "Required",
@@ -103,11 +117,10 @@ func BenchmarkStructComplex(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tSuccess)
-		validate.Struct(tFail)
 	}
 }
 
-func BenchmarkStructComplexParallel(b *testing.B) {
+func BenchmarkStructComplexFailure(b *testing.B) {
 
 	tFail := &TestString{
 		Required:  "",
@@ -132,6 +145,13 @@ func BenchmarkStructComplexParallel(b *testing.B) {
 			F: "12",
 		},
 	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(tFail)
+	}
+}
+
+func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 
 	tSuccess := &TestString{
 		Required:  "Required",
@@ -163,6 +183,38 @@ func BenchmarkStructComplexParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(tSuccess)
+		}
+	})
+}
+
+func BenchmarkStructComplexFailureParallel(b *testing.B) {
+
+	tFail := &TestString{
+		Required:  "",
+		Len:       "",
+		Min:       "",
+		Max:       "12345678901",
+		MinMax:    "",
+		Lt:        "0123456789",
+		Lte:       "01234567890",
+		Gt:        "1",
+		Gte:       "1",
+		OmitEmpty: "12345678901",
+		Sub: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A string `validate:"required"`
+		}{
+			A: "",
+		},
+		Iface: &Impl{
+			F: "12",
+		},
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
 			validate.Struct(tFail)
 		}
 	})

@@ -120,12 +120,18 @@ hurt parallel performance too much.
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkField-4	 				 5000000	       314 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldOrTag-4	  			  500000	      2425 ns/op	      20 B/op	       2 allocs/op
-BenchmarkStructSimple-4	  			  500000	      3117 ns/op	     553 B/op	      14 allocs/op
-BenchmarkStructSimpleParallel-4	 	 1000000	      1149 ns/op	     553 B/op	      14 allocs/op
-BenchmarkStructComplex-4	  		  100000	     19580 ns/op	    3230 B/op	     102 allocs/op
-BenchmarkStructComplexParallel-4	  200000	      6686 ns/op	    3232 B/op	     102 allocs/op
+BenchmarkFieldSuccess-4					 5000000	       326 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4					 5000000	       327 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldOrTagSuccess-4			  500000	      2738 ns/op	      20 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4			 1000000	      1341 ns/op	     384 B/op	       6 allocs/op
+BenchmarkStructSimpleSuccess-4			 1000000	      1282 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4			 1000000	      1870 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccessParallel-4	 5000000	       348 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4	 2000000	       807 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4			  200000	      8081 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailure-4			  100000	     12418 ns/op	    2861 B/op	      72 allocs/op
+BenchmarkStructComplexSuccessParallel-4	  500000	      2249 ns/op	     369 B/op	      30 allocs/op
+BenchmarkStructComplexFailureParallel-4	  300000	      5183 ns/op	    2863 B/op	      72 allocs/op
 ```
 
 How to Contribute
