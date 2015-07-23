@@ -2,11 +2,11 @@ package validator
 
 import (
 	"fmt"
-	"path"
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
+
+	. "gopkg.in/bluesuncorp/assert.v1"
 )
 
 // NOTES:
@@ -109,116 +109,6 @@ type TestSlice struct {
 }
 
 var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
-
-func IsEqual(t *testing.T, val1, val2 interface{}) bool {
-	v1 := reflect.ValueOf(val1)
-	v2 := reflect.ValueOf(val2)
-
-	if v1.Kind() == reflect.Ptr {
-		v1 = v1.Elem()
-	}
-
-	if v2.Kind() == reflect.Ptr {
-		v2 = v2.Elem()
-	}
-
-	if !v1.IsValid() && !v2.IsValid() {
-		return true
-	}
-
-	switch v1.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v1.IsNil() {
-			v1 = reflect.ValueOf(nil)
-		}
-	}
-
-	switch v2.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v2.IsNil() {
-			v2 = reflect.ValueOf(nil)
-		}
-	}
-
-	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
-	v2Underlying := reflect.Zero(reflect.TypeOf(v2)).Interface()
-
-	if v1 == v1Underlying {
-		if v2 == v2Underlying {
-			goto CASE4
-		} else {
-			goto CASE3
-		}
-	} else {
-		if v2 == v2Underlying {
-			goto CASE2
-		} else {
-			goto CASE1
-		}
-	}
-
-CASE1:
-	// fmt.Println("CASE 1")
-	return reflect.DeepEqual(v1.Interface(), v2.Interface())
-CASE2:
-	// fmt.Println("CASE 2")
-	return reflect.DeepEqual(v1.Interface(), v2)
-CASE3:
-	// fmt.Println("CASE 3")
-	return reflect.DeepEqual(v1, v2.Interface())
-CASE4:
-	// fmt.Println("CASE 4")
-	return reflect.DeepEqual(v1, v2)
-}
-
-func Equal(t *testing.T, val1, val2 interface{}) {
-	EqualSkip(t, 2, val1, val2)
-}
-
-func EqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
-
-	if !IsEqual(t, val1, val2) {
-
-		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
-		t.FailNow()
-	}
-}
-
-func NotEqual(t *testing.T, val1, val2 interface{}) {
-	NotEqualSkip(t, 2, val1, val2)
-}
-
-func NotEqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
-
-	if IsEqual(t, val1, val2) {
-		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v should not be equal %v\n", path.Base(file), line, val1, val2)
-		t.FailNow()
-	}
-}
-
-func PanicMatches(t *testing.T, fn func(), matches string) {
-	PanicMatchesSkip(t, 2, fn, matches)
-}
-
-func PanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
-
-	_, file, line, _ := runtime.Caller(skip)
-
-	defer func() {
-		if r := recover(); r != nil {
-			err := fmt.Sprintf("%s", r)
-
-			if err != matches {
-				fmt.Printf("%s:%d Panic...  expected [%s] received [%s]", path.Base(file), line, matches, err)
-				t.FailNow()
-			}
-		}
-	}()
-
-	fn()
-}
 
 func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
@@ -864,11 +754,11 @@ func TestSSNValidation(t *testing.T) {
 		errs := validate.Field(test.param, "ssn")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -898,11 +788,11 @@ func TestLongitudeValidation(t *testing.T) {
 		errs := validate.Field(test.param, "longitude")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -932,11 +822,11 @@ func TestLatitudeValidation(t *testing.T) {
 		errs := validate.Field(test.param, "latitude")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -972,11 +862,11 @@ func TestDataURIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "datauri")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1010,11 +900,11 @@ func TestMultibyteValidation(t *testing.T) {
 		errs := validate.Field(test.param, "multibyte")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1049,11 +939,11 @@ func TestPrintableASCIIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "printascii")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1087,11 +977,11 @@ func TestASCIIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "ascii")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1122,11 +1012,11 @@ func TestUUID5Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid5")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1156,11 +1046,11 @@ func TestUUID4Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid4")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1189,11 +1079,11 @@ func TestUUID3Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid3")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1225,11 +1115,11 @@ func TestUUIDValidation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1263,11 +1153,11 @@ func TestISBNValidation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1300,11 +1190,11 @@ func TestISBN13Validation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn13")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1338,11 +1228,11 @@ func TestISBN10Validation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn10")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -2702,11 +2592,11 @@ func TestUrl(t *testing.T) {
 		errs := validate.Field(test.param, "url")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -2766,11 +2656,11 @@ func TestUri(t *testing.T) {
 		errs := validate.Field(test.param, "uri")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
