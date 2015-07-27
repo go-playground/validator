@@ -34,7 +34,7 @@ Usage and documentation
 
 Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v6 for detailed usage docs.
 
-##### Example:
+##### Examples:
 ```go
 package main
 
@@ -73,6 +73,12 @@ func main() {
 
 	validate = validator.New(config)
 
+	validateStruct()
+	validateField()
+}
+
+func validateStruct() {
+
 	address := &Address{
 		Street: "Eavesdown Docks",
 		Planet: "Persphone",
@@ -108,6 +114,19 @@ func main() {
 	}
 
 	// save user to database
+}
+
+func validateField() {
+	myEmail := "joeybloggs.gmail.com"
+
+	errs := validate.Field(myEmail, "required,email")
+
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "email" tag
+		return
+	}
+
+	// email ok, move on
 }
 ```
 
