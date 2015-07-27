@@ -403,10 +403,8 @@ func isAlpha(topStruct reflect.Value, currentStruct reflect.Value, field reflect
 func hasValue(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
-
-	case reflect.Slice, reflect.Map, reflect.Array:
-		return !field.IsNil() && int64(field.Len()) > 0
-
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
 	default:
 		return field.IsValid() && field.Interface() != reflect.Zero(fieldType).Interface()
 	}
