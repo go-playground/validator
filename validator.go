@@ -243,12 +243,10 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		kind = current.Kind()
 	}
 
-	typ := current.Type()
-
 	// this also allows for tags 'required' and 'omitempty' to be used on
 	// nested struct fields because when len(tags) > 0 below and the value is nil
 	// then required failes and we check for omitempty just before that
-	if (kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil() {
+	if ((kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil()) || kind == reflect.Invalid {
 
 		if strings.Contains(tag, omitempty) {
 			return
@@ -264,18 +262,34 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				param = vals[1]
 			}
 
+			if kind == reflect.Invalid {
+				errs[errPrefix+name] = &FieldError{
+					Field: name,
+					Tag:   vals[0],
+					Param: param,
+					Kind:  kind,
+				}
+				return
+			}
+
 			errs[errPrefix+name] = &FieldError{
 				Field: name,
 				Tag:   vals[0],
 				Param: param,
 				Value: current.Interface(),
 				Kind:  kind,
-				Type:  typ,
+				Type:  current.Type(),
 			}
 
 			return
 		}
+		// if we get here tag length is zero and we can leave
+		if kind == reflect.Invalid {
+			return
+		}
 	}
+
+	typ := current.Type()
 
 	switch kind {
 	case reflect.Struct, reflect.Interface:
