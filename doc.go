@@ -372,6 +372,24 @@ Here is a list of the current built in validators:
 		This validates that a string value contains a valid U.S. Social Security Number.
 		(Usage: ssn)
 
+	ip
+		This validates that a string value contains a valid IP Adress.
+		(Usage: ip)
+
+	ipv4
+		This validates that a string value contains a valid v4 IP Adress.
+		(Usage: ipv4)
+
+	ipv6
+		This validates that a string value contains a valid v6 IP Adress.
+		(Usage: ipv6)
+
+	mac
+		This validates that a string value contains a valid MAC Adress defined
+		by go's ParseMAC accepted formats and types see:
+		http://golang.org/src/net/mac.go?s=866:918#L29
+		(Usage: mac)
+
 Validator notes:
 
 	regex
