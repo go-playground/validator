@@ -424,10 +424,12 @@ func hasValue(top interface{}, current interface{}, field interface{}, param str
 	st := reflect.ValueOf(field)
 
 	switch st.Kind() {
-
-	case reflect.Slice, reflect.Map, reflect.Array:
-		return field != nil && int64(st.Len()) > 0
-
+	case reflect.Invalid:
+		return false
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !st.IsNil()
+	case reflect.Array:
+		return field != reflect.Zero(reflect.TypeOf(field)).Interface()
 	default:
 		return field != nil && field != reflect.Zero(reflect.TypeOf(field)).Interface()
 	}
