@@ -193,9 +193,10 @@ Here is a list of the current built in validators:
 		within its SliceOrArrayErrs or MapErrs fields.
 
 	required
-		This validates that the value is not the data types default value.
+		This validates that the value is not the data types default zero value.
 		For numbers ensures value is not zero. For strings ensures value is
-		not "". For slices, arrays, and maps, ensures the length is not zero.
+		not "". For slices, maps, pointers, interfaces, channels and functions
+		ensures the value is not nil.
 		(Usage: required)
 
 	len

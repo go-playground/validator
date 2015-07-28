@@ -627,7 +627,11 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			f = valueField.Interface()
 		}
 
-		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag, typ: valueField.Type()}
+		cField = &cachedField{name: name, kind: valueField.Kind(), tag: tag}
+
+		if cField.kind != reflect.Invalid {
+			cField.typ = valueField.Type()
+		}
 
 		switch cField.kind {
 		case reflect.Slice, reflect.Array:
@@ -648,8 +652,14 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 	}
 
 	switch cField.kind {
+	case reflect.Invalid:
+		return &FieldError{
+			Field: cField.name,
+			Tag:   cField.tag,
+			Kind:  cField.kind,
+		}
 
-	case reflect.Struct, reflect.Interface, reflect.Invalid:
+	case reflect.Struct, reflect.Interface:
 
 		if cField.typ != reflect.TypeOf(time.Time{}) {
 			panic("Invalid field passed to fieldWithNameAndValue")
