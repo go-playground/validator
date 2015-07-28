@@ -68,6 +68,12 @@ var BakedInValidators = map[string]Func{
 	"ipv4":         isIPv4,
 	"ipv6":         isIPv6,
 	"ip":           isIP,
+	"mac":          isMac,
+}
+
+func isMac(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ParseMAC(field.String())
+	return err == nil
 }
 
 func isIPv4(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
