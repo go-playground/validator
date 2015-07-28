@@ -119,6 +119,155 @@ func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag st
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestMACValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"3D:F2:C9:A6:B3:4F", true},
+		{"3D-F2-C9-A6-B3:4F", false},
+		{"123", false},
+		{"", false},
+		{"abacaba", false},
+		{"00:25:96:FF:FE:12:34:56", true},
+		{"0025:96FF:FE12:3456", false},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "mac")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "mac" {
+					t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", true},
+		{"172.16.0.1", true},
+		{"192.168.0.1", true},
+		{"192.168.255.254", true},
+		{"192.168.255.256", false},
+		{"172.16.255.254", true},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", true},
+		{"2001:cdba:0:0:0:0:3257:9652", true},
+		{"2001:cdba::3257:9652", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ip")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ip" {
+					t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPv6Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", false},
+		{"172.16.0.1", false},
+		{"192.168.0.1", false},
+		{"192.168.255.254", false},
+		{"192.168.255.256", false},
+		{"172.16.255.254", false},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", true},
+		{"2001:cdba:0:0:0:0:3257:9652", true},
+		{"2001:cdba::3257:9652", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ipv6")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ipv6" {
+					t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPv4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", true},
+		{"172.16.0.1", true},
+		{"192.168.0.1", true},
+		{"192.168.255.254", true},
+		{"192.168.255.256", false},
+		{"172.16.255.254", true},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
+		{"2001:cdba:0:0:0:0:3257:9652", false},
+		{"2001:cdba::3257:9652", false},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ipv4")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ipv4" {
+					t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 
 	var m map[string]string
