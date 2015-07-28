@@ -231,6 +231,82 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	EqualSkip(t, 2, val.Tag, expectedTag)
 }
 
+func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
+
+	var m map[string]string
+
+	errs := validate.Field(m, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	m = map[string]string{}
+	errs = validate.Field(m, "required")
+	Equal(t, errs, nil)
+
+	var arr [5]string
+	errs = validate.Field(arr, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	arr[0] = "ok"
+	errs = validate.Field(arr, "required")
+	Equal(t, errs, nil)
+
+	var s []string
+	errs = validate.Field(s, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	s = []string{}
+	errs = validate.Field(s, "required")
+	Equal(t, errs, nil)
+
+	var c chan string
+	errs = validate.Field(c, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	c = make(chan string)
+	errs = validate.Field(c, "required")
+	Equal(t, errs, nil)
+
+	var tst *int
+	errs = validate.Field(tst, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	one := 1
+	tst = &one
+	errs = validate.Field(tst, "required")
+	Equal(t, errs, nil)
+
+	var iface interface{}
+
+	errs = validate.Field(iface, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	errs = validate.Field(iface, "omitempty,required")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(iface, "")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(iface, "len=1")
+	NotEqual(t, errs, nil)
+
+	var f func(string)
+
+	errs = validate.Field(f, "required")
+	NotEqual(t, errs, nil)
+	// AssertError(t, errs, "", "", "required")
+
+	f = func(name string) {}
+
+	errs = validate.Field(f, "required")
+	Equal(t, errs, nil)
+}
+
 func TestBadKeyValidation(t *testing.T) {
 	type Test struct {
 		Name string `validate:"required, "`
@@ -3735,14 +3811,14 @@ func TestStructSliceValidation(t *testing.T) {
 		Min:       []int{1, 2},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		MinMax:    []int{1, 2, 3, 4, 5},
-		OmitEmpty: []int{},
+		OmitEmpty: nil,
 	}
 
 	err := validate.Struct(tSuccess)
 	Equal(t, err, nil)
 
 	tFail := &TestSlice{
-		Required:  []int{},
+		Required:  nil,
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 		Min:       []int{},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
@@ -3810,7 +3886,7 @@ func TestPoolObjectMaxSizeValidation(t *testing.T) {
 		Min:       []int{1, 2},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		MinMax:    []int{1, 2, 3, 4, 5},
-		OmitEmpty: []int{},
+		OmitEmpty: nil,
 	}
 
 	for i := 0; i < 2; i++ {
