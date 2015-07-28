@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -64,6 +65,29 @@ var BakedInValidators = map[string]Func{
 	"latitude":     isLatitude,
 	"longitude":    isLongitude,
 	"ssn":          isSSN,
+	"ipv4":         isIPv4,
+	"ipv6":         isIPv6,
+	"ip":           isIP,
+}
+
+func isIPv4(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip := net.ParseIP(field.String())
+
+	return ip != nil && ip.To4() != nil
+}
+
+func isIPv6(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	ip := net.ParseIP(field.String())
+
+	return ip != nil && ip.To4() == nil
+}
+
+func isIP(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip := net.ParseIP(field.String())
+
+	return ip != nil
 }
 
 func isSSN(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
