@@ -157,6 +157,17 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 	return nil
 }
 
+// RegisterCustomTypeFunc registers types w/a custom type handler function.
+func (v *Validate) RegisterCustomTypeFunc(f CustomTypeFunc, sampleTypeValues ...interface{}) {
+	if v.config.CustomTypeFuncs == nil {
+		v.config.CustomTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+	}
+	for _, sample := range sampleTypeValues {
+		v.config.CustomTypeFuncs[reflect.TypeOf(sample)] = f
+	}
+	v.config.hasCustomFuncs = true
+}
+
 // Field validates a single field using tag style validation and returns ValidationErrors
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
