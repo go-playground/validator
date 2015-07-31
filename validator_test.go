@@ -1,10 +1,13 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
+
+	sql "database/sql/driver"
 
 	. "gopkg.in/bluesuncorp/assert.v1"
 )
@@ -117,6 +120,131 @@ func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag st
 	NotEqualSkip(t, 2, val, nil)
 	EqualSkip(t, 2, val.Field, field)
 	EqualSkip(t, 2, val.Tag, expectedTag)
+}
+
+type valuer struct {
+	Name string
+}
+
+func (v valuer) Value() (sql.Value, error) {
+
+	if v.Name == "errorme" {
+		return nil, errors.New("some kind of error")
+	}
+
+	if len(v.Name) == 0 {
+		return nil, nil
+	}
+
+	return v.Name, nil
+}
+
+type MadeUpCustomType struct {
+	FirstName string
+	LastName  string
+}
+
+func ValidateCustomType(field reflect.Value) interface{} {
+	if cust, ok := field.Interface().(MadeUpCustomType); ok {
+
+		if len(cust.FirstName) == 0 || len(cust.LastName) == 0 {
+			return ""
+		}
+
+		return cust.FirstName + " " + cust.LastName
+	}
+
+	return ""
+}
+
+func OverrideIntTypeForSomeReason(field reflect.Value) interface{} {
+
+	if i, ok := field.Interface().(int); ok {
+		if i == 1 {
+			return "1"
+		}
+
+		if i == 2 {
+			return "12"
+		}
+	}
+
+	return ""
+}
+
+type CustomMadeUpStruct struct {
+	MadeUp        MadeUpCustomType `validate:"required"`
+	OverriddenInt int              `validate:"gt=1"`
+}
+
+func ValidateValuerType(field reflect.Value) interface{} {
+	if valuer, ok := field.Interface().(sql.Valuer); ok {
+		val, err := valuer.Value()
+		if err != nil {
+			// handle the error how you want
+			return nil
+		}
+
+		return val
+	}
+
+	return nil
+}
+
+func TestSQLValueValidation(t *testing.T) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+	customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
+	customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{
+		Name: "",
+	}
+
+	errs := validate.Field(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	val.Name = "Valid Name"
+	errs = validate.Field(val, "required")
+	Equal(t, errs, nil)
+
+	val.Name = "errorme"
+
+	PanicMatches(t, func() { errs = validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+
+	type myValuer valuer
+
+	myVal := valuer{
+		Name: "",
+	}
+
+	errs = validate.Field(myVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	cust := MadeUpCustomType{
+		FirstName: "Joey",
+		LastName:  "Bloggs",
+	}
+
+	c := CustomMadeUpStruct{MadeUp: cust, OverriddenInt: 2}
+
+	errs = validate.Struct(c)
+	Equal(t, errs, nil)
+
+	c.MadeUp.FirstName = ""
+	c.OverriddenInt = 1
+
+	errs = validate.Struct(c)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "MadeUp", "required")
+	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "gt")
 }
 
 func TestMACValidation(t *testing.T) {

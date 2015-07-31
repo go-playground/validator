@@ -1,6 +1,10 @@
 package validator
 
-import "testing"
+import (
+	sql "database/sql/driver"
+	"reflect"
+	"testing"
+)
 
 func BenchmarkFieldSuccess(b *testing.B) {
 	for n := 0; n < b.N; n++ {
@@ -11,6 +15,38 @@ func BenchmarkFieldSuccess(b *testing.B) {
 func BenchmarkFieldFailure(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		validate.Field("2", "len=1")
+	}
+}
+
+func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{
+		Name: "1",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Field(val, "len=1")
+	}
+}
+
+func BenchmarkFieldCustomTypeFailure(b *testing.B) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{}
+
+	for n := 0; n < b.N; n++ {
+		validate.Field(val, "len=1")
 	}
 }
 
@@ -51,6 +87,52 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(invalidFoo)
+	}
+}
+
+func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{
+		Name: "1",
+	}
+
+	type Foo struct {
+		Valuer   valuer `validate:"len=1"`
+		IntValue int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{Valuer: val, IntValue: 7}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{}
+
+	type Foo struct {
+		Valuer   valuer `validate:"len=1"`
+		IntValue int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{Valuer: val, IntValue: 3}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(validFoo)
 	}
 }
 
