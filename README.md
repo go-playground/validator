@@ -170,6 +170,21 @@ func (v valuer) Value() (sql.Value, error) {
 	return v.Name, nil
 }
 
+// ValidateValuerType implements validator.CustomTypeFunc
+func ValidateValuerType(field reflect.Value) interface{} {
+	if valuer, ok := field.Interface().(sql.Valuer); ok {
+		val, err := valuer.Value()
+		if err != nil {
+			// handle the error how you want
+			return nil
+		}
+
+		return val
+	}
+
+	return nil
+}
+
 func main() {
 
 	customTypes := map[reflect.Type]validator.CustomTypeFunc{}
