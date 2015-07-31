@@ -1,7 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+
+	sql "database/sql/driver"
 
 	"gopkg.in/bluesuncorp/validator.v6"
 )
@@ -89,4 +93,58 @@ func validateField() {
 	}
 
 	// email ok, move on
+}
+
+var validate2 *validator.Validate
+
+type valuer struct {
+	Name string
+}
+
+func (v valuer) Value() (sql.Value, error) {
+
+	if v.Name == "errorme" {
+		return nil, errors.New("some kind of error")
+	}
+
+	if v.Name == "blankme" {
+		return "", nil
+	}
+
+	if len(v.Name) == 0 {
+		return nil, nil
+	}
+
+	return v.Name, nil
+}
+
+func main2() {
+
+	customTypes := map[reflect.Type]validator.CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+		CustomTypeFuncs: customTypes,
+	}
+
+	validate2 = validator.New(config)
+
+	validateCustomFieldType()
+}
+
+func validateCustomFieldType() {
+	val := valuer{
+		Name: "blankme",
+	}
+
+	errs := validate2.Field(val, "required")
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "required" tag
+		return
+	}
+
+	// all ok
 }

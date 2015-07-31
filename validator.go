@@ -45,7 +45,7 @@ var (
 
 // returns new ValidationErrors to the pool
 func newValidationErrors() interface{} {
-	return map[string]*FieldError{}
+	return ValidationErrors{}
 }
 
 type tagCache struct {
@@ -81,7 +81,14 @@ type Validate struct {
 type Config struct {
 	TagName         string
 	ValidationFuncs map[string]Func
+	CustomTypeFuncs map[reflect.Type]CustomTypeFunc
+	hasCustomFuncs  bool
 }
+
+// CustomTypeFunc allows for overriding or adding custom field type handler functions
+// field = field value of the type to return a value to be validated
+// example Valuer from sql drive see https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29
+type CustomTypeFunc func(field reflect.Value) interface{}
 
 // Func accepts all values needed for file and cross field validation
 // topStruct     = top level struct when validating by struct otherwise nil
@@ -124,6 +131,11 @@ type FieldError struct {
 
 // New creates a new Validate instance for use.
 func New(config Config) *Validate {
+
+	if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
+		config.hasCustomFuncs = true
+	}
+
 	return &Validate{config: config}
 }
 
@@ -150,7 +162,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 
-	errs := errsPool.Get().(map[string]*FieldError)
+	errs := errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
 	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
@@ -168,7 +180,7 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
 
-	errs := errsPool.Get().(map[string]*FieldError)
+	errs := errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
 	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
@@ -184,7 +196,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
 func (v *Validate) Struct(current interface{}) ValidationErrors {
 
-	errs := errsPool.Get().(map[string]*FieldError)
+	errs := errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
 	v.tranverseStruct(sv, sv, sv, "", errs, true)
@@ -316,6 +328,13 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 			if kind == reflect.Struct {
 
+				if v.config.hasCustomFuncs {
+					if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
+						v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
+						return
+					}
+				}
+
 				// required passed validation above so stop here
 				// if only validating the structs existance.
 				if strings.Contains(tag, structOnlyTag) {
@@ -330,6 +349,13 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		fallthrough
 	default:
 		if len(tag) == 0 {
+			return
+		}
+	}
+
+	if v.config.hasCustomFuncs {
+		if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
+			v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
 			return
 		}
 	}
