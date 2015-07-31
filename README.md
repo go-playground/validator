@@ -12,7 +12,8 @@ It has the following **unique** features:
 
 -   Cross Field and Cross Struct validations.  
 -   Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.  
--   Handles type interface by determining it's underlying type prior to validation.  
+-   Handles type interface by determining it's underlying type prior to validation.
+-   Handles custom field types such as sql driver Valuer see [Valuer](https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29)
 
 Installation
 ------------
@@ -35,6 +36,8 @@ Usage and documentation
 Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v6 for detailed usage docs.
 
 ##### Examples:
+
+Struct & Field validation
 ```go
 package main
 
@@ -130,6 +133,76 @@ func validateField() {
 }
 ```
 
+Custom Field Type
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	sql "database/sql/driver"
+
+	"gopkg.in/bluesuncorp/validator.v6"
+)
+
+var validate *validator.Validate
+
+type valuer struct {
+	Name string
+}
+
+func (v valuer) Value() (sql.Value, error) {
+
+	if v.Name == "errorme" {
+		return nil, errors.New("some kind of error")
+	}
+
+	if v.Name == "blankme" {
+		return "", nil
+	}
+
+	if len(v.Name) == 0 {
+		return nil, nil
+	}
+
+	return v.Name, nil
+}
+
+func main() {
+
+	customTypes := map[reflect.Type]validator.CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+		CustomTypeFuncs: customTypes,
+	}
+
+	validate = validator.New(config)
+
+	validateCustomFieldType()
+}
+
+func validateCustomFieldType() {
+	val := valuer{
+		Name: "blankme",
+	}
+
+	errs := validate.Field(val, "required")
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "required" tag
+		return
+	}
+
+	// all ok
+}
+
+```
+
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3
@@ -139,18 +212,22 @@ hurt parallel performance too much.
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4					 5000000	       326 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldFailure-4					 5000000	       327 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldOrTagSuccess-4			  500000	      2738 ns/op	      20 B/op	       2 allocs/op
-BenchmarkFieldOrTagFailure-4			 1000000	      1341 ns/op	     384 B/op	       6 allocs/op
-BenchmarkStructSimpleSuccess-4			 1000000	      1282 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4			 1000000	      1870 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructSimpleSuccessParallel-4	 5000000	       348 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4	 2000000	       807 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4			  200000	      8081 ns/op	     368 B/op	      30 allocs/op
-BenchmarkStructComplexFailure-4			  100000	     12418 ns/op	    2861 B/op	      72 allocs/op
-BenchmarkStructComplexSuccessParallel-4	  500000	      2249 ns/op	     369 B/op	      30 allocs/op
-BenchmarkStructComplexFailureParallel-4	  300000	      5183 ns/op	    2863 B/op	      72 allocs/op
+BenchmarkFieldSuccess-4	 					 5000000	       318 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4	 					 5000000	       316 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldCustomTypeSuccess-4	 		 3000000	       492 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4	 		 2000000	       843 ns/op	     416 B/op	       6 allocs/op
+BenchmarkFieldOrTagSuccess-4	  			  500000	      2384 ns/op	      20 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4	 			 1000000	      1295 ns/op	     384 B/op	       6 allocs/op
+BenchmarkStructSimpleSuccess-4	 			 1000000	      1175 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4	 			 1000000	      1822 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1302 ns/op	      56 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1847 ns/op	     577 B/op	      13 allocs/op
+BenchmarkStructSimpleSuccessParallel-4	 	 5000000	       339 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4	 	 2000000	       733 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4	  			  200000	      7104 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailure-4	  			  100000	     11996 ns/op	    2861 B/op	      72 allocs/op
+BenchmarkStructComplexSuccessParallel-4	 	 1000000	      2252 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailureParallel-4	  	  300000	      4691 ns/op	    2862 B/op	      72 allocs/op
 ```
 
 How to Contribute
