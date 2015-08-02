@@ -157,14 +157,17 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 	return nil
 }
 
-// RegisterCustomTypeFunc registers types w/a custom type handler function.
-func (v *Validate) RegisterCustomTypeFunc(f CustomTypeFunc, sampleTypeValues ...interface{}) {
+// RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
+func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+
 	if v.config.CustomTypeFuncs == nil {
 		v.config.CustomTypeFuncs = map[reflect.Type]CustomTypeFunc{}
 	}
-	for _, sample := range sampleTypeValues {
-		v.config.CustomTypeFuncs[reflect.TypeOf(sample)] = f
+
+	for _, t := range types {
+		v.config.CustomTypeFuncs[reflect.TypeOf(t)] = fn
 	}
+
 	v.config.hasCustomFuncs = true
 }
 

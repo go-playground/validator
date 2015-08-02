@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"reflect"
 
-	validator "gopkg.in/bluesuncorp/validator.v6"
+	"gopkg.in/bluesuncorp/validator.v6"
 )
 
+// DbBackedUser User struct
 type DbBackedUser struct {
 	Name sql.NullString `validate:"required"`
 	Age  sql.NullInt64  `validate:"required"`
