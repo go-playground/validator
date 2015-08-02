@@ -1,13 +1,13 @@
 package validator
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
-
-	sql "database/sql/driver"
 
 	. "gopkg.in/bluesuncorp/assert.v1"
 )
@@ -126,7 +126,7 @@ type valuer struct {
 	Name string
 }
 
-func (v valuer) Value() (sql.Value, error) {
+func (v valuer) Value() (driver.Value, error) {
 
 	if v.Name == "errorme" {
 		return nil, errors.New("some kind of error")
@@ -178,7 +178,7 @@ type CustomMadeUpStruct struct {
 }
 
 func ValidateValuerType(field reflect.Value) interface{} {
-	if valuer, ok := field.Interface().(sql.Valuer); ok {
+	if valuer, ok := field.Interface().(driver.Valuer); ok {
 		val, err := valuer.Value()
 		if err != nil {
 			// handle the error how you want
@@ -191,10 +191,68 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+func TestSQLValue2Validation(t *testing.T) {
+
+	config := Config{
+		TagName:         "validate",
+		ValidationFuncs: BakedInValidators,
+	}
+
+	validate := New(config)
+	validate.RegisterCustomTypeFunc(ValidateValuerType, valuer{}, (*driver.Valuer)(nil), sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})
+	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
+	validate.RegisterCustomTypeFunc(OverrideIntTypeForSomeReason, 1)
+
+	val := valuer{
+		Name: "",
+	}
+
+	errs := validate.Field(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	val.Name = "Valid Name"
+	errs = validate.Field(val, "required")
+	Equal(t, errs, nil)
+
+	val.Name = "errorme"
+
+	PanicMatches(t, func() { errs = validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+
+	type myValuer valuer
+
+	myVal := valuer{
+		Name: "",
+	}
+
+	errs = validate.Field(myVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	cust := MadeUpCustomType{
+		FirstName: "Joey",
+		LastName:  "Bloggs",
+	}
+
+	c := CustomMadeUpStruct{MadeUp: cust, OverriddenInt: 2}
+
+	errs = validate.Struct(c)
+	Equal(t, errs, nil)
+
+	c.MadeUp.FirstName = ""
+	c.OverriddenInt = 1
+
+	errs = validate.Struct(c)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "MadeUp", "required")
+	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "gt")
+}
+
 func TestSQLValueValidation(t *testing.T) {
 
 	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf((*driver.Valuer)(nil))] = ValidateValuerType
 	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
 	customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
 	customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
