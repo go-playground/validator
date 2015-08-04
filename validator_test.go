@@ -3,6 +3,7 @@ package validator
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -189,6 +190,36 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	}
 
 	return nil
+}
+
+func TestExistsValidation(t *testing.T) {
+
+	jsonText := "{ \"truthiness2\": true }"
+
+	type Thing struct {
+		Truthiness *bool `json:"truthiness" validate:"exists,required"`
+	}
+
+	var ting Thing
+
+	err := json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, nil)
+
+	errs := validate.Struct(ting)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Thing.Truthiness", "Truthiness", "exists")
+
+	jsonText = "{ \"truthiness\": true }"
+
+	err = json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, true)
+
+	errs = validate.Struct(ting)
+	Equal(t, errs, nil)
 }
 
 func TestSQLValue2Validation(t *testing.T) {
