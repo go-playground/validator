@@ -33,6 +33,7 @@ const (
 	mapErrMsg           = "Field validation for \"%s\" failed on key \"%v\" with error(s): %s"
 	structErrMsg        = "Struct:%s\n"
 	diveTag             = "dive"
+	existsTag           = "exists"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
 )
@@ -722,7 +723,22 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 
 			for _, val := range cTag.keyVals {
 
+				// if (idxField.Kind() == reflect.Ptr || idxField.Kind() == reflect.Interface) && idxField.IsNil() {
+				// if val[0] == existsTag {
+				// 	if (cField.kind == reflect.Ptr || cField.kind == reflect.Interface) && valueField.IsNil() {
+				// 		fieldErr = &FieldError{
+				// 			Field: name,
+				// 			Tag:   val[0],
+				// 			Value: f,
+				// 			Param: val[1],
+				// 		}
+				// 		err = errors.New(fieldErr.Tag)
+				// 	}
+
+				// } else {
+
 				fieldErr, err = v.fieldWithNameAndSingleTag(val, current, f, val[0], val[1], name)
+				// }
 
 				if err == nil {
 					return nil
@@ -738,6 +754,18 @@ func (v *Validate) fieldWithNameAndValue(val interface{}, current interface{}, f
 			fieldErr.Type = cField.typ
 
 			return fieldErr
+		}
+
+		if cTag.keyVals[0][0] == existsTag {
+			if (cField.kind == reflect.Ptr || cField.kind == reflect.Interface) && valueField.IsNil() {
+				return &FieldError{
+					Field: name,
+					Tag:   cTag.keyVals[0][0],
+					Value: f,
+					Param: cTag.keyVals[0][1],
+				}
+			}
+			continue
 		}
 
 		if fieldErr, err = v.fieldWithNameAndSingleTag(val, current, f, cTag.keyVals[0][0], cTag.keyVals[0][1], name); err != nil {
@@ -980,6 +1008,10 @@ func (v *Validate) fieldWithNameAndSingleTag(val interface{}, current interface{
 	if key == omitempty {
 		return nil, nil
 	}
+
+	// if key == existsTag {
+	// 	continue
+	// }
 
 	valFunc, ok := v.validationFuncs[key]
 	if !ok {

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"reflect"
@@ -229,6 +230,36 @@ func AssertMapFieldError(t *testing.T, s map[string]*FieldError, field string, e
 	NotEqualSkip(t, 2, val, nil)
 	EqualSkip(t, 2, val.Field, field)
 	EqualSkip(t, 2, val.Tag, expectedTag)
+}
+
+func TestExistsValidation(t *testing.T) {
+
+	jsonText := "{ \"truthiness2\": true }"
+
+	type Thing struct {
+		Truthiness *bool `json:"truthiness" validate:"exists,required"`
+	}
+
+	var ting Thing
+
+	err := json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, nil)
+
+	errs := validate.Struct(ting)
+	NotEqual(t, errs, nil)
+	AssertFieldError(t, errs, "Truthiness", "exists")
+
+	jsonText = "{ \"truthiness\": true }"
+
+	err = json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, true)
+
+	errs = validate.Struct(ting)
+	Equal(t, errs, nil)
 }
 
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
