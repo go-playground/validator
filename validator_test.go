@@ -725,9 +725,9 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	var errStructPtr2Array [][]*Inner
 
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp2 := &TestMultiDimensionalStructsPtr2{
 		Errs: errStructPtr2Array,
@@ -807,7 +807,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]Inner `validate:"gt=0,dive"`
 	}
 
-	mi := map[int]Inner{0: Inner{"ok"}, 3: Inner{""}, 4: Inner{"ok"}}
+	mi := map[int]Inner{0: {"ok"}, 3: {""}, 4: {"ok"}}
 
 	ms := &TestMapStruct{
 		Errs: mi,
@@ -843,7 +843,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]*Inner `validate:"gt=0,dive,required"`
 	}
 
-	mip := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+	mip := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
 
 	msp := &TestMapStructPtr{
 		Errs: mip,
@@ -858,7 +858,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
 	}
 
-	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+	mip2 := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
 
 	msp2 := &TestMapStructPtr2{
 		Errs: mip2,
@@ -945,8 +945,8 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructArray [][]Inner
 
-	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
-	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+	errStructArray = append(errStructArray, []Inner{{"ok"}, {""}, {""}})
+	errStructArray = append(errStructArray, []Inner{{"ok"}, {""}, {""}})
 
 	tms := &TestMultiDimensionalStructs{
 		Errs: errStructArray,
@@ -966,9 +966,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtrArray [][]*Inner
 
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp := &TestMultiDimensionalStructsPtr{
 		Errs: errStructPtrArray,
@@ -991,9 +991,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtr2Array [][]*Inner
 
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp2 := &TestMultiDimensionalStructsPtr2{
 		Errs: errStructPtr2Array,
@@ -1015,9 +1015,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtr3Array [][]*Inner
 
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp3 := &TestMultiDimensionalStructsPtr3{
 		Errs: errStructPtr3Array,
