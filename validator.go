@@ -29,6 +29,7 @@ const (
 	omitempty           = "omitempty"
 	skipValidationTag   = "-"
 	diveTag             = "dive"
+	existsTag           = "exists"
 	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
 	arrayIndexFieldName = "%s[%d]"
 	mapIndexFieldName   = "%s[%v]"
@@ -417,6 +418,10 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	var diveSubTag string
 
 	for _, cTag := range tags {
+
+		if cTag.tagVals[0][0] == existsTag {
+			continue
+		}
 
 		if cTag.tagVals[0][0] == diveTag {
 			dive = true
