@@ -384,7 +384,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		for _, t := range strings.Split(tag, tagSeparator) {
 
 			if t == diveTag {
-				tags = append(tags, &tagCache{tagVals: [][]string{[]string{t}}})
+				tags = append(tags, &tagCache{tagVals: [][]string{{t}}})
 				break
 			}
 
