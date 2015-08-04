@@ -167,6 +167,14 @@ Here is a list of the current built in validators:
 		inside of you program you know the struct will be valid, but need to
 		verify it has been assigned.
 
+	exists
+		Is a special tag without a validation function attached. It is used when a field
+		is a Pointer, Interface or Invalid and you wish to validate that it exists.
+		Example: want to ensure a bool exists if you define the bool as a pointer and
+		use exists it will ensure there is a value; couldn't use required as it would
+		fail when the bool was false. exists will fail is the value is a Pointer, Interface
+		or Invalid and is nil. (Usage: exists)
+
 	omitempty
 		Allows conditional validation, for example if a field is not set with
 		a value (Determined by the required validator) then other validation
