@@ -78,8 +78,9 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 				if idx == -1 {
 					ns = namespace[bracketIdx:]
 				} else {
-					ns = namespace[idx+bracketIdx:]
+					ns = namespace[bracketIdx:]
 				}
+				// fmt.Println("NSS2:", ns)
 			}
 
 			// fmt.Println("Looking for field:", fld)
@@ -93,6 +94,14 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 	case reflect.Array, reflect.Slice:
 		idx := strings.Index(namespace, "[")
 		idx2 := strings.Index(namespace, "]")
+		// idx3 := strings.Index(namespace, namespaceSeparator)
+
+		// if idx3 == -1 {
+		// 	idx3 = 0
+		// } else {
+		// 	idx3 = 1
+		// }
+		//
 
 		arrIdx, _ := strconv.Atoi(namespace[idx+1 : idx2])
 
@@ -102,21 +111,36 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 			return current, kind, false
 		}
 
-		return v.getStructFieldOK(current.Index(arrIdx), namespace[idx2+1:])
+		startIdx := idx2 + 1
+
+		if startIdx < len(namespace) {
+			if namespace[startIdx:startIdx+1] == "." {
+				startIdx++
+			}
+		}
+
+		return v.getStructFieldOK(current.Index(arrIdx), namespace[startIdx:])
 
 	case reflect.Map:
-		idx := strings.Index(namespace, "[")
+		idx := strings.Index(namespace, "[") + 1
 		idx2 := strings.Index(namespace, "]")
 
-		// key, _ := strconv.Atoi(namespace[idx+1 : idx2])
+		endIdx := idx2
 
-		// fmt.Println("ArrayIndex:", arrIdx)
-		// fmt.Println("LEN:", current.Len())
-		// if arrIdx >= current.Len() {
-		// 	return current, kind, false
-		// }
+		// fmt.Println("END IDX:", endIdx)
+		// fmt.Println("L NS:", len(namespace))
+		// fmt.Println("NS:", namespace)
 
-		return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(namespace[idx+1:idx2])), namespace[idx2+1:])
+		if endIdx+1 < len(namespace) {
+			if namespace[endIdx+1:endIdx+2] == "." {
+				endIdx++
+			}
+		}
+
+		// fmt.Println("KEY:", namespace[idx:idx2])
+		// fmt.Println("KEY NS:", namespace[endIdx+1:])
+
+		return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(namespace[idx:idx2])), namespace[endIdx+1:])
 	}
 
 	// fmt.Println("Returning field")

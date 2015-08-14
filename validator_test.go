@@ -194,10 +194,20 @@ func ValidateValuerType(field reflect.Value) interface{} {
 
 func TestCrossNamespaceFieldValidation(t *testing.T) {
 
+	type SliceStruct struct {
+		Name string
+	}
+
+	type MapStruct struct {
+		Name string
+	}
+
 	type Inner struct {
-		CreatedAt *time.Time
-		Slice     []string
-		Map       map[string]string
+		CreatedAt    *time.Time
+		Slice        []string
+		SliceStructs []*SliceStruct
+		Map          map[string]string
+		MapStructs   map[string]*SliceStruct
 	}
 
 	type Test struct {
@@ -208,9 +218,11 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	now := time.Now()
 
 	inner := &Inner{
-		CreatedAt: &now,
-		Slice:     []string{"val1", "val2", "val3"},
-		Map:       map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+		CreatedAt:    &now,
+		Slice:        []string{"val1", "val2", "val3"},
+		SliceStructs: []*SliceStruct{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}},
+		Map:          map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+		MapStructs:   map[string]*SliceStruct{"key1": {Name: "name1"}, "key2": {Name: "name2"}, "key3": {Name: "name3"}},
 	}
 
 	test := &Test{
@@ -232,6 +244,9 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.CrazyNonExistantField")
+	Equal(t, ok, false)
+
 	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
@@ -240,9 +255,10 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
-	// fmt.Println(ok)
-	// fmt.Println(current)
-	// fmt.Println(kind)
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapStructs[key2].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name2")
 }
 
 func TestExistsValidation(t *testing.T) {
