@@ -192,6 +192,59 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+func TestCrossNamespaceFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		Slice     []string
+		Map       map[string]string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time
+	}
+
+	now := time.Now()
+
+	inner := &Inner{
+		CreatedAt: &now,
+		Slice:     []string{"val1", "val2", "val3"},
+		Map:       map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	val := reflect.ValueOf(test)
+
+	current, kind, ok := validate.getStructFieldOK(val, "Inner.CreatedAt")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.Struct)
+	tm, ok := current.Interface().(time.Time)
+	Equal(t, ok, true)
+	Equal(t, tm, now)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[1]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[101]")
+	Equal(t, ok, false)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Map[key3]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val3")
+
+	// fmt.Println(ok)
+	// fmt.Println(current)
+	// fmt.Println(kind)
+}
+
 func TestExistsValidation(t *testing.T) {
 
 	jsonText := "{ \"truthiness2\": true }"
@@ -2710,7 +2763,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 	errs := validate.FieldWithValue(val, field, "required")
 	Equal(t, errs, nil)
 
-	fn := func(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	fn := func(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		return current.String() == field.String()
 	}
@@ -2729,7 +2782,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 
 func TestAddFunctions(t *testing.T) {
 
-	fn := func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	fn := func(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		return true
 	}

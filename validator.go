@@ -22,6 +22,7 @@ import (
 const (
 	utf8HexComma        = "0x2C"
 	utf8Pipe            = "0x7C"
+	namespaceSeparator  = "."
 	tagSeparator        = ","
 	orSeparator         = "|"
 	tagKeySeparator     = "="
@@ -96,7 +97,7 @@ type CustomTypeFunc func(field reflect.Value) interface{}
 // currentStruct = current level struct when validating by struct otherwise optional comparison value
 // field         = field value for validation
 // param         = parameter used in validation i.e. gt=0 param would be 0
-type Func func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool
+type Func func(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool
 
 // ValidationErrors is a type of map[string]*FieldError
 // it exists to allow for multiple errors to be passed from this library
@@ -263,18 +264,11 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		return
 	}
 
-	kind := current.Kind()
+	current, kind := v.determineType(current)
+	var typ reflect.Type
 
-	if kind == reflect.Ptr && !current.IsNil() {
-		current = current.Elem()
-		kind = current.Kind()
-	}
-
-	// this also allows for tags 'required' and 'omitempty' to be used on
-	// nested struct fields because when len(tags) > 0 below and the value is nil
-	// then required failes and we check for omitempty just before that
-	if ((kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil()) || kind == reflect.Invalid {
-
+	switch kind {
+	case reflect.Ptr, reflect.Interface, reflect.Invalid:
 		if strings.Contains(tag, omitempty) {
 			return
 		}
@@ -299,6 +293,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				return
 			}
 
+			// fmt.Println(kind)
 			errs[errPrefix+name] = &FieldError{
 				Field: name,
 				Tag:   vals[0],
@@ -314,66 +309,149 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		if kind == reflect.Invalid {
 			return
 		}
-	}
 
-	typ := current.Type()
-
-	switch kind {
-	case reflect.Struct, reflect.Interface:
-
-		if kind == reflect.Interface {
-
-			current = current.Elem()
-			kind = current.Kind()
-
-			if kind == reflect.Ptr && !current.IsNil() {
-				current = current.Elem()
-				kind = current.Kind()
-			}
-
-			// changed current, so have to get inner type again
-			typ = current.Type()
-
-			if kind != reflect.Struct {
-				goto FALLTHROUGH
-			}
-		}
+	case reflect.Struct:
+		typ = current.Type()
 
 		if typ != timeType && typ != timePtrType {
+			// goto FALLTHROUGH
 
-			if kind == reflect.Struct {
-
-				if v.config.hasCustomFuncs {
-					if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
-						v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
-						return
-					}
-				}
-
-				// required passed validation above so stop here
-				// if only validating the structs existance.
-				if strings.Contains(tag, structOnlyTag) {
-					return
-				}
-
-				v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
+			// required passed validation above so stop here
+			// if only validating the structs existance.
+			if strings.Contains(tag, structOnlyTag) {
 				return
 			}
-		}
-	FALLTHROUGH:
-		fallthrough
-	default:
-		if len(tag) == 0 {
+
+			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
 			return
 		}
+		// FALLTHROUGH:
+		// 	fallthrough
+		// default:
+		// 	fmt.Println(tag)
+		// 	if len(tag) == 0 {
+		// 		return
+		// 	}
 	}
 
-	if v.config.hasCustomFuncs {
-		if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
-			v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
-			return
-		}
+	if len(tag) == 0 {
+		return
 	}
+
+	typ = current.Type()
+	// fmt.Println("Kind:", k)
+
+	// kind := current.Kind()
+
+	// if kind == reflect.Ptr && !current.IsNil() {
+	// 	current = current.Elem()
+	// 	kind = current.Kind()
+	// }
+
+	// this also allows for tags 'required' and 'omitempty' to be used on
+	// nested struct fields because when len(tags) > 0 below and the value is nil
+	// then required failes and we check for omitempty just before that
+	// if ((kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil()) || kind == reflect.Invalid {
+
+	// 	if strings.Contains(tag, omitempty) {
+	// 		return
+	// 	}
+
+	// 	if len(tag) > 0 {
+
+	// 		tags := strings.Split(tag, tagSeparator)
+	// 		var param string
+	// 		vals := strings.SplitN(tags[0], tagKeySeparator, 2)
+
+	// 		if len(vals) > 1 {
+	// 			param = vals[1]
+	// 		}
+
+	// 		if kind == reflect.Invalid {
+	// 			errs[errPrefix+name] = &FieldError{
+	// 				Field: name,
+	// 				Tag:   vals[0],
+	// 				Param: param,
+	// 				Kind:  kind,
+	// 			}
+	// 			return
+	// 		}
+
+	// 		errs[errPrefix+name] = &FieldError{
+	// 			Field: name,
+	// 			Tag:   vals[0],
+	// 			Param: param,
+	// 			Value: current.Interface(),
+	// 			Kind:  kind,
+	// 			Type:  current.Type(),
+	// 		}
+
+	// 		return
+	// 	}
+	// 	// if we get here tag length is zero and we can leave
+	// 	if kind == reflect.Invalid {
+	// 		return
+	// 	}
+	// }
+
+	// typ := current.Type()
+
+	// switch kind {
+	// case reflect.Struct, reflect.Interface:
+
+	// 	if kind == reflect.Interface {
+
+	// 		current = current.Elem()
+	// 		kind = current.Kind()
+
+	// 		if kind == reflect.Ptr && !current.IsNil() {
+	// 			current = current.Elem()
+	// 			kind = current.Kind()
+	// 		}
+
+	// 		// changed current, so have to get inner type again
+	// 		typ = current.Type()
+
+	// 		if kind != reflect.Struct {
+	// 			goto FALLTHROUGH
+	// 		}
+	// 	}
+
+	// 	if typ != timeType && typ != timePtrType {
+
+	// 		if kind == reflect.Struct {
+
+	// 			if v.config.hasCustomFuncs {
+	// 				if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
+	// 					v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
+	// 					return
+	// 				}
+	// 			}
+
+	// 			// required passed validation above so stop here
+	// 			// if only validating the structs existance.
+	// 			if strings.Contains(tag, structOnlyTag) {
+	// 				return
+	// 			}
+
+	// 			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
+	// 			return
+	// 		}
+	// 	}
+	// FALLTHROUGH:
+	// 	fallthrough
+	// default:
+	// 	if len(tag) == 0 {
+	// 		return
+	// 	}
+	// }
+
+	// if v.config.hasCustomFuncs {
+	// 	if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
+	// 		v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
+	// 		return
+	// 	}
+	// }
 
 	tags, isCached := tagsCache.Get(tag)
 
@@ -431,7 +509,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if cTag.tagVals[0][0] == omitempty {
 
-			if !hasValue(topStruct, currentStruct, current, typ, kind, "") {
+			if !hasValue(v, topStruct, currentStruct, current, typ, kind, "") {
 				return
 			}
 			continue
@@ -491,7 +569,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
 
-			if valFunc(topStruct, currentStruct, current, currentType, currentKind, val[1]) {
+			if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, val[1]) {
 				return false
 			}
 
@@ -514,7 +592,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}
 
-	if valFunc(topStruct, currentStruct, current, currentType, currentKind, cTag.tagVals[0][1]) {
+	if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, cTag.tagVals[0][1]) {
 		return false
 	}
 
