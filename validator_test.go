@@ -203,11 +203,17 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	}
 
 	type Inner struct {
-		CreatedAt    *time.Time
-		Slice        []string
-		SliceStructs []*SliceStruct
-		Map          map[string]string
-		MapStructs   map[string]*SliceStruct
+		CreatedAt        *time.Time
+		Slice            []string
+		SliceStructs     []*SliceStruct
+		SliceSlice       [][]string
+		SliceSliceStruct [][]*SliceStruct
+		SliceMap         []map[string]string
+		Map              map[string]string
+		MapMap           map[string]map[string]string
+		MapStructs       map[string]*SliceStruct
+		MapMapStruct     map[string]map[string]*SliceStruct
+		MapSlice         map[string][]string
 	}
 
 	type Test struct {
@@ -218,11 +224,17 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	now := time.Now()
 
 	inner := &Inner{
-		CreatedAt:    &now,
-		Slice:        []string{"val1", "val2", "val3"},
-		SliceStructs: []*SliceStruct{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}},
-		Map:          map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
-		MapStructs:   map[string]*SliceStruct{"key1": {Name: "name1"}, "key2": {Name: "name2"}, "key3": {Name: "name3"}},
+		CreatedAt:        &now,
+		Slice:            []string{"val1", "val2", "val3"},
+		SliceStructs:     []*SliceStruct{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}},
+		SliceSlice:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}},
+		SliceSliceStruct: [][]*SliceStruct{{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}}, {{Name: "name4"}, {Name: "name5"}, {Name: "name6"}}, {{Name: "name7"}, {Name: "name8"}, {Name: "name9"}}},
+		SliceMap:         []map[string]string{{"key1": "val1", "key2": "val2", "key3": "val3"}, {"key4": "val4", "key5": "val5", "key6": "val6"}},
+		Map:              map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+		MapStructs:       map[string]*SliceStruct{"key1": {Name: "name1"}, "key2": {Name: "name2"}, "key3": {Name: "name3"}},
+		MapMap:           map[string]map[string]string{"key1": {"key1-1": "val1"}, "key2": {"key2-1": "val2"}, "key3": {"key3-1": "val3"}},
+		MapMapStruct:     map[string]map[string]*SliceStruct{"key1": {"key1-1": {Name: "name1"}}, "key2": {"key2-1": {Name: "name2"}}, "key3": {"key3-1": {Name: "name3"}}},
+		MapSlice:         map[string][]string{"key1": {"1", "2", "3"}, "key2": {"4", "5", "6"}, "key3": {"7", "8", "9"}},
 	}
 
 	test := &Test{
@@ -255,10 +267,40 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMap[key2][key2-1]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
 	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapStructs[key2].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMapStruct[key3][key3-1].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name3")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSlice[2][0]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "7")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSliceStruct[2][1].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name8")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceMap[1][key5]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val5")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapSlice[key3][2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "9")
 }
 
 func TestExistsValidation(t *testing.T) {
