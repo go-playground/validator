@@ -6,7 +6,13 @@ import (
 	"strings"
 )
 
-func (v *Validate) determineType(current reflect.Value) (reflect.Value, reflect.Kind) {
+const (
+	namespaceSeparator = "."
+	leftBracket        = "["
+	rightBracket       = "]"
+)
+
+func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Kind) {
 
 	switch current.Kind() {
 	case reflect.Ptr:
@@ -15,7 +21,7 @@ func (v *Validate) determineType(current reflect.Value) (reflect.Value, reflect.
 			return current, reflect.Ptr
 		}
 
-		return v.determineType(current.Elem())
+		return v.extractType(current.Elem())
 
 	case reflect.Interface:
 
@@ -23,7 +29,7 @@ func (v *Validate) determineType(current reflect.Value) (reflect.Value, reflect.
 			return current, reflect.Interface
 		}
 
-		return v.determineType(current.Elem())
+		return v.extractType(current.Elem())
 
 	case reflect.Invalid:
 
@@ -31,10 +37,9 @@ func (v *Validate) determineType(current reflect.Value) (reflect.Value, reflect.
 
 	default:
 
-		// fmt.Println(current.Kind())
 		if v.config.hasCustomFuncs {
 			if fn, ok := v.config.CustomTypeFuncs[current.Type()]; ok {
-				return v.determineType(reflect.ValueOf(fn(current)))
+				return v.extractType(reflect.ValueOf(fn(current)))
 			}
 		}
 
@@ -44,14 +49,15 @@ func (v *Validate) determineType(current reflect.Value) (reflect.Value, reflect.
 
 func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
 
-	// fmt.Println("NS:", namespace)
-
-	current, kind := v.determineType(current)
-
-	// fmt.Println("getStructFieldOK - ", current, kind)
+	current, kind := v.extractType(current)
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
+
+		if len(namespace) == 0 {
+			return current, kind, true
+		}
+
 		return current, kind, false
 
 	case reflect.Struct:
@@ -63,50 +69,34 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 
 			idx := strings.Index(namespace, namespaceSeparator)
 
-			// fmt.Println("IDX:", namespace, idx)
 			if idx != -1 {
 				fld = namespace[:idx]
 			}
 
 			ns := namespace[idx+1:]
 
-			bracketIdx := strings.Index(fld, "[")
+			bracketIdx := strings.Index(fld, leftBracket)
 			if bracketIdx != -1 {
 				fld = fld[:bracketIdx]
-				// fmt.Println("NSS:", ns)
 
 				if idx == -1 {
 					ns = namespace[bracketIdx:]
 				} else {
 					ns = namespace[bracketIdx:]
 				}
-				// fmt.Println("NSS2:", ns)
 			}
 
-			// fmt.Println("Looking for field:", fld)
 			current = current.FieldByName(fld)
-
-			// fmt.Println("Current:", current)
 
 			return v.getStructFieldOK(current, ns)
 		}
 
 	case reflect.Array, reflect.Slice:
-		idx := strings.Index(namespace, "[")
-		idx2 := strings.Index(namespace, "]")
-		// idx3 := strings.Index(namespace, namespaceSeparator)
-
-		// if idx3 == -1 {
-		// 	idx3 = 0
-		// } else {
-		// 	idx3 = 1
-		// }
-		//
+		idx := strings.Index(namespace, leftBracket)
+		idx2 := strings.Index(namespace, rightBracket)
 
 		arrIdx, _ := strconv.Atoi(namespace[idx+1 : idx2])
 
-		// fmt.Println("ArrayIndex:", arrIdx)
-		// fmt.Println("LEN:", current.Len())
 		if arrIdx >= current.Len() {
 			return current, kind, false
 		}
@@ -114,7 +104,7 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 		startIdx := idx2 + 1
 
 		if startIdx < len(namespace) {
-			if namespace[startIdx:startIdx+1] == "." {
+			if namespace[startIdx:startIdx+1] == namespaceSeparator {
 				startIdx++
 			}
 		}
@@ -122,27 +112,19 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 		return v.getStructFieldOK(current.Index(arrIdx), namespace[startIdx:])
 
 	case reflect.Map:
-		idx := strings.Index(namespace, "[") + 1
-		idx2 := strings.Index(namespace, "]")
+		idx := strings.Index(namespace, leftBracket) + 1
+		idx2 := strings.Index(namespace, rightBracket)
 
 		endIdx := idx2
 
-		// fmt.Println("END IDX:", endIdx)
-		// fmt.Println("L NS:", len(namespace))
-		// fmt.Println("NS:", namespace)
-
 		if endIdx+1 < len(namespace) {
-			if namespace[endIdx+1:endIdx+2] == "." {
+			if namespace[endIdx+1:endIdx+2] == namespaceSeparator {
 				endIdx++
 			}
 		}
 
-		// fmt.Println("KEY:", namespace[idx:idx2])
-		// fmt.Println("KEY NS:", namespace[endIdx+1:])
-
 		return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(namespace[idx:idx2])), namespace[endIdx+1:])
 	}
 
-	// fmt.Println("Returning field")
 	return current, kind, true
 }
