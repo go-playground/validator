@@ -256,17 +256,11 @@ func isNe(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 
 func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	// if !topStruct.IsValid() {
-	// 	panic("struct or field value not passed for cross validation")
-	// }
-
 	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
-		// fmt.Println("NOT OK:", ok)
 		return false
 	}
 
-	// fmt.Println("HERE", fieldKind)
 	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -279,7 +273,6 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 		return topField.Float() == field.Float()
 
 	case reflect.Slice, reflect.Map, reflect.Array:
-		// fmt.Println(topField.Len(), field.Len())
 		return int64(topField.Len()) == int64(field.Len())
 
 	case reflect.Struct:
@@ -303,10 +296,6 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 }
 
 func isEqField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-
-	// if !currentStruct.IsValid() {
-	// 	panic("struct or field value not passed for cross validation")
-	// }
 
 	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
 	if !ok || currentKind != fieldKind {
@@ -532,65 +521,87 @@ func isGteField(v *Validate, topStruct reflect.Value, current reflect.Value, fie
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGtField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// func isEqField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	if !current.IsValid() {
-		panic("struct not passed for cross validation")
-	}
+// 	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+// 	if !ok || currentKind != fieldKind {
+// 		return false
+// 	}
 
-	if current.Kind() == reflect.Ptr && !current.IsNil() {
-		current = current.Elem()
-	}
+// 	switch fieldKind {
 
-	switch current.Kind() {
+// 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+// 		return field.Int() == currentField.Int()
 
-	case reflect.Struct:
+// 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+// 		return field.Uint() == currentField.Uint()
 
-		if current.Type() == timeType || current.Type() == timePtrType {
-			break
-		}
+// 	case reflect.Float32, reflect.Float64:
+// 		return field.Float() == currentField.Float()
 
-		current = current.FieldByName(param)
+// 	case reflect.Slice, reflect.Map, reflect.Array:
+// 		return int64(field.Len()) == int64(currentField.Len())
 
-		if current.Kind() == reflect.Invalid {
-			panic(fmt.Sprintf("Field \"%s\" not found in struct", param))
-		}
-	}
+// 	case reflect.Struct:
 
-	if current.Kind() == reflect.Ptr && !current.IsNil() {
-		current = current.Elem()
+// 		// Not Same underlying type i.e. struct and time
+// 		if fieldType != currentField.Type() {
+// 			return false
+// 		}
+
+// 		if fieldType == timeType {
+
+// 			t := currentField.Interface().(time.Time)
+// 			fieldTime := field.Interface().(time.Time)
+
+// 			return fieldTime.Equal(t)
+// 		}
+
+// 	}
+
+// 	// default reflect.String:
+// 	return field.String() == currentField.String()
+// }
+
+func isGtField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	if !ok || currentKind != fieldKind {
+		return false
 	}
 
 	switch fieldKind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
-		return field.Int() > current.Int()
+		return field.Int() > currentField.Int()
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 
-		return field.Uint() > current.Uint()
+		return field.Uint() > currentField.Uint()
 
 	case reflect.Float32, reflect.Float64:
 
-		return field.Float() > current.Float()
+		return field.Float() > currentField.Float()
 
 	case reflect.Struct:
 
-		if field.Type() == timeType || field.Type() == timePtrType {
+		// Not Same underlying type i.e. struct and time
+		if fieldType != currentField.Type() {
+			return false
+		}
 
-			if current.Type() != timeType && current.Type() != timePtrType {
-				panic("Bad Top Level field type")
-			}
+		if fieldType == timeType {
 
-			t := current.Interface().(time.Time)
+			t := currentField.Interface().(time.Time)
 			fieldTime := field.Interface().(time.Time)
 
 			return fieldTime.After(t)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	// default reflect.String
+	return len(field.String()) > len(currentField.String())
 }
 
 func isGte(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {

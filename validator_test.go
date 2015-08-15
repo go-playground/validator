@@ -2459,6 +2459,12 @@ func TestGtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtfield")
 
+	errs = validate.FieldWithValue(&timeTest, &end, "gtfield")
+	NotEqual(t, errs, nil)
+
+	errs = validate.FieldWithValue("test", "test bigger", "gtfield")
+	Equal(t, errs, nil)
+
 	type IntTest struct {
 		Val1 int `validate:"required"`
 		Val2 int `validate:"required,gtfield=Val1"`
