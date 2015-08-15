@@ -2604,6 +2604,13 @@ func TestLtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltfield")
 
+	errs = validate.FieldWithValue(timeTest, &end, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue("test", "tes", "ltfield")
+	Equal(t, errs, nil)
+
 	type IntTest struct {
 		Val1 int `validate:"required"`
 		Val2 int `validate:"required,ltfield=Val1"`
@@ -2691,7 +2698,10 @@ func TestLtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltfield") }, "struct not passed for cross validation")
+	errs = validate.FieldWithValue(nil, 5, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
 	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltfield") }, "Bad field type string")
 	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltfield") }, "Bad Top Level field type")
 
@@ -2742,6 +2752,16 @@ func TestLteField(t *testing.T) {
 	errs = validate.FieldWithValue(&start, &end, "ltefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue(timeTest, &end, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue("test", "tes", "ltefield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue("test", "test", "ltefield")
+	Equal(t, errs, nil)
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2830,7 +2850,10 @@ func TestLteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltefield") }, "struct not passed for cross validation")
+	errs = validate.FieldWithValue(nil, 5, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
 	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltefield") }, "Bad field type string")
 	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltefield") }, "Bad Top Level field type")
 
@@ -2979,7 +3002,10 @@ func TestGteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtefield") }, "struct not passed for cross validation")
+	errs = validate.FieldWithValue(nil, 1, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
+
 	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtefield") }, "Bad field type string")
 	PanicMatches(t, func() { validate.FieldWithValue(5, start, "gtefield") }, "Bad Top Level field type")
 
