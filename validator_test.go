@@ -192,6 +192,110 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+func TestCrossStructEqFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"eqcsfield=Inner.CreatedAt"`
+	}
+
+	now := time.Now().UTC()
+
+	inner := &Inner{
+		CreatedAt: &now,
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	newTime := time.Now().UTC()
+	test.CreatedAt = &newTime
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "eqcsfield")
+
+	var j uint64
+	var k float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+
+	var j2 uint64
+	var k2 float64
+	s2 := "abcd"
+	i2 := 1
+	j2 = 1
+	k2 = 1.543
+	arr2 := []string{"test"}
+	arr3 := []string{"test", "test2"}
+	now2 := now
+
+	errs = validate.FieldWithValue(s, s2, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(i2, i, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(j2, j, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(k2, k, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(arr2, arr, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(now2, now, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(arr3, arr, "eqcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqcsfield")
+
+	type SInner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *SInner
+		CreatedAt *time.Time `validate:"eqcsfield=Inner"`
+	}
+
+	sinner := &SInner{
+		Name: "NAME",
+	}
+
+	test2 := &TStruct{
+		Inner:     sinner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqcsfield")
+
+	test2.Inner = nil
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqcsfield")
+
+	errs = validate.FieldWithValue(nil, 1, "eqcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqcsfield")
+}
+
 func TestCrossNamespaceFieldValidation(t *testing.T) {
 
 	type SliceStruct struct {
@@ -328,6 +432,14 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.Ptr)
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
 	Equal(t, current.IsNil(), true)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceStructs[2].Name")
+	Equal(t, ok, false)
+	Equal(t, kind, reflect.Ptr)
+	Equal(t, current.String(), "<*validator.SliceStruct Value>")
+	Equal(t, current.IsNil(), true)
+
+	PanicMatches(t, func() { validate.getStructFieldOK(reflect.ValueOf(1), "crazyinput") }, "Invalid field namespace")
 }
 
 func TestExistsValidation(t *testing.T) {
@@ -2063,9 +2175,11 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.Struct(sv)
 	Equal(t, errs, nil)
 
+	errs = validate.FieldWithValue(nil, 1, "nefield")
+	Equal(t, errs, nil)
+
 	channel := make(chan string)
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "nefield") }, "struct or field value not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "nefield") }, "Bad field type chan string")
 	PanicMatches(t, func() { validate.FieldWithValue(5, now, "nefield") }, "Bad Top Level field type")
 
@@ -2182,9 +2296,12 @@ func TestIsEqFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Start", "Start", "eqfield")
 
+	errs = validate.FieldWithValue(nil, 1, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
+
 	channel := make(chan string)
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "eqfield") }, "struct or field value not passed for cross validation")
 	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "eqfield") }, "Bad field type chan string")
 	PanicMatches(t, func() { validate.FieldWithValue(5, now, "eqfield") }, "Bad Top Level field type")
 
@@ -2199,6 +2316,28 @@ func TestIsEqFieldValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Struct(sv2) }, "Field \"NonExistantField\" not found in struct")
+
+	type Inner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"eqfield=Inner"`
+	}
+
+	inner := &Inner{
+		Name: "NAME",
+	}
+
+	test := &TStruct{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqfield")
 }
 
 func TestIsEqValidation(t *testing.T) {

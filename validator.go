@@ -311,7 +311,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	case reflect.Struct:
 		typ = current.Type()
 
-		if typ != timeType && typ != timePtrType {
+		if typ != timeType {
 
 			// required passed validation above so stop here
 			// if only validating the structs existance.
