@@ -224,16 +224,12 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "necsfield")
 
-	// var j uint64
-	// var k float64
 	s := "abcd"
 	i := 1
 	j := 1
 	k := 1.543
 	arr := []string{"test"}
 
-	// var j2 uint64
-	// var k2 float64
 	s2 := "abcd"
 	i2 := 1
 	j2 := 1

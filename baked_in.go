@@ -254,6 +254,170 @@ func isNe(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 	return !isEq(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
+func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	if !ok || topKind != fieldKind {
+		return false
+	}
+
+	switch fieldKind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() <= topField.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() <= topField.Uint()
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() <= topField.Float()
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) <= int64(topField.Len())
+
+	case reflect.Struct:
+
+		// Not Same underlying type i.e. struct and time
+		if fieldType != topField.Type() {
+			return false
+		}
+
+		if fieldType == timeType {
+
+			fieldTime := field.Interface().(time.Time)
+			topTime := topField.Interface().(time.Time)
+
+			return fieldTime.Before(topTime) || fieldTime.Equal(topTime)
+		}
+	}
+
+	// default reflect.String:
+	return topField.String() <= field.String()
+}
+
+func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	if !ok || topKind != fieldKind {
+		return false
+	}
+
+	switch fieldKind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() < topField.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() < topField.Uint()
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() < topField.Float()
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) < int64(topField.Len())
+
+	case reflect.Struct:
+
+		// Not Same underlying type i.e. struct and time
+		if fieldType != topField.Type() {
+			return false
+		}
+
+		if fieldType == timeType {
+
+			fieldTime := field.Interface().(time.Time)
+			topTime := topField.Interface().(time.Time)
+
+			return fieldTime.Before(topTime)
+		}
+	}
+
+	// default reflect.String:
+	return topField.String() < field.String()
+}
+
+func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	if !ok || topKind != fieldKind {
+		return false
+	}
+
+	switch fieldKind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() >= topField.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() >= topField.Uint()
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() >= topField.Float()
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) >= int64(topField.Len())
+
+	case reflect.Struct:
+
+		// Not Same underlying type i.e. struct and time
+		if fieldType != topField.Type() {
+			return false
+		}
+
+		if fieldType == timeType {
+
+			fieldTime := field.Interface().(time.Time)
+			topTime := topField.Interface().(time.Time)
+
+			return fieldTime.After(topTime) || fieldTime.Equal(topTime)
+		}
+	}
+
+	// default reflect.String:
+	return topField.String() >= field.String()
+}
+
+func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	if !ok || topKind != fieldKind {
+		return false
+	}
+
+	switch fieldKind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() > topField.Int()
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() > topField.Uint()
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() > topField.Float()
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) > int64(topField.Len())
+
+	case reflect.Struct:
+
+		// Not Same underlying type i.e. struct and time
+		if fieldType != topField.Type() {
+			return false
+		}
+
+		if fieldType == timeType {
+
+			fieldTime := field.Interface().(time.Time)
+			topTime := topField.Interface().(time.Time)
+
+			return fieldTime.After(topTime)
+		}
+	}
+
+	// default reflect.String:
+	return topField.String() > field.String()
+}
+
 func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	return !isEqCrossStructField(v, topStruct, current, field, fieldType, fieldKind, param)
@@ -297,7 +461,7 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	}
 
 	// default reflect.String:
-	return topField.String() == current.String()
+	return topField.String() == field.String()
 }
 
 func isEqField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
