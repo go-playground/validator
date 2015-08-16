@@ -192,6 +192,112 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+func TestCrossStructNeFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"necsfield=Inner.CreatedAt"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "necsfield")
+
+	// var j uint64
+	// var k float64
+	s := "abcd"
+	i := 1
+	j := 1
+	k := 1.543
+	arr := []string{"test"}
+
+	// var j2 uint64
+	// var k2 float64
+	s2 := "abcd"
+	i2 := 1
+	j2 := 1
+	k2 := 1.543
+	arr2 := []string{"test"}
+	arr3 := []string{"test", "test2"}
+	now2 := now
+
+	errs = validate.FieldWithValue(s, s2, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(i2, i, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(j2, j, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(k2, k, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(arr2, arr, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(now2, now, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(arr3, arr, "necsfield")
+	Equal(t, errs, nil)
+
+	type SInner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *SInner
+		CreatedAt *time.Time `validate:"necsfield=Inner"`
+	}
+
+	sinner := &SInner{
+		Name: "NAME",
+	}
+
+	test2 := &TStruct{
+		Inner:     sinner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test2)
+	Equal(t, errs, nil)
+
+	test2.Inner = nil
+	errs = validate.Struct(test2)
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(nil, 1, "necsfield")
+	Equal(t, errs, nil)
+}
+
 func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	type Inner struct {
