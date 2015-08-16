@@ -318,6 +318,19 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 		MapStructs       map[string]*SliceStruct
 		MapMapStruct     map[string]map[string]*SliceStruct
 		MapSlice         map[string][]string
+		MapInt           map[int]string
+		MapInt8          map[int8]string
+		MapInt16         map[int16]string
+		MapInt32         map[int32]string
+		MapInt64         map[int64]string
+		MapUint          map[uint]string
+		MapUint8         map[uint8]string
+		MapUint16        map[uint16]string
+		MapUint32        map[uint32]string
+		MapUint64        map[uint64]string
+		MapFloat32       map[float32]string
+		MapFloat64       map[float64]string
+		MapBool          map[bool]string
 	}
 
 	type Test struct {
@@ -339,6 +352,19 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 		MapMap:           map[string]map[string]string{"key1": {"key1-1": "val1"}, "key2": {"key2-1": "val2"}, "key3": {"key3-1": "val3"}},
 		MapMapStruct:     map[string]map[string]*SliceStruct{"key1": {"key1-1": {Name: "name1"}}, "key2": {"key2-1": {Name: "name2"}}, "key3": {"key3-1": {Name: "name3"}}},
 		MapSlice:         map[string][]string{"key1": {"1", "2", "3"}, "key2": {"4", "5", "6"}, "key3": {"7", "8", "9"}},
+		MapInt:           map[int]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt8:          map[int8]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt16:         map[int16]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt32:         map[int32]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt64:         map[int64]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint:          map[uint]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint8:         map[uint8]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint16:        map[uint16]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint32:        map[uint32]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint64:        map[uint64]string{1: "val1", 2: "val2", 3: "val3"},
+		MapFloat32:       map[float32]string{1.01: "val1", 2.02: "val2", 3.03: "val3"},
+		MapFloat64:       map[float64]string{1.01: "val1", 2.02: "val2", 3.03: "val3"},
+		MapBool:          map[bool]string{true: "val1", false: "val2"},
 	}
 
 	test := &Test{
@@ -405,6 +431,71 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "9")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt8[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt16[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt32[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt64[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint8[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint16[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint32[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint64[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat32[3.03]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val3")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat64[2.02]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapBool[true]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val1")
 
 	inner = &Inner{
 		CreatedAt:        &now,

@@ -151,7 +151,56 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 			}
 		}
 
-		return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(namespace[idx:idx2])), namespace[endIdx+1:])
+		key := namespace[idx:idx2]
+
+		switch current.Type().Key().Kind() {
+		case reflect.Int:
+			i, _ := strconv.Atoi(key)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+		case reflect.Int8:
+			i, _ := strconv.ParseInt(key, 10, 8)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(int8(i))), namespace[endIdx+1:])
+		case reflect.Int16:
+			i, _ := strconv.ParseInt(key, 10, 16)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(int16(i))), namespace[endIdx+1:])
+		case reflect.Int32:
+			i, _ := strconv.ParseInt(key, 10, 32)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(int32(i))), namespace[endIdx+1:])
+		case reflect.Int64:
+			i, _ := strconv.ParseInt(key, 10, 64)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+		case reflect.Uint:
+			i, _ := strconv.ParseUint(key, 10, 0)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(uint(i))), namespace[endIdx+1:])
+		case reflect.Uint8:
+			i, _ := strconv.ParseUint(key, 10, 8)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(uint8(i))), namespace[endIdx+1:])
+		case reflect.Uint16:
+			i, _ := strconv.ParseUint(key, 10, 16)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(uint16(i))), namespace[endIdx+1:])
+		case reflect.Uint32:
+			i, _ := strconv.ParseUint(key, 10, 32)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(uint32(i))), namespace[endIdx+1:])
+		case reflect.Uint64:
+			i, _ := strconv.ParseUint(key, 10, 64)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+		case reflect.Float32:
+			f, _ := strconv.ParseFloat(key, 32)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(float32(f))), namespace[endIdx+1:])
+		case reflect.Float64:
+			f, _ := strconv.ParseFloat(key, 64)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(f)), namespace[endIdx+1:])
+		case reflect.Bool:
+			b, _ := strconv.ParseBool(key)
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(b)), namespace[endIdx+1:])
+
+		// reflect.Type = string
+		default:
+			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(key)), namespace[endIdx+1:])
+		}
+		// v.Type().Key().Kind()
+
+		// return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(key)), namespace[endIdx+1:])
 	}
 
 	// if got here there was more namespace, cannot go any deeper
