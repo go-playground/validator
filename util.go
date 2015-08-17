@@ -32,7 +32,6 @@ func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Ki
 		return v.extractType(current.Elem())
 
 	case reflect.Invalid:
-
 		return current, reflect.Invalid
 
 	default:

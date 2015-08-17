@@ -251,6 +251,13 @@ func contains(v *Validate, topStruct reflect.Value, currentStruct reflect.Value,
 }
 
 func isNeField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	_, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+
+	if !ok || currentKind != fieldKind {
+		return true
+	}
+
 	return !isEqField(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
 }
 
@@ -423,6 +430,11 @@ func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 }
 
 func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	_, currentKind, ok := v.getStructFieldOK(topStruct, param)
+	if !ok || currentKind != fieldKind {
+		return true
+	}
 
 	return !isEqCrossStructField(v, topStruct, current, field, fieldType, fieldKind, param)
 }

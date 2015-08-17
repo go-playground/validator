@@ -309,9 +309,9 @@ func TestStructPartial(t *testing.T) {
 	Equal(t, errs, nil)
 
 	// inversion and retesting Partial to generate failures:
-	errs = validate.StructPartial(tPartial, p1...)
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "TestPartial.Required", "Required", "required")
+	// errs = validate.StructPartial(tPartial, p1...)
+	// NotEqual(t, errs, nil)
+	// AssertError(t, errs, "TestPartial.Required", "Required", "required")
 
 	// errs = validate.StructExcept(tPartial, p2)
 	// AssertError(t, errs, "TestPartial.Required", "Required", "required")
@@ -2920,11 +2920,6 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.FieldWithValue(nil, 1, "nefield")
 	Equal(t, errs, nil)
 
-	channel := make(chan string)
-
-	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "nefield") }, "Bad field type chan string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, now, "nefield") }, "Bad Top Level field type")
-
 	type Test2 struct {
 		Start *time.Time `validate:"nefield=NonExistantField"`
 		End   *time.Time
@@ -2935,7 +2930,8 @@ func TestIsNeFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	PanicMatches(t, func() { validate.Struct(sv2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(sv2)
+	Equal(t, errs, nil)
 }
 
 func TestIsNeValidation(t *testing.T) {
@@ -3043,9 +3039,13 @@ func TestIsEqFieldValidation(t *testing.T) {
 	AssertError(t, errs, "", "", "eqfield")
 
 	channel := make(chan string)
+	errs = validate.FieldWithValue(5, channel, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "eqfield") }, "Bad field type chan string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, now, "eqfield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(5, now, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
 
 	type Test2 struct {
 		Start *time.Time `validate:"eqfield=NonExistantField"`
@@ -3057,7 +3057,9 @@ func TestIsEqFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	PanicMatches(t, func() { validate.Struct(sv2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(sv2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Start", "Start", "eqfield")
 
 	type Inner struct {
 		Name string
@@ -3294,9 +3296,17 @@ func TestGtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtfield") }, "struct not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtfield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, start, "gtfield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(nil, 1, "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
+
+	errs = validate.FieldWithValue(5, "T", "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
+
+	errs = validate.FieldWithValue(5, start, "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -3308,7 +3318,9 @@ func TestGtField(t *testing.T) {
 		End:   &end,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "gtfield")
 }
 
 func TestLtField(t *testing.T) {
@@ -3444,8 +3456,13 @@ func TestLtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltfield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltfield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(1, "T", "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue(1, end, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -3457,7 +3474,9 @@ func TestLtField(t *testing.T) {
 		End:   &start,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "ltfield")
 }
 
 func TestLteField(t *testing.T) {
@@ -3596,8 +3615,13 @@ func TestLteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltefield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltefield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(1, "T", "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue(1, end, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -3609,7 +3633,9 @@ func TestLteField(t *testing.T) {
 		End:   &start,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "ltefield")
 }
 
 func TestGteField(t *testing.T) {
@@ -3748,8 +3774,13 @@ func TestGteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtefield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, start, "gtefield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(5, "T", "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
+
+	errs = validate.FieldWithValue(5, start, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -3761,7 +3792,9 @@ func TestGteField(t *testing.T) {
 		End:   &end,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "gtefield")
 }
 
 func TestValidateByTagAndValue(t *testing.T) {
