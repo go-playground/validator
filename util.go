@@ -51,15 +51,6 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 
 	current, kind := v.extractType(current)
 
-	// fmt.Println("SOK:", current, kind, namespace)
-
-	// if len(namespace) == 0 {
-	// 	// if kind == reflect.Invalid {
-	// 	// 	return current, kind, false
-	// 	// }
-	// 	return current, kind, true
-	// }
-
 	if kind == reflect.Invalid {
 		return current, kind, false
 	}
@@ -69,8 +60,6 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 	}
 
 	switch kind {
-	// case reflect.Invalid:
-	// 	return current, kind, false
 
 	case reflect.Ptr, reflect.Interface:
 
@@ -94,27 +83,14 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 				idx = len(namespace)
 			}
 
-			// ns := namespace[idx+1:]
-
 			bracketIdx := strings.Index(fld, leftBracket)
 			if bracketIdx != -1 {
 				fld = fld[:bracketIdx]
 
 				ns = namespace[bracketIdx:]
-				// if idx == -1 {
-				// 	ns = namespace[bracketIdx:]
-				// } else {
-				// 	ns = namespace[bracketIdx:]
-				// }
 			}
 
 			current = current.FieldByName(fld)
-
-			// if current.Kind() == reflect.Invalid {
-			// 	return current, reflect.Invalid, false
-			// }
-
-			// fmt.Println("NS:", ns, idx)
 
 			return v.getStructFieldOK(current, ns)
 		}
@@ -198,14 +174,10 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 		default:
 			return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(key)), namespace[endIdx+1:])
 		}
-		// v.Type().Key().Kind()
-
-		// return v.getStructFieldOK(current.MapIndex(reflect.ValueOf(key)), namespace[endIdx+1:])
 	}
 
 	// if got here there was more namespace, cannot go any deeper
 	panic("Invalid field namespace")
-	// return current, kind, false
 }
 
 // asInt retuns the parameter as a int64
