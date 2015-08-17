@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -130,7 +129,8 @@ type valuer struct {
 func (v valuer) Value() (driver.Value, error) {
 
 	if v.Name == "errorme" {
-		return nil, errors.New("some kind of error")
+		panic("SQL Driver Valuer error: some kind of error")
+		// return nil, errors.New("some kind of error")
 	}
 
 	if len(v.Name) == 0 {
@@ -1240,7 +1240,7 @@ func TestSQLValue2Validation(t *testing.T) {
 
 	val.Name = "errorme"
 
-	PanicMatches(t, func() { errs = validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+	PanicMatches(t, func() { validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
 
 	type myValuer valuer
 
@@ -4248,7 +4248,9 @@ func TestHsla(t *testing.T) {
 	AssertError(t, errs, "", "", "hsla")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "hsla") }, "interface conversion: interface is int, not string")
+	validate.Field(i, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 }
 
 func TestHsl(t *testing.T) {
@@ -4282,7 +4284,9 @@ func TestHsl(t *testing.T) {
 	AssertError(t, errs, "", "", "hsl")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "hsl") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 }
 
 func TestRgba(t *testing.T) {
@@ -4324,7 +4328,9 @@ func TestRgba(t *testing.T) {
 	AssertError(t, errs, "", "", "rgba")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "rgba") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 }
 
 func TestRgb(t *testing.T) {
@@ -4362,7 +4368,9 @@ func TestRgb(t *testing.T) {
 	AssertError(t, errs, "", "", "rgb")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "rgb") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 }
 
 func TestEmail(t *testing.T) {
@@ -4392,7 +4400,9 @@ func TestEmail(t *testing.T) {
 	AssertError(t, errs, "", "", "email")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "email") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 }
 
 func TestHexColor(t *testing.T) {
@@ -4416,7 +4426,9 @@ func TestHexColor(t *testing.T) {
 	AssertError(t, errs, "", "", "hexcolor")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "hexcolor") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
 }
 
 func TestHexadecimal(t *testing.T) {
@@ -4431,7 +4443,9 @@ func TestHexadecimal(t *testing.T) {
 	AssertError(t, errs, "", "", "hexadecimal")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "hexadecimal") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "hexadecimal")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexadecimal")
 }
 
 func TestNumber(t *testing.T) {
@@ -4476,7 +4490,9 @@ func TestNumber(t *testing.T) {
 	AssertError(t, errs, "", "", "number")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "number") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 }
 
 func TestNumeric(t *testing.T) {
@@ -4516,7 +4532,9 @@ func TestNumeric(t *testing.T) {
 	AssertError(t, errs, "", "", "numeric")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "numeric") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
 }
 
 func TestAlphaNumeric(t *testing.T) {
@@ -4530,7 +4548,9 @@ func TestAlphaNumeric(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "alphanum")
 
-	PanicMatches(t, func() { validate.Field(1, "alphanum") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(1, "alphanum")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alphanum")
 }
 
 func TestAlpha(t *testing.T) {
@@ -4542,10 +4562,11 @@ func TestAlpha(t *testing.T) {
 	s = "abc1"
 	errs = validate.Field(s, "alpha")
 	NotEqual(t, errs, nil)
-
 	AssertError(t, errs, "", "", "alpha")
 
-	PanicMatches(t, func() { validate.Field(1, "alpha") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(1, "alpha")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alpha")
 }
 
 func TestStructStringValidation(t *testing.T) {
@@ -4796,22 +4817,6 @@ func TestInvalidStruct(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Struct(s.Test) }, "value passed for validation is not a struct")
-}
-
-func TestInvalidField(t *testing.T) {
-	s := &SubTest{
-		Test: "1",
-	}
-
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to traverseField")
-}
-
-func TestInvalidTagField(t *testing.T) {
-	s := &SubTest{
-		Test: "1",
-	}
-
-	PanicMatches(t, func() { validate.Field(s.Test, "") }, fmt.Sprintf("Invalid validation tag on field %s", ""))
 }
 
 func TestInvalidValidatorFunction(t *testing.T) {
