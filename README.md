@@ -194,22 +194,22 @@ hurt parallel performance too much.
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4	 					 5000000	       326 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldFailure-4	 					 5000000	       327 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldCustomTypeSuccess-4	 		 3000000	       490 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldCustomTypeFailure-4	 		 2000000	       829 ns/op	     416 B/op	       6 allocs/op
-BenchmarkFieldOrTagSuccess-4	  			  500000	      2448 ns/op	      20 B/op	       2 allocs/op
-BenchmarkFieldOrTagFailure-4	 			 1000000	      1290 ns/op	     384 B/op	       6 allocs/op
-BenchmarkStructSimpleSuccess-4	 			 1000000	      1233 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4	 			 1000000	      1847 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1292 ns/op	      56 B/op	       5 allocs/op
-BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1840 ns/op	     577 B/op	      13 allocs/op
+BenchmarkFieldSuccess-4	 					 5000000	       332 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4	 					 5000000	       334 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldCustomTypeSuccess-4	 		 3000000	       502 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4	 		 2000000	       833 ns/op	     416 B/op	       6 allocs/op
+BenchmarkFieldOrTagSuccess-4	  			  500000	      2520 ns/op	      20 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4	 			 1000000	      1310 ns/op	     384 B/op	       6 allocs/op
+BenchmarkStructSimpleSuccess-4	 			 1000000	      1274 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4	 			 1000000	      1887 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1374 ns/op	      56 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1871 ns/op	     577 B/op	      13 allocs/op
 BenchmarkStructSimpleSuccessParallel-4	 	 5000000	       353 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4	 	 2000000	       746 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4	  			  200000	      7265 ns/op	     368 B/op	      30 allocs/op
-BenchmarkStructComplexFailure-4	  			  100000	     12068 ns/op	    2860 B/op	      72 allocs/op
-BenchmarkStructComplexSuccessParallel-4	 	 1000000	      2179 ns/op	     368 B/op	      30 allocs/op
-BenchmarkStructComplexFailureParallel-4	  	  300000	      4436 ns/op	    2863 B/op	      72 allocs/op
+BenchmarkStructSimpleFailureParallel-4	 	 2000000	       799 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4	  			  200000	      7521 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailure-4	  			  100000	     12341 ns/op	    2861 B/op	      72 allocs/op
+BenchmarkStructComplexSuccessParallel-4	 	 1000000	      2463 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailureParallel-4	  	  300000	      5141 ns/op	    2862 B/op	      72 allocs/op
 ```
 
 How to Contribute

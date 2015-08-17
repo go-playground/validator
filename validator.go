@@ -216,35 +216,28 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 	name := sv.Type().Name()
 	m := map[string]*struct{}{}
 
-	var i int
-
 	if fields != nil {
 		for _, k := range fields {
 
-			flds := strings.Split(k, ".")
+			flds := strings.Split(k, namespaceSeparator)
 			if len(flds) > 0 {
 
-				key := name
+				key := name + namespaceSeparator
 				for _, s := range flds {
 
-					idx := strings.Index(s, "[")
+					idx := strings.Index(s, leftBracket)
 
 					if idx != -1 {
 						for idx != -1 {
-							i++
 							key += s[:idx]
 							m[key] = emptyStructPtr
 
-							idx2 := strings.Index(s, "]")
+							idx2 := strings.Index(s, rightBracket)
 							idx2++
 							key += s[idx:idx2]
 							m[key] = emptyStructPtr
 							s = s[idx2:]
-							idx = strings.Index(s, "[")
-
-							if i == 10 {
-								idx = -1
-							}
+							idx = strings.Index(s, leftBracket)
 						}
 					} else {
 
@@ -252,7 +245,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 						m[key] = emptyStructPtr
 					}
 
-					key += "."
+					key += namespaceSeparator
 				}
 			}
 		}

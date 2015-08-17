@@ -228,9 +228,9 @@ func TestStructPartial(t *testing.T) {
 		"SubTest.Test",
 	}
 
-	// p4 := []string{
-	// 	"A",
-	// }
+	p4 := []string{
+		"A",
+	}
 
 	tPartial := &TestPartial{
 		NoTag:    "NoTag",
@@ -309,123 +309,117 @@ func TestStructPartial(t *testing.T) {
 	Equal(t, errs, nil)
 
 	// inversion and retesting Partial to generate failures:
-	// errs = validate.StructPartial(tPartial, p1...)
-	// NotEqual(t, errs, nil)
-	// AssertError(t, errs, "TestPartial.Required", "Required", "required")
+	errs = validate.StructPartial(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Required", "Required", "required")
 
-	// errs = validate.StructExcept(tPartial, p2)
-	// AssertError(t, errs, "TestPartial.Required", "Required", "required")
+	errs = validate.StructExcept(tPartial, p2...)
+	AssertError(t, errs, "TestPartial.Required", "Required", "required")
 
-	// // reset Required field, and set nested struct
-	// tPartial.Required = "Required"
-	// tPartial.Anonymous.A = ""
+	// reset Required field, and set nested struct
+	tPartial.Required = "Required"
+	tPartial.Anonymous.A = ""
 
-	// // will pass as unset feilds is not going to be tested
-	// errs = validate.StructPartial(tPartial, p1)
-	// Equal(t, errs, nil)
+	// will pass as unset feilds is not going to be tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
 
-	// errs = validate.StructExcept(tPartial, p2)
-	// Equal(t, errs, nil)
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
 
-	// // ANON CASE the response here is strange, it clearly does what it is being told to
-	// errs = validate.StructExcept(tPartial.Anonymous, p4)
-	// AssertError(t, errs, ".A", "A", "required")
+	// ANON CASE the response here is strange, it clearly does what it is being told to
+	errs = validate.StructExcept(tPartial.Anonymous, p4...)
+	Equal(t, errs, nil)
 
-	// // will fail as unset feild is tested
-	// errs = validate.StructPartial(tPartial, p2)
-	// AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+	// will fail as unset feild is tested
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
 
-	// errs = validate.StructExcept(tPartial, p1)
-	// AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
 
-	// // reset nested struct and unset struct in slice
-	// tPartial.Anonymous.A = "Required"
-	// tPartial.SubSlice[0].Test = ""
+	// reset nested struct and unset struct in slice
+	tPartial.Anonymous.A = "Required"
+	tPartial.SubSlice[0].Test = ""
 
-	// // these will pass as unset item is NOT tested
-	// errs = validate.StructPartial(tPartial, p1)
-	// Equal(t, errs, nil)
+	// these will pass as unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
 
-	// errs = validate.StructExcept(tPartial, p2)
-	// Equal(t, errs, nil)
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
 
-	// // these will fail as unset item IS tested
-	// errs = validate.StructExcept(tPartial, p1)
-	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
-	// Equal(t, len(errs), 1)
+	// these will fail as unset item IS tested
+	errs = validate.StructExcept(tPartial, p1...)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	Equal(t, len(errs), 1)
 
-	// errs = validate.StructPartial(tPartial, p2)
-	// //Equal(t, errs, nil)
-	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
-	// Equal(t, len(errs), 1)
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	Equal(t, len(errs), 1)
 
-	// // Unset second slice member concurrently to test dive behavior:
-	// tPartial.SubSlice[1].Test = ""
+	// Unset second slice member concurrently to test dive behavior:
+	tPartial.SubSlice[1].Test = ""
 
-	// errs = validate.StructPartial(tPartial, p1)
-	// Equal(t, errs, nil)
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
 
-	// // Case note:
-	// // were bypassing dive here? by setting a single item?
-	// // im not sure anyone would or should do this, I cant think of a reason
-	// // why they would but you never know. As for describing this behavior in
-	// // documentation I would be at a loss as to do it
-	// // especialy concidering the next test
-	// errs = validate.StructExcept(tPartial, p2)
-	// Equal(t, errs, nil)
-	// //AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+	// NOTE: When specifying nested items, it is still the users responsibility
+	// to specify the dive tag, the library does not override this.
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
 
-	// // test sub validation:
-	// // this is diving
-	// errs = validate.StructExcept(tPartial, p1)
-	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
-	// AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
-	// Equal(t, len(errs), 2)
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
 
-	// errs = validate.StructPartial(tPartial, p2)
-	// //Equal(t, errs, nil)
-	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
-	// Equal(t, len(errs), 1)
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
 
-	// // reset struct in slice, and unset struct in slice in unset posistion
-	// tPartial.SubSlice[0].Test = "Required"
+	// reset struct in slice, and unset struct in slice in unset posistion
+	tPartial.SubSlice[0].Test = "Required"
 
-	// // these will pass as the unset item is NOT tested
-	// errs = validate.StructPartial(tPartial, p1)
-	// Equal(t, errs, nil)
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
 
-	// errs = validate.StructPartial(tPartial, p2)
-	// Equal(t, errs, nil)
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
 
-	// // testing for missing item by exception, yes it dives and fails
-	// errs = validate.StructExcept(tPartial, p1)
-	// AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
-	// Equal(t, len(errs), 1)
+	// testing for missing item by exception, yes it dives and fails
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
 
-	// // See above case note... this is a variation on the above
-	// // when all taken into account it seems super strange!
-	// errs = validate.StructExcept(tPartial, p2)
-	// Equal(t, errs, nil)
-	// //AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
 
-	// tPartial.SubSlice[1].Test = "Required"
+	tPartial.SubSlice[1].Test = "Required"
 
-	// tPartial.Anonymous.SubAnonStruct[0].Test = ""
-	// // these will pass as the unset item is NOT tested
-	// errs = validate.StructPartial(tPartial, p1)
-	// Equal(t, errs, nil)
+	tPartial.Anonymous.SubAnonStruct[0].Test = ""
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
 
-	// errs = validate.StructPartial(tPartial, p2)
-	// Equal(t, errs, nil)
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
 
-	// errs = validate.StructExcept(tPartial, p1)
-	// AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
 
-	// // See above case note... this is a variation on the above
-	// // when all taken into account it seems super strange!
-	// errs = validate.StructExcept(tPartial, p2)
-	// Equal(t, errs, nil)
-	// //AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
 
 }
 
