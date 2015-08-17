@@ -27,6 +27,10 @@ var BakedInValidators = map[string]Func{
 	"eqfield":      isEqField,
 	"eqcsfield":    isEqCrossStructField,
 	"necsfield":    isNeCrossStructField,
+	"gtcsfield":    isGtCrossStructField,
+	"gtecsfield":   isGteCrossStructField,
+	"ltcsfield":    isLtCrossStructField,
+	"ltecsfield":   isLteCrossStructField,
 	"nefield":      isNeField,
 	"gtefield":     isGteField,
 	"gtfield":      isGtField,
@@ -292,7 +296,7 @@ func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 	}
 
 	// default reflect.String:
-	return topField.String() <= field.String()
+	return field.String() <= topField.String()
 }
 
 func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -333,7 +337,7 @@ func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	}
 
 	// default reflect.String:
-	return topField.String() < field.String()
+	return field.String() < topField.String()
 }
 
 func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -374,7 +378,7 @@ func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 	}
 
 	// default reflect.String:
-	return topField.String() >= field.String()
+	return field.String() >= topField.String()
 }
 
 func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -415,7 +419,7 @@ func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	}
 
 	// default reflect.String:
-	return topField.String() > field.String()
+	return field.String() > topField.String()
 }
 
 func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {

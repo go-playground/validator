@@ -192,6 +192,314 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+func TestCrossStructLteFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"ltecsfield=Inner.CreatedAt"`
+		String    string     `validate:"ltecsfield=Inner.String"`
+		Int       int        `validate:"ltecsfield=Inner.Int"`
+		Uint      uint       `validate:"ltecsfield=Inner.Uint"`
+		Float     float64    `validate:"ltecsfield=Inner.Float"`
+		Array     []string   `validate:"ltecsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abc",
+		Int:       12,
+		Uint:      12,
+		Float:     1.12,
+		Array:     []string{"val1"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	Equal(t, errs, nil)
+
+	after := now.Add(time.Hour * 10)
+
+	test.CreatedAt = &after
+	test.String = "abce"
+	test.Int = 14
+	test.Uint = 14
+	test.Float = 1.14
+	test.Array = []string{"val1", "val2", "val3"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "ltecsfield")
+	AssertError(t, errs, "Test.String", "String", "ltecsfield")
+	AssertError(t, errs, "Test.Int", "Int", "ltecsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "ltecsfield")
+	AssertError(t, errs, "Test.Float", "Float", "ltecsfield")
+	AssertError(t, errs, "Test.Array", "Array", "ltecsfield")
+
+	errs = validate.FieldWithValue(1, "", "ltecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltecsfield")
+
+	errs = validate.FieldWithValue(test, now, "ltecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltecsfield")
+}
+
+func TestCrossStructLtFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"ltcsfield=Inner.CreatedAt"`
+		String    string     `validate:"ltcsfield=Inner.String"`
+		Int       int        `validate:"ltcsfield=Inner.Int"`
+		Uint      uint       `validate:"ltcsfield=Inner.Uint"`
+		Float     float64    `validate:"ltcsfield=Inner.Float"`
+		Array     []string   `validate:"ltcsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abc",
+		Int:       12,
+		Uint:      12,
+		Float:     1.12,
+		Array:     []string{"val1"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "ltcsfield")
+	AssertError(t, errs, "Test.String", "String", "ltcsfield")
+	AssertError(t, errs, "Test.Int", "Int", "ltcsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "ltcsfield")
+	AssertError(t, errs, "Test.Float", "Float", "ltcsfield")
+	AssertError(t, errs, "Test.Array", "Array", "ltcsfield")
+
+	errs = validate.FieldWithValue(1, "", "ltcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltcsfield")
+
+	errs = validate.FieldWithValue(test, now, "ltcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltcsfield")
+}
+
+func TestCrossStructGteFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"gtecsfield=Inner.CreatedAt"`
+		String    string     `validate:"gtecsfield=Inner.String"`
+		Int       int        `validate:"gtecsfield=Inner.Int"`
+		Uint      uint       `validate:"gtecsfield=Inner.Uint"`
+		Float     float64    `validate:"gtecsfield=Inner.Float"`
+		Array     []string   `validate:"gtecsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * -5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abcde",
+		Int:       14,
+		Uint:      14,
+		Float:     1.14,
+		Array:     []string{"val1", "val2", "val3"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	Equal(t, errs, nil)
+
+	before := now.Add(time.Hour * -10)
+
+	test.CreatedAt = &before
+	test.String = "abc"
+	test.Int = 12
+	test.Uint = 12
+	test.Float = 1.12
+	test.Array = []string{"val1"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "gtecsfield")
+	AssertError(t, errs, "Test.String", "String", "gtecsfield")
+	AssertError(t, errs, "Test.Int", "Int", "gtecsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "gtecsfield")
+	AssertError(t, errs, "Test.Float", "Float", "gtecsfield")
+	AssertError(t, errs, "Test.Array", "Array", "gtecsfield")
+
+	errs = validate.FieldWithValue(1, "", "gtecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtecsfield")
+
+	errs = validate.FieldWithValue(test, now, "gtecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtecsfield")
+}
+
+func TestCrossStructGtFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"gtcsfield=Inner.CreatedAt"`
+		String    string     `validate:"gtcsfield=Inner.String"`
+		Int       int        `validate:"gtcsfield=Inner.Int"`
+		Uint      uint       `validate:"gtcsfield=Inner.Uint"`
+		Float     float64    `validate:"gtcsfield=Inner.Float"`
+		Array     []string   `validate:"gtcsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * -5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abcde",
+		Int:       14,
+		Uint:      14,
+		Float:     1.14,
+		Array:     []string{"val1", "val2", "val3"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "gtcsfield")
+	AssertError(t, errs, "Test.String", "String", "gtcsfield")
+	AssertError(t, errs, "Test.Int", "Int", "gtcsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "gtcsfield")
+	AssertError(t, errs, "Test.Float", "Float", "gtcsfield")
+	AssertError(t, errs, "Test.Array", "Array", "gtcsfield")
+
+	errs = validate.FieldWithValue(1, "", "gtcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtcsfield")
+
+	errs = validate.FieldWithValue(test, now, "gtcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtcsfield")
+}
+
 func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	type Inner struct {
@@ -224,16 +532,20 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "necsfield")
 
+	var j uint64
+	var k float64
+	var j2 uint64
+	var k2 float64
 	s := "abcd"
 	i := 1
-	j := 1
-	k := 1.543
+	j = 1
+	k = 1.543
 	arr := []string{"test"}
 
 	s2 := "abcd"
 	i2 := 1
-	j2 := 1
-	k2 := 1.543
+	j2 = 1
+	k2 = 1.543
 	arr2 := []string{"test"}
 	arr3 := []string{"test", "test2"}
 	now2 := now
