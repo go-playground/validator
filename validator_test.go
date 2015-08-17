@@ -192,6 +192,243 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+type TestPartial struct {
+	NoTag     string
+	BlankTag  string     `validate:""`
+	Required  string     `validate:"required"`
+	SubSlice  []*SubTest `validate:"required,dive"`
+	Sub       *SubTest
+	SubIgnore *SubTest `validate:"-"`
+	Anonymous struct {
+		A         string     `validate:"required"`
+		ASubSlice []*SubTest `validate:"required,dive"`
+
+		SubAnonStruct []struct {
+			Test      string `validate:"required"`
+			OtherTest string `validate:"required"`
+		} `validate:"required,dive"`
+	}
+}
+
+func TestStructPartial(t *testing.T) {
+
+	p1 := []string{
+		"NoTag",
+		"Required",
+	}
+
+	p2 := []string{
+		"SubSlice[0].Test",
+		"Sub",
+		"SubIgnore",
+		"Anonymous.A",
+	}
+
+	p3 := []string{
+		"SubTest.Test",
+	}
+
+	// p4 := []string{
+	// 	"A",
+	// }
+
+	tPartial := &TestPartial{
+		NoTag:    "NoTag",
+		Required: "Required",
+
+		SubSlice: []*SubTest{
+			{
+
+				Test: "Required",
+			},
+			{
+
+				Test: "Required",
+			},
+		},
+
+		Sub: &SubTest{
+			Test: "1",
+		},
+		SubIgnore: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A             string     `validate:"required"`
+			ASubSlice     []*SubTest `validate:"required,dive"`
+			SubAnonStruct []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			} `validate:"required,dive"`
+		}{
+			A: "1",
+			ASubSlice: []*SubTest{
+				{
+					Test: "Required",
+				},
+				{
+					Test: "Required",
+				},
+			},
+
+			SubAnonStruct: []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			}{
+				{"Required", "RequiredOther"},
+				{"Required", "RequiredOther"},
+			},
+		},
+	}
+
+	// the following should all return no errors as everything is valid in
+	// the default state
+	errs := validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// this isnt really a robust test, but is ment to illustrate the ANON CASE below
+	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	tPartial.Required = ""
+
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// inversion and retesting Partial to generate failures:
+	errs = validate.StructPartial(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Required", "Required", "required")
+
+	// errs = validate.StructExcept(tPartial, p2)
+	// AssertError(t, errs, "TestPartial.Required", "Required", "required")
+
+	// // reset Required field, and set nested struct
+	// tPartial.Required = "Required"
+	// tPartial.Anonymous.A = ""
+
+	// // will pass as unset feilds is not going to be tested
+	// errs = validate.StructPartial(tPartial, p1)
+	// Equal(t, errs, nil)
+
+	// errs = validate.StructExcept(tPartial, p2)
+	// Equal(t, errs, nil)
+
+	// // ANON CASE the response here is strange, it clearly does what it is being told to
+	// errs = validate.StructExcept(tPartial.Anonymous, p4)
+	// AssertError(t, errs, ".A", "A", "required")
+
+	// // will fail as unset feild is tested
+	// errs = validate.StructPartial(tPartial, p2)
+	// AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+
+	// errs = validate.StructExcept(tPartial, p1)
+	// AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+
+	// // reset nested struct and unset struct in slice
+	// tPartial.Anonymous.A = "Required"
+	// tPartial.SubSlice[0].Test = ""
+
+	// // these will pass as unset item is NOT tested
+	// errs = validate.StructPartial(tPartial, p1)
+	// Equal(t, errs, nil)
+
+	// errs = validate.StructExcept(tPartial, p2)
+	// Equal(t, errs, nil)
+
+	// // these will fail as unset item IS tested
+	// errs = validate.StructExcept(tPartial, p1)
+	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	// Equal(t, len(errs), 1)
+
+	// errs = validate.StructPartial(tPartial, p2)
+	// //Equal(t, errs, nil)
+	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	// Equal(t, len(errs), 1)
+
+	// // Unset second slice member concurrently to test dive behavior:
+	// tPartial.SubSlice[1].Test = ""
+
+	// errs = validate.StructPartial(tPartial, p1)
+	// Equal(t, errs, nil)
+
+	// // Case note:
+	// // were bypassing dive here? by setting a single item?
+	// // im not sure anyone would or should do this, I cant think of a reason
+	// // why they would but you never know. As for describing this behavior in
+	// // documentation I would be at a loss as to do it
+	// // especialy concidering the next test
+	// errs = validate.StructExcept(tPartial, p2)
+	// Equal(t, errs, nil)
+	// //AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	// // test sub validation:
+	// // this is diving
+	// errs = validate.StructExcept(tPartial, p1)
+	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	// AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+	// Equal(t, len(errs), 2)
+
+	// errs = validate.StructPartial(tPartial, p2)
+	// //Equal(t, errs, nil)
+	// AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	// Equal(t, len(errs), 1)
+
+	// // reset struct in slice, and unset struct in slice in unset posistion
+	// tPartial.SubSlice[0].Test = "Required"
+
+	// // these will pass as the unset item is NOT tested
+	// errs = validate.StructPartial(tPartial, p1)
+	// Equal(t, errs, nil)
+
+	// errs = validate.StructPartial(tPartial, p2)
+	// Equal(t, errs, nil)
+
+	// // testing for missing item by exception, yes it dives and fails
+	// errs = validate.StructExcept(tPartial, p1)
+	// AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+	// Equal(t, len(errs), 1)
+
+	// // See above case note... this is a variation on the above
+	// // when all taken into account it seems super strange!
+	// errs = validate.StructExcept(tPartial, p2)
+	// Equal(t, errs, nil)
+	// //AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	// tPartial.SubSlice[1].Test = "Required"
+
+	// tPartial.Anonymous.SubAnonStruct[0].Test = ""
+	// // these will pass as the unset item is NOT tested
+	// errs = validate.StructPartial(tPartial, p1)
+	// Equal(t, errs, nil)
+
+	// errs = validate.StructPartial(tPartial, p2)
+	// Equal(t, errs, nil)
+
+	// errs = validate.StructExcept(tPartial, p1)
+	// AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+
+	// // See above case note... this is a variation on the above
+	// // when all taken into account it seems super strange!
+	// errs = validate.StructExcept(tPartial, p2)
+	// Equal(t, errs, nil)
+	// //AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+
+}
+
 func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	type Inner struct {
