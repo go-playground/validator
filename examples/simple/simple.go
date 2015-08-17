@@ -1,7 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+
+	sql "database/sql/driver"
 
 	"gopkg.in/bluesuncorp/validator.v6"
 )
@@ -34,6 +38,12 @@ func main() {
 	}
 
 	validate = validator.New(config)
+
+	validateStruct()
+	validateField()
+}
+
+func validateStruct() {
 
 	address := &Address{
 		Street: "Eavesdown Docks",
@@ -70,4 +80,86 @@ func main() {
 	}
 
 	// save user to database
+}
+
+func validateField() {
+	myEmail := "joeybloggs.gmail.com"
+
+	errs := validate.Field(myEmail, "required,email")
+
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "email" tag
+		return
+	}
+
+	// email ok, move on
+}
+
+var validate2 *validator.Validate
+
+type valuer struct {
+	Name string
+}
+
+func (v valuer) Value() (sql.Value, error) {
+
+	if v.Name == "errorme" {
+		return nil, errors.New("some kind of error")
+	}
+
+	if v.Name == "blankme" {
+		return "", nil
+	}
+
+	if len(v.Name) == 0 {
+		return nil, nil
+	}
+
+	return v.Name, nil
+}
+
+// ValidateValuerType implements validator.CustomTypeFunc
+func ValidateValuerType(field reflect.Value) interface{} {
+	if valuer, ok := field.Interface().(sql.Valuer); ok {
+		val, err := valuer.Value()
+		if err != nil {
+			// handle the error how you want
+			return nil
+		}
+
+		return val
+	}
+
+	return nil
+}
+
+func main2() {
+
+	customTypes := map[reflect.Type]validator.CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+		CustomTypeFuncs: customTypes,
+	}
+
+	validate2 = validator.New(config)
+
+	validateCustomFieldType()
+}
+
+func validateCustomFieldType() {
+	val := valuer{
+		Name: "blankme",
+	}
+
+	errs := validate2.Field(val, "required")
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "required" tag
+		return
+	}
+
+	// all ok
 }

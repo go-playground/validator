@@ -1,12 +1,15 @@
 package validator
 
 import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
-	"path"
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
+
+	. "gopkg.in/bluesuncorp/assert.v1"
 )
 
 // NOTES:
@@ -110,116 +113,6 @@ type TestSlice struct {
 
 var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
 
-func IsEqual(t *testing.T, val1, val2 interface{}) bool {
-	v1 := reflect.ValueOf(val1)
-	v2 := reflect.ValueOf(val2)
-
-	if v1.Kind() == reflect.Ptr {
-		v1 = v1.Elem()
-	}
-
-	if v2.Kind() == reflect.Ptr {
-		v2 = v2.Elem()
-	}
-
-	if !v1.IsValid() && !v2.IsValid() {
-		return true
-	}
-
-	switch v1.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v1.IsNil() {
-			v1 = reflect.ValueOf(nil)
-		}
-	}
-
-	switch v2.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
-		if v2.IsNil() {
-			v2 = reflect.ValueOf(nil)
-		}
-	}
-
-	v1Underlying := reflect.Zero(reflect.TypeOf(v1)).Interface()
-	v2Underlying := reflect.Zero(reflect.TypeOf(v2)).Interface()
-
-	if v1 == v1Underlying {
-		if v2 == v2Underlying {
-			goto CASE4
-		} else {
-			goto CASE3
-		}
-	} else {
-		if v2 == v2Underlying {
-			goto CASE2
-		} else {
-			goto CASE1
-		}
-	}
-
-CASE1:
-	// fmt.Println("CASE 1")
-	return reflect.DeepEqual(v1.Interface(), v2.Interface())
-CASE2:
-	// fmt.Println("CASE 2")
-	return reflect.DeepEqual(v1.Interface(), v2)
-CASE3:
-	// fmt.Println("CASE 3")
-	return reflect.DeepEqual(v1, v2.Interface())
-CASE4:
-	// fmt.Println("CASE 4")
-	return reflect.DeepEqual(v1, v2)
-}
-
-func Equal(t *testing.T, val1, val2 interface{}) {
-	EqualSkip(t, 2, val1, val2)
-}
-
-func EqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
-
-	if !IsEqual(t, val1, val2) {
-
-		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
-		t.FailNow()
-	}
-}
-
-func NotEqual(t *testing.T, val1, val2 interface{}) {
-	NotEqualSkip(t, 2, val1, val2)
-}
-
-func NotEqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
-
-	if IsEqual(t, val1, val2) {
-		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v should not be equal %v\n", path.Base(file), line, val1, val2)
-		t.FailNow()
-	}
-}
-
-func PanicMatches(t *testing.T, fn func(), matches string) {
-	PanicMatchesSkip(t, 2, fn, matches)
-}
-
-func PanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
-
-	_, file, line, _ := runtime.Caller(skip)
-
-	defer func() {
-		if r := recover(); r != nil {
-			err := fmt.Sprintf("%s", r)
-
-			if err != matches {
-				fmt.Printf("%s:%d Panic...  expected [%s] received [%s]", path.Base(file), line, matches, err)
-				t.FailNow()
-			}
-		}
-	}()
-
-	fn()
-}
-
 func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
 	val, ok := errs[key]
@@ -227,6 +120,442 @@ func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag st
 	NotEqualSkip(t, 2, val, nil)
 	EqualSkip(t, 2, val.Field, field)
 	EqualSkip(t, 2, val.Tag, expectedTag)
+}
+
+type valuer struct {
+	Name string
+}
+
+func (v valuer) Value() (driver.Value, error) {
+
+	if v.Name == "errorme" {
+		panic("SQL Driver Valuer error: some kind of error")
+		// return nil, errors.New("some kind of error")
+	}
+
+	if len(v.Name) == 0 {
+		return nil, nil
+	}
+
+	return v.Name, nil
+}
+
+type MadeUpCustomType struct {
+	FirstName string
+	LastName  string
+}
+
+func ValidateCustomType(field reflect.Value) interface{} {
+	if cust, ok := field.Interface().(MadeUpCustomType); ok {
+
+		if len(cust.FirstName) == 0 || len(cust.LastName) == 0 {
+			return ""
+		}
+
+		return cust.FirstName + " " + cust.LastName
+	}
+
+	return ""
+}
+
+func OverrideIntTypeForSomeReason(field reflect.Value) interface{} {
+
+	if i, ok := field.Interface().(int); ok {
+		if i == 1 {
+			return "1"
+		}
+
+		if i == 2 {
+			return "12"
+		}
+	}
+
+	return ""
+}
+
+type CustomMadeUpStruct struct {
+	MadeUp        MadeUpCustomType `validate:"required"`
+	OverriddenInt int              `validate:"gt=1"`
+}
+
+func ValidateValuerType(field reflect.Value) interface{} {
+	if valuer, ok := field.Interface().(driver.Valuer); ok {
+		val, err := valuer.Value()
+		if err != nil {
+			// handle the error how you want
+			return nil
+		}
+
+		return val
+	}
+
+	return nil
+}
+
+func TestExistsValidation(t *testing.T) {
+
+	jsonText := "{ \"truthiness2\": true }"
+
+	type Thing struct {
+		Truthiness *bool `json:"truthiness" validate:"exists,required"`
+	}
+
+	var ting Thing
+
+	err := json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, nil)
+
+	errs := validate.Struct(ting)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Thing.Truthiness", "Truthiness", "exists")
+
+	jsonText = "{ \"truthiness\": true }"
+
+	err = json.Unmarshal([]byte(jsonText), &ting)
+	Equal(t, err, nil)
+	NotEqual(t, ting, nil)
+	Equal(t, ting.Truthiness, true)
+
+	errs = validate.Struct(ting)
+	Equal(t, errs, nil)
+}
+
+func TestSQLValue2Validation(t *testing.T) {
+
+	config := Config{
+		TagName:         "validate",
+		ValidationFuncs: BakedInValidators,
+	}
+
+	validate := New(config)
+	validate.RegisterCustomTypeFunc(ValidateValuerType, valuer{}, (*driver.Valuer)(nil), sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})
+	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
+	validate.RegisterCustomTypeFunc(OverrideIntTypeForSomeReason, 1)
+
+	val := valuer{
+		Name: "",
+	}
+
+	errs := validate.Field(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	val.Name = "Valid Name"
+	errs = validate.Field(val, "required")
+	Equal(t, errs, nil)
+
+	val.Name = "errorme"
+
+	PanicMatches(t, func() { validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+
+	type myValuer valuer
+
+	myVal := valuer{
+		Name: "",
+	}
+
+	errs = validate.Field(myVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	cust := MadeUpCustomType{
+		FirstName: "Joey",
+		LastName:  "Bloggs",
+	}
+
+	c := CustomMadeUpStruct{MadeUp: cust, OverriddenInt: 2}
+
+	errs = validate.Struct(c)
+	Equal(t, errs, nil)
+
+	c.MadeUp.FirstName = ""
+	c.OverriddenInt = 1
+
+	errs = validate.Struct(c)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "MadeUp", "required")
+	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "gt")
+}
+
+func TestSQLValueValidation(t *testing.T) {
+
+	customTypes := map[reflect.Type]CustomTypeFunc{}
+	customTypes[reflect.TypeOf((*driver.Valuer)(nil))] = ValidateValuerType
+	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+	customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
+	customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
+
+	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+
+	val := valuer{
+		Name: "",
+	}
+
+	errs := validate.Field(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	val.Name = "Valid Name"
+	errs = validate.Field(val, "required")
+	Equal(t, errs, nil)
+
+	val.Name = "errorme"
+
+	PanicMatches(t, func() { errs = validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+
+	type myValuer valuer
+
+	myVal := valuer{
+		Name: "",
+	}
+
+	errs = validate.Field(myVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	cust := MadeUpCustomType{
+		FirstName: "Joey",
+		LastName:  "Bloggs",
+	}
+
+	c := CustomMadeUpStruct{MadeUp: cust, OverriddenInt: 2}
+
+	errs = validate.Struct(c)
+	Equal(t, errs, nil)
+
+	c.MadeUp.FirstName = ""
+	c.OverriddenInt = 1
+
+	errs = validate.Struct(c)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "MadeUp", "required")
+	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "gt")
+}
+
+func TestMACValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"3D:F2:C9:A6:B3:4F", true},
+		{"3D-F2-C9-A6-B3:4F", false},
+		{"123", false},
+		{"", false},
+		{"abacaba", false},
+		{"00:25:96:FF:FE:12:34:56", true},
+		{"0025:96FF:FE12:3456", false},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "mac")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "mac" {
+					t.Fatalf("Index: %d mac failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", true},
+		{"172.16.0.1", true},
+		{"192.168.0.1", true},
+		{"192.168.255.254", true},
+		{"192.168.255.256", false},
+		{"172.16.255.254", true},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", true},
+		{"2001:cdba:0:0:0:0:3257:9652", true},
+		{"2001:cdba::3257:9652", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ip")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ip" {
+					t.Fatalf("Index: %d ip failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPv6Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", false},
+		{"172.16.0.1", false},
+		{"192.168.0.1", false},
+		{"192.168.255.254", false},
+		{"192.168.255.256", false},
+		{"172.16.255.254", false},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", true},
+		{"2001:cdba:0:0:0:0:3257:9652", true},
+		{"2001:cdba::3257:9652", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ipv6")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ipv6" {
+					t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPv4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.1", true},
+		{"172.16.0.1", true},
+		{"192.168.0.1", true},
+		{"192.168.255.254", true},
+		{"192.168.255.256", false},
+		{"172.16.255.254", true},
+		{"172.16.256.255", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
+		{"2001:cdba:0:0:0:0:3257:9652", false},
+		{"2001:cdba::3257:9652", false},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "ipv4")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+			} else {
+				val := errs[""]
+				if val.Tag != "ipv4" {
+					t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
+
+	var m map[string]string
+
+	errs := validate.Field(m, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	m = map[string]string{}
+	errs = validate.Field(m, "required")
+	Equal(t, errs, nil)
+
+	var arr [5]string
+	errs = validate.Field(arr, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	arr[0] = "ok"
+	errs = validate.Field(arr, "required")
+	Equal(t, errs, nil)
+
+	var s []string
+	errs = validate.Field(s, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	s = []string{}
+	errs = validate.Field(s, "required")
+	Equal(t, errs, nil)
+
+	var c chan string
+	errs = validate.Field(c, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	c = make(chan string)
+	errs = validate.Field(c, "required")
+	Equal(t, errs, nil)
+
+	var tst *int
+	errs = validate.Field(tst, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	one := 1
+	tst = &one
+	errs = validate.Field(tst, "required")
+	Equal(t, errs, nil)
+
+	var iface interface{}
+
+	errs = validate.Field(iface, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	errs = validate.Field(iface, "omitempty,required")
+	Equal(t, errs, nil)
+
+	errs = validate.Field(iface, "")
+	Equal(t, errs, nil)
+
+	var f func(string)
+
+	errs = validate.Field(f, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "required")
+
+	f = func(name string) {}
+
+	errs = validate.Field(f, "required")
+	Equal(t, errs, nil)
 }
 
 func TestDatePtrValidationIssueValidation(t *testing.T) {
@@ -396,9 +725,9 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	var errStructPtr2Array [][]*Inner
 
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp2 := &TestMultiDimensionalStructsPtr2{
 		Errs: errStructPtr2Array,
@@ -478,7 +807,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]Inner `validate:"gt=0,dive"`
 	}
 
-	mi := map[int]Inner{0: Inner{"ok"}, 3: Inner{""}, 4: Inner{"ok"}}
+	mi := map[int]Inner{0: {"ok"}, 3: {""}, 4: {"ok"}}
 
 	ms := &TestMapStruct{
 		Errs: mi,
@@ -514,7 +843,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]*Inner `validate:"gt=0,dive,required"`
 	}
 
-	mip := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+	mip := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
 
 	msp := &TestMapStructPtr{
 		Errs: mip,
@@ -529,7 +858,7 @@ func TestMapDiveValidation(t *testing.T) {
 		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
 	}
 
-	mip2 := map[int]*Inner{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+	mip2 := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
 
 	msp2 := &TestMapStructPtr2{
 		Errs: mip2,
@@ -616,8 +945,8 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructArray [][]Inner
 
-	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
-	errStructArray = append(errStructArray, []Inner{Inner{"ok"}, Inner{""}, Inner{""}})
+	errStructArray = append(errStructArray, []Inner{{"ok"}, {""}, {""}})
+	errStructArray = append(errStructArray, []Inner{{"ok"}, {""}, {""}})
 
 	tms := &TestMultiDimensionalStructs{
 		Errs: errStructArray,
@@ -637,9 +966,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtrArray [][]*Inner
 
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtrArray = append(errStructPtrArray, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtrArray = append(errStructPtrArray, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp := &TestMultiDimensionalStructsPtr{
 		Errs: errStructPtrArray,
@@ -662,9 +991,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtr2Array [][]*Inner
 
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr2Array = append(errStructPtr2Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr2Array = append(errStructPtr2Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp2 := &TestMultiDimensionalStructsPtr2{
 		Errs: errStructPtr2Array,
@@ -686,9 +1015,9 @@ func TestArrayDiveValidation(t *testing.T) {
 
 	var errStructPtr3Array [][]*Inner
 
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructPtr3Array = append(errStructPtr3Array, []*Inner{&Inner{"ok"}, &Inner{""}, nil})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, {""}})
+	errStructPtr3Array = append(errStructPtr3Array, []*Inner{{"ok"}, {""}, nil})
 
 	tmsp3 := &TestMultiDimensionalStructsPtr3{
 		Errs: errStructPtr3Array,
@@ -864,11 +1193,11 @@ func TestSSNValidation(t *testing.T) {
 		errs := validate.Field(test.param, "ssn")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -898,11 +1227,11 @@ func TestLongitudeValidation(t *testing.T) {
 		errs := validate.Field(test.param, "longitude")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -932,11 +1261,11 @@ func TestLatitudeValidation(t *testing.T) {
 		errs := validate.Field(test.param, "latitude")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -972,11 +1301,11 @@ func TestDataURIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "datauri")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1010,11 +1339,11 @@ func TestMultibyteValidation(t *testing.T) {
 		errs := validate.Field(test.param, "multibyte")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1049,11 +1378,11 @@ func TestPrintableASCIIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "printascii")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1087,11 +1416,11 @@ func TestASCIIValidation(t *testing.T) {
 		errs := validate.Field(test.param, "ascii")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1122,11 +1451,11 @@ func TestUUID5Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid5")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1156,11 +1485,11 @@ func TestUUID4Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid4")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1189,11 +1518,11 @@ func TestUUID3Validation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid3")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1225,11 +1554,11 @@ func TestUUIDValidation(t *testing.T) {
 		errs := validate.Field(test.param, "uuid")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1263,11 +1592,11 @@ func TestISBNValidation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1300,11 +1629,11 @@ func TestISBN13Validation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn13")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -1338,11 +1667,11 @@ func TestISBN10Validation(t *testing.T) {
 		errs := validate.Field(test.param, "isbn10")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -2702,11 +3031,11 @@ func TestUrl(t *testing.T) {
 		errs := validate.Field(test.param, "url")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -2766,11 +3095,11 @@ func TestUri(t *testing.T) {
 		errs := validate.Field(test.param, "uri")
 
 		if test.expected == true {
-			if !IsEqual(t, errs, nil) {
+			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			}
 		} else {
-			if IsEqual(t, errs, nil) {
+			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			} else {
 				val := errs[""]
@@ -2858,7 +3187,9 @@ func TestHsla(t *testing.T) {
 	AssertError(t, errs, "", "", "hsla")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "hsla") }, "interface conversion: interface is int, not string")
+	validate.Field(i, "hsla")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsla")
 }
 
 func TestHsl(t *testing.T) {
@@ -2892,7 +3223,9 @@ func TestHsl(t *testing.T) {
 	AssertError(t, errs, "", "", "hsl")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "hsl") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "hsl")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hsl")
 }
 
 func TestRgba(t *testing.T) {
@@ -2934,7 +3267,9 @@ func TestRgba(t *testing.T) {
 	AssertError(t, errs, "", "", "rgba")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "rgba") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "rgba")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgba")
 }
 
 func TestRgb(t *testing.T) {
@@ -2972,7 +3307,9 @@ func TestRgb(t *testing.T) {
 	AssertError(t, errs, "", "", "rgb")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "rgb") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "rgb")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "rgb")
 }
 
 func TestEmail(t *testing.T) {
@@ -3002,7 +3339,9 @@ func TestEmail(t *testing.T) {
 	AssertError(t, errs, "", "", "email")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "email") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "email")
 }
 
 func TestHexColor(t *testing.T) {
@@ -3026,7 +3365,9 @@ func TestHexColor(t *testing.T) {
 	AssertError(t, errs, "", "", "hexcolor")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "hexcolor") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "hexcolor")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexcolor")
 }
 
 func TestHexadecimal(t *testing.T) {
@@ -3041,7 +3382,9 @@ func TestHexadecimal(t *testing.T) {
 	AssertError(t, errs, "", "", "hexadecimal")
 
 	i := true
-	PanicMatches(t, func() { validate.Field(i, "hexadecimal") }, "interface conversion: interface is bool, not string")
+	errs = validate.Field(i, "hexadecimal")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "hexadecimal")
 }
 
 func TestNumber(t *testing.T) {
@@ -3086,7 +3429,9 @@ func TestNumber(t *testing.T) {
 	AssertError(t, errs, "", "", "number")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "number") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "number")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "number")
 }
 
 func TestNumeric(t *testing.T) {
@@ -3126,7 +3471,9 @@ func TestNumeric(t *testing.T) {
 	AssertError(t, errs, "", "", "numeric")
 
 	i := 1
-	PanicMatches(t, func() { validate.Field(i, "numeric") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(i, "numeric")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "numeric")
 }
 
 func TestAlphaNumeric(t *testing.T) {
@@ -3140,7 +3487,9 @@ func TestAlphaNumeric(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "alphanum")
 
-	PanicMatches(t, func() { validate.Field(1, "alphanum") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(1, "alphanum")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alphanum")
 }
 
 func TestAlpha(t *testing.T) {
@@ -3152,10 +3501,11 @@ func TestAlpha(t *testing.T) {
 	s = "abc1"
 	errs = validate.Field(s, "alpha")
 	NotEqual(t, errs, nil)
-
 	AssertError(t, errs, "", "", "alpha")
 
-	PanicMatches(t, func() { validate.Field(1, "alpha") }, "interface conversion: interface is int, not string")
+	errs = validate.Field(1, "alpha")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alpha")
 }
 
 func TestStructStringValidation(t *testing.T) {
@@ -3372,14 +3722,14 @@ func TestStructSliceValidation(t *testing.T) {
 		Min:       []int{1, 2},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		MinMax:    []int{1, 2, 3, 4, 5},
-		OmitEmpty: []int{},
+		OmitEmpty: nil,
 	}
 
 	errs := validate.Struct(tSuccess)
 	Equal(t, errs, nil)
 
 	tFail := &TestSlice{
-		Required:  []int{},
+		Required:  nil,
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 		Min:       []int{},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
@@ -3406,22 +3756,6 @@ func TestInvalidStruct(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { validate.Struct(s.Test) }, "value passed for validation is not a struct")
-}
-
-func TestInvalidField(t *testing.T) {
-	s := &SubTest{
-		Test: "1",
-	}
-
-	PanicMatches(t, func() { validate.Field(s, "required") }, "Invalid field passed to traverseField")
-}
-
-func TestInvalidTagField(t *testing.T) {
-	s := &SubTest{
-		Test: "1",
-	}
-
-	PanicMatches(t, func() { validate.Field(s.Test, "") }, fmt.Sprintf("Invalid validation tag on field %s", ""))
 }
 
 func TestInvalidValidatorFunction(t *testing.T) {

@@ -12,7 +12,8 @@ It has the following **unique** features:
 
 -   Cross Field and Cross Struct validations.  
 -   Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.  
--   Handles type interface by determining it's underlying type prior to validation.  
+-   Handles type interface by determining it's underlying type prior to validation.
+-   Handles custom field types such as sql driver Valuer see [Valuer](https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29)
 
 Installation
 ------------
@@ -34,7 +35,9 @@ Usage and documentation
 
 Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v6 for detailed usage docs.
 
-##### Example:
+##### Examples:
+
+Struct & Field validation
 ```go
 package main
 
@@ -73,6 +76,12 @@ func main() {
 
 	validate = validator.New(config)
 
+	validateStruct()
+	validateField()
+}
+
+func validateStruct() {
+
 	address := &Address{
 		Street: "Eavesdown Docks",
 		Planet: "Persphone",
@@ -109,6 +118,71 @@ func main() {
 
 	// save user to database
 }
+
+func validateField() {
+	myEmail := "joeybloggs.gmail.com"
+
+	errs := validate.Field(myEmail, "required,email")
+
+	if errs != nil {
+		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "email" tag
+		return
+	}
+
+	// email ok, move on
+}
+```
+
+Custom Field Type
+```go
+package main
+
+import (
+	"database/sql"
+	"database/sql/driver"
+	"fmt"
+	"reflect"
+
+	"gopkg.in/bluesuncorp/validator.v6"
+)
+
+// DbBackedUser User struct
+type DbBackedUser struct {
+	Name sql.NullString `validate:"required"`
+	Age  sql.NullInt64  `validate:"required"`
+}
+
+func main() {
+
+	config := validator.Config{
+		TagName:         "validate",
+		ValidationFuncs: validator.BakedInValidators,
+	}
+
+	validate := validator.New(config)
+
+	// register all sql.Null* types to use the ValidateValuer CustomTypeFunc
+	validate.RegisterCustomTypeFunc(ValidateValuer, sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})
+
+	x := DbBackedUser{Name: sql.NullString{String: "", Valid: true}, Age: sql.NullInt64{Int64: 0, Valid: false}}
+	errs := validate.Struct(x)
+
+	if len(errs) > 0 {
+		fmt.Printf("Errs:\n%+v\n", errs)
+	}
+}
+
+// ValidateValuer implements validator.CustomTypeFunc
+func ValidateValuer(field reflect.Value) interface{} {
+	if valuer, ok := field.Interface().(driver.Valuer); ok {
+		val, err := valuer.Value()
+		if err == nil {
+			return val
+		}
+		// handle the error how you want
+	}
+	return nil
+}
 ```
 
 Benchmarks
@@ -120,12 +194,22 @@ hurt parallel performance too much.
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkField-4	 				 5000000	       314 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldOrTag-4	  			  500000	      2425 ns/op	      20 B/op	       2 allocs/op
-BenchmarkStructSimple-4	  			  500000	      3117 ns/op	     553 B/op	      14 allocs/op
-BenchmarkStructSimpleParallel-4	 	 1000000	      1149 ns/op	     553 B/op	      14 allocs/op
-BenchmarkStructComplex-4	  		  100000	     19580 ns/op	    3230 B/op	     102 allocs/op
-BenchmarkStructComplexParallel-4	  200000	      6686 ns/op	    3232 B/op	     102 allocs/op
+BenchmarkFieldSuccess-4	 					 5000000	       318 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4	 					 5000000	       316 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldCustomTypeSuccess-4	 		 3000000	       492 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4	 		 2000000	       843 ns/op	     416 B/op	       6 allocs/op
+BenchmarkFieldOrTagSuccess-4	  			  500000	      2384 ns/op	      20 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4	 			 1000000	      1295 ns/op	     384 B/op	       6 allocs/op
+BenchmarkStructSimpleSuccess-4	 			 1000000	      1175 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4	 			 1000000	      1822 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1302 ns/op	      56 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1847 ns/op	     577 B/op	      13 allocs/op
+BenchmarkStructSimpleSuccessParallel-4	 	 5000000	       339 ns/op	      24 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4	 	 2000000	       733 ns/op	     529 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4	  			  200000	      7104 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailure-4	  			  100000	     11996 ns/op	    2861 B/op	      72 allocs/op
+BenchmarkStructComplexSuccessParallel-4	 	 1000000	      2252 ns/op	     368 B/op	      30 allocs/op
+BenchmarkStructComplexFailureParallel-4	  	  300000	      4691 ns/op	    2862 B/op	      72 allocs/op
 ```
 
 How to Contribute

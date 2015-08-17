@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -64,6 +65,35 @@ var BakedInValidators = map[string]Func{
 	"latitude":     isLatitude,
 	"longitude":    isLongitude,
 	"ssn":          isSSN,
+	"ipv4":         isIPv4,
+	"ipv6":         isIPv6,
+	"ip":           isIP,
+	"mac":          isMac,
+}
+
+func isMac(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ParseMAC(field.String())
+	return err == nil
+}
+
+func isIPv4(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip := net.ParseIP(field.String())
+
+	return ip != nil && ip.To4() != nil
+}
+
+func isIPv6(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	ip := net.ParseIP(field.String())
+
+	return ip != nil && ip.To4() == nil
+}
+
+func isIP(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip := net.ParseIP(field.String())
+
+	return ip != nil
 }
 
 func isSSN(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -403,10 +433,8 @@ func isAlpha(topStruct reflect.Value, currentStruct reflect.Value, field reflect
 func hasValue(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
-
-	case reflect.Slice, reflect.Map, reflect.Array:
-		return !field.IsNil() && int64(field.Len()) > 0
-
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
 	default:
 		return field.IsValid() && field.Interface() != reflect.Zero(fieldType).Interface()
 	}

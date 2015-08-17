@@ -102,6 +102,14 @@ Here is a list of the current built in validators:
 		you know the struct will be valid, but need to verify it has been assigned.
 		NOTE: only "required" and "omitempty" can be used on a struct itself.
 
+	exists
+		Is a special tag without a validation function attached. It is used when a field
+		is a Pointer, Interface or Invalid and you wish to validate that it exists.
+		Example: want to ensure a bool exists if you define the bool as a pointer and
+		use exists it will ensure there is a value; couldn't use required as it would
+		fail when the bool was false. exists will fail is the value is a Pointer, Interface
+		or Invalid and is nil. (Usage: exists)
+
 	omitempty
 		Allows conditional validation, for example if a field is not set with
 		a value (Determined by the "required" validator) then other validation
@@ -121,16 +129,12 @@ Here is a list of the current built in validators:
 		gt=0 will be applied to []
 		[]string will be spared validation
 		required will be applied to string
-		NOTE: in Example2 if the required validation failed, but all others passed
-		the hierarchy of FieldError's in the middle with have their IsPlaceHolder field
-		set to true. If a FieldError has IsSliceOrMap=true or IsMap=true then the
-		FieldError is a Slice or Map field and if IsPlaceHolder=true then contains errors
-		within its SliceOrArrayErrs or MapErrs fields.
 
 	required
-		This validates that the value is not the data types default value.
+		This validates that the value is not the data types default zero value.
 		For numbers ensures value is not zero. For strings ensures value is
-		not "". For slices, arrays, and maps, ensures the length is not zero.
+		not "". For slices, maps, pointers, interfaces, channels and functions
+		ensures the value is not nil.
 		(Usage: required)
 
 	len
@@ -375,6 +379,24 @@ Here is a list of the current built in validators:
 	ssn
 		This validates that a string value contains a valid U.S. Social Security Number.
 		(Usage: ssn)
+
+	ip
+		This validates that a string value contains a valid IP Adress.
+		(Usage: ip)
+
+	ipv4
+		This validates that a string value contains a valid v4 IP Adress.
+		(Usage: ipv4)
+
+	ipv6
+		This validates that a string value contains a valid v6 IP Adress.
+		(Usage: ipv6)
+
+	mac
+		This validates that a string value contains a valid MAC Adress defined
+		by go's ParseMAC accepted formats and types see:
+		http://golang.org/src/net/mac.go?s=866:918#L29
+		(Usage: mac)
 
 Validator notes:
 
