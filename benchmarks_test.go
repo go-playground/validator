@@ -62,34 +62,6 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 	}
 }
 
-func BenchmarkStructSimpleSuccess(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
-	}
-}
-
-func BenchmarkStructSimpleFailure(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(invalidFoo)
-	}
-}
-
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	customTypes := map[reflect.Type]CustomTypeFunc{}
@@ -133,6 +105,98 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructPartialSuccess(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Name")
+	}
+}
+
+func BenchmarkStructPartialFailure(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "NickName")
+	}
+}
+
+func BenchmarkStructExceptSuccess(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Nickname")
+	}
+}
+
+func BenchmarkStructExceptFailure(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Name")
+	}
+}
+
+func BenchmarkStructSimpleSuccess(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructSimpleFailure(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(invalidFoo)
 	}
 }
 
