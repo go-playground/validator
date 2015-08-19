@@ -4,6 +4,7 @@ import (
 	sql "database/sql/driver"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func BenchmarkFieldSuccess(b *testing.B) {
@@ -15,6 +16,18 @@ func BenchmarkFieldSuccess(b *testing.B) {
 func BenchmarkFieldFailure(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		validate.Field("2", "len=1")
+	}
+}
+
+func BenchmarkFieldDiveSuccess(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field([]string{"val1", "val2", "val3"}, "required,dive,required")
+	}
+}
+
+func BenchmarkFieldDiveFailure(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		validate.Field([]string{"val1", "", "val3"}, "required,dive,required")
 	}
 }
 
@@ -62,34 +75,6 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 	}
 }
 
-func BenchmarkStructSimpleSuccess(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
-	}
-}
-
-func BenchmarkStructSimpleFailure(b *testing.B) {
-
-	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
-		IntValue    int    `validate:"min=5,max=10"`
-	}
-
-	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
-
-	for n := 0; n < b.N; n++ {
-		validate.Struct(invalidFoo)
-	}
-}
-
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	customTypes := map[reflect.Type]CustomTypeFunc{}
@@ -133,6 +118,161 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructPartialSuccess(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Name")
+	}
+}
+
+func BenchmarkStructPartialFailure(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "NickName")
+	}
+}
+
+func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
+
+	type Test struct {
+		Start time.Time
+		End   time.Time `validate:"gtfield=Start"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	test := &Test{
+		Start: now,
+		End:   then,
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(test)
+	}
+}
+
+func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
+
+	type Test struct {
+		Start time.Time
+		End   time.Time `validate:"gtfield=Start"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * -5)
+
+	test := &Test{
+		Start: now,
+		End:   then,
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(test)
+	}
+}
+
+func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
+
+	type Inner struct {
+		Start time.Time
+	}
+
+	type Outer struct {
+		Inner     *Inner
+		CreatedAt time.Time `validate:"eqcsfield=Inner.Start"`
+	}
+
+	now := time.Now().UTC()
+
+	inner := &Inner{
+		Start: now,
+	}
+
+	outer := &Outer{
+		Inner:     inner,
+		CreatedAt: now,
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(outer)
+	}
+}
+
+func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
+
+	type Inner struct {
+		Start time.Time
+	}
+
+	type Outer struct {
+		Inner     *Inner
+		CreatedAt time.Time `validate:"eqcsfield=Inner.Start"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		Start: then,
+	}
+
+	outer := &Outer{
+		Inner:     inner,
+		CreatedAt: now,
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(outer)
+	}
+}
+
+func BenchmarkStructSimpleSuccess(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructSimpleFailure(b *testing.B) {
+
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(invalidFoo)
 	}
 }
 

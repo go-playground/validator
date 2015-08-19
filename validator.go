@@ -213,6 +213,8 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 // StructPartial validates the fields passed in only, ignoring all others.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
+// NOTE: This is normally not needed, however in some specific cases such as: tied to a
+// legacy data structure, it will be useful
 func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
@@ -269,6 +271,8 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 // StructExcept validates all fields except the ones passed in.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
+// NOTE: This is normally not needed, however in some specific cases such as: tied to a
+// legacy data structure, it will be useful
 func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
