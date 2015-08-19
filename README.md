@@ -187,33 +187,33 @@ func ValidateValuer(field reflect.Value) interface{} {
 
 Benchmarks
 ------
-###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3
+###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go 1.5
 NOTE: allocations for structs are up from v5, however ns/op for parallel operations are way down.
 It was a decicion not to cache struct info because although it reduced allocation to v5 levels, it
 hurt parallel performance too much.
 ```go
- go test -cpu=4 -bench=. -benchmem=true
+$ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4	 					 5000000	       337 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldFailure-4	 					 5000000	       331 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldCustomTypeSuccess-4	 		 3000000	       497 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldCustomTypeFailure-4	 		 2000000	       842 ns/op	     416 B/op	       6 allocs/op
-BenchmarkFieldOrTagSuccess-4	  			  500000	      2432 ns/op	      20 B/op	       2 allocs/op
-BenchmarkFieldOrTagFailure-4	 			 1000000	      1323 ns/op	     384 B/op	       6 allocs/op
-BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1409 ns/op	      56 B/op	       5 allocs/op
-BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1876 ns/op	     577 B/op	      13 allocs/op
-BenchmarkStructPartialSuccess-4	 			 1000000	      1438 ns/op	     384 B/op	      13 allocs/op
-BenchmarkStructPartialFailure-4	 			 1000000	      2040 ns/op	     785 B/op	      18 allocs/op
-BenchmarkStructExceptSuccess-4	 			 1000000	      1000 ns/op	     368 B/op	      11 allocs/op
-BenchmarkStructExceptFailure-4	 			 1000000	      1431 ns/op	     384 B/op	      13 allocs/op
-BenchmarkStructSimpleSuccess-4	 			 1000000	      1375 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4	 			 1000000	      1893 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructSimpleSuccessParallel-4	 	 5000000	       362 ns/op	      24 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4	 	 2000000	       883 ns/op	     529 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4	  			  200000	      8237 ns/op	     368 B/op	      30 allocs/op
-BenchmarkStructComplexFailure-4	  			  100000	     12617 ns/op	    2861 B/op	      72 allocs/op
-BenchmarkStructComplexSuccessParallel-4	 	 1000000	      2398 ns/op	     368 B/op	      30 allocs/op
-BenchmarkStructComplexFailureParallel-4	  	  300000	      5733 ns/op	    2862 B/op	      72 allocs/op
+BenchmarkFieldSuccess-4                 	 5000000	       295 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4                 	 5000000	       291 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldCustomTypeSuccess-4       	 3000000	       437 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4       	 2000000	       772 ns/op	     416 B/op	       6 allocs/op
+BenchmarkFieldOrTagSuccess-4            	 1000000	      1302 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4            	 1000000	      1137 ns/op	     400 B/op	       6 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4	 1000000	      1190 ns/op	      80 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4	 1000000	      1743 ns/op	     608 B/op	      13 allocs/op
+BenchmarkStructPartialSuccess-4         	 1000000	      1302 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructPartialFailure-4         	 1000000	      1819 ns/op	     784 B/op	      16 allocs/op
+BenchmarkStructExceptSuccess-4          	 2000000	       876 ns/op	     368 B/op	       9 allocs/op
+BenchmarkStructExceptFailure-4          	 1000000	      1301 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccess-4          	 1000000	      1117 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4          	 1000000	      1721 ns/op	     560 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccessParallel-4  	 5000000	       332 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4  	 2000000	       678 ns/op	     560 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4         	  200000	      6687 ns/op	     432 B/op	      27 allocs/op
+BenchmarkStructComplexFailure-4         	  200000	     11507 ns/op	    2919 B/op	      69 allocs/op
+BenchmarkStructComplexSuccessParallel-4 	  500000	      2305 ns/op	     432 B/op	      27 allocs/op
+BenchmarkStructComplexFailureParallel-4 	  300000	      4692 ns/op	    2920 B/op	      69 allocs/op
 ```
 
 How to Contribute
