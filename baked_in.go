@@ -1023,7 +1023,6 @@ func isLt(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 // value. For numbers, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-
 func hasMaxOf(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return isLte(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
 }

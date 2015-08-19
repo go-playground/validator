@@ -10,7 +10,7 @@ Package validator implements value validations for structs and individual fields
 
 It has the following **unique** features:
 
--   Cross Field and Cross Struct validations.  
+-   Cross Field and Cross Struct validations by using validation tags or custom validators.  
 -   Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.  
 -   Handles type interface by determining it's underlying type prior to validation.
 -   Handles custom field types such as sql driver Valuer see [Valuer](https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29)
