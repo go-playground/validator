@@ -153,6 +153,38 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 	}
 }
 
+func BenchmarkStructExceptSuccess(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Nickname")
+	}
+}
+
+func BenchmarkStructExceptFailure(b *testing.B) {
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.StructPartial(test, "Name")
+	}
+}
+
 func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 
 	type Test struct {
