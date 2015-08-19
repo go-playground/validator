@@ -38,10 +38,11 @@ const (
 )
 
 var (
-	timeType    = reflect.TypeOf(time.Time{})
-	timePtrType = reflect.TypeOf(&time.Time{})
-	errsPool    = &sync.Pool{New: newValidationErrors}
-	tagsCache   = &tagCacheMap{m: map[string][]*tagCache{}}
+	timeType       = reflect.TypeOf(time.Time{})
+	timePtrType    = reflect.TypeOf(&time.Time{})
+	errsPool       = &sync.Pool{New: newValidationErrors}
+	tagsCache      = &tagCacheMap{m: map[string][]*tagCache{}}
+	emptyStructPtr = new(struct{})
 )
 
 // returns new ValidationErrors to the pool
@@ -180,7 +181,7 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 	errs := errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
-	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "")
+	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "", false, false, nil)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -198,7 +199,92 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	errs := errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "")
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "", false, false, nil)
+
+	if len(errs) == 0 {
+		errsPool.Put(errs)
+		return nil
+	}
+
+	return errs
+}
+
+// StructPartial validates the fields passed in only, ignoring all others.
+// Fields may be provided in a namespaced fashion relative to the  struct provided
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
+// NOTE: This is normally not needed, however in some specific cases such as: tied to a
+// legacy data structure, it will be useful
+func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
+
+	sv, _ := v.extractType(reflect.ValueOf(current))
+	name := sv.Type().Name()
+	m := map[string]*struct{}{}
+
+	if fields != nil {
+		for _, k := range fields {
+
+			flds := strings.Split(k, namespaceSeparator)
+			if len(flds) > 0 {
+
+				key := name + namespaceSeparator
+				for _, s := range flds {
+
+					idx := strings.Index(s, leftBracket)
+
+					if idx != -1 {
+						for idx != -1 {
+							key += s[:idx]
+							m[key] = emptyStructPtr
+
+							idx2 := strings.Index(s, rightBracket)
+							idx2++
+							key += s[idx:idx2]
+							m[key] = emptyStructPtr
+							s = s[idx2:]
+							idx = strings.Index(s, leftBracket)
+						}
+					} else {
+
+						key += s
+						m[key] = emptyStructPtr
+					}
+
+					key += namespaceSeparator
+				}
+			}
+		}
+	}
+
+	errs := errsPool.Get().(ValidationErrors)
+
+	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, false, m)
+
+	if len(errs) == 0 {
+		errsPool.Put(errs)
+		return nil
+	}
+
+	return errs
+}
+
+// StructExcept validates all fields except the ones passed in.
+// Fields may be provided in a namespaced fashion relative to the  struct provided
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
+// NOTE: This is normally not needed, however in some specific cases such as: tied to a
+// legacy data structure, it will be useful
+func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
+
+	sv, _ := v.extractType(reflect.ValueOf(current))
+	name := sv.Type().Name()
+	m := map[string]*struct{}{}
+
+	for _, key := range fields {
+		m[name+"."+key] = emptyStructPtr
+	}
+
+	errs := errsPool.Get().(ValidationErrors)
+
+	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, true, m)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -214,7 +300,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 	errs := errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true)
+	v.tranverseStruct(sv, sv, sv, "", errs, true, false, false, nil)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -225,7 +311,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 }
 
 // tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool) {
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -235,6 +321,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		panic("value passed for validation is not a struct")
 	}
 
+	var ok bool
 	typ := current.Type()
 
 	if useStructName {
@@ -252,29 +339,31 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 			continue
 		}
 
-		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name)
+		if partial {
+
+			_, ok = includeExclude[errPrefix+fld.Name]
+
+			if (ok && exclude) || (!ok && !exclude) {
+				continue
+			}
+		}
+
+		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name, partial, exclude, includeExclude)
 	}
 }
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
-func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string) {
+func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag string, name string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
 
 	if tag == skipValidationTag {
 		return
 	}
 
-	kind := current.Kind()
+	current, kind := v.extractType(current)
+	var typ reflect.Type
 
-	if kind == reflect.Ptr && !current.IsNil() {
-		current = current.Elem()
-		kind = current.Kind()
-	}
-
-	// this also allows for tags 'required' and 'omitempty' to be used on
-	// nested struct fields because when len(tags) > 0 below and the value is nil
-	// then required failes and we check for omitempty just before that
-	if ((kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil()) || kind == reflect.Invalid {
-
+	switch kind {
+	case reflect.Ptr, reflect.Interface, reflect.Invalid:
 		if strings.Contains(tag, omitempty) {
 			return
 		}
@@ -314,66 +403,28 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		if kind == reflect.Invalid {
 			return
 		}
-	}
 
-	typ := current.Type()
+	case reflect.Struct:
+		typ = current.Type()
 
-	switch kind {
-	case reflect.Struct, reflect.Interface:
+		if typ != timeType {
 
-		if kind == reflect.Interface {
-
-			current = current.Elem()
-			kind = current.Kind()
-
-			if kind == reflect.Ptr && !current.IsNil() {
-				current = current.Elem()
-				kind = current.Kind()
-			}
-
-			// changed current, so have to get inner type again
-			typ = current.Type()
-
-			if kind != reflect.Struct {
-				goto FALLTHROUGH
-			}
-		}
-
-		if typ != timeType && typ != timePtrType {
-
-			if kind == reflect.Struct {
-
-				if v.config.hasCustomFuncs {
-					if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
-						v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
-						return
-					}
-				}
-
-				// required passed validation above so stop here
-				// if only validating the structs existance.
-				if strings.Contains(tag, structOnlyTag) {
-					return
-				}
-
-				v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false)
+			// required passed validation above so stop here
+			// if only validating the structs existance.
+			if strings.Contains(tag, structOnlyTag) {
 				return
 			}
-		}
-	FALLTHROUGH:
-		fallthrough
-	default:
-		if len(tag) == 0 {
+
+			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude)
 			return
 		}
 	}
 
-	if v.config.hasCustomFuncs {
-		if fn, ok := v.config.CustomTypeFuncs[typ]; ok {
-			v.traverseField(topStruct, currentStruct, reflect.ValueOf(fn(current)), errPrefix, errs, isStructField, tag, name)
-			return
-		}
+	if len(tag) == 0 {
+		return
 	}
+
+	typ = current.Type()
 
 	tags, isCached := tagsCache.Get(tag)
 
@@ -447,9 +498,9 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		// or panic ;)
 		switch kind {
 		case reflect.Slice, reflect.Array:
-			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
+			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, partial, exclude, includeExclude)
 		case reflect.Map:
-			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name)
+			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, partial, exclude, includeExclude)
 		default:
 			// throw error, if not a slice or map then should not have gotten here
 			// bad dive tag
@@ -459,18 +510,18 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 }
 
 // traverseSlice traverses a Slice or Array's elements and passes them to traverseField for validation
-func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
+func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
 
 	for i := 0; i < current.Len(); i++ {
-		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i))
+		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i), partial, exclude, includeExclude)
 	}
 }
 
 // traverseMap traverses a map's elements and passes them to traverseField for validation
-func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string) {
+func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag string, name string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
 
 	for _, key := range current.MapKeys() {
-		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()))
+		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()), partial, exclude, includeExclude)
 	}
 }
 
