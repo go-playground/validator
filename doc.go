@@ -21,7 +21,7 @@ Custom Functions
 Custom functions can be added
 
 	// Structure
-	func customFunc(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	func customFunc(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		if whatever {
 			return false
@@ -36,18 +36,41 @@ Custom functions can be added
 
 Cross Field Validation
 
-Cross Field Validation can be implemented, for example Start & End Date range validation
+Cross Field Validation can be done via the following tags: eqfield, nefield, gtfield, gtefield,
+ltfield, ltefield, eqcsfield, necsfield, gtcsfield, ftecsfield, ltcsfield and ltecsfield. If
+however some custom cross field validation is required, it can be done using a custom validation.
+
+Why not just have cross fields validation tags i.e. only eqcsfield and not eqfield; the reason is
+efficiency, if you want to check a field within the same struct eqfield only has to find the field
+on the same struct, 1 level; but if we used eqcsfield it could be multiple levels down.
+
+	type Inner struct {
+		StartDate time.Time
+	}
+
+	type Outer struct {
+		InnerStructField *Inner
+		CreatedAt time.Time      `validate:"ltecsfield=InnerStructField.StartDate"`
+	}
+
+	now := time.Now()
+
+	inner := &Inner{
+		StartDate: now,
+	}
+
+	outer := &Outer{
+		InnerStructField: inner,
+		CreatedAt: now,
+	}
+
+	errs := validate.Struct(outer)
 
 	// NOTE: when calling validate.Struct(val) topStruct will be the top level struct passed
 	//       into the function
 	//       when calling validate.FieldWithValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
 	//       when calling validate.Field(field, tag) val will be nil
-	//
-	// Because of the specific requirements and field names within each persons project that
-	// uses this library it is likely that custom functions will need to be created for your
-	// Cross Field Validation needs, however there are some build in Generic Cross Field validations,
-	// see Baked In Validators eqfield, nefield, gtfield, gtefield, ltfield, ltefield and Tags below
 
 Multiple Validators
 
@@ -201,12 +224,20 @@ Here is a list of the current built in validators:
 		Validation on Password field using validate.Struct Usage(eqfield=ConfirmPassword)
 		Validating by field validate.FieldWithValue(password, confirmpassword, "eqfield")
 
+	eqcsfield
+		This does the same as eqfield except that it validates the field provided relative
+		to the top level struct. (Usage: eqcsfield=InnerStructField.Field)
+
 	nefield
 		This will validate the field value against another fields value either within
 		a struct or passed in field.
 		usage examples are for ensuring two colors are not the same:
 		Validation on Color field using validate.Struct Usage(nefield=Color2)
 		Validating by field validate.FieldWithValue(color1, color2, "nefield")
+
+	necsfield
+		This does the same as nefield except that it validates the field provided relative
+		to the top level struct. (Usage: necsfield=InnerStructField.Field)
 
 	gtfield
 		Only valid for Numbers and time.Time types, this will validate the field value
@@ -215,12 +246,20 @@ Here is a list of the current built in validators:
 		Validation on End field using validate.Struct Usage(gtfield=Start)
 		Validating by field validate.FieldWithValue(start, end, "gtfield")
 
+	gtcsfield
+		This does the same as gtfield except that it validates the field provided relative
+		to the top level struct. (Usage: gtcsfield=InnerStructField.Field)
+
 	gtefield
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
 		Validation on End field using validate.Struct Usage(gtefield=Start)
 		Validating by field validate.FieldWithValue(start, end, "gtefield")
+
+	gtecsfield
+		This does the same as gtefield except that it validates the field provided relative
+		to the top level struct. (Usage: gtecsfield=InnerStructField.Field)
 
 	ltfield
 		Only valid for Numbers and time.Time types, this will validate the field value
@@ -229,12 +268,20 @@ Here is a list of the current built in validators:
 		Validation on End field using validate.Struct Usage(ltfield=Start)
 		Validating by field validate.FieldWithValue(start, end, "ltfield")
 
+	ltcsfield
+		This does the same as ltfield except that it validates the field provided relative
+		to the top level struct. (Usage: ltcsfield=InnerStructField.Field)
+
 	ltefield
 		Only valid for Numbers and time.Time types, this will validate the field value
 		against another fields value either within a struct or passed in field.
 		usage examples are for validation of a Start and End date:
 		Validation on End field using validate.Struct Usage(ltefield=Start)
 		Validating by field validate.FieldWithValue(start, end, "ltefield")
+
+	ltecsfield
+		This does the same as ltefield except that it validates the field provided relative
+		to the top level struct. (Usage: ltecsfield=InnerStructField.Field)
 
 	alpha
 		This validates that a string value contains alpha characters only

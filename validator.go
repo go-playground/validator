@@ -93,6 +93,7 @@ type Config struct {
 type CustomTypeFunc func(field reflect.Value) interface{}
 
 // Func accepts all values needed for file and cross field validation
+// v             = validator instance, needed but some built in functions for it's custom types
 // topStruct     = top level struct when validating by struct otherwise nil
 // currentStruct = current level struct when validating by struct otherwise optional comparison value
 // field         = field value for validation
@@ -209,7 +210,9 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	return errs
 }
 
-// StructPartial validates the fields that are listed by name in the map including nested structs, unless otherwise specified. Items in the map that are NOT found in the struct will cause a panic.
+// StructPartial validates the fields passed in only, ignoring all others.
+// Fields may be provided in a namespaced fashion relative to the  struct provided
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
 func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
@@ -263,7 +266,9 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 	return errs
 }
 
-// StructExcept validates the fields in the struct that are NOT listed by name in the map including nested structs, unless otherwise specified. Items in the map that are NOT found in the struct will cause a panic.
+// StructExcept validates all fields except the ones passed in.
+// Fields may be provided in a namespaced fashion relative to the  struct provided
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
 func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
