@@ -2914,6 +2914,9 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.FieldWithValue(nil, 1, "nefield")
 	Equal(t, errs, nil)
 
+	errs = validate.FieldWithValue(sv, now, "nefield")
+	Equal(t, errs, nil)
+
 	type Test2 struct {
 		Start *time.Time `validate:"nefield=NonExistantField"`
 		End   *time.Time

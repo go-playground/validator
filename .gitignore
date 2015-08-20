@@ -24,5 +24,6 @@ _testmain.go
 *.prof
 *.test
 *.out
+*.txt
 cover.html
 README.html
