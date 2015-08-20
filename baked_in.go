@@ -76,32 +76,32 @@ var BakedInValidators = map[string]Func{
 	"mac":          isMac,
 }
 
-func isMac(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isMac(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	_, err := net.ParseMAC(field.String())
 	return err == nil
 }
 
-func isIPv4(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isIPv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip := net.ParseIP(field.String())
 
 	return ip != nil && ip.To4() != nil
 }
 
-func isIPv6(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isIPv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	ip := net.ParseIP(field.String())
 
 	return ip != nil && ip.To4() == nil
 }
 
-func isIP(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isIP(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip := net.ParseIP(field.String())
 
 	return ip != nil
 }
 
-func isSSN(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isSSN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	if field.Len() != 11 {
 		return false
@@ -110,15 +110,15 @@ func isSSN(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fi
 	return matchesRegex(sSNRegex, field.String())
 }
 
-func isLongitude(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLongitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(longitudeRegex, field.String())
 }
 
-func isLatitude(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLatitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(latitudeRegex, field.String())
 }
 
-func isDataURI(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	uri := strings.SplitN(field.String(), ",", 2)
 
@@ -132,10 +132,10 @@ func isDataURI(v *Validate, topStruct reflect.Value, currentStruct reflect.Value
 
 	fld := reflect.ValueOf(uri[1])
 
-	return isBase64(v, topStruct, currentStruct, fld, fld.Type(), fld.Kind(), param)
+	return isBase64(v, topStruct, currentStructOrField, fld, fld.Type(), fld.Kind(), param)
 }
 
-func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	if field.Len() == 0 {
 		return true
@@ -144,35 +144,35 @@ func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStruct r
 	return matchesRegex(multibyteRegex, field.String())
 }
 
-func isPrintableASCII(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isPrintableASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(printableASCIIRegex, field.String())
 }
 
-func isASCII(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(aSCIIRegex, field.String())
 }
 
-func isUUID5(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isUUID5(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(uUID5Regex, field.String())
 }
 
-func isUUID4(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isUUID4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(uUID4Regex, field.String())
 }
 
-func isUUID3(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isUUID3(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(uUID3Regex, field.String())
 }
 
-func isUUID(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isUUID(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(uUIDRegex, field.String())
 }
 
-func isISBN(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return isISBN10(v, topStruct, currentStruct, field, fieldType, fieldKind, param) || isISBN13(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func isISBN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return isISBN10(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) || isISBN13(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func isISBN13(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 4), " ", "", 4)
 
@@ -196,7 +196,7 @@ func isISBN13(v *Validate, topStruct reflect.Value, currentStruct reflect.Value,
 	return false
 }
 
-func isISBN10(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 3), " ", "", 3)
 
@@ -224,35 +224,35 @@ func isISBN10(v *Validate, topStruct reflect.Value, currentStruct reflect.Value,
 	return false
 }
 
-func excludesRune(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !containsRune(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func excludesRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !containsRune(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func excludesAll(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !containsAny(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func excludesAll(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !containsAny(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func excludes(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !contains(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func excludes(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !contains(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func containsRune(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func containsRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	r, _ := utf8.DecodeRuneInString(param)
 
 	return strings.ContainsRune(field.String(), r)
 }
 
-func containsAny(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func containsAny(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return strings.ContainsAny(field.String(), param)
 }
 
-func contains(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func contains(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return strings.Contains(field.String(), param)
 }
 
-func isNeField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isNeField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 
 	if !ok || currentKind != fieldKind {
 		return true
@@ -293,8 +293,8 @@ func isNeField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value
 	return field.String() != currentField.String()
 }
 
-func isNe(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !isEq(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func isNe(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !isEq(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
 func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -543,9 +543,9 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	return topField.String() == field.String()
 }
 
-func isEqField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isEqField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -585,7 +585,7 @@ func isEqField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value
 	return field.String() == currentField.String()
 }
 
-func isEq(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isEq(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -616,11 +616,11 @@ func isEq(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isBase64(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isBase64(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(base64Regex, field.String())
 }
 
-func isURI(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -633,7 +633,7 @@ func isURI(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fi
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isURL(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -654,51 +654,51 @@ func isURL(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fi
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isEmail(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isEmail(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(emailRegex, field.String())
 }
 
-func isHsla(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isHsla(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(hslaRegex, field.String())
 }
 
-func isHsl(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isHsl(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(hslRegex, field.String())
 }
 
-func isRgba(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isRgba(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(rgbaRegex, field.String())
 }
 
-func isRgb(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isRgb(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(rgbRegex, field.String())
 }
 
-func isHexcolor(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isHexcolor(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(hexcolorRegex, field.String())
 }
 
-func isHexadecimal(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isHexadecimal(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(hexadecimalRegex, field.String())
 }
 
-func isNumber(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isNumber(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(numberRegex, field.String())
 }
 
-func isNumeric(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isNumeric(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(numericRegex, field.String())
 }
 
-func isAlphanum(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isAlphanum(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(alphaNumericRegex, field.String())
 }
 
-func isAlpha(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isAlpha(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return matchesRegex(alphaRegex, field.String())
 }
 
-func hasValue(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func hasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
@@ -708,9 +708,9 @@ func hasValue(v *Validate, topStruct reflect.Value, currentStruct reflect.Value,
 	}
 }
 
-func isGteField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isGteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -749,9 +749,9 @@ func isGteField(v *Validate, topStruct reflect.Value, currentStruct reflect.Valu
 	return len(field.String()) >= len(currentField.String())
 }
 
-func isGtField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isGtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -790,7 +790,7 @@ func isGtField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value
 	return len(field.String()) > len(currentField.String())
 }
 
-func isGte(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isGte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -833,7 +833,7 @@ func isGte(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fi
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGt(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -875,7 +875,7 @@ func isGt(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 // length tests whether a variable's length is equal to a given
 // value. For strings it tests the number of characters whereas
 // for maps and slices it tests the number of items.
-func hasLengthOf(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func hasLengthOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -912,14 +912,14 @@ func hasLengthOf(v *Validate, topStruct reflect.Value, currentStruct reflect.Val
 // number. For number types, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMinOf(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func hasMinOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	return isGte(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+	return isGte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func isLteField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -958,9 +958,9 @@ func isLteField(v *Validate, topStruct reflect.Value, currentStruct reflect.Valu
 	return len(field.String()) <= len(currentField.String())
 }
 
-func isLtField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStruct, param)
+	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -999,7 +999,7 @@ func isLtField(v *Validate, topStruct reflect.Value, currentStruct reflect.Value
 	return len(field.String()) < len(currentField.String())
 }
 
-func isLte(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -1042,7 +1042,7 @@ func isLte(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fi
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isLt(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+func isLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -1086,6 +1086,6 @@ func isLt(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, fie
 // value. For numbers, it's a simple lesser-than test; for
 // strings it tests the number of characters whereas for maps
 // and slices it tests the number of items.
-func hasMaxOf(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return isLte(v, topStruct, currentStruct, field, fieldType, fieldKind, param)
+func hasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return isLte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
