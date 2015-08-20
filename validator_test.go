@@ -192,6 +192,992 @@ func ValidateValuerType(field reflect.Value) interface{} {
 	return nil
 }
 
+type TestPartial struct {
+	NoTag     string
+	BlankTag  string     `validate:""`
+	Required  string     `validate:"required"`
+	SubSlice  []*SubTest `validate:"required,dive"`
+	Sub       *SubTest
+	SubIgnore *SubTest `validate:"-"`
+	Anonymous struct {
+		A         string     `validate:"required"`
+		ASubSlice []*SubTest `validate:"required,dive"`
+
+		SubAnonStruct []struct {
+			Test      string `validate:"required"`
+			OtherTest string `validate:"required"`
+		} `validate:"required,dive"`
+	}
+}
+
+func TestStructPartial(t *testing.T) {
+
+	p1 := []string{
+		"NoTag",
+		"Required",
+	}
+
+	p2 := []string{
+		"SubSlice[0].Test",
+		"Sub",
+		"SubIgnore",
+		"Anonymous.A",
+	}
+
+	p3 := []string{
+		"SubTest.Test",
+	}
+
+	p4 := []string{
+		"A",
+	}
+
+	tPartial := &TestPartial{
+		NoTag:    "NoTag",
+		Required: "Required",
+
+		SubSlice: []*SubTest{
+			{
+
+				Test: "Required",
+			},
+			{
+
+				Test: "Required",
+			},
+		},
+
+		Sub: &SubTest{
+			Test: "1",
+		},
+		SubIgnore: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A             string     `validate:"required"`
+			ASubSlice     []*SubTest `validate:"required,dive"`
+			SubAnonStruct []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			} `validate:"required,dive"`
+		}{
+			A: "1",
+			ASubSlice: []*SubTest{
+				{
+					Test: "Required",
+				},
+				{
+					Test: "Required",
+				},
+			},
+
+			SubAnonStruct: []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			}{
+				{"Required", "RequiredOther"},
+				{"Required", "RequiredOther"},
+			},
+		},
+	}
+
+	// the following should all return no errors as everything is valid in
+	// the default state
+	errs := validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// this isnt really a robust test, but is ment to illustrate the ANON CASE below
+	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	tPartial.Required = ""
+
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// inversion and retesting Partial to generate failures:
+	errs = validate.StructPartial(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Required", "Required", "required")
+
+	errs = validate.StructExcept(tPartial, p2...)
+	AssertError(t, errs, "TestPartial.Required", "Required", "required")
+
+	// reset Required field, and set nested struct
+	tPartial.Required = "Required"
+	tPartial.Anonymous.A = ""
+
+	// will pass as unset feilds is not going to be tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// ANON CASE the response here is strange, it clearly does what it is being told to
+	errs = validate.StructExcept(tPartial.Anonymous, p4...)
+	Equal(t, errs, nil)
+
+	// will fail as unset feild is tested
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.A", "A", "required")
+
+	// reset nested struct and unset struct in slice
+	tPartial.Anonymous.A = "Required"
+	tPartial.SubSlice[0].Test = ""
+
+	// these will pass as unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// these will fail as unset item IS tested
+	errs = validate.StructExcept(tPartial, p1...)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	Equal(t, len(errs), 1)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	Equal(t, len(errs), 1)
+
+	// Unset second slice member concurrently to test dive behavior:
+	tPartial.SubSlice[1].Test = ""
+
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	// NOTE: When specifying nested items, it is still the users responsibility
+	// to specify the dive tag, the library does not override this.
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	errs = validate.StructExcept(tPartial, p1...)
+	Equal(t, len(errs), 2)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	errs = validate.StructPartial(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "Test", "required")
+
+	// reset struct in slice, and unset struct in slice in unset posistion
+	tPartial.SubSlice[0].Test = "Required"
+
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	// testing for missing item by exception, yes it dives and fails
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[1].Test", "Test", "required")
+
+	tPartial.SubSlice[1].Test = "Required"
+
+	tPartial.Anonymous.SubAnonStruct[0].Test = ""
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructPartial(tPartial, p1...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(tPartial, p2...)
+	Equal(t, errs, nil)
+
+	errs = validate.StructExcept(tPartial, p1...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+
+	errs = validate.StructExcept(tPartial, p2...)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "required")
+
+}
+
+func TestCrossStructLteFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"ltecsfield=Inner.CreatedAt"`
+		String    string     `validate:"ltecsfield=Inner.String"`
+		Int       int        `validate:"ltecsfield=Inner.Int"`
+		Uint      uint       `validate:"ltecsfield=Inner.Uint"`
+		Float     float64    `validate:"ltecsfield=Inner.Float"`
+		Array     []string   `validate:"ltecsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abc",
+		Int:       12,
+		Uint:      12,
+		Float:     1.12,
+		Array:     []string{"val1"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	Equal(t, errs, nil)
+
+	after := now.Add(time.Hour * 10)
+
+	test.CreatedAt = &after
+	test.String = "abce"
+	test.Int = 14
+	test.Uint = 14
+	test.Float = 1.14
+	test.Array = []string{"val1", "val2", "val3"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "ltecsfield")
+	AssertError(t, errs, "Test.String", "String", "ltecsfield")
+	AssertError(t, errs, "Test.Int", "Int", "ltecsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "ltecsfield")
+	AssertError(t, errs, "Test.Float", "Float", "ltecsfield")
+	AssertError(t, errs, "Test.Array", "Array", "ltecsfield")
+
+	errs = validate.FieldWithValue(1, "", "ltecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltecsfield")
+
+	errs = validate.FieldWithValue(test, now, "ltecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltecsfield")
+}
+
+func TestCrossStructLtFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"ltcsfield=Inner.CreatedAt"`
+		String    string     `validate:"ltcsfield=Inner.String"`
+		Int       int        `validate:"ltcsfield=Inner.Int"`
+		Uint      uint       `validate:"ltcsfield=Inner.Uint"`
+		Float     float64    `validate:"ltcsfield=Inner.Float"`
+		Array     []string   `validate:"ltcsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abc",
+		Int:       12,
+		Uint:      12,
+		Float:     1.12,
+		Array:     []string{"val1"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "ltcsfield")
+	AssertError(t, errs, "Test.String", "String", "ltcsfield")
+	AssertError(t, errs, "Test.Int", "Int", "ltcsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "ltcsfield")
+	AssertError(t, errs, "Test.Float", "Float", "ltcsfield")
+	AssertError(t, errs, "Test.Array", "Array", "ltcsfield")
+
+	errs = validate.FieldWithValue(1, "", "ltcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltcsfield")
+
+	errs = validate.FieldWithValue(test, now, "ltcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltcsfield")
+}
+
+func TestCrossStructGteFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"gtecsfield=Inner.CreatedAt"`
+		String    string     `validate:"gtecsfield=Inner.String"`
+		Int       int        `validate:"gtecsfield=Inner.Int"`
+		Uint      uint       `validate:"gtecsfield=Inner.Uint"`
+		Float     float64    `validate:"gtecsfield=Inner.Float"`
+		Array     []string   `validate:"gtecsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * -5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abcde",
+		Int:       14,
+		Uint:      14,
+		Float:     1.14,
+		Array:     []string{"val1", "val2", "val3"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	Equal(t, errs, nil)
+
+	before := now.Add(time.Hour * -10)
+
+	test.CreatedAt = &before
+	test.String = "abc"
+	test.Int = 12
+	test.Uint = 12
+	test.Float = 1.12
+	test.Array = []string{"val1"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "gtecsfield")
+	AssertError(t, errs, "Test.String", "String", "gtecsfield")
+	AssertError(t, errs, "Test.Int", "Int", "gtecsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "gtecsfield")
+	AssertError(t, errs, "Test.Float", "Float", "gtecsfield")
+	AssertError(t, errs, "Test.Array", "Array", "gtecsfield")
+
+	errs = validate.FieldWithValue(1, "", "gtecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtecsfield")
+
+	errs = validate.FieldWithValue(test, now, "gtecsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtecsfield")
+}
+
+func TestCrossStructGtFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+		String    string
+		Int       int
+		Uint      uint
+		Float     float64
+		Array     []string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"gtcsfield=Inner.CreatedAt"`
+		String    string     `validate:"gtcsfield=Inner.String"`
+		Int       int        `validate:"gtcsfield=Inner.Int"`
+		Uint      uint       `validate:"gtcsfield=Inner.Uint"`
+		Float     float64    `validate:"gtcsfield=Inner.Float"`
+		Array     []string   `validate:"gtcsfield=Inner.Array"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * -5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+		String:    "abcd",
+		Int:       13,
+		Uint:      13,
+		Float:     1.13,
+		Array:     []string{"val1", "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+		String:    "abcde",
+		Int:       14,
+		Uint:      14,
+		Float:     1.14,
+		Array:     []string{"val1", "val2", "val3"},
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+	test.String = "abcd"
+	test.Int = 13
+	test.Uint = 13
+	test.Float = 1.13
+	test.Array = []string{"val1", "val2"}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "gtcsfield")
+	AssertError(t, errs, "Test.String", "String", "gtcsfield")
+	AssertError(t, errs, "Test.Int", "Int", "gtcsfield")
+	AssertError(t, errs, "Test.Uint", "Uint", "gtcsfield")
+	AssertError(t, errs, "Test.Float", "Float", "gtcsfield")
+	AssertError(t, errs, "Test.Array", "Array", "gtcsfield")
+
+	errs = validate.FieldWithValue(1, "", "gtcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtcsfield")
+
+	errs = validate.FieldWithValue(test, now, "gtcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtcsfield")
+}
+
+func TestCrossStructNeFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"necsfield=Inner.CreatedAt"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 5)
+
+	inner := &Inner{
+		CreatedAt: &then,
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.CreatedAt = &then
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "necsfield")
+
+	var j uint64
+	var k float64
+	var j2 uint64
+	var k2 float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+
+	s2 := "abcd"
+	i2 := 1
+	j2 = 1
+	k2 = 1.543
+	arr2 := []string{"test"}
+	arr3 := []string{"test", "test2"}
+	now2 := now
+
+	errs = validate.FieldWithValue(s, s2, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(i2, i, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(j2, j, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(k2, k, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(arr2, arr, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(now2, now, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "necsfield")
+
+	errs = validate.FieldWithValue(arr3, arr, "necsfield")
+	Equal(t, errs, nil)
+
+	type SInner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *SInner
+		CreatedAt *time.Time `validate:"necsfield=Inner"`
+	}
+
+	sinner := &SInner{
+		Name: "NAME",
+	}
+
+	test2 := &TStruct{
+		Inner:     sinner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test2)
+	Equal(t, errs, nil)
+
+	test2.Inner = nil
+	errs = validate.Struct(test2)
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(nil, 1, "necsfield")
+	Equal(t, errs, nil)
+}
+
+func TestCrossStructEqFieldValidation(t *testing.T) {
+
+	type Inner struct {
+		CreatedAt *time.Time
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"eqcsfield=Inner.CreatedAt"`
+	}
+
+	now := time.Now().UTC()
+
+	inner := &Inner{
+		CreatedAt: &now,
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	newTime := time.Now().UTC()
+	test.CreatedAt = &newTime
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.CreatedAt", "CreatedAt", "eqcsfield")
+
+	var j uint64
+	var k float64
+	s := "abcd"
+	i := 1
+	j = 1
+	k = 1.543
+	arr := []string{"test"}
+
+	var j2 uint64
+	var k2 float64
+	s2 := "abcd"
+	i2 := 1
+	j2 = 1
+	k2 = 1.543
+	arr2 := []string{"test"}
+	arr3 := []string{"test", "test2"}
+	now2 := now
+
+	errs = validate.FieldWithValue(s, s2, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(i2, i, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(j2, j, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(k2, k, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(arr2, arr, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(now2, now, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue(arr3, arr, "eqcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqcsfield")
+
+	type SInner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *SInner
+		CreatedAt *time.Time `validate:"eqcsfield=Inner"`
+	}
+
+	sinner := &SInner{
+		Name: "NAME",
+	}
+
+	test2 := &TStruct{
+		Inner:     sinner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqcsfield")
+
+	test2.Inner = nil
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqcsfield")
+
+	errs = validate.FieldWithValue(nil, 1, "eqcsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqcsfield")
+}
+
+func TestCrossNamespaceFieldValidation(t *testing.T) {
+
+	type SliceStruct struct {
+		Name string
+	}
+
+	type MapStruct struct {
+		Name string
+	}
+
+	type Inner struct {
+		CreatedAt        *time.Time
+		Slice            []string
+		SliceStructs     []*SliceStruct
+		SliceSlice       [][]string
+		SliceSliceStruct [][]*SliceStruct
+		SliceMap         []map[string]string
+		Map              map[string]string
+		MapMap           map[string]map[string]string
+		MapStructs       map[string]*SliceStruct
+		MapMapStruct     map[string]map[string]*SliceStruct
+		MapSlice         map[string][]string
+		MapInt           map[int]string
+		MapInt8          map[int8]string
+		MapInt16         map[int16]string
+		MapInt32         map[int32]string
+		MapInt64         map[int64]string
+		MapUint          map[uint]string
+		MapUint8         map[uint8]string
+		MapUint16        map[uint16]string
+		MapUint32        map[uint32]string
+		MapUint64        map[uint64]string
+		MapFloat32       map[float32]string
+		MapFloat64       map[float64]string
+		MapBool          map[bool]string
+	}
+
+	type Test struct {
+		Inner     *Inner
+		CreatedAt *time.Time
+	}
+
+	now := time.Now()
+
+	inner := &Inner{
+		CreatedAt:        &now,
+		Slice:            []string{"val1", "val2", "val3"},
+		SliceStructs:     []*SliceStruct{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}},
+		SliceSlice:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}},
+		SliceSliceStruct: [][]*SliceStruct{{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}}, {{Name: "name4"}, {Name: "name5"}, {Name: "name6"}}, {{Name: "name7"}, {Name: "name8"}, {Name: "name9"}}},
+		SliceMap:         []map[string]string{{"key1": "val1", "key2": "val2", "key3": "val3"}, {"key4": "val4", "key5": "val5", "key6": "val6"}},
+		Map:              map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+		MapStructs:       map[string]*SliceStruct{"key1": {Name: "name1"}, "key2": {Name: "name2"}, "key3": {Name: "name3"}},
+		MapMap:           map[string]map[string]string{"key1": {"key1-1": "val1"}, "key2": {"key2-1": "val2"}, "key3": {"key3-1": "val3"}},
+		MapMapStruct:     map[string]map[string]*SliceStruct{"key1": {"key1-1": {Name: "name1"}}, "key2": {"key2-1": {Name: "name2"}}, "key3": {"key3-1": {Name: "name3"}}},
+		MapSlice:         map[string][]string{"key1": {"1", "2", "3"}, "key2": {"4", "5", "6"}, "key3": {"7", "8", "9"}},
+		MapInt:           map[int]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt8:          map[int8]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt16:         map[int16]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt32:         map[int32]string{1: "val1", 2: "val2", 3: "val3"},
+		MapInt64:         map[int64]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint:          map[uint]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint8:         map[uint8]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint16:        map[uint16]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint32:        map[uint32]string{1: "val1", 2: "val2", 3: "val3"},
+		MapUint64:        map[uint64]string{1: "val1", 2: "val2", 3: "val3"},
+		MapFloat32:       map[float32]string{1.01: "val1", 2.02: "val2", 3.03: "val3"},
+		MapFloat64:       map[float64]string{1.01: "val1", 2.02: "val2", 3.03: "val3"},
+		MapBool:          map[bool]string{true: "val1", false: "val2"},
+	}
+
+	test := &Test{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	val := reflect.ValueOf(test)
+
+	current, kind, ok := validate.getStructFieldOK(val, "Inner.CreatedAt")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.Struct)
+	tm, ok := current.Interface().(time.Time)
+	Equal(t, ok, true)
+	Equal(t, tm, now)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[1]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.CrazyNonExistantField")
+	Equal(t, ok, false)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[101]")
+	Equal(t, ok, false)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.Map[key3]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val3")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMap[key2][key2-1]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapStructs[key2].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMapStruct[key3][key3-1].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name3")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSlice[2][0]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "7")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSliceStruct[2][1].Name")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "name8")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceMap[1][key5]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val5")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapSlice[key3][2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "9")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt8[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt16[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt32[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt64[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint8[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint16[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint32[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint64[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat32[3.03]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val3")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat64[2.02]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val2")
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapBool[true]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.String)
+	Equal(t, current.String(), "val1")
+
+	inner = &Inner{
+		CreatedAt:        &now,
+		Slice:            []string{"val1", "val2", "val3"},
+		SliceStructs:     []*SliceStruct{{Name: "name1"}, {Name: "name2"}, nil},
+		SliceSlice:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}},
+		SliceSliceStruct: [][]*SliceStruct{{{Name: "name1"}, {Name: "name2"}, {Name: "name3"}}, {{Name: "name4"}, {Name: "name5"}, {Name: "name6"}}, {{Name: "name7"}, {Name: "name8"}, {Name: "name9"}}},
+		SliceMap:         []map[string]string{{"key1": "val1", "key2": "val2", "key3": "val3"}, {"key4": "val4", "key5": "val5", "key6": "val6"}},
+		Map:              map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"},
+		MapStructs:       map[string]*SliceStruct{"key1": {Name: "name1"}, "key2": {Name: "name2"}, "key3": {Name: "name3"}},
+		MapMap:           map[string]map[string]string{"key1": {"key1-1": "val1"}, "key2": {"key2-1": "val2"}, "key3": {"key3-1": "val3"}},
+		MapMapStruct:     map[string]map[string]*SliceStruct{"key1": {"key1-1": {Name: "name1"}}, "key2": {"key2-1": {Name: "name2"}}, "key3": {"key3-1": {Name: "name3"}}},
+		MapSlice:         map[string][]string{"key1": {"1", "2", "3"}, "key2": {"4", "5", "6"}, "key3": {"7", "8", "9"}},
+	}
+
+	test = &Test{
+		Inner:     inner,
+		CreatedAt: nil,
+	}
+
+	val = reflect.ValueOf(test)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceStructs[2]")
+	Equal(t, ok, true)
+	Equal(t, kind, reflect.Ptr)
+	Equal(t, current.String(), "<*validator.SliceStruct Value>")
+	Equal(t, current.IsNil(), true)
+
+	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceStructs[2].Name")
+	Equal(t, ok, false)
+	Equal(t, kind, reflect.Ptr)
+	Equal(t, current.String(), "<*validator.SliceStruct Value>")
+	Equal(t, current.IsNil(), true)
+
+	PanicMatches(t, func() { validate.getStructFieldOK(reflect.ValueOf(1), "crazyinput") }, "Invalid field namespace")
+}
+
 func TestExistsValidation(t *testing.T) {
 
 	jsonText := "{ \"truthiness2\": true }"
@@ -1925,11 +2911,11 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.Struct(sv)
 	Equal(t, errs, nil)
 
-	channel := make(chan string)
+	errs = validate.FieldWithValue(nil, 1, "nefield")
+	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "nefield") }, "struct or field value not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "nefield") }, "Bad field type chan string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, now, "nefield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(sv, now, "nefield")
+	Equal(t, errs, nil)
 
 	type Test2 struct {
 		Start *time.Time `validate:"nefield=NonExistantField"`
@@ -1941,7 +2927,8 @@ func TestIsNeFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	PanicMatches(t, func() { validate.Struct(sv2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(sv2)
+	Equal(t, errs, nil)
 }
 
 func TestIsNeValidation(t *testing.T) {
@@ -2044,11 +3031,18 @@ func TestIsEqFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Start", "Start", "eqfield")
 
-	channel := make(chan string)
+	errs = validate.FieldWithValue(nil, 1, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "eqfield") }, "struct or field value not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(5, channel, "eqfield") }, "Bad field type chan string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, now, "eqfield") }, "Bad Top Level field type")
+	channel := make(chan string)
+	errs = validate.FieldWithValue(5, channel, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
+
+	errs = validate.FieldWithValue(5, now, "eqfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "eqfield")
 
 	type Test2 struct {
 		Start *time.Time `validate:"eqfield=NonExistantField"`
@@ -2060,7 +3054,31 @@ func TestIsEqFieldValidation(t *testing.T) {
 		End:   &now,
 	}
 
-	PanicMatches(t, func() { validate.Struct(sv2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(sv2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Start", "Start", "eqfield")
+
+	type Inner struct {
+		Name string
+	}
+
+	type TStruct struct {
+		Inner     *Inner
+		CreatedAt *time.Time `validate:"eqfield=Inner"`
+	}
+
+	inner := &Inner{
+		Name: "NAME",
+	}
+
+	test := &TStruct{
+		Inner:     inner,
+		CreatedAt: &now,
+	}
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqfield")
 }
 
 func TestIsEqValidation(t *testing.T) {
@@ -2182,6 +3200,12 @@ func TestGtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtfield")
 
+	errs = validate.FieldWithValue(&timeTest, &end, "gtfield")
+	NotEqual(t, errs, nil)
+
+	errs = validate.FieldWithValue("test", "test bigger", "gtfield")
+	Equal(t, errs, nil)
+
 	type IntTest struct {
 		Val1 int `validate:"required"`
 		Val2 int `validate:"required,gtfield=Val1"`
@@ -2269,9 +3293,17 @@ func TestGtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtfield") }, "struct not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtfield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, start, "gtfield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(nil, 1, "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
+
+	errs = validate.FieldWithValue(5, "T", "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
+
+	errs = validate.FieldWithValue(5, start, "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtfield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -2283,7 +3315,9 @@ func TestGtField(t *testing.T) {
 		End:   &end,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "gtfield")
 }
 
 func TestLtField(t *testing.T) {
@@ -2320,6 +3354,13 @@ func TestLtField(t *testing.T) {
 	errs = validate.FieldWithValue(&start, &end, "ltfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue(timeTest, &end, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue("test", "tes", "ltfield")
+	Equal(t, errs, nil)
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2408,9 +3449,17 @@ func TestLtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltfield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltfield") }, "struct not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltfield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltfield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(nil, 5, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue(1, "T", "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
+
+	errs = validate.FieldWithValue(1, end, "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltfield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -2422,7 +3471,9 @@ func TestLtField(t *testing.T) {
 		End:   &start,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "ltfield")
 }
 
 func TestLteField(t *testing.T) {
@@ -2459,6 +3510,16 @@ func TestLteField(t *testing.T) {
 	errs = validate.FieldWithValue(&start, &end, "ltefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue(timeTest, &end, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue("test", "tes", "ltefield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue("test", "test", "ltefield")
+	Equal(t, errs, nil)
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2547,9 +3608,17 @@ func TestLteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "ltefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 5, "ltefield") }, "struct not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(1, "T", "ltefield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(1, end, "ltefield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(nil, 5, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue(1, "T", "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
+
+	errs = validate.FieldWithValue(1, end, "ltefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "ltefield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -2561,7 +3630,9 @@ func TestLteField(t *testing.T) {
 		End:   &start,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "ltefield")
 }
 
 func TestGteField(t *testing.T) {
@@ -2598,6 +3669,16 @@ func TestGteField(t *testing.T) {
 	errs = validate.FieldWithValue(&end, &start, "gtefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtefield")
+
+	errs = validate.FieldWithValue(timeTest, &start, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
+
+	errs = validate.FieldWithValue("test", "test", "gtefield")
+	Equal(t, errs, nil)
+
+	errs = validate.FieldWithValue("test", "test bigger", "gtefield")
+	Equal(t, errs, nil)
 
 	type IntTest struct {
 		Val1 int `validate:"required"`
@@ -2686,9 +3767,17 @@ func TestGteField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "gtefield")
 
-	PanicMatches(t, func() { validate.FieldWithValue(nil, 1, "gtefield") }, "struct not passed for cross validation")
-	PanicMatches(t, func() { validate.FieldWithValue(5, "T", "gtefield") }, "Bad field type string")
-	PanicMatches(t, func() { validate.FieldWithValue(5, start, "gtefield") }, "Bad Top Level field type")
+	errs = validate.FieldWithValue(nil, 1, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
+
+	errs = validate.FieldWithValue(5, "T", "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
+
+	errs = validate.FieldWithValue(5, start, "gtefield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "gtefield")
 
 	type TimeTest2 struct {
 		Start *time.Time `validate:"required"`
@@ -2700,7 +3789,9 @@ func TestGteField(t *testing.T) {
 		End:   &end,
 	}
 
-	PanicMatches(t, func() { validate.Struct(timeTest2) }, "Field \"NonExistantField\" not found in struct")
+	errs = validate.Struct(timeTest2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeTest2.End", "End", "gtefield")
 }
 
 func TestValidateByTagAndValue(t *testing.T) {
@@ -2710,7 +3801,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 	errs := validate.FieldWithValue(val, field, "required")
 	Equal(t, errs, nil)
 
-	fn := func(topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	fn := func(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		return current.String() == field.String()
 	}
@@ -2729,7 +3820,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 
 func TestAddFunctions(t *testing.T) {
 
-	fn := func(topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	fn := func(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		return true
 	}
