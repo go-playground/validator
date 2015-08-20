@@ -44,7 +44,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v6"
+	"gopkg.in/bluesuncorp/validator.v7"
 )
 
 // User contains user information
