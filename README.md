@@ -3,7 +3,7 @@ Package validator
 
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/517072/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v7)](https://coveralls.io/r/bluesuncorp/validator?branch=v7)
+[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v7&service=github)](https://coveralls.io/github/bluesuncorp/validator?branch=v7)
 [![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v7?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v7)
 
 Package validator implements value validations for structs and individual fields based on tags.
