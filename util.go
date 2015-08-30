@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -10,6 +11,21 @@ const (
 	namespaceSeparator = "."
 	leftBracket        = "["
 	rightBracket       = "]"
+	restrictedTagChars = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
+	restrictedAliasErr = "Alias \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation\n"
+	restrictedTagErr   = "Tag \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation\n"
+)
+
+var (
+	restrictedTags = map[string]*struct{}{
+		diveTag:           emptyStructPtr,
+		existsTag:         emptyStructPtr,
+		structOnlyTag:     emptyStructPtr,
+		omitempty:         emptyStructPtr,
+		skipValidationTag: emptyStructPtr,
+		utf8HexComma:      emptyStructPtr,
+		utf8Pipe:          emptyStructPtr,
+	}
 )
 
 func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Kind) {
@@ -213,4 +229,49 @@ func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
+
+	tags := []*tagCache{}
+
+	for _, t := range strings.Split(tag, tagSeparator) {
+
+		if v.config.hasAliasValidators {
+			// check map for alias and process new tags, otherwise process as usual
+			if tagsVal, ok := v.config.AliasValidators[t]; ok {
+				return v.parseTags(tagsVal, fieldName)
+			}
+		}
+
+		if t == diveTag {
+			tags = append(tags, &tagCache{tagVals: [][]string{{t}}})
+			break
+		}
+
+		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
+		orVals := strings.Split(t, orSeparator)
+		cTag := &tagCache{isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+		tags = append(tags, cTag)
+
+		var key string
+		var param string
+
+		for i, val := range orVals {
+			vals := strings.SplitN(val, tagKeySeparator, 2)
+			key = vals[0]
+
+			if len(key) == 0 {
+				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
+			}
+
+			if len(vals) > 1 {
+				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+			}
+
+			cTag.tagVals[i] = []string{key, param}
+		}
+	}
+
+	return tags
 }

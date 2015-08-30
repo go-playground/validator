@@ -81,10 +81,12 @@ type Validate struct {
 // Config contains the options that a Validator instance will use.
 // It is passed to the New() function
 type Config struct {
-	TagName         string
-	ValidationFuncs map[string]Func
-	CustomTypeFuncs map[reflect.Type]CustomTypeFunc
-	hasCustomFuncs  bool
+	TagName            string
+	ValidationFuncs    map[string]Func
+	CustomTypeFuncs    map[reflect.Type]CustomTypeFunc
+	AliasValidators    map[string]string
+	hasCustomFuncs     bool
+	hasAliasValidators bool
 }
 
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
@@ -139,6 +141,10 @@ func New(config Config) *Validate {
 		config.hasCustomFuncs = true
 	}
 
+	if config.AliasValidators != nil && len(config.AliasValidators) > 0 {
+		config.hasAliasValidators = true
+	}
+
 	return &Validate{config: config}
 }
 
@@ -153,6 +159,12 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 
 	if f == nil {
 		return errors.New("Function cannot be empty")
+	}
+
+	_, ok := restrictedTags[key]
+
+	if ok || strings.ContainsAny(key, restrictedTagChars) {
+		panic(fmt.Sprintf(restrictedTagErr, key))
 	}
 
 	v.config.ValidationFuncs[key] = f
@@ -172,6 +184,25 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	v.config.hasCustomFuncs = true
+}
+
+// RegisterAliasValidation registers a mapping of a single validationstag that
+// defines a common or complex set of validation(s) to simplify adding validation
+// to structs.
+func (v *Validate) RegisterAliasValidation(alias, tags string) {
+
+	if v.config.AliasValidators == nil {
+		v.config.AliasValidators = map[string]string{}
+	}
+
+	_, ok := restrictedTags[alias]
+
+	if ok || strings.ContainsAny(alias, restrictedTagChars) {
+		panic(fmt.Sprintf(restrictedAliasErr, alias))
+	}
+
+	v.config.AliasValidators[alias] = tags
+	v.config.hasAliasValidators = true
 }
 
 // Field validates a single field using tag style validation and returns ValidationErrors
@@ -430,39 +461,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 	tags, isCached := tagsCache.Get(tag)
 
 	if !isCached {
-
-		tags = []*tagCache{}
-
-		for _, t := range strings.Split(tag, tagSeparator) {
-
-			if t == diveTag {
-				tags = append(tags, &tagCache{tagVals: [][]string{{t}}})
-				break
-			}
-
-			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
-			orVals := strings.Split(t, orSeparator)
-			cTag := &tagCache{isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
-			tags = append(tags, cTag)
-
-			var key string
-			var param string
-
-			for i, val := range orVals {
-				vals := strings.SplitN(val, tagKeySeparator, 2)
-				key = vals[0]
-
-				if len(key) == 0 {
-					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, name)))
-				}
-
-				if len(vals) > 1 {
-					param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
-				}
-
-				cTag.tagVals[i] = []string{key, param}
-			}
-		}
+		tags = v.parseTags(tag, name)
 		tagsCache.Set(tag, tags)
 	}
 

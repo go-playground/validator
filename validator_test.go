@@ -111,7 +111,7 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
-var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
+var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, AliasValidators: BakedInAliasValidators})
 
 func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
@@ -208,6 +208,24 @@ type TestPartial struct {
 			OtherTest string `validate:"required"`
 		} `validate:"required,dive"`
 	}
+}
+
+func TestAliasTags(t *testing.T) {
+
+	s := "rgb(255,255,255)"
+	errs := validate.Field(s, "iscolor")
+	Equal(t, errs, nil)
+
+	type Test struct {
+		Color string `vlidate:"iscolor"`
+	}
+
+	tst := &Test{
+		Color: "#000",
+	}
+
+	errs = validate.Struct(tst)
+	Equal(t, errs, nil)
 }
 
 func TestStructPartial(t *testing.T) {
@@ -1805,7 +1823,8 @@ func TestMapDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapStruct.Errs[3].Name", "Name", "required")
 
 	// for full test coverage
-	fmt.Sprint(errs.Error())
+	s := fmt.Sprint(errs.Error())
+	NotEqual(t, s, "")
 
 	type TestMapTimeStruct struct {
 		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
@@ -1968,8 +1987,10 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][1].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[1][2].Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr.Errs[2][1].Name", "Name", "required")
+
 	// for full test coverage
-	fmt.Sprint(errs.Error())
+	s := fmt.Sprint(errs.Error())
+	NotEqual(t, s, "")
 
 	type TestMultiDimensionalStructsPtr2 struct {
 		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
