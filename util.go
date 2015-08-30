@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	blank              = ""
 	namespaceSeparator = "."
 	leftBracket        = "["
 	rightBracket       = "]"
@@ -94,7 +95,7 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 				fld = namespace[:idx]
 				ns = namespace[idx+1:]
 			} else {
-				ns = ""
+				ns = blank
 				idx = len(namespace)
 			}
 
@@ -233,14 +234,24 @@ func panicIf(err error) {
 
 func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
 
+	return v.parseTagsRecursive(tag, fieldName, blank, false)
+}
+
+func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool) []*tagCache {
+
 	tags := []*tagCache{}
+
+	if len(tag) == 0 {
+		return tags
+	}
 
 	for _, t := range strings.Split(tag, tagSeparator) {
 
 		if v.config.hasAliasValidators {
 			// check map for alias and process new tags, otherwise process as usual
-			if tagsVal, ok := v.config.AliasValidators[t]; ok {
-				return v.parseTags(tagsVal, fieldName)
+			if tagsVal, ok := v.config.aliasValidators[t]; ok {
+				tags = append(tags, v.parseTagsRecursive(tagsVal, fieldName, t, true)...)
+				continue
 			}
 		}
 
@@ -251,7 +262,8 @@ func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
 
 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 		orVals := strings.Split(t, orSeparator)
-		cTag := &tagCache{isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+		cTag := &tagCache{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+
 		tags = append(tags, cTag)
 
 		var key string
@@ -260,6 +272,12 @@ func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
 		for i, val := range orVals {
 			vals := strings.SplitN(val, tagKeySeparator, 2)
 			key = vals[0]
+
+			cTag.tag = key
+
+			if isAlias {
+				cTag.tag = alias
+			}
 
 			if len(key) == 0 {
 				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))

@@ -111,7 +111,7 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
-var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, AliasValidators: BakedInAliasValidators})
+var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
 
 func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
@@ -212,12 +212,23 @@ type TestPartial struct {
 
 func TestAliasTags(t *testing.T) {
 
+	validate.RegisterAliasValidation("iscolor", "hexcolor|rgb|rgba|hsl|hsla")
+
 	s := "rgb(255,255,255)"
 	errs := validate.Field(s, "iscolor")
 	Equal(t, errs, nil)
 
+	s = ""
+	errs = validate.Field(s, "omitempty,iscolor")
+	Equal(t, errs, nil)
+
+	s = "rgb(255,255,0)"
+	errs = validate.Field(s, "iscolor,len=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "len")
+
 	type Test struct {
-		Color string `vlidate:"iscolor"`
+		Color string `validate:"iscolor"`
 	}
 
 	tst := &Test{
@@ -226,6 +237,12 @@ func TestAliasTags(t *testing.T) {
 
 	errs = validate.Struct(tst)
 	Equal(t, errs, nil)
+
+	tst.Color = "cfvre"
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Color", "Color", "iscolor")
+	Equal(t, errs["Test.Color"].ActualTag, "hexcolor|rgb|rgba|hsl|hsla")
 }
 
 func TestStructPartial(t *testing.T) {

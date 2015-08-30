@@ -53,6 +53,9 @@ func newValidationErrors() interface{} {
 type tagCache struct {
 	tagVals [][]string
 	isOrVal bool
+	isAlias bool
+	tag     string
+	// actualTag string
 }
 
 type tagCacheMap struct {
@@ -84,7 +87,7 @@ type Config struct {
 	TagName            string
 	ValidationFuncs    map[string]Func
 	CustomTypeFuncs    map[reflect.Type]CustomTypeFunc
-	AliasValidators    map[string]string
+	aliasValidators    map[string]string
 	hasCustomFuncs     bool
 	hasAliasValidators bool
 }
@@ -113,7 +116,7 @@ type ValidationErrors map[string]*FieldError
 // the FieldError found within the ValidationErrors map
 func (ve ValidationErrors) Error() string {
 
-	buff := bytes.NewBufferString("")
+	buff := bytes.NewBufferString(blank)
 
 	for key, err := range ve {
 		buff.WriteString(fmt.Sprintf(fieldErrMsg, key, err.Field, err.Tag))
@@ -126,12 +129,13 @@ func (ve ValidationErrors) Error() string {
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 type FieldError struct {
-	Field string
-	Tag   string
-	Kind  reflect.Kind
-	Type  reflect.Type
-	Param string
-	Value interface{}
+	Field     string
+	Tag       string
+	ActualTag string
+	Kind      reflect.Kind
+	Type      reflect.Type
+	Param     string
+	Value     interface{}
 }
 
 // New creates a new Validate instance for use.
@@ -139,10 +143,6 @@ func New(config Config) *Validate {
 
 	if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
 		config.hasCustomFuncs = true
-	}
-
-	if config.AliasValidators != nil && len(config.AliasValidators) > 0 {
-		config.hasAliasValidators = true
 	}
 
 	return &Validate{config: config}
@@ -191,8 +191,8 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // to structs.
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
-	if v.config.AliasValidators == nil {
-		v.config.AliasValidators = map[string]string{}
+	if v.config.aliasValidators == nil {
+		v.config.aliasValidators = map[string]string{}
 	}
 
 	_, ok := restrictedTags[alias]
@@ -201,7 +201,7 @@ func (v *Validate) RegisterAliasValidation(alias, tags string) {
 		panic(fmt.Sprintf(restrictedAliasErr, alias))
 	}
 
-	v.config.AliasValidators[alias] = tags
+	v.config.aliasValidators[alias] = tags
 	v.config.hasAliasValidators = true
 }
 
@@ -213,7 +213,7 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 	errs := errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
-	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "", false, false, nil)
+	v.traverseField(fieldVal, fieldVal, fieldVal, blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -231,7 +231,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	errs := errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "", false, false, nil)
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -289,7 +289,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 
 	errs := errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, false, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, false, m)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -316,7 +316,7 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) Validatio
 
 	errs := errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, true, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, true, m)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -332,7 +332,7 @@ func (v *Validate) Struct(current interface{}) ValidationErrors {
 	errs := errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, false, false, nil)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, false, false, nil)
 
 	if len(errs) == 0 {
 		errsPool.Put(errs)
@@ -391,6 +391,13 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		return
 	}
 
+	tags, isCached := tagsCache.Get(tag)
+
+	if !isCached {
+		tags = v.parseTags(tag, name)
+		tagsCache.Set(tag, tags)
+	}
+
 	current, kind := v.extractType(current)
 	var typ reflect.Type
 
@@ -402,35 +409,30 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if len(tag) > 0 {
 
-			tags := strings.Split(tag, tagSeparator)
-			var param string
-			vals := strings.SplitN(tags[0], tagKeySeparator, 2)
-
-			if len(vals) > 1 {
-				param = vals[1]
-			}
-
 			if kind == reflect.Invalid {
 				errs[errPrefix+name] = &FieldError{
-					Field: name,
-					Tag:   vals[0],
-					Param: param,
-					Kind:  kind,
+					Field:     name,
+					Tag:       tags[0].tag,
+					ActualTag: tags[0].tagVals[0][0],
+					Param:     tags[0].tagVals[0][1],
+					Kind:      kind,
 				}
 				return
 			}
 
 			errs[errPrefix+name] = &FieldError{
-				Field: name,
-				Tag:   vals[0],
-				Param: param,
-				Value: current.Interface(),
-				Kind:  kind,
-				Type:  current.Type(),
+				Field:     name,
+				Tag:       tags[0].tag,
+				ActualTag: tags[0].tagVals[0][0],
+				Param:     tags[0].tagVals[0][1],
+				Value:     current.Interface(),
+				Kind:      kind,
+				Type:      current.Type(),
 			}
 
 			return
 		}
+
 		// if we get here tag length is zero and we can leave
 		if kind == reflect.Invalid {
 			return
@@ -458,13 +460,6 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 	typ = current.Type()
 
-	tags, isCached := tagsCache.Get(tag)
-
-	if !isCached {
-		tags = v.parseTags(tag, name)
-		tagsCache.Set(tag, tags)
-	}
-
 	var dive bool
 	var diveSubTag string
 
@@ -482,7 +477,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if cTag.tagVals[0][0] == omitempty {
 
-			if !hasValue(v, topStruct, currentStruct, current, typ, kind, "") {
+			if !hasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
 			continue
@@ -533,7 +528,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 
 	if cTag.isOrVal {
 
-		errTag := ""
+		errTag := blank
 
 		for _, val := range cTag.tagVals {
 
@@ -549,12 +544,24 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 			errTag += orSeparator + val[0]
 		}
 
-		errs[errPrefix+name] = &FieldError{
-			Field: name,
-			Tag:   errTag[1:],
-			Value: current.Interface(),
-			Type:  currentType,
-			Kind:  currentKind,
+		if cTag.isAlias {
+			errs[errPrefix+name] = &FieldError{
+				Field:     name,
+				Tag:       cTag.tag,
+				ActualTag: errTag[1:],
+				Value:     current.Interface(),
+				Type:      currentType,
+				Kind:      currentKind,
+			}
+		} else {
+			errs[errPrefix+name] = &FieldError{
+				Field:     name,
+				Tag:       errTag[1:],
+				ActualTag: errTag[1:],
+				Value:     current.Interface(),
+				Type:      currentType,
+				Kind:      currentKind,
+			}
 		}
 
 		return true
@@ -570,12 +577,13 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 	}
 
 	errs[errPrefix+name] = &FieldError{
-		Field: name,
-		Tag:   cTag.tagVals[0][0],
-		Value: current.Interface(),
-		Param: cTag.tagVals[0][1],
-		Type:  currentType,
-		Kind:  currentKind,
+		Field:     name,
+		Tag:       cTag.tag,
+		ActualTag: cTag.tagVals[0][0],
+		Value:     current.Interface(),
+		Param:     cTag.tagVals[0][1],
+		Type:      currentType,
+		Kind:      currentKind,
 	}
 
 	return true
