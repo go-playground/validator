@@ -243,6 +243,14 @@ func TestAliasTags(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Color", "Color", "iscolor")
 	Equal(t, errs["Test.Color"].ActualTag, "hexcolor|rgb|rgba|hsl|hsla")
+
+	validate.RegisterAliasValidation("req", "required,dive,iscolor")
+	arr := []string{"val1", "#fff", "#000"}
+	errs = validate.Field(arr, "req")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "[0]", "[0]", "iscolor")
+
+	PanicMatches(t, func() { validate.RegisterAliasValidation("exists", "gt=5,lt=10") }, "Alias \"exists\" either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestStructPartial(t *testing.T) {
@@ -3881,6 +3889,8 @@ func TestAddFunctions(t *testing.T) {
 
 	errs = validate.RegisterValidation("new", fn)
 	Equal(t, errs, nil)
+
+	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag \"dive\" either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestChangeTag(t *testing.T) {

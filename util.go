@@ -13,8 +13,8 @@ const (
 	leftBracket        = "["
 	rightBracket       = "]"
 	restrictedTagChars = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
-	restrictedAliasErr = "Alias \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation\n"
-	restrictedTagErr   = "Tag \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation\n"
+	restrictedAliasErr = "Alias \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation"
+	restrictedTagErr   = "Tag \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation"
 )
 
 var (
@@ -234,15 +234,16 @@ func panicIf(err error) {
 
 func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
 
-	return v.parseTagsRecursive(tag, fieldName, blank, false)
+	tags, _ := v.parseTagsRecursive(tag, fieldName, blank, false)
+	return tags
 }
 
-func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool) []*tagCache {
+func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool) ([]*tagCache, bool) {
 
 	tags := []*tagCache{}
 
 	if len(tag) == 0 {
-		return tags
+		return tags, true
 	}
 
 	for _, t := range strings.Split(tag, tagSeparator) {
@@ -250,14 +251,22 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 		if v.config.hasAliasValidators {
 			// check map for alias and process new tags, otherwise process as usual
 			if tagsVal, ok := v.config.aliasValidators[t]; ok {
-				tags = append(tags, v.parseTagsRecursive(tagsVal, fieldName, t, true)...)
+
+				aliasTags, leave := v.parseTagsRecursive(tagsVal, fieldName, t, true)
+				tags = append(tags, aliasTags...)
+
+				if leave {
+					return tags, leave
+				}
+
 				continue
 			}
 		}
 
 		if t == diveTag {
-			tags = append(tags, &tagCache{tagVals: [][]string{{t}}})
-			break
+			tVals := &tagCache{diveTag: tag, tagVals: [][]string{{t}}}
+			tags = append(tags, tVals)
+			return tags, true
 		}
 
 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
@@ -291,5 +300,5 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 		}
 	}
 
-	return tags
+	return tags, false
 }

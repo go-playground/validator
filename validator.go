@@ -55,6 +55,7 @@ type tagCache struct {
 	isOrVal bool
 	isAlias bool
 	tag     string
+	diveTag string
 	// actualTag string
 }
 
@@ -191,8 +192,12 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // to structs.
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
-	if v.config.aliasValidators == nil {
+	if len(v.config.aliasValidators) == 0 {
+		// must copy validators for separate validations to be used in each
 		v.config.aliasValidators = map[string]string{}
+		for k, val := range BakedInAliasValidators {
+			v.config.aliasValidators[k] = val
+		}
 	}
 
 	_, ok := restrictedTags[alias]
@@ -471,7 +476,8 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if cTag.tagVals[0][0] == diveTag {
 			dive = true
-			diveSubTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
+			// fmt.Println(cTag.diveTag)
+			diveSubTag = strings.TrimLeft(strings.SplitN(cTag.diveTag, diveTag, 2)[1], ",")
 			break
 		}
 
