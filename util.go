@@ -232,18 +232,18 @@ func panicIf(err error) {
 	}
 }
 
-func (v *Validate) parseTags(tag, fieldName string) []*tagCache {
+func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
 
-	tags, _ := v.parseTagsRecursive(tag, fieldName, blank, false)
-	return tags
+	cTag := &cachedTag{}
+
+	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
+	return cTag
 }
 
-func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool) ([]*tagCache, bool) {
-
-	tags := []*tagCache{}
+func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
 
 	if len(tag) == 0 {
-		return tags, true
+		return true
 	}
 
 	for _, t := range strings.Split(tag, tagSeparator) {
@@ -252,11 +252,10 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 			// check map for alias and process new tags, otherwise process as usual
 			if tagsVal, ok := v.config.aliasValidators[t]; ok {
 
-				aliasTags, leave := v.parseTagsRecursive(tagsVal, fieldName, t, true)
-				tags = append(tags, aliasTags...)
+				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
 
 				if leave {
-					return tags, leave
+					return leave
 				}
 
 				continue
@@ -264,16 +263,20 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 		}
 
 		if t == diveTag {
-			tVals := &tagCache{diveTag: tag, tagVals: [][]string{{t}}}
-			tags = append(tags, tVals)
-			return tags, true
+			cTag.diveTag = tag
+			tVals := &tagVals{tagVals: [][]string{{t}}}
+			cTag.tags = append(cTag.tags, tVals)
+			return true
+		}
+
+		if t == omitempty {
+			cTag.isOmitEmpty = true
 		}
 
 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 		orVals := strings.Split(t, orSeparator)
-		cTag := &tagCache{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
-
-		tags = append(tags, cTag)
+		tagVal := &tagVals{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+		cTag.tags = append(cTag.tags, tagVal)
 
 		var key string
 		var param string
@@ -282,10 +285,10 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 			vals := strings.SplitN(val, tagKeySeparator, 2)
 			key = vals[0]
 
-			cTag.tag = key
+			tagVal.tag = key
 
 			if isAlias {
-				cTag.tag = alias
+				tagVal.tag = alias
 			}
 
 			if len(key) == 0 {
@@ -296,9 +299,9 @@ func (v *Validate) parseTagsRecursive(tag, fieldName, alias string, isAlias bool
 				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
 			}
 
-			cTag.tagVals[i] = []string{key, param}
+			tagVal.tagVals[i] = []string{key, param}
 		}
 	}
 
-	return tags, false
+	return false
 }
