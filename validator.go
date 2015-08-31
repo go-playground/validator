@@ -189,7 +189,10 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 
 // RegisterAliasValidation registers a mapping of a single validationstag that
 // defines a common or complex set of validation(s) to simplify adding validation
-// to structs.
+// to structs. NOTE: when returning an error the tag returned in FieldError will be
+// the alias tag unless the dive tag is part of the alias; everything after the
+// dive tag is not reported as the alias tag. Also the ActualTag in the before case
+// will be the actual tag within the alias that failed.
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
 	if len(v.config.aliasValidators) == 0 {

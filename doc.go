@@ -445,6 +445,18 @@ Here is a list of the current built in validators:
 		http://golang.org/src/net/mac.go?s=866:918#L29
 		(Usage: mac)
 
+Alias Validators and Tags
+
+NOTE: when returning an error the tag returned in FieldError will be
+the alias tag unless the dive tag is part of the alias; everything after the
+dive tag is not reported as the alias tag. Also the ActualTag in the before case
+will be the actual tag within the alias that failed.
+
+Here is a list of the current built in alias tags:
+
+	iscolor
+		alias is "hexcolor|rgb|rgba|hsl|hsla" (Usage: iscolor)
+
 Validator notes:
 
 	regex
