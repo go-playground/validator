@@ -90,8 +90,8 @@ type Validate struct {
 // It is passed to the New() function
 type Config struct {
 	TagName            string
-	ValidationFuncs    map[string]Func
-	CustomTypeFuncs    map[reflect.Type]CustomTypeFunc
+	validationFuncs    map[string]Func
+	customTypeFuncs    map[reflect.Type]CustomTypeFunc
 	aliasValidators    map[string]string
 	hasCustomFuncs     bool
 	hasAliasValidators bool
@@ -146,8 +146,24 @@ type FieldError struct {
 // New creates a new Validate instance for use.
 func New(config Config) *Validate {
 
-	if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
-		config.hasCustomFuncs = true
+	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
+	// 	config.hasCustomFuncs = true
+	// }
+
+	if len(config.aliasValidators) == 0 {
+		// must copy validators for separate validations to be used in each
+		config.aliasValidators = map[string]string{}
+		for k, val := range BakedInAliasValidators {
+			config.aliasValidators[k] = val
+		}
+	}
+
+	if len(config.validationFuncs) == 0 {
+		// must copy validators for separate validations to be used in each
+		config.validationFuncs = map[string]Func{}
+		for k, val := range BakedInValidators {
+			config.validationFuncs[k] = val
+		}
 	}
 
 	return &Validate{config: config}
@@ -172,7 +188,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 		panic(fmt.Sprintf(restrictedTagErr, key))
 	}
 
-	v.config.ValidationFuncs[key] = f
+	v.config.validationFuncs[key] = f
 
 	return nil
 }
@@ -180,12 +196,12 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
 
-	if v.config.CustomTypeFuncs == nil {
-		v.config.CustomTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+	if v.config.customTypeFuncs == nil {
+		v.config.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
 	}
 
 	for _, t := range types {
-		v.config.CustomTypeFuncs[reflect.TypeOf(t)] = fn
+		v.config.customTypeFuncs[reflect.TypeOf(t)] = fn
 	}
 
 	v.config.hasCustomFuncs = true
@@ -199,13 +215,13 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // will be the actual tag within the alias that failed.
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
-	if len(v.config.aliasValidators) == 0 {
-		// must copy validators for separate validations to be used in each
-		v.config.aliasValidators = map[string]string{}
-		for k, val := range BakedInAliasValidators {
-			v.config.aliasValidators[k] = val
-		}
-	}
+	// if len(v.config.aliasValidators) == 0 {
+	// 	// must copy validators for separate validations to be used in each
+	// 	v.config.aliasValidators = map[string]string{}
+	// 	for k, val := range BakedInAliasValidators {
+	// 		v.config.aliasValidators[k] = val
+	// 	}
+	// }
 
 	_, ok := restrictedTags[alias]
 
@@ -544,7 +560,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 
 		for _, val := range valTag.tagVals {
 
-			valFunc, ok = v.config.ValidationFuncs[val[0]]
+			valFunc, ok = v.config.validationFuncs[val[0]]
 			if !ok {
 				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
@@ -579,7 +595,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 		return true
 	}
 
-	valFunc, ok = v.config.ValidationFuncs[valTag.tagVals[0][0]]
+	valFunc, ok = v.config.validationFuncs[valTag.tagVals[0][0]]
 	if !ok {
 		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}

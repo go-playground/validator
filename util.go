@@ -54,7 +54,7 @@ func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Ki
 	default:
 
 		if v.config.hasCustomFuncs {
-			if fn, ok := v.config.CustomTypeFuncs[current.Type()]; ok {
+			if fn, ok := v.config.customTypeFuncs[current.Type()]; ok {
 				return v.extractType(reflect.ValueOf(fn(current)))
 			}
 		}

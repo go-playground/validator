@@ -111,7 +111,7 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
-var validate = New(Config{TagName: "validate", ValidationFuncs: BakedInValidators})
+var validate = New(Config{TagName: "validate"})
 
 func AssertError(t *testing.T, errs ValidationErrors, key, field, expectedTag string) {
 
@@ -1254,8 +1254,7 @@ func TestExistsValidation(t *testing.T) {
 func TestSQLValue2Validation(t *testing.T) {
 
 	config := Config{
-		TagName:         "validate",
-		ValidationFuncs: BakedInValidators,
+		TagName: "validate",
 	}
 
 	validate := New(config)
@@ -1311,13 +1310,16 @@ func TestSQLValue2Validation(t *testing.T) {
 
 func TestSQLValueValidation(t *testing.T) {
 
-	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*driver.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-	customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
-	customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
+	// customTypes := map[reflect.Type]CustomTypeFunc{}
+	// customTypes[reflect.TypeOf((*driver.Valuer)(nil))] = ValidateValuerType
+	// customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
+	// customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
+	// customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
 
-	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+	validate := New(Config{TagName: "validate"})
+	validate.RegisterCustomTypeFunc(ValidateValuerType, (*driver.Valuer)(nil), valuer{})
+	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
+	validate.RegisterCustomTypeFunc(OverrideIntTypeForSomeReason, 1)
 
 	val := valuer{
 		Name: "",
@@ -3872,8 +3874,7 @@ func TestAddFunctions(t *testing.T) {
 	}
 
 	config := Config{
-		TagName:         "validateme",
-		ValidationFuncs: BakedInValidators,
+		TagName: "validateme",
 	}
 
 	validate := New(config)
@@ -3896,8 +3897,7 @@ func TestAddFunctions(t *testing.T) {
 func TestChangeTag(t *testing.T) {
 
 	config := Config{
-		TagName:         "val",
-		ValidationFuncs: BakedInValidators,
+		TagName: "val",
 	}
 	validate := New(config)
 
