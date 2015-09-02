@@ -169,7 +169,7 @@ func New(config *Config) *Validate {
 
 // RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
 // NOTE: if the key already exists, the previous validation function will be replaced.
-// NOTE: this method is not thread-safe
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(key string, f Func) error {
 
 	if len(key) == 0 {
@@ -192,6 +192,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
 
 	if v.customTypeFuncs == nil {
@@ -211,6 +212,7 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // the alias tag unless the dive tag is part of the alias; everything after the
 // dive tag is not reported as the alias tag. Also the ActualTag in the before case
 // will be the actual tag within the alias that failed.
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
 	_, ok := restrictedTags[alias]
