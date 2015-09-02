@@ -16,6 +16,16 @@ I needed to know the field and what validation failed so that I could provide an
 		return "Translated string based on field"
 	}
 
+Validation functions return type error
+
+They return type error to avoid the issue discussed in the following, where err is always != nil:
+http://stackoverflow.com/a/29138676/3158232
+https://github.com/bluesuncorp/validator/issues/134
+
+validator only returns nil or ValidationErrors as type error; so in you code all you need to do
+is check if the error returned is not nil, and if it's not type cast it to type ValidationErrors
+like so err.(validator.ValidationErrors)
+
 Custom Functions
 
 Custom functions can be added
