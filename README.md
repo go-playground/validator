@@ -21,20 +21,20 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/bluesuncorp/validator.v7
+	go get gopkg.in/bluesuncorp/validator.v8
 
 or to update
 
-	go get -u gopkg.in/bluesuncorp/validator.v7
+	go get -u gopkg.in/bluesuncorp/validator.v8
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/bluesuncorp/validator.v7"
+	import "gopkg.in/bluesuncorp/validator.v8"
 
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v7 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v8 for detailed usage docs.
 
 ##### Examples:
 
@@ -45,7 +45,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/bluesuncorp/validator.v8"
 )
 
 // User contains user information
@@ -70,10 +70,7 @@ var validate *validator.Validate
 
 func main() {
 
-	config := validator.Config{
-		TagName:         "validate",
-		ValidationFuncs: validator.BakedInValidators,
-	}
+	config := &validator.Config{TagName: "validate"}
 
 	validate = validator.New(config)
 
@@ -99,13 +96,13 @@ func validateStruct() {
 	}
 
 	// returns nil or ValidationErrors ( map[string]*FieldError )
-	errs := validate.Struct(user)
+	err := validate.Struct(user)
 
 	if errs != nil {
 
 		fmt.Println(errs) // output: Key: "User.Age" Error:Field validation for "Age" failed on the "lte" tag
 		//	                         Key: "User.Addresses[0].City" Error:Field validation for "City" failed on the "required" tag
-		err := errs["User.Addresses[0].City"]
+		err := errs.(validator.ValidationErrors)["User.Addresses[0].City"]
 		fmt.Println(err.Field) // output: City
 		fmt.Println(err.Tag)   // output: required
 		fmt.Println(err.Kind)  // output: string
@@ -144,7 +141,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/bluesuncorp/validator.v8"
 )
 
 // DbBackedUser User struct
@@ -155,10 +152,7 @@ type DbBackedUser struct {
 
 func main() {
 
-	config := validator.Config{
-		TagName:         "validate",
-		ValidationFuncs: validator.BakedInValidators,
-	}
+	config := &validator.Config{TagName: "validate"}
 
 	validate := validator.New(config)
 
@@ -168,7 +162,7 @@ func main() {
 	x := DbBackedUser{Name: sql.NullString{String: "", Valid: true}, Age: sql.NullInt64{Int64: 0, Valid: false}}
 	errs := validate.Struct(x)
 
-	if len(errs) > 0 {
+	if len(errs.(validator.ValidationErrors)) > 0 {
 		fmt.Printf("Errs:\n%+v\n", errs)
 	}
 }
