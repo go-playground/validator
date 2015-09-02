@@ -31,6 +31,25 @@ Then import the validator package into your own code.
 
 	import "gopkg.in/bluesuncorp/validator.v8"
 
+Error Return Value
+-------
+
+Validation functions return type error
+
+They return type error to avoid the issue discussed in the following, where err is always != nil:
+
+* http://stackoverflow.com/a/29138676/3158232
+* https://github.com/bluesuncorp/validator/issues/134
+
+validator only returns nil or ValidationErrors as type error; so in you code all you need to do
+is check if the error returned is not nil, and if it's not type cast it to type ValidationErrors
+like so:
+
+```go
+err := validate.Struct(mystruct)
+validationErrors := err.(validator.ValidationErrors)
+ ```
+
 Usage and documentation
 ------
 
