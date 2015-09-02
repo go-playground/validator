@@ -82,7 +82,7 @@ func (s *tagCacheMap) Set(key string, value *cachedTag) {
 
 // Validate contains the validator settings passed in using the Config struct
 type Validate struct {
-	config             Config
+	tagName            string
 	validationFuncs    map[string]Func
 	customTypeFuncs    map[reflect.Type]CustomTypeFunc
 	aliasValidators    map[string]string
@@ -144,12 +144,12 @@ type FieldError struct {
 }
 
 // New creates a new Validate instance for use.
-func New(config Config) *Validate {
+func New(config *Config) *Validate {
 
 	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
 	// 	config.hasCustomFuncs = true
 	// }
-	v := &Validate{config: config, tagsCache: &tagCacheMap{m: map[string]*cachedTag{}}}
+	v := &Validate{tagName: config.TagName, tagsCache: &tagCacheMap{m: map[string]*cachedTag{}}}
 
 	if len(v.aliasValidators) == 0 {
 		// must copy validators for separate validations to be used in each validator instance
@@ -403,7 +403,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 			}
 		}
 
-		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name, partial, exclude, includeExclude)
+		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, partial, exclude, includeExclude)
 	}
 }
 

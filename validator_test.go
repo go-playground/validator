@@ -111,7 +111,7 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
-var validate = New(Config{TagName: "validate"})
+var validate = New(&Config{TagName: "validate"})
 
 func AssertError(t *testing.T, err error, key, field, expectedTag string) {
 
@@ -1255,7 +1255,7 @@ func TestExistsValidation(t *testing.T) {
 
 func TestSQLValue2Validation(t *testing.T) {
 
-	config := Config{
+	config := &Config{
 		TagName: "validate",
 	}
 
@@ -1318,7 +1318,7 @@ func TestSQLValueValidation(t *testing.T) {
 	// customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
 	// customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
 
-	validate := New(Config{TagName: "validate"})
+	validate := New(&Config{TagName: "validate"})
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*driver.Valuer)(nil), valuer{})
 	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
 	validate.RegisterCustomTypeFunc(OverrideIntTypeForSomeReason, 1)
@@ -3875,7 +3875,7 @@ func TestAddFunctions(t *testing.T) {
 		return true
 	}
 
-	config := Config{
+	config := &Config{
 		TagName: "validateme",
 	}
 
@@ -3898,7 +3898,7 @@ func TestAddFunctions(t *testing.T) {
 
 func TestChangeTag(t *testing.T) {
 
-	config := Config{
+	config := &Config{
 		TagName: "val",
 	}
 	validate := New(config)

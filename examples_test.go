@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleValidate_new() {
-	config := validator.Config{TagName: "validate"}
+	config := &validator.Config{TagName: "validate"}
 
 	validator.New(config)
 }
@@ -17,7 +17,7 @@ func ExampleValidate_field() {
 	// This should be stored somewhere globally
 	var validate *validator.Validate
 
-	config := validator.Config{TagName: "validate"}
+	config := &validator.Config{TagName: "validate"}
 
 	validate = validator.New(config)
 
@@ -43,7 +43,7 @@ func ExampleValidate_struct() {
 	// This should be stored somewhere globally
 	var validate *validator.Validate
 
-	config := validator.Config{TagName: "validate"}
+	config := &validator.Config{TagName: "validate"}
 
 	validate = validator.New(config)
 
