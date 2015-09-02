@@ -141,9 +141,6 @@ type FieldError struct {
 // New creates a new Validate instance for use.
 func New(config *Config) *Validate {
 
-	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
-	// 	config.hasCustomFuncs = true
-	// }
 	v := &Validate{
 		tagName:   config.TagName,
 		tagsCache: &tagCacheMap{m: map[string]*cachedTag{}},
@@ -152,7 +149,7 @@ func New(config *Config) *Validate {
 		}}}
 
 	if len(v.aliasValidators) == 0 {
-		// must copy validators for separate validations to be used in each validator instance
+		// must copy alias validators for separate validations to be used in each validator instance
 		v.aliasValidators = map[string]string{}
 		for k, val := range bakedInAliasValidators {
 			v.RegisterAliasValidation(k, val)
