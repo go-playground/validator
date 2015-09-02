@@ -41,13 +41,7 @@ var (
 	timeType       = reflect.TypeOf(time.Time{})
 	timePtrType    = reflect.TypeOf(&time.Time{})
 	emptyStructPtr = new(struct{})
-	errsPool       = &sync.Pool{New: newValidationErrors}
 )
-
-// returns new ValidationErrors to the pool
-func newValidationErrors() interface{} {
-	return ValidationErrors{}
-}
 
 type cachedTag struct {
 	isOmitEmpty bool
@@ -89,6 +83,7 @@ type Validate struct {
 	hasCustomFuncs     bool
 	hasAliasValidators bool
 	tagsCache          *tagCacheMap
+	errsPool           *sync.Pool
 }
 
 // Config contains the options that a Validator instance will use.
@@ -149,7 +144,12 @@ func New(config *Config) *Validate {
 	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
 	// 	config.hasCustomFuncs = true
 	// }
-	v := &Validate{tagName: config.TagName, tagsCache: &tagCacheMap{m: map[string]*cachedTag{}}}
+	v := &Validate{
+		tagName:   config.TagName,
+		tagsCache: &tagCacheMap{m: map[string]*cachedTag{}},
+		errsPool: &sync.Pool{New: func() interface{} {
+			return ValidationErrors{}
+		}}}
 
 	if len(v.aliasValidators) == 0 {
 		// must copy validators for separate validations to be used in each validator instance
@@ -232,13 +232,13 @@ func (v *Validate) RegisterAliasValidation(alias, tags string) {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Field(field interface{}, tag string) error {
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
 	v.traverseField(fieldVal, fieldVal, fieldVal, blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -251,13 +251,13 @@ func (v *Validate) Field(field interface{}, tag string) error {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) error {
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
 	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -309,12 +309,12 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 		}
 	}
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 
 	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, false, m)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -335,12 +335,12 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 		m[name+"."+key] = emptyStructPtr
 	}
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 
 	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, true, m)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -352,13 +352,13 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 // You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 func (v *Validate) Struct(current interface{}) error {
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
 	v.tranverseStruct(sv, sv, sv, blank, errs, true, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
