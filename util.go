@@ -53,8 +53,8 @@ func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Ki
 
 	default:
 
-		if v.config.hasCustomFuncs {
-			if fn, ok := v.config.customTypeFuncs[current.Type()]; ok {
+		if v.hasCustomFuncs {
+			if fn, ok := v.customTypeFuncs[current.Type()]; ok {
 				return v.extractType(reflect.ValueOf(fn(current)))
 			}
 		}
@@ -248,9 +248,9 @@ func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias str
 
 	for _, t := range strings.Split(tag, tagSeparator) {
 
-		if v.config.hasAliasValidators {
+		if v.hasAliasValidators {
 			// check map for alias and process new tags, otherwise process as usual
-			if tagsVal, ok := v.config.aliasValidators[t]; ok {
+			if tagsVal, ok := v.aliasValidators[t]; ok {
 
 				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
 

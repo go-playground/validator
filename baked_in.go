@@ -14,14 +14,14 @@ import (
 // defines a common or complex set of validation(s) to simplify
 // adding validation to structs. i.e. set key "_ageok" and the tags
 // are "gt=0,lte=130" or key "_preferredname" and tags "omitempty,gt=0,lte=60"
-var BakedInAliasValidators = map[string]string{
+var bakedInAliasValidators = map[string]string{
 	"iscolor": "hexcolor|rgb|rgba|hsl|hsla",
 }
 
 // BakedInValidators is the default map of ValidationFunc
 // you can add, remove or even replace items to suite your needs,
 // or even disregard and use your own map if so desired.
-var BakedInValidators = map[string]Func{
+var bakedInValidators = map[string]Func{
 	"required":     hasValue,
 	"len":          hasLengthOf,
 	"min":          hasMinOf,

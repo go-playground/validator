@@ -40,9 +40,8 @@ const (
 var (
 	timeType       = reflect.TypeOf(time.Time{})
 	timePtrType    = reflect.TypeOf(&time.Time{})
-	errsPool       = &sync.Pool{New: newValidationErrors}
-	tagsCache      = &tagCacheMap{m: map[string]*cachedTag{}}
 	emptyStructPtr = new(struct{})
+	errsPool       = &sync.Pool{New: newValidationErrors}
 )
 
 // returns new ValidationErrors to the pool
@@ -83,18 +82,19 @@ func (s *tagCacheMap) Set(key string, value *cachedTag) {
 
 // Validate contains the validator settings passed in using the Config struct
 type Validate struct {
-	config Config
-}
-
-// Config contains the options that a Validator instance will use.
-// It is passed to the New() function
-type Config struct {
-	TagName            string
+	config             Config
 	validationFuncs    map[string]Func
 	customTypeFuncs    map[reflect.Type]CustomTypeFunc
 	aliasValidators    map[string]string
 	hasCustomFuncs     bool
 	hasAliasValidators bool
+	tagsCache          *tagCacheMap
+}
+
+// Config contains the options that a Validator instance will use.
+// It is passed to the New() function
+type Config struct {
+	TagName string
 }
 
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
@@ -149,20 +149,20 @@ func New(config Config) *Validate {
 	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
 	// 	config.hasCustomFuncs = true
 	// }
-	v := &Validate{config: config}
+	v := &Validate{config: config, tagsCache: &tagCacheMap{m: map[string]*cachedTag{}}}
 
-	if len(v.config.aliasValidators) == 0 {
-		// must copy validators for separate validations to be used in each
-		v.config.aliasValidators = map[string]string{}
-		for k, val := range BakedInAliasValidators {
+	if len(v.aliasValidators) == 0 {
+		// must copy validators for separate validations to be used in each validator instance
+		v.aliasValidators = map[string]string{}
+		for k, val := range bakedInAliasValidators {
 			v.RegisterAliasValidation(k, val)
 		}
 	}
 
-	if len(v.config.validationFuncs) == 0 {
-		// must copy validators for separate validations to be used in each
-		v.config.validationFuncs = map[string]Func{}
-		for k, val := range BakedInValidators {
+	if len(v.validationFuncs) == 0 {
+		// must copy validators for separate validations to be used in each instance
+		v.validationFuncs = map[string]Func{}
+		for k, val := range bakedInValidators {
 			v.RegisterValidation(k, val)
 		}
 	}
@@ -189,7 +189,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 		panic(fmt.Sprintf(restrictedTagErr, key))
 	}
 
-	v.config.validationFuncs[key] = f
+	v.validationFuncs[key] = f
 
 	return nil
 }
@@ -197,15 +197,15 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
 
-	if v.config.customTypeFuncs == nil {
-		v.config.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+	if v.customTypeFuncs == nil {
+		v.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
 	}
 
 	for _, t := range types {
-		v.config.customTypeFuncs[reflect.TypeOf(t)] = fn
+		v.customTypeFuncs[reflect.TypeOf(t)] = fn
 	}
 
-	v.config.hasCustomFuncs = true
+	v.hasCustomFuncs = true
 }
 
 // RegisterAliasValidation registers a mapping of a single validationstag that
@@ -216,28 +216,21 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // will be the actual tag within the alias that failed.
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
 
-	// if len(v.config.aliasValidators) == 0 {
-	// 	// must copy validators for separate validations to be used in each
-	// 	v.config.aliasValidators = map[string]string{}
-	// 	for k, val := range BakedInAliasValidators {
-	// 		v.config.aliasValidators[k] = val
-	// 	}
-	// }
-
 	_, ok := restrictedTags[alias]
 
 	if ok || strings.ContainsAny(alias, restrictedTagChars) {
 		panic(fmt.Sprintf(restrictedAliasErr, alias))
 	}
 
-	v.config.aliasValidators[alias] = tags
-	v.config.hasAliasValidators = true
+	v.aliasValidators[alias] = tags
+	v.hasAliasValidators = true
 }
 
-// Field validates a single field using tag style validation and returns ValidationErrors
+// Field validates a single field using tag style validation and returns nil or ValidationErrors as type error.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
+func (v *Validate) Field(field interface{}, tag string) error {
 
 	errs := errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
@@ -252,10 +245,11 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 	return errs
 }
 
-// FieldWithValue validates a single field, against another fields value using tag style validation and returns ValidationErrors
+// FieldWithValue validates a single field, against another fields value using tag style validation and returns nil or ValidationErrors.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
+func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) error {
 
 	errs := errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
@@ -272,10 +266,9 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 
 // StructPartial validates the fields passed in only, ignoring all others.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
-// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
-// NOTE: This is normally not needed, however in some specific cases such as: tied to a
-// legacy data structure, it will be useful
-func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -330,10 +323,9 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 
 // StructExcept validates all fields except the ones passed in.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
-// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
-// NOTE: This is normally not needed, however in some specific cases such as: tied to a
-// legacy data structure, it will be useful
-func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -356,7 +348,9 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) Validatio
 }
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
-func (v *Validate) Struct(current interface{}) ValidationErrors {
+// it returns nil or ValidationErrors as error.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) Struct(current interface{}) error {
 
 	errs := errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
@@ -420,11 +414,11 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		return
 	}
 
-	cTag, isCached := tagsCache.Get(tag)
+	cTag, isCached := v.tagsCache.Get(tag)
 
 	if !isCached {
 		cTag = v.parseTags(tag, name)
-		tagsCache.Set(tag, cTag)
+		v.tagsCache.Set(tag, cTag)
 	}
 
 	current, kind := v.extractType(current)
@@ -561,7 +555,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 
 		for _, val := range valTag.tagVals {
 
-			valFunc, ok = v.config.validationFuncs[val[0]]
+			valFunc, ok = v.validationFuncs[val[0]]
 			if !ok {
 				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
@@ -596,7 +590,7 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 		return true
 	}
 
-	valFunc, ok = v.config.validationFuncs[valTag.tagVals[0][0]]
+	valFunc, ok = v.validationFuncs[valTag.tagVals[0][0]]
 	if !ok {
 		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}
