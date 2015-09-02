@@ -210,6 +210,31 @@ type TestPartial struct {
 	}
 }
 
+func TestNilValidator(t *testing.T) {
+
+	type TestStruct struct {
+		Test string `validate:"required"`
+	}
+
+	ts := TestStruct{}
+
+	var val *Validate
+
+	fn := func(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+		return current.String() == field.String()
+	}
+
+	PanicMatches(t, func() { val.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{}) }, "Validate.RegisterCustomTypeFunc called with nil receiver")
+	PanicMatches(t, func() { val.RegisterValidation("something", fn) }, "Validate.RegisterValidation called with nil receiver")
+	PanicMatches(t, func() { val.Field(ts.Test, "required") }, "Validate.Field called with nil receiver")
+	PanicMatches(t, func() { val.FieldWithValue("test", ts.Test, "required") }, "Validate.FieldWithValue called with nil receiver")
+	PanicMatches(t, func() { val.Struct(ts) }, "Validate.Struct called with nil receiver")
+	PanicMatches(t, func() { val.StructExcept(ts, "Test") }, "Validate.StructExcept called with nil receiver")
+	PanicMatches(t, func() { val.StructPartial(ts, "Test") }, "Validate.StructPartial called with nil receiver")
+
+}
+
 func TestStructPartial(t *testing.T) {
 
 	p1 := []string{

@@ -146,7 +146,9 @@ func New(config Config) *Validate {
 // NOTE: if the key already exists, the previous validation function will be replaced.
 // NOTE: this method is not thread-safe
 func (v *Validate) RegisterValidation(key string, f Func) error {
-
+	if v == nil {
+		panic("Validate.RegisterValidation called with nil receiver")
+	}
 	if len(key) == 0 {
 		return errors.New("Function Key cannot be empty")
 	}
@@ -162,6 +164,9 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+	if v == nil {
+		panic("Validate.RegisterCustomTypeFunc called with nil receiver")
+	}
 
 	if v.config.CustomTypeFuncs == nil {
 		v.config.CustomTypeFuncs = map[reflect.Type]CustomTypeFunc{}
@@ -178,7 +183,9 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
-
+	if v == nil {
+		panic("Validate.Field called with nil receiver")
+	}
 	errs := errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
@@ -196,6 +203,9 @@ func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
+	if v == nil {
+		panic("Validate.FieldWithValue called with nil receiver")
+	}
 
 	errs := errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
@@ -216,7 +226,9 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 // NOTE: This is normally not needed, however in some specific cases such as: tied to a
 // legacy data structure, it will be useful
 func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
-
+	if v == nil {
+		panic("Validate.StructPartial called with nil receiver")
+	}
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
 	m := map[string]*struct{}{}
@@ -274,7 +286,9 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 // NOTE: This is normally not needed, however in some specific cases such as: tied to a
 // legacy data structure, it will be useful
 func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
-
+	if v == nil {
+		panic("Validate.StructExcept called with nil receiver")
+	}
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
 	m := map[string]*struct{}{}
@@ -297,7 +311,9 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) Validatio
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
 func (v *Validate) Struct(current interface{}) ValidationErrors {
-
+	if v == nil {
+		panic("Validate.Struct called with nil receiver")
+	}
 	errs := errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
