@@ -149,24 +149,25 @@ func New(config Config) *Validate {
 	// if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
 	// 	config.hasCustomFuncs = true
 	// }
+	v := &Validate{config: config}
 
-	if len(config.aliasValidators) == 0 {
+	if len(v.config.aliasValidators) == 0 {
 		// must copy validators for separate validations to be used in each
-		config.aliasValidators = map[string]string{}
+		v.config.aliasValidators = map[string]string{}
 		for k, val := range BakedInAliasValidators {
-			config.aliasValidators[k] = val
+			v.RegisterAliasValidation(k, val)
 		}
 	}
 
-	if len(config.validationFuncs) == 0 {
+	if len(v.config.validationFuncs) == 0 {
 		// must copy validators for separate validations to be used in each
-		config.validationFuncs = map[string]Func{}
+		v.config.validationFuncs = map[string]Func{}
 		for k, val := range BakedInValidators {
-			config.validationFuncs[k] = val
+			v.RegisterValidation(k, val)
 		}
 	}
 
-	return &Validate{config: config}
+	return v
 }
 
 // RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
