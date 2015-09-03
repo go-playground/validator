@@ -20,21 +20,22 @@ import (
 )
 
 const (
-	utf8HexComma        = "0x2C"
-	utf8Pipe            = "0x7C"
-	tagSeparator        = ","
-	orSeparator         = "|"
-	tagKeySeparator     = "="
-	structOnlyTag       = "structonly"
-	omitempty           = "omitempty"
-	skipValidationTag   = "-"
-	diveTag             = "dive"
-	existsTag           = "exists"
-	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
-	arrayIndexFieldName = "%s" + leftBracket + "%d" + rightBracket
-	mapIndexFieldName   = "%s" + leftBracket + "%v" + rightBracket
-	invalidValidation   = "Invalid validation tag on field %s"
-	undefinedValidation = "Undefined validation function on field %s"
+	utf8HexComma            = "0x2C"
+	utf8Pipe                = "0x7C"
+	tagSeparator            = ","
+	orSeparator             = "|"
+	tagKeySeparator         = "="
+	structOnlyTag           = "structonly"
+	omitempty               = "omitempty"
+	skipValidationTag       = "-"
+	diveTag                 = "dive"
+	existsTag               = "exists"
+	fieldErrMsg             = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
+	arrayIndexFieldName     = "%s" + leftBracket + "%d" + rightBracket
+	mapIndexFieldName       = "%s" + leftBracket + "%v" + rightBracket
+	invalidValidation       = "Invalid validation tag on field %s"
+	undefinedValidation     = "Undefined validation function on field %s"
+	validatorNotInitialized = "Validator instance not initialized"
 )
 
 var (
@@ -84,6 +85,12 @@ type Validate struct {
 	hasAliasValidators bool
 	tagsCache          *tagCacheMap
 	errsPool           *sync.Pool
+}
+
+func (v *Validate) initCheck() {
+	if v == nil {
+		panic(validatorNotInitialized)
+	}
 }
 
 // Config contains the options that a Validator instance will use.
@@ -171,6 +178,7 @@ func New(config *Config) *Validate {
 // NOTE: if the key already exists, the previous validation function will be replaced.
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(key string, f Func) error {
+	v.initCheck()
 
 	if len(key) == 0 {
 		return errors.New("Function Key cannot be empty")
@@ -194,6 +202,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+	v.initCheck()
 
 	if v.customTypeFuncs == nil {
 		v.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
@@ -214,6 +223,7 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 // will be the actual tag within the alias that failed.
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterAliasValidation(alias, tags string) {
+	v.initCheck()
 
 	_, ok := restrictedTags[alias]
 
@@ -230,6 +240,7 @@ func (v *Validate) RegisterAliasValidation(alias, tags string) {
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Field(field interface{}, tag string) error {
+	v.initCheck()
 
 	errs := v.errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
@@ -249,6 +260,7 @@ func (v *Validate) Field(field interface{}, tag string) error {
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) error {
+	v.initCheck()
 
 	errs := v.errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
@@ -268,6 +280,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
 // You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 func (v *Validate) StructPartial(current interface{}, fields ...string) error {
+	v.initCheck()
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -325,6 +338,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
 // You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 func (v *Validate) StructExcept(current interface{}, fields ...string) error {
+	v.initCheck()
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -350,6 +364,7 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 // it returns nil or ValidationErrors as error.
 // You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 func (v *Validate) Struct(current interface{}) error {
+	v.initCheck()
 
 	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)

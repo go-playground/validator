@@ -255,6 +255,30 @@ func TestAliasTags(t *testing.T) {
 	PanicMatches(t, func() { validate.RegisterAliasValidation("exists", "gt=5,lt=10") }, "Alias \"exists\" either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
+func TestNilValidator(t *testing.T) {
+
+	type TestStruct struct {
+		Test string `validate:"required"`
+	}
+
+	ts := TestStruct{}
+
+	var val *Validate
+
+	fn := func(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+		return current.String() == field.String()
+	}
+
+	PanicMatches(t, func() { val.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{}) }, validatorNotInitialized)
+	PanicMatches(t, func() { val.RegisterValidation("something", fn) }, validatorNotInitialized)
+	PanicMatches(t, func() { val.Field(ts.Test, "required") }, validatorNotInitialized)
+	PanicMatches(t, func() { val.FieldWithValue("test", ts.Test, "required") }, validatorNotInitialized)
+	PanicMatches(t, func() { val.Struct(ts) }, validatorNotInitialized)
+	PanicMatches(t, func() { val.StructExcept(ts, "Test") }, validatorNotInitialized)
+	PanicMatches(t, func() { val.StructPartial(ts, "Test") }, validatorNotInitialized)
+}
+
 func TestStructPartial(t *testing.T) {
 
 	p1 := []string{
