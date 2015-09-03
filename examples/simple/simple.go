@@ -7,7 +7,7 @@ import (
 
 	sql "database/sql/driver"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/bluesuncorp/validator.v8"
 )
 
 // User contains user information
@@ -32,10 +32,7 @@ var validate *validator.Validate
 
 func main() {
 
-	config := validator.Config{
-		TagName:         "validate",
-		ValidationFuncs: validator.BakedInValidators,
-	}
+	config := &validator.Config{TagName: "validate"}
 
 	validate = validator.New(config)
 
@@ -67,7 +64,7 @@ func validateStruct() {
 
 		fmt.Println(errs) // output: Key: "User.Age" Error:Field validation for "Age" failed on the "lte" tag
 		//	                         Key: "User.Addresses[0].City" Error:Field validation for "City" failed on the "required" tag
-		err := errs["User.Addresses[0].City"]
+		err := errs.(validator.ValidationErrors)["User.Addresses[0].City"]
 		fmt.Println(err.Field) // output: City
 		fmt.Println(err.Tag)   // output: required
 		fmt.Println(err.Kind)  // output: string
@@ -135,17 +132,10 @@ func ValidateValuerType(field reflect.Value) interface{} {
 
 func main2() {
 
-	customTypes := map[reflect.Type]validator.CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-
-	config := validator.Config{
-		TagName:         "validate",
-		ValidationFuncs: validator.BakedInValidators,
-		CustomTypeFuncs: customTypes,
-	}
+	config := &validator.Config{TagName: "validate"}
 
 	validate2 = validator.New(config)
+	validate2.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	validateCustomFieldType()
 }

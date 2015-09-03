@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/bluesuncorp/validator.v8"
 )
 
 // DbBackedUser User struct
@@ -17,10 +17,7 @@ type DbBackedUser struct {
 
 func main() {
 
-	config := validator.Config{
-		TagName:         "validate",
-		ValidationFuncs: validator.BakedInValidators,
-	}
+	config := &validator.Config{TagName: "validate"}
 
 	validate := validator.New(config)
 
@@ -30,7 +27,7 @@ func main() {
 	x := DbBackedUser{Name: sql.NullString{String: "", Valid: true}, Age: sql.NullInt64{Int64: 0, Valid: false}}
 	errs := validate.Struct(x)
 
-	if len(errs) > 0 {
+	if errs != nil {
 		fmt.Printf("Errs:\n%+v\n", errs)
 	}
 }
