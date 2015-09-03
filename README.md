@@ -205,32 +205,32 @@ Benchmarks
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4                            	 5000000	       292 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldFailure-4                            	 5000000	       291 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldDiveSuccess-4                        	  500000	      2518 ns/op	     384 B/op	      19 allocs/op
-BenchmarkFieldDiveFailure-4                        	  500000	      3059 ns/op	     768 B/op	      23 allocs/op
-BenchmarkFieldCustomTypeSuccess-4                  	 3000000	       444 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldCustomTypeFailure-4                  	 2000000	       766 ns/op	     384 B/op	       4 allocs/op
-BenchmarkFieldOrTagSuccess-4                       	 1000000	      1344 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldOrTagFailure-4                       	 1000000	      1176 ns/op	     416 B/op	       6 allocs/op
-BenchmarkStructSimpleCustomTypeSuccess-4           	 1000000	      1181 ns/op	      80 B/op	       5 allocs/op
-BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1733 ns/op	     592 B/op	      11 allocs/op
-BenchmarkStructPartialSuccess-4                    	 1000000	      1345 ns/op	     400 B/op	      11 allocs/op
-BenchmarkStructPartialFailure-4                    	 1000000	      1905 ns/op	     800 B/op	      16 allocs/op
-BenchmarkStructExceptSuccess-4                     	 2000000	       902 ns/op	     368 B/op	       9 allocs/op
-BenchmarkStructExceptFailure-4                     	 1000000	      1344 ns/op	     400 B/op	      11 allocs/op
-BenchmarkStructSimpleCrossFieldSuccess-4           	 1000000	      1205 ns/op	     128 B/op	       6 allocs/op
-BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1779 ns/op	     544 B/op	      11 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1782 ns/op	     160 B/op	       8 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldFailure-4	 1000000	      2348 ns/op	     576 B/op	      13 allocs/op
-BenchmarkStructSimpleSuccess-4                     	 1000000	      1172 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4                     	 1000000	      1810 ns/op	     592 B/op	      11 allocs/op
-BenchmarkStructSimpleSuccessParallel-4             	 5000000	       344 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4             	 2000000	       644 ns/op	     592 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4                    	  200000	      7575 ns/op	     432 B/op	      27 allocs/op
-BenchmarkStructComplexFailure-4                    	  100000	     12463 ns/op	    3128 B/op	      69 allocs/op
-BenchmarkStructComplexSuccessParallel-4            	 1000000	      2348 ns/op	     432 B/op	      27 allocs/op
-BenchmarkStructComplexFailureParallel-4            	  300000	      4369 ns/op	    3128 B/op	      69 allocs/op
+BenchmarkFieldSuccess-4                            	 5000000	       296 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4                            	 5000000	       294 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldDiveSuccess-4                        	  500000	      2529 ns/op	     384 B/op	      19 allocs/op
+BenchmarkFieldDiveFailure-4                        	  500000	      3056 ns/op	     768 B/op	      23 allocs/op
+BenchmarkFieldCustomTypeSuccess-4                  	 3000000	       443 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4                  	 2000000	       753 ns/op	     384 B/op	       4 allocs/op
+BenchmarkFieldOrTagSuccess-4                       	 1000000	      1334 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4                       	 1000000	      1172 ns/op	     416 B/op	       6 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4           	 1000000	      1206 ns/op	      80 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1737 ns/op	     592 B/op	      11 allocs/op
+BenchmarkStructPartialSuccess-4                    	 1000000	      1367 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructPartialFailure-4                    	 1000000	      1914 ns/op	     800 B/op	      16 allocs/op
+BenchmarkStructExceptSuccess-4                     	 2000000	       909 ns/op	     368 B/op	       9 allocs/op
+BenchmarkStructExceptFailure-4                     	 1000000	      1350 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructSimpleCrossFieldSuccess-4           	 1000000	      1218 ns/op	     128 B/op	       6 allocs/op
+BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1783 ns/op	     544 B/op	      11 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1806 ns/op	     160 B/op	       8 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldFailure-4	 1000000	      2369 ns/op	     576 B/op	      13 allocs/op
+BenchmarkStructSimpleSuccess-4                     	 1000000	      1161 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4                     	 1000000	      1813 ns/op	     592 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccessParallel-4             	 5000000	       353 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4             	 2000000	       656 ns/op	     592 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4                    	  200000	      7637 ns/op	     432 B/op	      27 allocs/op
+BenchmarkStructComplexFailure-4                    	  100000	     12775 ns/op	    3128 B/op	      69 allocs/op
+BenchmarkStructComplexSuccessParallel-4            	 1000000	      2270 ns/op	     432 B/op	      27 allocs/op
+BenchmarkStructComplexFailureParallel-4            	  300000	      4328 ns/op	    3128 B/op	      69 allocs/op
 ```
 
 How to Contribute
