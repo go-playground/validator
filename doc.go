@@ -18,6 +18,9 @@ I needed to know the field and what validation failed so that I could provide an
 
 Validation functions return type error
 
+Doing things this way is actually the way the standard library does, see the file.Open
+method here: https://golang.org/pkg/os/#Open.
+
 They return type error to avoid the issue discussed in the following, where err is always != nil:
 http://stackoverflow.com/a/29138676/3158232
 https://github.com/bluesuncorp/validator/issues/134
