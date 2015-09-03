@@ -260,7 +260,7 @@ func contains(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 
 func isNeField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 
 	if !ok || currentKind != fieldKind {
 		return true
@@ -307,7 +307,7 @@ func isNe(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 
 func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
 		return false
 	}
@@ -348,7 +348,7 @@ func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 
 func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
 		return false
 	}
@@ -389,7 +389,7 @@ func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 
 func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
 		return false
 	}
@@ -430,7 +430,7 @@ func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 
 func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
 		return false
 	}
@@ -471,7 +471,7 @@ func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 
 func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, currentKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, currentKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || currentKind != fieldKind {
 		return true
 	}
@@ -512,7 +512,7 @@ func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 
 func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	topField, topKind, ok := v.getStructFieldOK(topStruct, param)
+	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
 		return false
 	}
@@ -553,7 +553,7 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 
 func isEqField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -718,7 +718,7 @@ func hasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 
 func isGteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -759,7 +759,7 @@ func isGteField(v *Validate, topStruct reflect.Value, currentStructOrField refle
 
 func isGtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -927,7 +927,7 @@ func hasMinOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 
 func isLteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
@@ -968,7 +968,7 @@ func isLteField(v *Validate, topStruct reflect.Value, currentStructOrField refle
 
 func isLtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	currentField, currentKind, ok := v.getStructFieldOK(currentStructOrField, param)
+	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
 		return false
 	}
