@@ -282,7 +282,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 	v.initCheck()
 
-	sv, _ := v.extractType(reflect.ValueOf(current))
+	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
 	m := map[string]*struct{}{}
 
@@ -340,7 +340,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 	v.initCheck()
 
-	sv, _ := v.extractType(reflect.ValueOf(current))
+	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
 	m := map[string]*struct{}{}
 
@@ -435,7 +435,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		v.tagsCache.Set(tag, cTag)
 	}
 
-	current, kind := v.extractType(current)
+	current, kind := v.ExtractType(current)
 	var typ reflect.Type
 
 	switch kind {

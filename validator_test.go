@@ -1088,125 +1088,125 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 
 	val := reflect.ValueOf(test)
 
-	current, kind, ok := validate.getStructFieldOK(val, "Inner.CreatedAt")
+	current, kind, ok := validate.GetStructFieldOK(val, "Inner.CreatedAt")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.Struct)
 	tm, ok := current.Interface().(time.Time)
 	Equal(t, ok, true)
 	Equal(t, tm, now)
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[1]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.Slice[1]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.CrazyNonExistantField")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.CrazyNonExistantField")
 	Equal(t, ok, false)
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.Slice[101]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.Map[key3]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.Map[key3]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMap[key2][key2-1]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapMap[key2][key2-1]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapStructs[key2].Name")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapStructs[key2].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapMapStruct[key3][key3-1].Name")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapMapStruct[key3][key3-1].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name3")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSlice[2][0]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.SliceSlice[2][0]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "7")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceSliceStruct[2][1].Name")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.SliceSliceStruct[2][1].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name8")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceMap[1][key5]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.SliceMap[1][key5]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val5")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapSlice[key3][2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapSlice[key3][2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "9")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapInt[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt8[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapInt8[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt16[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapInt16[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt32[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapInt32[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapInt64[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapInt64[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapUint[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint8[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapUint8[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint16[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapUint16[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint32[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapUint32[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapUint64[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapUint64[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat32[3.03]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapFloat32[3.03]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapFloat64[2.02]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapFloat64[2.02]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.MapBool[true]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.MapBool[true]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val1")
@@ -1232,19 +1232,19 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 
 	val = reflect.ValueOf(test)
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceStructs[2]")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.SliceStructs[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.Ptr)
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
 	Equal(t, current.IsNil(), true)
 
-	current, kind, ok = validate.getStructFieldOK(val, "Inner.SliceStructs[2].Name")
+	current, kind, ok = validate.GetStructFieldOK(val, "Inner.SliceStructs[2].Name")
 	Equal(t, ok, false)
 	Equal(t, kind, reflect.Ptr)
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
 	Equal(t, current.IsNil(), true)
 
-	PanicMatches(t, func() { validate.getStructFieldOK(reflect.ValueOf(1), "crazyinput") }, "Invalid field namespace")
+	PanicMatches(t, func() { validate.GetStructFieldOK(reflect.ValueOf(1), "crazyinput") }, "Invalid field namespace")
 }
 
 func TestExistsValidation(t *testing.T) {
