@@ -1,15 +1,32 @@
 package validator
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
 const (
+	blank              = ""
 	namespaceSeparator = "."
 	leftBracket        = "["
 	rightBracket       = "]"
+	restrictedTagChars = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
+	restrictedAliasErr = "Alias \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation"
+	restrictedTagErr   = "Tag \"%s\" either contains restricted characters or is the same as a restricted tag needed for normal operation"
+)
+
+var (
+	restrictedTags = map[string]*struct{}{
+		diveTag:           emptyStructPtr,
+		existsTag:         emptyStructPtr,
+		structOnlyTag:     emptyStructPtr,
+		omitempty:         emptyStructPtr,
+		skipValidationTag: emptyStructPtr,
+		utf8HexComma:      emptyStructPtr,
+		utf8Pipe:          emptyStructPtr,
+	}
 )
 
 func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Kind) {
@@ -36,8 +53,8 @@ func (v *Validate) extractType(current reflect.Value) (reflect.Value, reflect.Ki
 
 	default:
 
-		if v.config.hasCustomFuncs {
-			if fn, ok := v.config.CustomTypeFuncs[current.Type()]; ok {
+		if v.hasCustomFuncs {
+			if fn, ok := v.customTypeFuncs[current.Type()]; ok {
 				return v.extractType(reflect.ValueOf(fn(current)))
 			}
 		}
@@ -78,7 +95,7 @@ func (v *Validate) getStructFieldOK(current reflect.Value, namespace string) (re
 				fld = namespace[:idx]
 				ns = namespace[idx+1:]
 			} else {
-				ns = ""
+				ns = blank
 				idx = len(namespace)
 			}
 
@@ -213,4 +230,78 @@ func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
+
+	cTag := &cachedTag{}
+
+	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
+	return cTag
+}
+
+func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
+
+	if len(tag) == 0 {
+		return true
+	}
+
+	for _, t := range strings.Split(tag, tagSeparator) {
+
+		if v.hasAliasValidators {
+			// check map for alias and process new tags, otherwise process as usual
+			if tagsVal, ok := v.aliasValidators[t]; ok {
+
+				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
+
+				if leave {
+					return leave
+				}
+
+				continue
+			}
+		}
+
+		if t == diveTag {
+			cTag.diveTag = tag
+			tVals := &tagVals{tagVals: [][]string{{t}}}
+			cTag.tags = append(cTag.tags, tVals)
+			return true
+		}
+
+		if t == omitempty {
+			cTag.isOmitEmpty = true
+		}
+
+		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
+		orVals := strings.Split(t, orSeparator)
+		tagVal := &tagVals{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+		cTag.tags = append(cTag.tags, tagVal)
+
+		var key string
+		var param string
+
+		for i, val := range orVals {
+			vals := strings.SplitN(val, tagKeySeparator, 2)
+			key = vals[0]
+
+			tagVal.tag = key
+
+			if isAlias {
+				tagVal.tag = alias
+			}
+
+			if len(key) == 0 {
+				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
+			}
+
+			if len(vals) > 1 {
+				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+			}
+
+			tagVal.tagVals[i] = []string{key, param}
+		}
+	}
+
+	return false
 }

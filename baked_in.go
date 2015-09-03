@@ -10,10 +10,18 @@ import (
 	"unicode/utf8"
 )
 
+// BakedInAliasValidators is a default mapping of a single validationstag that
+// defines a common or complex set of validation(s) to simplify
+// adding validation to structs. i.e. set key "_ageok" and the tags
+// are "gt=0,lte=130" or key "_preferredname" and tags "omitempty,gt=0,lte=60"
+var bakedInAliasValidators = map[string]string{
+	"iscolor": "hexcolor|rgb|rgba|hsl|hsla",
+}
+
 // BakedInValidators is the default map of ValidationFunc
 // you can add, remove or even replace items to suite your needs,
 // or even disregard and use your own map if so desired.
-var BakedInValidators = map[string]Func{
+var bakedInValidators = map[string]Func{
 	"required":     hasValue,
 	"len":          hasLengthOf,
 	"min":          hasMinOf,
@@ -107,15 +115,15 @@ func isSSN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 		return false
 	}
 
-	return matchesRegex(sSNRegex, field.String())
+	return sSNRegex.MatchString(field.String())
 }
 
 func isLongitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(longitudeRegex, field.String())
+	return longitudeRegex.MatchString(field.String())
 }
 
 func isLatitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(latitudeRegex, field.String())
+	return latitudeRegex.MatchString(field.String())
 }
 
 func isDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -126,7 +134,7 @@ func isDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 		return false
 	}
 
-	if !matchesRegex(dataURIRegex, uri[0]) {
+	if !dataURIRegex.MatchString(uri[0]) {
 		return false
 	}
 
@@ -141,31 +149,31 @@ func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStructOr
 		return true
 	}
 
-	return matchesRegex(multibyteRegex, field.String())
+	return multibyteRegex.MatchString(field.String())
 }
 
 func isPrintableASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(printableASCIIRegex, field.String())
+	return printableASCIIRegex.MatchString(field.String())
 }
 
 func isASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(aSCIIRegex, field.String())
+	return aSCIIRegex.MatchString(field.String())
 }
 
 func isUUID5(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(uUID5Regex, field.String())
+	return uUID5Regex.MatchString(field.String())
 }
 
 func isUUID4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(uUID4Regex, field.String())
+	return uUID4Regex.MatchString(field.String())
 }
 
 func isUUID3(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(uUID3Regex, field.String())
+	return uUID3Regex.MatchString(field.String())
 }
 
 func isUUID(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(uUIDRegex, field.String())
+	return uUIDRegex.MatchString(field.String())
 }
 
 func isISBN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -176,7 +184,7 @@ func isISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 4), " ", "", 4)
 
-	if !matchesRegex(iSBN13Regex, s) {
+	if !iSBN13Regex.MatchString(s) {
 		return false
 	}
 
@@ -200,7 +208,7 @@ func isISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 3), " ", "", 3)
 
-	if !matchesRegex(iSBN10Regex, s) {
+	if !iSBN10Regex.MatchString(s) {
 		return false
 	}
 
@@ -617,7 +625,7 @@ func isEq(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 }
 
 func isBase64(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(base64Regex, field.String())
+	return base64Regex.MatchString(field.String())
 }
 
 func isURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -655,47 +663,47 @@ func isURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 }
 
 func isEmail(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(emailRegex, field.String())
+	return emailRegex.MatchString(field.String())
 }
 
 func isHsla(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(hslaRegex, field.String())
+	return hslaRegex.MatchString(field.String())
 }
 
 func isHsl(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(hslRegex, field.String())
+	return hslRegex.MatchString(field.String())
 }
 
 func isRgba(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(rgbaRegex, field.String())
+	return rgbaRegex.MatchString(field.String())
 }
 
 func isRgb(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(rgbRegex, field.String())
+	return rgbRegex.MatchString(field.String())
 }
 
 func isHexcolor(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(hexcolorRegex, field.String())
+	return hexcolorRegex.MatchString(field.String())
 }
 
 func isHexadecimal(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(hexadecimalRegex, field.String())
+	return hexadecimalRegex.MatchString(field.String())
 }
 
 func isNumber(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(numberRegex, field.String())
+	return numberRegex.MatchString(field.String())
 }
 
 func isNumeric(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(numericRegex, field.String())
+	return numericRegex.MatchString(field.String())
 }
 
 func isAlphanum(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(alphaNumericRegex, field.String())
+	return alphaNumericRegex.MatchString(field.String())
 }
 
 func isAlpha(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return matchesRegex(alphaRegex, field.String())
+	return alphaRegex.MatchString(field.String())
 }
 
 func hasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {

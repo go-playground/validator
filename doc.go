@@ -16,6 +16,19 @@ I needed to know the field and what validation failed so that I could provide an
 		return "Translated string based on field"
 	}
 
+Validation functions return type error
+
+Doing things this way is actually the way the standard library does, see the file.Open
+method here: https://golang.org/pkg/os/#Open.
+
+They return type error to avoid the issue discussed in the following, where err is always != nil:
+http://stackoverflow.com/a/29138676/3158232
+https://github.com/bluesuncorp/validator/issues/134
+
+validator only returns nil or ValidationErrors as type error; so in you code all you need to do
+is check if the error returned is not nil, and if it's not type cast it to type ValidationErrors
+like so err.(validator.ValidationErrors)
+
 Custom Functions
 
 Custom functions can be added
@@ -444,6 +457,18 @@ Here is a list of the current built in validators:
 		by go's ParseMAC accepted formats and types see:
 		http://golang.org/src/net/mac.go?s=866:918#L29
 		(Usage: mac)
+
+Alias Validators and Tags
+
+NOTE: when returning an error the tag returned in FieldError will be
+the alias tag unless the dive tag is part of the alias; everything after the
+dive tag is not reported as the alias tag. Also the ActualTag in the before case
+will be the actual tag within the alias that failed.
+
+Here is a list of the current built in alias tags:
+
+	iscolor
+		alias is "hexcolor|rgb|rgba|hsl|hsla" (Usage: iscolor)
 
 Validator notes:
 

@@ -20,54 +20,56 @@ import (
 )
 
 const (
-	utf8HexComma        = "0x2C"
-	utf8Pipe            = "0x7C"
-	tagSeparator        = ","
-	orSeparator         = "|"
-	tagKeySeparator     = "="
-	structOnlyTag       = "structonly"
-	omitempty           = "omitempty"
-	skipValidationTag   = "-"
-	diveTag             = "dive"
-	existsTag           = "exists"
-	fieldErrMsg         = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
-	arrayIndexFieldName = "%s" + leftBracket + "%d" + rightBracket
-	mapIndexFieldName   = "%s" + leftBracket + "%v" + rightBracket
-	invalidValidation   = "Invalid validation tag on field %s"
-	undefinedValidation = "Undefined validation function on field %s"
+	utf8HexComma            = "0x2C"
+	utf8Pipe                = "0x7C"
+	tagSeparator            = ","
+	orSeparator             = "|"
+	tagKeySeparator         = "="
+	structOnlyTag           = "structonly"
+	omitempty               = "omitempty"
+	skipValidationTag       = "-"
+	diveTag                 = "dive"
+	existsTag               = "exists"
+	fieldErrMsg             = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
+	arrayIndexFieldName     = "%s" + leftBracket + "%d" + rightBracket
+	mapIndexFieldName       = "%s" + leftBracket + "%v" + rightBracket
+	invalidValidation       = "Invalid validation tag on field %s"
+	undefinedValidation     = "Undefined validation function on field %s"
+	validatorNotInitialized = "Validator instance not initialized"
 )
 
 var (
 	timeType       = reflect.TypeOf(time.Time{})
 	timePtrType    = reflect.TypeOf(&time.Time{})
-	errsPool       = &sync.Pool{New: newValidationErrors}
-	tagsCache      = &tagCacheMap{m: map[string][]*tagCache{}}
 	emptyStructPtr = new(struct{})
 )
 
-// returns new ValidationErrors to the pool
-func newValidationErrors() interface{} {
-	return ValidationErrors{}
+type cachedTag struct {
+	isOmitEmpty bool
+	diveTag     string
+	tags        []*tagVals
 }
 
-type tagCache struct {
+type tagVals struct {
 	tagVals [][]string
 	isOrVal bool
+	isAlias bool
+	tag     string
 }
 
 type tagCacheMap struct {
 	lock sync.RWMutex
-	m    map[string][]*tagCache
+	m    map[string]*cachedTag
 }
 
-func (s *tagCacheMap) Get(key string) ([]*tagCache, bool) {
+func (s *tagCacheMap) Get(key string) (*cachedTag, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	value, ok := s.m[key]
 	return value, ok
 }
 
-func (s *tagCacheMap) Set(key string, value []*tagCache) {
+func (s *tagCacheMap) Set(key string, value *cachedTag) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.m[key] = value
@@ -75,16 +77,26 @@ func (s *tagCacheMap) Set(key string, value []*tagCache) {
 
 // Validate contains the validator settings passed in using the Config struct
 type Validate struct {
-	config Config
+	tagName            string
+	validationFuncs    map[string]Func
+	customTypeFuncs    map[reflect.Type]CustomTypeFunc
+	aliasValidators    map[string]string
+	hasCustomFuncs     bool
+	hasAliasValidators bool
+	tagsCache          *tagCacheMap
+	errsPool           *sync.Pool
+}
+
+func (v *Validate) initCheck() {
+	if v == nil {
+		panic(validatorNotInitialized)
+	}
 }
 
 // Config contains the options that a Validator instance will use.
 // It is passed to the New() function
 type Config struct {
-	TagName         string
-	ValidationFuncs map[string]Func
-	CustomTypeFuncs map[reflect.Type]CustomTypeFunc
-	hasCustomFuncs  bool
+	TagName string
 }
 
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
@@ -111,7 +123,7 @@ type ValidationErrors map[string]*FieldError
 // the FieldError found within the ValidationErrors map
 func (ve ValidationErrors) Error() string {
 
-	buff := bytes.NewBufferString("")
+	buff := bytes.NewBufferString(blank)
 
 	for key, err := range ve {
 		buff.WriteString(fmt.Sprintf(fieldErrMsg, key, err.Field, err.Tag))
@@ -124,28 +136,49 @@ func (ve ValidationErrors) Error() string {
 // FieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 type FieldError struct {
-	Field string
-	Tag   string
-	Kind  reflect.Kind
-	Type  reflect.Type
-	Param string
-	Value interface{}
+	Field     string
+	Tag       string
+	ActualTag string
+	Kind      reflect.Kind
+	Type      reflect.Type
+	Param     string
+	Value     interface{}
 }
 
 // New creates a new Validate instance for use.
-func New(config Config) *Validate {
+func New(config *Config) *Validate {
 
-	if config.CustomTypeFuncs != nil && len(config.CustomTypeFuncs) > 0 {
-		config.hasCustomFuncs = true
+	v := &Validate{
+		tagName:   config.TagName,
+		tagsCache: &tagCacheMap{m: map[string]*cachedTag{}},
+		errsPool: &sync.Pool{New: func() interface{} {
+			return ValidationErrors{}
+		}}}
+
+	if len(v.aliasValidators) == 0 {
+		// must copy alias validators for separate validations to be used in each validator instance
+		v.aliasValidators = map[string]string{}
+		for k, val := range bakedInAliasValidators {
+			v.RegisterAliasValidation(k, val)
+		}
 	}
 
-	return &Validate{config: config}
+	if len(v.validationFuncs) == 0 {
+		// must copy validators for separate validations to be used in each instance
+		v.validationFuncs = map[string]Func{}
+		for k, val := range bakedInValidators {
+			v.RegisterValidation(k, val)
+		}
+	}
+
+	return v
 }
 
 // RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
 // NOTE: if the key already exists, the previous validation function will be replaced.
-// NOTE: this method is not thread-safe
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(key string, f Func) error {
+	v.initCheck()
 
 	if len(key) == 0 {
 		return errors.New("Function Key cannot be empty")
@@ -155,55 +188,87 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 		return errors.New("Function cannot be empty")
 	}
 
-	v.config.ValidationFuncs[key] = f
+	_, ok := restrictedTags[key]
+
+	if ok || strings.ContainsAny(key, restrictedTagChars) {
+		panic(fmt.Sprintf(restrictedTagErr, key))
+	}
+
+	v.validationFuncs[key] = f
 
 	return nil
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+	v.initCheck()
 
-	if v.config.CustomTypeFuncs == nil {
-		v.config.CustomTypeFuncs = map[reflect.Type]CustomTypeFunc{}
+	if v.customTypeFuncs == nil {
+		v.customTypeFuncs = map[reflect.Type]CustomTypeFunc{}
 	}
 
 	for _, t := range types {
-		v.config.CustomTypeFuncs[reflect.TypeOf(t)] = fn
+		v.customTypeFuncs[reflect.TypeOf(t)] = fn
 	}
 
-	v.config.hasCustomFuncs = true
+	v.hasCustomFuncs = true
 }
 
-// Field validates a single field using tag style validation and returns ValidationErrors
+// RegisterAliasValidation registers a mapping of a single validationstag that
+// defines a common or complex set of validation(s) to simplify adding validation
+// to structs. NOTE: when returning an error the tag returned in FieldError will be
+// the alias tag unless the dive tag is part of the alias; everything after the
+// dive tag is not reported as the alias tag. Also the ActualTag in the before case
+// will be the actual tag within the alias that failed.
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
+func (v *Validate) RegisterAliasValidation(alias, tags string) {
+	v.initCheck()
+
+	_, ok := restrictedTags[alias]
+
+	if ok || strings.ContainsAny(alias, restrictedTagChars) {
+		panic(fmt.Sprintf(restrictedAliasErr, alias))
+	}
+
+	v.aliasValidators[alias] = tags
+	v.hasAliasValidators = true
+}
+
+// Field validates a single field using tag style validation and returns nil or ValidationErrors as type error.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) Field(field interface{}, tag string) ValidationErrors {
+func (v *Validate) Field(field interface{}, tag string) error {
+	v.initCheck()
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
-	v.traverseField(fieldVal, fieldVal, fieldVal, "", errs, false, tag, "", false, false, nil)
+	v.traverseField(fieldVal, fieldVal, fieldVal, blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
 	return errs
 }
 
-// FieldWithValue validates a single field, against another fields value using tag style validation and returns ValidationErrors
+// FieldWithValue validates a single field, against another fields value using tag style validation and returns nil or ValidationErrors.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
 // NOTE: it returns ValidationErrors instead of a single FieldError because this can also
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) ValidationErrors {
+func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) error {
+	v.initCheck()
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), "", errs, false, tag, "", false, false, nil)
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, errs, false, tag, blank, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -212,10 +277,10 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 
 // StructPartial validates the fields passed in only, ignoring all others.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
-// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
-// NOTE: This is normally not needed, however in some specific cases such as: tied to a
-// legacy data structure, it will be useful
-func (v *Validate) StructPartial(current interface{}, fields ...string) ValidationErrors {
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) StructPartial(current interface{}, fields ...string) error {
+	v.initCheck()
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -256,12 +321,12 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 		}
 	}
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, false, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, false, m)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -270,10 +335,10 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) Validati
 
 // StructExcept validates all fields except the ones passed in.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
-// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
-// NOTE: This is normally not needed, however in some specific cases such as: tied to a
-// legacy data structure, it will be useful
-func (v *Validate) StructExcept(current interface{}, fields ...string) ValidationErrors {
+// i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name and returns nil or ValidationErrors as error
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) StructExcept(current interface{}, fields ...string) error {
+	v.initCheck()
 
 	sv, _ := v.extractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
@@ -283,12 +348,12 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) Validatio
 		m[name+"."+key] = emptyStructPtr
 	}
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, len(m) != 0, true, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, true, m)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -296,15 +361,18 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) Validatio
 }
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
-func (v *Validate) Struct(current interface{}) ValidationErrors {
+// it returns nil or ValidationErrors as error.
+// You will need to assert the error if it's not nil i.e. err.(validator.ValidationErrors) to access the map of errors.
+func (v *Validate) Struct(current interface{}) error {
+	v.initCheck()
 
-	errs := errsPool.Get().(ValidationErrors)
+	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, "", errs, true, false, false, nil)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, false, false, nil)
 
 	if len(errs) == 0 {
-		errsPool.Put(errs)
+		v.errsPool.Put(errs)
 		return nil
 	}
 
@@ -349,7 +417,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 			}
 		}
 
-		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.config.TagName), fld.Name, partial, exclude, includeExclude)
+		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, partial, exclude, includeExclude)
 	}
 }
 
@@ -360,46 +428,48 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		return
 	}
 
+	cTag, isCached := v.tagsCache.Get(tag)
+
+	if !isCached {
+		cTag = v.parseTags(tag, name)
+		v.tagsCache.Set(tag, cTag)
+	}
+
 	current, kind := v.extractType(current)
 	var typ reflect.Type
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
-		if strings.Contains(tag, omitempty) {
+		if cTag.isOmitEmpty {
 			return
 		}
 
 		if len(tag) > 0 {
 
-			tags := strings.Split(tag, tagSeparator)
-			var param string
-			vals := strings.SplitN(tags[0], tagKeySeparator, 2)
-
-			if len(vals) > 1 {
-				param = vals[1]
-			}
-
 			if kind == reflect.Invalid {
 				errs[errPrefix+name] = &FieldError{
-					Field: name,
-					Tag:   vals[0],
-					Param: param,
-					Kind:  kind,
+					Field:     name,
+					Tag:       cTag.tags[0].tag,
+					ActualTag: cTag.tags[0].tagVals[0][0],
+					Param:     cTag.tags[0].tagVals[0][1],
+					Kind:      kind,
 				}
 				return
 			}
 
 			errs[errPrefix+name] = &FieldError{
-				Field: name,
-				Tag:   vals[0],
-				Param: param,
-				Value: current.Interface(),
-				Kind:  kind,
-				Type:  current.Type(),
+				Field:     name,
+				Tag:       cTag.tags[0].tag,
+				ActualTag: cTag.tags[0].tagVals[0][0],
+				Param:     cTag.tags[0].tagVals[0][1],
+				Value:     current.Interface(),
+				Kind:      kind,
+				Type:      current.Type(),
 			}
 
 			return
 		}
+
 		// if we get here tag length is zero and we can leave
 		if kind == reflect.Invalid {
 			return
@@ -427,69 +497,30 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 	typ = current.Type()
 
-	tags, isCached := tagsCache.Get(tag)
-
-	if !isCached {
-
-		tags = []*tagCache{}
-
-		for _, t := range strings.Split(tag, tagSeparator) {
-
-			if t == diveTag {
-				tags = append(tags, &tagCache{tagVals: [][]string{{t}}})
-				break
-			}
-
-			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
-			orVals := strings.Split(t, orSeparator)
-			cTag := &tagCache{isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
-			tags = append(tags, cTag)
-
-			var key string
-			var param string
-
-			for i, val := range orVals {
-				vals := strings.SplitN(val, tagKeySeparator, 2)
-				key = vals[0]
-
-				if len(key) == 0 {
-					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, name)))
-				}
-
-				if len(vals) > 1 {
-					param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
-				}
-
-				cTag.tagVals[i] = []string{key, param}
-			}
-		}
-		tagsCache.Set(tag, tags)
-	}
-
 	var dive bool
 	var diveSubTag string
 
-	for _, cTag := range tags {
+	for _, valTag := range cTag.tags {
 
-		if cTag.tagVals[0][0] == existsTag {
+		if valTag.tagVals[0][0] == existsTag {
 			continue
 		}
 
-		if cTag.tagVals[0][0] == diveTag {
+		if valTag.tagVals[0][0] == diveTag {
 			dive = true
-			diveSubTag = strings.TrimLeft(strings.SplitN(tag, diveTag, 2)[1], ",")
+			diveSubTag = strings.TrimLeft(strings.SplitN(cTag.diveTag, diveTag, 2)[1], ",")
 			break
 		}
 
-		if cTag.tagVals[0][0] == omitempty {
+		if valTag.tagVals[0][0] == omitempty {
 
-			if !hasValue(v, topStruct, currentStruct, current, typ, kind, "") {
+			if !hasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
 			continue
 		}
 
-		if v.validateField(topStruct, currentStruct, current, typ, kind, errPrefix, errs, cTag, name) {
+		if v.validateField(topStruct, currentStruct, current, typ, kind, errPrefix, errs, valTag, name) {
 			return
 		}
 	}
@@ -527,18 +558,18 @@ func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Va
 }
 
 // validateField validates a field based on the provided tag's key and param values and returns true if there is an error or false if all ok
-func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, cTag *tagCache, name string) bool {
+func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, errs ValidationErrors, valTag *tagVals, name string) bool {
 
 	var valFunc Func
 	var ok bool
 
-	if cTag.isOrVal {
+	if valTag.isOrVal {
 
-		errTag := ""
+		errTag := blank
 
-		for _, val := range cTag.tagVals {
+		for _, val := range valTag.tagVals {
 
-			valFunc, ok = v.config.ValidationFuncs[val[0]]
+			valFunc, ok = v.validationFuncs[val[0]]
 			if !ok {
 				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 			}
@@ -550,33 +581,46 @@ func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.
 			errTag += orSeparator + val[0]
 		}
 
-		errs[errPrefix+name] = &FieldError{
-			Field: name,
-			Tag:   errTag[1:],
-			Value: current.Interface(),
-			Type:  currentType,
-			Kind:  currentKind,
+		if valTag.isAlias {
+			errs[errPrefix+name] = &FieldError{
+				Field:     name,
+				Tag:       valTag.tag,
+				ActualTag: errTag[1:],
+				Value:     current.Interface(),
+				Type:      currentType,
+				Kind:      currentKind,
+			}
+		} else {
+			errs[errPrefix+name] = &FieldError{
+				Field:     name,
+				Tag:       errTag[1:],
+				ActualTag: errTag[1:],
+				Value:     current.Interface(),
+				Type:      currentType,
+				Kind:      currentKind,
+			}
 		}
 
 		return true
 	}
 
-	valFunc, ok = v.config.ValidationFuncs[cTag.tagVals[0][0]]
+	valFunc, ok = v.validationFuncs[valTag.tagVals[0][0]]
 	if !ok {
 		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
 	}
 
-	if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, cTag.tagVals[0][1]) {
+	if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, valTag.tagVals[0][1]) {
 		return false
 	}
 
 	errs[errPrefix+name] = &FieldError{
-		Field: name,
-		Tag:   cTag.tagVals[0][0],
-		Value: current.Interface(),
-		Param: cTag.tagVals[0][1],
-		Type:  currentType,
-		Kind:  currentKind,
+		Field:     name,
+		Tag:       valTag.tag,
+		ActualTag: valTag.tagVals[0][0],
+		Value:     current.Interface(),
+		Param:     valTag.tagVals[0][1],
+		Type:      currentType,
+		Kind:      currentKind,
 	}
 
 	return true

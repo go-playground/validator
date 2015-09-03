@@ -2,7 +2,6 @@ package validator
 
 import (
 	sql "database/sql/driver"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -33,11 +32,7 @@ func BenchmarkFieldDiveFailure(b *testing.B) {
 
 func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 
-	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-
-	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{
 		Name: "1",
@@ -50,11 +45,8 @@ func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 
 func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 
-	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-
-	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+	// validate := New(Config{TagName: "validate"})
+	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{}
 
@@ -77,11 +69,7 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
-	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-
-	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{
 		Name: "1",
@@ -101,11 +89,7 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
-	customTypes := map[reflect.Type]CustomTypeFunc{}
-	customTypes[reflect.TypeOf((*sql.Valuer)(nil))] = ValidateValuerType
-	customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-
-	validate := New(Config{TagName: "validate", ValidationFuncs: BakedInValidators, CustomTypeFuncs: customTypes})
+	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{}
 
