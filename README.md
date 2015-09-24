@@ -1,10 +1,10 @@
 Package validator
 ================
 
-[![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/517072/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v7&service=github)](https://coveralls.io/github/bluesuncorp/validator?branch=v7)
-[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v7?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v7)
+[![Join the chat at https://gitter.im/go-playground/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/490000/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
+[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v7&service=github)](https://coveralls.io/github/go-playground/validator?branch=v7)
+[![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v7?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v7)
 
 Package validator implements value validations for structs and individual fields based on tags.
 
@@ -20,20 +20,20 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/bluesuncorp/validator.v7
+	go get gopkg.in/go-playground/validator.v7
 
 or to update
 
-	go get -u gopkg.in/bluesuncorp/validator.v7
+	go get -u gopkg.in/go-playground/validator.v7
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/bluesuncorp/validator.v7"
+	import "gopkg.in/go-playground/validator.v7"
 
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v7 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/go-playground/validator.v7 for detailed usage docs.
 
 ##### Examples:
 
@@ -44,7 +44,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/go-playground/validator.v7"
 )
 
 // User contains user information
@@ -143,7 +143,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/bluesuncorp/validator.v7"
+	"gopkg.in/go-playground/validator.v7"
 )
 
 // DbBackedUser User struct
