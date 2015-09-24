@@ -1,10 +1,10 @@
 Package validator
 ================
 
-[![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluesuncorp/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/523019/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/bluesuncorp/validator/badge.svg?branch=v8-development&service=github)](https://coveralls.io/github/bluesuncorp/validator?branch=v8-development)
-[![GoDoc](https://godoc.org/gopkg.in/bluesuncorp/validator.v8?status.svg)](https://godoc.org/gopkg.in/bluesuncorp/validator.v8)
+[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8-development&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8-development)
+[![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v8?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v8)
 
 Package validator implements value validations for structs and individual fields based on tags.
 
@@ -21,15 +21,15 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/bluesuncorp/validator.v8
+	go get gopkg.in/go-playground/validator.v8
 
 or to update
 
-	go get -u gopkg.in/bluesuncorp/validator.v8
+	go get -u gopkg.in/go-playground/validator.v8
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/bluesuncorp/validator.v8"
+	import "gopkg.in/go-playground/validator.v8"
 
 Error Return Value
 -------
@@ -39,7 +39,7 @@ Validation functions return type error
 They return type error to avoid the issue discussed in the following, where err is always != nil:
 
 * http://stackoverflow.com/a/29138676/3158232
-* https://github.com/bluesuncorp/validator/issues/134
+* https://github.com/go-playground/validator/issues/134
 
 validator only returns nil or ValidationErrors as type error; so in you code all you need to do
 is check if the error returned is not nil, and if it's not type cast it to type ValidationErrors
@@ -53,7 +53,7 @@ validationErrors := err.(validator.ValidationErrors)
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/bluesuncorp/validator.v8 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/go-playground/validator.v8 for detailed usage docs.
 
 ##### Examples:
 
@@ -64,7 +64,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v8"
+	"gopkg.in/go-playground/validator.v8"
 )
 
 // User contains user information
@@ -160,7 +160,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/bluesuncorp/validator.v8"
+	"gopkg.in/go-playground/validator.v8"
 )
 
 // DbBackedUser User struct
