@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/bluesuncorp/assert.v1"
+	. "gopkg.in/go-playground/assert.v1"
 )
 
 // NOTES:
