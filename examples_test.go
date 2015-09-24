@@ -3,7 +3,7 @@ package validator_test
 import (
 	"fmt"
 
-	"gopkg.in/bluesuncorp/validator.v6"
+	"gopkg.in/go-playground/validator.v6"
 )
 
 func ExampleValidate_new() {

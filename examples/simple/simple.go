@@ -7,7 +7,7 @@ import (
 
 	sql "database/sql/driver"
 
-	"gopkg.in/bluesuncorp/validator.v6"
+	"gopkg.in/go-playground/validator.v6"
 )
 
 // User contains user information
