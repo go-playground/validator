@@ -3,7 +3,7 @@ package validator_test
 import (
 	"fmt"
 
-	"../validator"
+	"gopkg.in/go-playground/validator.v5"
 )
 
 func ExampleValidate_new() {
