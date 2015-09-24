@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/bluesuncorp/validator.v6"
+	"gopkg.in/go-playground/validator.v6"
 )
 
 // DbBackedUser User struct
