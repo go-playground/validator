@@ -240,15 +240,20 @@ func panicIf(err error) {
 	}
 }
 
-func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
+func (v *Validate) parseTags(tag, name, fieldNameTag string) *cachedTag {
 
-	cTag := &cachedTag{}
+	fieldName := strings.Split(fieldNameTag, ",")[0]
+	if fieldName == "" {
+		fieldName = name
+	}
 
-	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
+	cTag := &cachedTag{name: fieldName}
+
+	v.parseTagsRecursive(cTag, tag, name, blank, false)
 	return cTag
 }
 
-func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
+func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, name, alias string, isAlias bool) bool {
 
 	if len(tag) == 0 {
 		return true
@@ -260,7 +265,7 @@ func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias str
 			// check map for alias and process new tags, otherwise process as usual
 			if tagsVal, ok := v.aliasValidators[t]; ok {
 
-				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
+				leave := v.parseTagsRecursive(cTag, tagsVal, name, t, true)
 
 				if leave {
 					return leave
@@ -300,7 +305,7 @@ func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias str
 			}
 
 			if len(key) == 0 {
-				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
+				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, name)))
 			}
 
 			if len(vals) > 1 {

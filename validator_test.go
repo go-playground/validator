@@ -4930,3 +4930,17 @@ func TestInvalidValidatorFunction(t *testing.T) {
 
 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
 }
+
+func TestCustomFieldName(t *testing.T) {
+	type A struct {
+		B string `schema:"b" validate:"min=3"`
+	}
+
+	a := &A{}
+
+	errs := New(&Config{TagName: "validate", FieldNameTagName: "schema"}).Struct(a).(ValidationErrors)
+	Equal(t, errs["A.B"].FieldName, "b")
+
+	errs = New(&Config{TagName: "validate"}).Struct(a).(ValidationErrors)
+	Equal(t, errs["A.B"].FieldName, "B")
+}
