@@ -4936,15 +4936,24 @@ func TestCustomFieldName(t *testing.T) {
 		B string `schema:"b" validate:"required"`
 		C string `schema:"c" validate:"required"`
 		D []bool `schema:"d" validate:"required"`
+		E string `schema:"-" validate:"required"`
 	}
 
 	a := &A{}
 
 	errs := New(&Config{TagName: "validate", FieldNameTag: "schema"}).Struct(a).(ValidationErrors)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 4)
 	Equal(t, errs["A.B"].Name, "b")
 	Equal(t, errs["A.C"].Name, "c")
 	Equal(t, errs["A.D"].Name, "d")
+	Equal(t, errs["A.E"].Name, "E")
 
 	errs = New(&Config{TagName: "validate"}).Struct(a).(ValidationErrors)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs), 4)
 	Equal(t, errs["A.B"].Name, "B")
+	Equal(t, errs["A.C"].Name, "C")
+	Equal(t, errs["A.D"].Name, "D")
+	Equal(t, errs["A.E"].Name, "E")
 }

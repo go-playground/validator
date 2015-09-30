@@ -404,6 +404,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	numFields := current.NumField()
 
 	var fld reflect.StructField
+	var customName string
 
 	for i := 0; i < numFields; i++ {
 		fld = typ.Field(i)
@@ -421,10 +422,13 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 			}
 		}
 
-		customName := fld.Name
+		customName = fld.Name
 		if v.fieldNameTag != "" {
-			name := strings.Split(fld.Tag.Get(v.fieldNameTag), ",")[0]
-			if name != "" {
+
+			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+
+			// dash check is for json "-" means don't output in json
+			if name != "" && name != "-" {
 				customName = name
 			}
 		}
