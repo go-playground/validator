@@ -116,7 +116,7 @@ func validateStruct() {
 	}
 
 	// returns nil or ValidationErrors ( map[string]*FieldError )
-	err := validate.Struct(user)
+	errs := validate.Struct(user)
 
 	if errs != nil {
 
