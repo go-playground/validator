@@ -452,6 +452,18 @@ Here is a list of the current built in validators:
 		This validates that a string value contains a valid v6 IP Adress.
 		(Usage: ipv6)
 
+	cidr
+		This validates that a string value contains a valid CIDR  Adress.
+		(Usage: ip)
+
+	cidrv4
+		This validates that a string value contains a valid v4 CIDR Adress.
+		(Usage: cidrv4)
+
+	cidrv6
+		This validates that a string value contains a valid v6 CIDR Adress.
+		(Usage: cidrv6)
+
 	mac
 		This validates that a string value contains a valid MAC Adress defined
 		by go's ParseMAC accepted formats and types see:

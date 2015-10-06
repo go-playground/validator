@@ -1542,6 +1542,129 @@ func TestIPv4Validation(t *testing.T) {
 	}
 }
 
+func TestCIDRValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.0/0", true},
+		{"10.0.0.1/8", true},
+		{"172.16.0.1/16", true},
+		{"192.168.0.1/24", true},
+		{"192.168.255.254/24", true},
+		{"192.168.255.254/48", false},
+		{"192.168.255.256/24", false},
+		{"172.16.255.254/16", true},
+		{"172.16.256.255/16", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/64", true},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/256", false},
+		{"2001:cdba:0:0:0:0:3257:9652/32", true},
+		{"2001:cdba::3257:9652/16", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "cidr")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "cidr" {
+					t.Fatalf("Index: %d cidr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestCIDRv6Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.0/0", false},
+		{"10.0.0.1/8", false},
+		{"172.16.0.1/16", false},
+		{"192.168.0.1/24", false},
+		{"192.168.255.254/24", false},
+		{"192.168.255.254/48", false},
+		{"192.168.255.256/24", false},
+		{"172.16.255.254/16", false},
+		{"172.16.256.255/16", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/64", true},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/256", false},
+		{"2001:cdba:0:0:0:0:3257:9652/32", true},
+		{"2001:cdba::3257:9652/16", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "cidrv6")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidrv6 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidrv6 failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "cidrv6" {
+					t.Fatalf("Index: %d cidrv6 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestCIDRv4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"10.0.0.0/0", true},
+		{"10.0.0.1/8", true},
+		{"172.16.0.1/16", true},
+		{"192.168.0.1/24", true},
+		{"192.168.255.254/24", true},
+		{"192.168.255.254/48", false},
+		{"192.168.255.256/24", false},
+		{"172.16.255.254/16", true},
+		{"172.16.256.255/16", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/64", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652/256", false},
+		{"2001:cdba:0:0:0:0:3257:9652/32", false},
+		{"2001:cdba::3257:9652/16", false},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Field(test.param, "cidrv4")
+
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidrv4 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cidrv4 failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "cidrv4" {
+					t.Fatalf("Index: %d cidrv4 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 
 	var m map[string]string
