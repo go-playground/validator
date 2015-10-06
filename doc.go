@@ -454,7 +454,7 @@ Here is a list of the current built in validators:
 
 	cidr
 		This validates that a string value contains a valid CIDR  Adress.
-		(Usage: ip)
+		(Usage: cidr)
 
 	cidrv4
 		This validates that a string value contains a valid v4 CIDR Adress.
