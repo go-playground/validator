@@ -81,11 +81,35 @@ var bakedInValidators = map[string]Func{
 	"ipv4":         isIPv4,
 	"ipv6":         isIPv6,
 	"ip":           isIP,
+	"cidrv4":       isCIDRv4,
+	"cidrv6":       isCIDRv6,
+	"cidr":         isCIDR,
 	"mac":          isMac,
 }
 
 func isMac(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	_, err := net.ParseMAC(field.String())
+	return err == nil
+}
+
+func isCIDRv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip, _, err := net.ParseCIDR(field.String())
+
+	return err == nil && ip.To4() != nil
+}
+
+func isCIDRv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	ip, _, err := net.ParseCIDR(field.String())
+
+	return err == nil && ip.To4() == nil
+}
+
+func isCIDR(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	_, _, err := net.ParseCIDR(field.String())
+
 	return err == nil
 }
 
