@@ -532,7 +532,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if valTag.tagVals[0][0] == omitempty {
 
-			if !hasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
+			if !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
 			continue

@@ -22,118 +22,134 @@ var bakedInAliasValidators = map[string]string{
 // you can add, remove or even replace items to suite your needs,
 // or even disregard and use your own map if so desired.
 var bakedInValidators = map[string]Func{
-	"required":     hasValue,
-	"len":          hasLengthOf,
-	"min":          hasMinOf,
-	"max":          hasMaxOf,
-	"eq":           isEq,
-	"ne":           isNe,
-	"lt":           isLt,
-	"lte":          isLte,
-	"gt":           isGt,
-	"gte":          isGte,
-	"eqfield":      isEqField,
-	"eqcsfield":    isEqCrossStructField,
-	"necsfield":    isNeCrossStructField,
-	"gtcsfield":    isGtCrossStructField,
-	"gtecsfield":   isGteCrossStructField,
-	"ltcsfield":    isLtCrossStructField,
-	"ltecsfield":   isLteCrossStructField,
-	"nefield":      isNeField,
-	"gtefield":     isGteField,
-	"gtfield":      isGtField,
-	"ltefield":     isLteField,
-	"ltfield":      isLtField,
-	"alpha":        isAlpha,
-	"alphanum":     isAlphanum,
-	"numeric":      isNumeric,
-	"number":       isNumber,
-	"hexadecimal":  isHexadecimal,
-	"hexcolor":     isHexcolor,
-	"rgb":          isRgb,
-	"rgba":         isRgba,
-	"hsl":          isHsl,
-	"hsla":         isHsla,
-	"email":        isEmail,
-	"url":          isURL,
-	"uri":          isURI,
-	"base64":       isBase64,
-	"contains":     contains,
-	"containsany":  containsAny,
-	"containsrune": containsRune,
-	"excludes":     excludes,
-	"excludesall":  excludesAll,
-	"excludesrune": excludesRune,
-	"isbn":         isISBN,
-	"isbn10":       isISBN10,
-	"isbn13":       isISBN13,
-	"uuid":         isUUID,
-	"uuid3":        isUUID3,
-	"uuid4":        isUUID4,
-	"uuid5":        isUUID5,
-	"ascii":        isASCII,
-	"printascii":   isPrintableASCII,
-	"multibyte":    hasMultiByteCharacter,
-	"datauri":      isDataURI,
-	"latitude":     isLatitude,
-	"longitude":    isLongitude,
-	"ssn":          isSSN,
-	"ipv4":         isIPv4,
-	"ipv6":         isIPv6,
-	"ip":           isIP,
-	"cidrv4":       isCIDRv4,
-	"cidrv6":       isCIDRv6,
-	"cidr":         isCIDR,
-	"mac":          isMac,
+	"required":     HasValue,
+	"len":          HasLengthOf,
+	"min":          HasMinOf,
+	"max":          HasMaxOf,
+	"eq":           IsEq,
+	"ne":           IsNe,
+	"lt":           IsLt,
+	"lte":          IsLte,
+	"gt":           IsGt,
+	"gte":          IsGte,
+	"eqfield":      IsEqField,
+	"eqcsfield":    IsEqCrossStructField,
+	"necsfield":    IsNeCrossStructField,
+	"gtcsfield":    IsGtCrossStructField,
+	"gtecsfield":   IsGteCrossStructField,
+	"ltcsfield":    IsLtCrossStructField,
+	"ltecsfield":   IsLteCrossStructField,
+	"nefield":      IsNeField,
+	"gtefield":     IsGteField,
+	"gtfield":      IsGtField,
+	"ltefield":     IsLteField,
+	"ltfield":      IsLtField,
+	"alpha":        IsAlpha,
+	"alphanum":     IsAlphanum,
+	"numeric":      IsNumeric,
+	"number":       IsNumber,
+	"hexadecimal":  IsHexadecimal,
+	"hexcolor":     IsHEXColor,
+	"rgb":          IsRGB,
+	"rgba":         IsRGBA,
+	"hsl":          IsHSL,
+	"hsla":         IsHSLA,
+	"email":        IsEmail,
+	"url":          IsURL,
+	"uri":          IsURI,
+	"base64":       IsBase64,
+	"contains":     Contains,
+	"containsany":  ContainsAny,
+	"containsrune": ContainsRune,
+	"excludes":     Excludes,
+	"excludesall":  ExcludesAll,
+	"excludesrune": ExcludesRune,
+	"isbn":         IsISBN,
+	"isbn10":       IsISBN10,
+	"isbn13":       IsISBN13,
+	"uuid":         IsUUID,
+	"uuid3":        IsUUID3,
+	"uuid4":        IsUUID4,
+	"uuid5":        IsUUID5,
+	"ascii":        IsASCII,
+	"printascii":   IsPrintableASCII,
+	"multibyte":    HasMultiByteCharacter,
+	"datauri":      IsDataURI,
+	"latitude":     IsLatitude,
+	"longitude":    IsLongitude,
+	"ssn":          IsSSN,
+	"ipv4":         IsIPv4,
+	"ipv6":         IsIPv6,
+	"ip":           IsIP,
+	"cidrv4":       IsCIDRv4,
+	"cidrv6":       IsCIDRv6,
+	"cidr":         IsCIDR,
+	"mac":          IsMAC,
 }
 
-func isMac(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsMAC is the validation function for validating if the field's value is a valid MAC address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsMAC(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	_, err := net.ParseMAC(field.String())
 	return err == nil
 }
 
-func isCIDRv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsCIDRv4 is the validation function for validating if the field's value is a valid v4 CIDR address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsCIDRv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip, _, err := net.ParseCIDR(field.String())
 
 	return err == nil && ip.To4() != nil
 }
 
-func isCIDRv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsCIDRv6 is the validation function for validating if the field's value is a valid v6 CIDR address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsCIDRv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip, _, err := net.ParseCIDR(field.String())
 
 	return err == nil && ip.To4() == nil
 }
 
-func isCIDR(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsCIDR is the validation function for validating if the field's value is a valid v4 or v6 CIDR address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsCIDR(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	_, _, err := net.ParseCIDR(field.String())
 
 	return err == nil
 }
 
-func isIPv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsIPv4 is the validation function for validating if a value is a valid v4 IP address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIPv4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip := net.ParseIP(field.String())
 
 	return ip != nil && ip.To4() != nil
 }
 
-func isIPv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsIPv6 is the validation function for validating if the field's value is a valid v6 IP address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIPv6(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	ip := net.ParseIP(field.String())
 
 	return ip != nil && ip.To4() == nil
 }
 
-func isIP(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsIP is the validation function for validating if the field's value is a valid v4 or v6 IP address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIP(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	ip := net.ParseIP(field.String())
 
 	return ip != nil
 }
 
-func isSSN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsSSN is the validation function for validating if the field's value is a valid SSN.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsSSN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	if field.Len() != 11 {
 		return false
@@ -142,15 +158,21 @@ func isSSN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	return sSNRegex.MatchString(field.String())
 }
 
-func isLongitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLongitude is the validation function for validating if the field's value is a valid longitude coordinate.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLongitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return longitudeRegex.MatchString(field.String())
 }
 
-func isLatitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLatitude is the validation function for validating if the field's value is a valid latitude coordinate.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLatitude(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return latitudeRegex.MatchString(field.String())
 }
 
-func isDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsDataURI is the validation function for validating if the field's value is a valid data URI.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	uri := strings.SplitN(field.String(), ",", 2)
 
@@ -164,10 +186,12 @@ func isDataURI(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 
 	fld := reflect.ValueOf(uri[1])
 
-	return isBase64(v, topStruct, currentStructOrField, fld, fld.Type(), fld.Kind(), param)
+	return IsBase64(v, topStruct, currentStructOrField, fld, fld.Type(), fld.Kind(), param)
 }
 
-func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// HasMultiByteCharacter is the validation function for validating if the field's value has a multi byte character.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func HasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	if field.Len() == 0 {
 		return true
@@ -176,35 +200,51 @@ func hasMultiByteCharacter(v *Validate, topStruct reflect.Value, currentStructOr
 	return multibyteRegex.MatchString(field.String())
 }
 
-func isPrintableASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsPrintableASCII is the validation function for validating if the field's value is a valid printable ASCII character.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsPrintableASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return printableASCIIRegex.MatchString(field.String())
 }
 
-func isASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsASCII is the validation function for validating if the field's value is a valid ASCII character.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsASCII(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return aSCIIRegex.MatchString(field.String())
 }
 
-func isUUID5(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUUID5(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return uUID5Regex.MatchString(field.String())
 }
 
-func isUUID4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsUUID4 is the validation function for validating if the field's value is a valid v4 UUID.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUUID4(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return uUID4Regex.MatchString(field.String())
 }
 
-func isUUID3(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsUUID3 is the validation function for validating if the field's value is a valid v3 UUID.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUUID3(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return uUID3Regex.MatchString(field.String())
 }
 
-func isUUID(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsUUID is the validation function for validating if the field's value is a valid UUID of any version.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUUID(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return uUIDRegex.MatchString(field.String())
 }
 
-func isISBN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return isISBN10(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) || isISBN13(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// IsISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsISBN(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return IsISBN10(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) || IsISBN13(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func isISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsISBN13 is the validation function for validating if the field's value is a valid v13 ISBN.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 4), " ", "", 4)
 
@@ -228,7 +268,9 @@ func isISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 	return false
 }
 
-func isISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsISBN10 is the validation function for validating if the field's value is a valid v10 ISBN.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	s := strings.Replace(strings.Replace(field.String(), "-", "", 3), " ", "", 3)
 
@@ -256,33 +298,47 @@ func isISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 	return false
 }
 
-func excludesRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !containsRune(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// ExcludesRune is the validation function for validating that the field's value does not contain the rune specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func ExcludesRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !ContainsRune(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func excludesAll(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !containsAny(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// ExcludesAll is the validation function for validating that the field's value does not contain any of the characters specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func ExcludesAll(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !ContainsAny(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func excludes(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !contains(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// Excludes is the validation function for validating that the field's value does not contain the text specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func Excludes(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !Contains(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func containsRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// ContainsRune is the validation function for validating that the field's value contains the rune specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func ContainsRune(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	r, _ := utf8.DecodeRuneInString(param)
 
 	return strings.ContainsRune(field.String(), r)
 }
 
-func containsAny(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// ContainsAny is the validation function for validating that the field's value contains any of the characters specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func ContainsAny(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return strings.ContainsAny(field.String(), param)
 }
 
-func contains(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// Contains is the validation function for validating that the field's value contains the text specified withing the param.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func Contains(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return strings.Contains(field.String(), param)
 }
 
-func isNeField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsNeField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 
@@ -325,11 +381,15 @@ func isNeField(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 	return field.String() != currentField.String()
 }
 
-func isNe(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return !isEq(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// IsNe is the validation function for validating that the field's value does not equal the provided param value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsNe(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return !IsEq(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLteCrossStructField is the validation function for validating if the current field's value is less than or equal to the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
@@ -370,7 +430,9 @@ func isLteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 	return field.String() <= topField.String()
 }
 
-func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLtCrossStructField is the validation function for validating if the current field's value is less than the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
@@ -411,7 +473,9 @@ func isLtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	return field.String() < topField.String()
 }
 
-func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGteCrossStructField is the validation function for validating if the current field's value is greater than or equal to the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
@@ -452,7 +516,9 @@ func isGteCrossStructField(v *Validate, topStruct reflect.Value, current reflect
 	return field.String() >= topField.String()
 }
 
-func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGtCrossStructField is the validation function for validating if the current field's value is greater than the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
@@ -493,7 +559,9 @@ func isGtCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	return field.String() > topField.String()
 }
 
-func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsNeCrossStructField is the validation function for validating that the current field's value is not equal to the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, currentKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || currentKind != fieldKind {
@@ -534,7 +602,9 @@ func isNeCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	return topField.String() != field.String()
 }
 
-func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsEqCrossStructField is the validation function for validating that the current field's value is equal to the field, within a separate struct, specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	topField, topKind, ok := v.GetStructFieldOK(topStruct, param)
 	if !ok || topKind != fieldKind {
@@ -575,7 +645,9 @@ func isEqCrossStructField(v *Validate, topStruct reflect.Value, current reflect.
 	return topField.String() == field.String()
 }
 
-func isEqField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsEqField is the validation function for validating if the current field's value is equal to the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsEqField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
@@ -617,7 +689,9 @@ func isEqField(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 	return field.String() == currentField.String()
 }
 
-func isEq(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsEq is the validation function for validating if the current field's value is equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsEq(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -648,11 +722,15 @@ func isEq(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isBase64(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsBase64 is the validation function for validating if the current field's value is a valid base 64.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsBase64(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return base64Regex.MatchString(field.String())
 }
 
-func isURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsURI is the validation function for validating if the current field's value is a valid URI.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -665,7 +743,9 @@ func isURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsURL is the validation function for validating if the current field's value is a valid URL.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -686,51 +766,75 @@ func isURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isEmail(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsEmail is the validation function for validating if the current field's value is a valid email address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsEmail(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return emailRegex.MatchString(field.String())
 }
 
-func isHsla(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsHSLA is the validation function for validating if the current field's value is a valid HSLA color.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsHSLA(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return hslaRegex.MatchString(field.String())
 }
 
-func isHsl(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsHSL is the validation function for validating if the current field's value is a valid HSL color.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsHSL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return hslRegex.MatchString(field.String())
 }
 
-func isRgba(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsRGBA is the validation function for validating if the current field's value is a valid RGBA color.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsRGBA(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return rgbaRegex.MatchString(field.String())
 }
 
-func isRgb(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsRGB is the validation function for validating if the current field's value is a valid RGB color.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsRGB(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return rgbRegex.MatchString(field.String())
 }
 
-func isHexcolor(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsHEXColor is the validation function for validating if the current field's value is a valid HEX color.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsHEXColor(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return hexcolorRegex.MatchString(field.String())
 }
 
-func isHexadecimal(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsHexadecimal is the validation function for validating if the current field's value is a valid hexadecimal.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsHexadecimal(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return hexadecimalRegex.MatchString(field.String())
 }
 
-func isNumber(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsNumber is the validation function for validating if the current field's value is a valid number.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsNumber(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return numberRegex.MatchString(field.String())
 }
 
-func isNumeric(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsNumeric is the validation function for validating if the current field's value is a valid numeric value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsNumeric(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return numericRegex.MatchString(field.String())
 }
 
-func isAlphanum(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsAlphanum is the validation function for validating if the current field's value is a valid alphanumeric value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsAlphanum(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return alphaNumericRegex.MatchString(field.String())
 }
 
-func isAlpha(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsAlpha is the validation function for validating if the current field's value is a valid alpha value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsAlpha(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return alphaRegex.MatchString(field.String())
 }
 
-func hasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// HasValue is the validation function for validating if the current field's value is not the default static value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func HasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
@@ -740,7 +844,9 @@ func hasValue(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 	}
 }
 
-func isGteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
@@ -781,7 +887,9 @@ func isGteField(v *Validate, topStruct reflect.Value, currentStructOrField refle
 	return len(field.String()) >= len(currentField.String())
 }
 
-func isGtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGtField is the validation function for validating if the current field's value is greater than the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
@@ -822,7 +930,9 @@ func isGtField(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 	return len(field.String()) > len(currentField.String())
 }
 
-func isGte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGte is the validation function for validating if the current field's value is greater than or equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -865,7 +975,9 @@ func isGte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsGt is the validation function for validating if the current field's value is greater than the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -904,10 +1016,9 @@ func isGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// length tests whether a variable's length is equal to a given
-// value. For strings it tests the number of characters whereas
-// for maps and slices it tests the number of items.
-func hasLengthOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// HasLengthOf is the validation function for validating if the current field's value is equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func HasLengthOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -940,16 +1051,16 @@ func hasLengthOf(v *Validate, topStruct reflect.Value, currentStructOrField refl
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// min tests whether a variable value is larger or equal to a given
-// number. For number types, it's a simple lesser-than test; for
-// strings it tests the number of characters whereas for maps
-// and slices it tests the number of items.
-func hasMinOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// HasMinOf is the validation function for validating if the current field's value is greater than or equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func HasMinOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	return isGte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+	return IsGte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
 
-func isLteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLteField is the validation function for validating if the current field's value is less than or equal to the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLteField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
@@ -990,7 +1101,9 @@ func isLteField(v *Validate, topStruct reflect.Value, currentStructOrField refle
 	return len(field.String()) <= len(currentField.String())
 }
 
-func isLtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLtField is the validation function for validating if the current field's value is less than the field specified by the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLtField(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	currentField, currentKind, ok := v.GetStructFieldOK(currentStructOrField, param)
 	if !ok || currentKind != fieldKind {
@@ -1031,7 +1144,9 @@ func isLtField(v *Validate, topStruct reflect.Value, currentStructOrField reflec
 	return len(field.String()) < len(currentField.String())
 }
 
-func isLte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLte is the validation function for validating if the current field's value is less than or equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -1074,7 +1189,9 @@ func isLte(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func isLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+// IsLt is the validation function for validating if the current field's value is less than the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	switch fieldKind {
 
@@ -1114,10 +1231,8 @@ func isLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// max tests whether a variable value is lesser than a given
-// value. For numbers, it's a simple lesser-than test; for
-// strings it tests the number of characters whereas for maps
-// and slices it tests the number of items.
-func hasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
-	return isLte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+// HasMaxOf is the validation function for validating if the current field's value is less than or equal to the param's value.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func HasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return IsLte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
 }
