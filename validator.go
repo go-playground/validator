@@ -30,7 +30,7 @@ const (
 	skipValidationTag       = "-"
 	diveTag                 = "dive"
 	existsTag               = "exists"
-	fieldErrMsg             = "Key: \"%s\" Error:Field validation for \"%s\" failed on the \"%s\" tag"
+	fieldErrMsg             = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
 	arrayIndexFieldName     = "%s" + leftBracket + "%d" + rightBracket
 	mapIndexFieldName       = "%s" + leftBracket + "%v" + rightBracket
 	invalidValidation       = "Invalid validation tag on field %s"
