@@ -252,7 +252,7 @@ func TestAliasTags(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "[0]", "[0]", "iscolor")
 
-	PanicMatches(t, func() { validate.RegisterAliasValidation("exists", "gt=5,lt=10") }, "Alias \"exists\" either contains restricted characters or is the same as a restricted tag needed for normal operation")
+	PanicMatches(t, func() { validate.RegisterAliasValidation("exists", "gt=5,lt=10") }, "Alias 'exists' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestNilValidator(t *testing.T) {
@@ -4040,7 +4040,7 @@ func TestAddFunctions(t *testing.T) {
 	errs = validate.RegisterValidation("new", fn)
 	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag \"dive\" either contains restricted characters or is the same as a restricted tag needed for normal operation")
+	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestChangeTag(t *testing.T) {
