@@ -200,38 +200,143 @@ func ValidateValuer(field reflect.Value) interface{} {
 }
 ```
 
+Struct Level Validation
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+
+	"gopkg.in/go-playground/validator.v8"
+)
+
+// User contains user information
+type User struct {
+	FirstName      string     `json:"fname"`
+	LastName       string     `json:"lname"`
+	Age            uint8      `validate:"gte=0,lte=130"`
+	Email          string     `validate:"required,email"`
+	FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
+	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
+}
+
+// Address houses a users address information
+type Address struct {
+	Street string `validate:"required"`
+	City   string `validate:"required"`
+	Planet string `validate:"required"`
+	Phone  string `validate:"required"`
+}
+
+var validate *validator.Validate
+
+func main() {
+
+	config := &validator.Config{TagName: "validate"}
+
+	validate = validator.New(config)
+	validate.RegisterStructValidation(UserStructLevelValidation, User{})
+
+	validateStruct()
+}
+
+// UserStructLevelValidation contains custom struct level validations that don't always
+// make sense at the field validation level. For Example this function validates that either
+// FirstName or LastName exist; could have done that with a custom field validation but then
+// would have had to add it to both fields duplicating the logic + overhead, this way it's
+// only validated once.
+//
+// NOTE: you may ask why wouldn't I just do this outside of validator, because doing this way
+// hooks right into validator and you can combine with validation tags and still have a
+// common error output format.
+func UserStructLevelValidation(v *validator.Validate, structLevel *validator.StructLevel) {
+
+	user := structLevel.CurrentStruct.Interface().(User)
+
+	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
+		structLevel.ReportError(reflect.ValueOf(user.FirstName), "FirstName", "fname", "fnameorlname")
+		structLevel.ReportError(reflect.ValueOf(user.LastName), "LastName", "lname", "fnameorlname")
+	}
+
+	// plus can to more, even with different tag than "fnameorlname"
+}
+
+func validateStruct() {
+
+	address := &Address{
+		Street: "Eavesdown Docks",
+		Planet: "Persphone",
+		Phone:  "none",
+		City:   "Unknown",
+	}
+
+	user := &User{
+		FirstName:      "",
+		LastName:       "",
+		Age:            45,
+		Email:          "Badger.Smith@gmail.com",
+		FavouriteColor: "#000",
+		Addresses:      []*Address{address},
+	}
+
+	// returns nil or ValidationErrors ( map[string]*FieldError )
+	errs := validate.Struct(user)
+
+	if errs != nil {
+
+		fmt.Println(errs) // output: Key: 'User.LastName' Error:Field validation for 'LastName' failed on the 'fnameorlname' tag
+		//	                         Key: 'User.FirstName' Error:Field validation for 'FirstName' failed on the 'fnameorlname' tag
+		err := errs.(validator.ValidationErrors)["User.FirstName"]
+		fmt.Println(err.Field) // output: FirstName
+		fmt.Println(err.Tag)   // output: fnameorlname
+		fmt.Println(err.Kind)  // output: string
+		fmt.Println(err.Type)  // output: string
+		fmt.Println(err.Param) // output:
+		fmt.Println(err.Value) // output:
+
+		// from here you can create your own error messages in whatever language you wish
+		return
+	}
+
+	// save user to database
+}
+```
+
 Benchmarks
 ------
 ###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go 1.5.1
 ```go
 $ go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4                            	 5000000	       291 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldFailure-4                            	 5000000	       294 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldDiveSuccess-4                        	  500000	      3498 ns/op	     528 B/op	      28 allocs/op
-BenchmarkFieldDiveFailure-4                        	  300000	      4094 ns/op	     928 B/op	      32 allocs/op
-BenchmarkFieldCustomTypeSuccess-4                  	 3000000	       460 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldCustomTypeFailure-4                  	 2000000	       758 ns/op	     400 B/op	       4 allocs/op
-BenchmarkFieldOrTagSuccess-4                       	 1000000	      1393 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldOrTagFailure-4                       	 1000000	      1181 ns/op	     432 B/op	       6 allocs/op
-BenchmarkStructSimpleCustomTypeSuccess-4           	 1000000	      1218 ns/op	      80 B/op	       5 allocs/op
-BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1748 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructPartialSuccess-4                    	 1000000	      1392 ns/op	     400 B/op	      11 allocs/op
-BenchmarkStructPartialFailure-4                    	 1000000	      1938 ns/op	     816 B/op	      16 allocs/op
-BenchmarkStructExceptSuccess-4                     	 2000000	       903 ns/op	     368 B/op	       9 allocs/op
-BenchmarkStructExceptFailure-4                     	 1000000	      1381 ns/op	     400 B/op	      11 allocs/op
-BenchmarkStructSimpleCrossFieldSuccess-4           	 1000000	      1215 ns/op	     128 B/op	       6 allocs/op
-BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1781 ns/op	     560 B/op	      11 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1801 ns/op	     160 B/op	       8 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldFailure-4	 1000000	      2357 ns/op	     592 B/op	      13 allocs/op
-BenchmarkStructSimpleSuccess-4                     	 1000000	      1161 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4                     	 1000000	      1818 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructSimpleSuccessParallel-4             	 5000000	       375 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4             	 2000000	       757 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4                    	  200000	      8053 ns/op	     432 B/op	      27 allocs/op
-BenchmarkStructComplexFailure-4                    	  100000	     12634 ns/op	    3335 B/op	      69 allocs/op
-BenchmarkStructComplexSuccessParallel-4            	 1000000	      2718 ns/op	     432 B/op	      27 allocs/op
-BenchmarkStructComplexFailureParallel-4            	  300000	      5086 ns/op	    3336 B/op	      69 allocs/op
+BenchmarkFieldSuccess-4                            	 5000000	       305 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldFailure-4                            	 5000000	       301 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldDiveSuccess-4                        	  500000	      3544 ns/op	     528 B/op	      28 allocs/op
+BenchmarkFieldDiveFailure-4                        	  300000	      4120 ns/op	     928 B/op	      32 allocs/op
+BenchmarkFieldCustomTypeSuccess-4                  	 3000000	       465 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4                  	 2000000	       769 ns/op	     400 B/op	       4 allocs/op
+BenchmarkFieldOrTagSuccess-4                       	 1000000	      1372 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldOrTagFailure-4                       	 1000000	      1218 ns/op	     432 B/op	       6 allocs/op
+BenchmarkStructLevelValidationSuccess-4            	 2000000	       840 ns/op	     160 B/op	       6 allocs/op
+BenchmarkStructLevelValidationFailure-4            	 1000000	      1443 ns/op	     592 B/op	      11 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4           	 1000000	      1262 ns/op	      80 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1812 ns/op	     624 B/op	      11 allocs/op
+BenchmarkStructPartialSuccess-4                    	 1000000	      1419 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructPartialFailure-4                    	 1000000	      1967 ns/op	     816 B/op	      16 allocs/op
+BenchmarkStructExceptSuccess-4                     	 2000000	       954 ns/op	     368 B/op	       9 allocs/op
+BenchmarkStructExceptFailure-4                     	 1000000	      1422 ns/op	     400 B/op	      11 allocs/op
+BenchmarkStructSimpleCrossFieldSuccess-4           	 1000000	      1286 ns/op	     128 B/op	       6 allocs/op
+BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1885 ns/op	     560 B/op	      11 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1948 ns/op	     176 B/op	       9 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldFailure-4	  500000	      2491 ns/op	     608 B/op	      14 allocs/op
+BenchmarkStructSimpleSuccess-4                     	 1000000	      1239 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4                     	 1000000	      1891 ns/op	     624 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccessParallel-4             	 5000000	       386 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4             	 2000000	       842 ns/op	     624 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4                    	  200000	      8604 ns/op	     512 B/op	      30 allocs/op
+BenchmarkStructComplexFailure-4                    	  100000	     13332 ns/op	    3416 B/op	      72 allocs/op
+BenchmarkStructComplexSuccessParallel-4            	 1000000	      2929 ns/op	     512 B/op	      30 allocs/op
+BenchmarkStructComplexFailureParallel-4            	  300000	      5220 ns/op	    3416 B/op	      72 allocs/op
 ```
 
 How to Contribute
