@@ -212,6 +212,112 @@ type TestPartial struct {
 	}
 }
 
+type TestStruct struct {
+	String string `validate:"required" json:"StringVal"`
+}
+
+func StructValidationTestStructSuccess(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "good value" {
+		structLevel.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "badvalueteststruct")
+	}
+}
+
+func StructValidationTestStruct(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "bad value" {
+		structLevel.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "badvalueteststruct")
+	}
+}
+
+func StructValidationBadTestStructFieldName(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "bad value" {
+		structLevel.ReportError(reflect.ValueOf(st.String), "", "StringVal", "badvalueteststruct")
+	}
+}
+
+func StructValidationBadTestStructTag(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "bad value" {
+		structLevel.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "")
+	}
+}
+
+func StructValidationNoTestStructCustomName(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "bad value" {
+		structLevel.ReportError(reflect.ValueOf(st.String), "String", "", "badvalueteststruct")
+	}
+}
+
+func StructValidationTestStructInvalid(v *Validate, structLevel *StructLevel) {
+
+	st := structLevel.CurrentStruct.Interface().(TestStruct)
+
+	if st.String != "bad value" {
+		structLevel.ReportError(reflect.ValueOf(nil), "String", "StringVal", "badvalueteststruct")
+	}
+}
+
+func TestStructLevelValidations(t *testing.T) {
+
+	config := &Config{
+		TagName: "validate",
+	}
+
+	v1 := New(config)
+	v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
+
+	tst := &TestStruct{
+		String: "good value",
+	}
+
+	errs := v1.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+
+	v2 := New(config)
+	v2.RegisterStructValidation(StructValidationBadTestStructFieldName, TestStruct{})
+
+	PanicMatches(t, func() { v2.Struct(tst) }, fieldNameRequired)
+
+	v3 := New(config)
+	v3.RegisterStructValidation(StructValidationBadTestStructTag, TestStruct{})
+
+	PanicMatches(t, func() { v3.Struct(tst) }, tagRequired)
+
+	v4 := New(config)
+	v4.RegisterStructValidation(StructValidationNoTestStructCustomName, TestStruct{})
+
+	errs = v4.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+
+	v5 := New(config)
+	v5.RegisterStructValidation(StructValidationTestStructInvalid, TestStruct{})
+
+	errs = v5.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+
+	v6 := New(config)
+	v6.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
+
+	errs = v6.Struct(tst)
+	Equal(t, errs, nil)
+}
+
 func TestAliasTags(t *testing.T) {
 
 	validate.RegisterAliasValidation("iscolor", "hexcolor|rgb|rgba|hsl|hsla")
