@@ -67,6 +67,32 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 	}
 }
 
+func BenchmarkStructLevelValidationSuccess(b *testing.B) {
+
+	validate.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
+
+	tst := &TestStruct{
+		String: "good value",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(tst)
+	}
+}
+
+func BenchmarkStructLevelValidationFailure(b *testing.B) {
+
+	validate.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
+
+	tst := &TestStruct{
+		String: "good value",
+	}
+
+	for n := 0; n < b.N; n++ {
+		validate.Struct(tst)
+	}
+}
+
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})

@@ -36,6 +36,8 @@ const (
 	invalidValidation       = "Invalid validation tag on field %s"
 	undefinedValidation     = "Undefined validation function on field %s"
 	validatorNotInitialized = "Validator instance not initialized"
+	fieldNameRequired       = "Field Name Required"
+	tagRequired             = "Tag Required"
 )
 
 var (
@@ -75,17 +77,72 @@ func (s *tagCacheMap) Set(key string, value *cachedTag) {
 	s.m[key] = value
 }
 
+// StructLevel contains all of the information and helper methods
+// for reporting errors during struct level validation
+type StructLevel struct {
+	TopStruct     reflect.Value
+	CurrentStruct reflect.Value
+	errPrefix     string
+	errs          ValidationErrors
+	v             *Validate
+}
+
+// ReportError reports an error just by passing the field and tag information
+// NOTE: tag can be an existing validation tag or just something you make up
+// and precess on the flip side it's up to you.
+func (sl *StructLevel) ReportError(field reflect.Value, fieldName string, customName string, tag string) {
+
+	field, kind := sl.v.ExtractType(field)
+
+	if len(fieldName) == 0 {
+		panic(fieldNameRequired)
+	}
+
+	if len(customName) == 0 {
+		customName = fieldName
+	}
+
+	if len(tag) == 0 {
+		panic(tagRequired)
+	}
+
+	switch kind {
+	case reflect.Invalid:
+		sl.errs[sl.errPrefix+fieldName] = &FieldError{
+			Name:      customName,
+			Field:     fieldName,
+			Tag:       tag,
+			ActualTag: tag,
+			Param:     blank,
+			Kind:      kind,
+		}
+	default:
+		sl.errs[sl.errPrefix+fieldName] = &FieldError{
+			Name:      customName,
+			Field:     fieldName,
+			Tag:       tag,
+			ActualTag: tag,
+			Param:     blank,
+			Value:     field.Interface(),
+			Kind:      kind,
+			Type:      field.Type(),
+		}
+	}
+}
+
 // Validate contains the validator settings passed in using the Config struct
 type Validate struct {
-	tagName            string
-	fieldNameTag       string
-	validationFuncs    map[string]Func
-	customTypeFuncs    map[reflect.Type]CustomTypeFunc
-	aliasValidators    map[string]string
-	hasCustomFuncs     bool
-	hasAliasValidators bool
-	tagsCache          *tagCacheMap
-	errsPool           *sync.Pool
+	tagName             string
+	fieldNameTag        string
+	validationFuncs     map[string]Func
+	structLevelFuncs    map[reflect.Type]StructLevelFunc
+	customTypeFuncs     map[reflect.Type]CustomTypeFunc
+	aliasValidators     map[string]string
+	hasCustomFuncs      bool
+	hasAliasValidators  bool
+	hasStructLevelFuncs bool
+	tagsCache           *tagCacheMap
+	errsPool            *sync.Pool
 }
 
 func (v *Validate) initCheck() {
@@ -113,6 +170,9 @@ type CustomTypeFunc func(field reflect.Value) interface{}
 // field         = field value for validation
 // param         = parameter used in validation i.e. gt=0 param would be 0
 type Func func(v *Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool
+
+// StructLevelFunc accepts all values needed for struct level validation
+type StructLevelFunc func(v *Validate, structLevel *StructLevel)
 
 // ValidationErrors is a type of map[string]*FieldError
 // it exists to allow for multiple errors to be passed from this library
@@ -178,17 +238,33 @@ func New(config *Config) *Validate {
 	return v
 }
 
+// RegisterStructValidation registers a StructLevelFunc against a number of types
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
+func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interface{}) {
+	v.initCheck()
+
+	if v.structLevelFuncs == nil {
+		v.structLevelFuncs = map[reflect.Type]StructLevelFunc{}
+	}
+
+	for _, t := range types {
+		v.structLevelFuncs[reflect.TypeOf(t)] = fn
+	}
+
+	v.hasStructLevelFuncs = true
+}
+
 // RegisterValidation adds a validation Func to a Validate's map of validators denoted by the key
 // NOTE: if the key already exists, the previous validation function will be replaced.
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterValidation(key string, f Func) error {
+func (v *Validate) RegisterValidation(key string, fn Func) error {
 	v.initCheck()
 
 	if len(key) == 0 {
 		return errors.New("Function Key cannot be empty")
 	}
 
-	if f == nil {
+	if fn == nil {
 		return errors.New("Function cannot be empty")
 	}
 
@@ -198,7 +274,7 @@ func (v *Validate) RegisterValidation(key string, f Func) error {
 		panic(fmt.Sprintf(restrictedTagErr, key))
 	}
 
-	v.validationFuncs[key] = f
+	v.validationFuncs[key] = fn
 
 	return nil
 }
@@ -434,6 +510,13 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		}
 
 		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude)
+	}
+
+	// check if any struct level validations, after all field validations already checked.
+	if v.hasStructLevelFuncs {
+		if fn, ok := v.structLevelFuncs[current.Type()]; ok {
+			fn(v, &StructLevel{v: v, TopStruct: topStruct, CurrentStruct: current, errPrefix: errPrefix, errs: errs})
+		}
 	}
 }
 
