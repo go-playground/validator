@@ -87,6 +87,16 @@ type StructLevel struct {
 	v             *Validate
 }
 
+// ReportValidationErrors accepts the key relative to the top level struct and validatin errors.
+// Example: had a triple nested struct User, ContactInfo, Country and ran errs := validate.Struct(country)
+// from within a User struct level validation would call this method like so:
+// ReportValidationErrors("ContactInfo.", errs)
+func (sl *StructLevel) ReportValidationErrors(relativeKey string, errs ValidationErrors) {
+	for _, e := range errs {
+		sl.errs[sl.errPrefix+relativeKey+e.Field] = e
+	}
+}
+
 // ReportError reports an error just by passing the field and tag information
 // NOTE: tag can be an existing validation tag or just something you make up
 // and precess on the flip side it's up to you.
