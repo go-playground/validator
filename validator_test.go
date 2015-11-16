@@ -270,6 +270,60 @@ func StructValidationTestStructInvalid(v *Validate, structLevel *StructLevel) {
 	}
 }
 
+func StructValidationTestStructReturnValidationErrors(v *Validate, structLevel *StructLevel) {
+
+	s := structLevel.CurrentStruct.Interface().(TestStructReturnValidationErrors)
+
+	errs := v.Struct(s.Inner1.Inner2)
+	if errs == nil {
+		return
+	}
+
+	structLevel.ReportValidationErrors("Inner1.", errs.(ValidationErrors))
+}
+
+type TestStructReturnValidationErrorsInner2 struct {
+	String string `validate:"required"`
+}
+
+type TestStructReturnValidationErrorsInner1 struct {
+	Inner2 *TestStructReturnValidationErrorsInner2
+}
+
+type TestStructReturnValidationErrors struct {
+	Inner1 *TestStructReturnValidationErrorsInner1
+}
+
+func TestStructLevelReturnValidationErrors(t *testing.T) {
+	config := &Config{
+		TagName: "validate",
+	}
+
+	v1 := New(config)
+	v1.RegisterStructValidation(StructValidationTestStructReturnValidationErrors, TestStructReturnValidationErrors{})
+
+	inner2 := &TestStructReturnValidationErrorsInner2{
+		String: "I'm HERE",
+	}
+
+	inner1 := &TestStructReturnValidationErrorsInner1{
+		Inner2: inner2,
+	}
+
+	val := &TestStructReturnValidationErrors{
+		Inner1: inner1,
+	}
+
+	errs := v1.Struct(val)
+	Equal(t, errs, nil)
+
+	inner2.String = ""
+
+	errs = v1.Struct(val)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "required")
+}
+
 func TestStructLevelValidations(t *testing.T) {
 
 	config := &Config{
