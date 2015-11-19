@@ -138,6 +138,9 @@ Here is a list of the current built in validators:
 		you know the struct will be valid, but need to verify it has been assigned.
 		NOTE: only "required" and "omitempty" can be used on a struct itself.
 
+	nostructlevel
+		Same as structonly tag except that any struct level validations will not run.
+
 	exists
 		Is a special tag without a validation function attached. It is used when a field
 		is a Pointer, Interface or Invalid and you wish to validate that it exists.
