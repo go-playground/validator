@@ -413,7 +413,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, false, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, false, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -440,7 +440,7 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, true, m)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, len(m) != 0, true, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -459,7 +459,7 @@ func (v *Validate) Struct(current interface{}) error {
 	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, blank, errs, true, false, false, nil)
+	v.tranverseStruct(sv, sv, sv, blank, errs, true, false, false, nil, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -470,7 +470,7 @@ func (v *Validate) Struct(current interface{}) error {
 }
 
 // tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}) {
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -487,39 +487,44 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		errPrefix += typ.Name() + "."
 	}
 
-	numFields := current.NumField()
+	// structonly tag present don't tranverseFields
+	// but must still check and run below struct level validation
+	// if present
+	if !isStructOnly {
+		numFields := current.NumField()
 
-	var fld reflect.StructField
-	var customName string
+		var fld reflect.StructField
+		var customName string
 
-	for i := 0; i < numFields; i++ {
-		fld = typ.Field(i)
+		for i := 0; i < numFields; i++ {
+			fld = typ.Field(i)
 
-		if !unicode.IsUpper(rune(fld.Name[0])) {
-			continue
-		}
-
-		if partial {
-
-			_, ok = includeExclude[errPrefix+fld.Name]
-
-			if (ok && exclude) || (!ok && !exclude) {
+			if !unicode.IsUpper(rune(fld.Name[0])) {
 				continue
 			}
-		}
 
-		customName = fld.Name
-		if v.fieldNameTag != "" {
+			if partial {
 
-			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+				_, ok = includeExclude[errPrefix+fld.Name]
 
-			// dash check is for json "-" means don't output in json
-			if name != "" && name != "-" {
-				customName = name
+				if (ok && exclude) || (!ok && !exclude) {
+					continue
+				}
 			}
-		}
 
-		v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude)
+			customName = fld.Name
+			if v.fieldNameTag != "" {
+
+				name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+
+				// dash check is for json "-" means don't output in json
+				if name != "" && name != "-" {
+					customName = name
+				}
+			}
+
+			v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude)
+		}
 	}
 
 	// check if any struct level validations, after all field validations already checked.
@@ -590,14 +595,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		typ = current.Type()
 
 		if typ != timeType {
-
-			// required passed validation above so stop here
-			// if only validating the structs existance.
-			if strings.Contains(tag, structOnlyTag) {
-				return
-			}
-
-			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude)
+			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude, strings.Contains(tag, structOnlyTag))
 			return
 		}
 	}
