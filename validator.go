@@ -26,6 +26,7 @@ const (
 	orSeparator             = "|"
 	tagKeySeparator         = "="
 	structOnlyTag           = "structonly"
+	noStructLevelTag        = "nostructlevel"
 	omitempty               = "omitempty"
 	skipValidationTag       = "-"
 	diveTag                 = "dive"
@@ -595,6 +596,11 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		typ = current.Type()
 
 		if typ != timeType {
+
+			if strings.Contains(tag, noStructLevelTag) {
+				return
+			}
+
 			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude, strings.Contains(tag, structOnlyTag))
 			return
 		}
