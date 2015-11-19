@@ -26,6 +26,7 @@ var (
 		skipValidationTag: emptyStructPtr,
 		utf8HexComma:      emptyStructPtr,
 		utf8Pipe:          emptyStructPtr,
+		noStructLevelTag:  emptyStructPtr,
 	}
 )
 

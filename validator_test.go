@@ -3493,6 +3493,36 @@ func TestBase64Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "base64")
 }
 
+func TestNoStructLevelValidation(t *testing.T) {
+
+	type Inner struct {
+		Test string `validate:"len=5"`
+	}
+
+	type Outer struct {
+		InnerStruct *Inner `validate:"required,nostructlevel"`
+	}
+
+	outer := &Outer{
+		InnerStruct: nil,
+	}
+
+	errs := validate.Struct(outer)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStruct", "InnerStruct", "required")
+
+	inner := &Inner{
+		Test: "1234",
+	}
+
+	outer = &Outer{
+		InnerStruct: inner,
+	}
+
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
+}
+
 func TestStructOnlyValidation(t *testing.T) {
 
 	type Inner struct {
@@ -3509,6 +3539,7 @@ func TestStructOnlyValidation(t *testing.T) {
 
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStruct", "InnerStruct", "required")
 
 	inner := &Inner{
 		Test: "1234",
