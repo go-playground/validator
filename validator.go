@@ -48,9 +48,11 @@ var (
 )
 
 type cachedTag struct {
-	isOmitEmpty bool
-	diveTag     string
-	tags        []*tagVals
+	isOmitEmpty     bool
+	isNoStructLevel bool
+	isStructOnly    bool
+	diveTag         string
+	tags            []*tagVals
 }
 
 type tagVals struct {
@@ -597,11 +599,11 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if typ != timeType {
 
-			if strings.Contains(tag, noStructLevelTag) {
+			if cTag.isNoStructLevel {
 				return
 			}
 
-			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude, strings.Contains(tag, structOnlyTag))
+			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", errs, false, partial, exclude, includeExclude, cTag.isStructOnly)
 			return
 		}
 	}
