@@ -271,15 +271,22 @@ func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias str
 			}
 		}
 
-		if t == diveTag {
+		switch t {
+
+		case diveTag:
 			cTag.diveTag = tag
 			tVals := &tagVals{tagVals: [][]string{{t}}}
 			cTag.tags = append(cTag.tags, tVals)
 			return true
-		}
 
-		if t == omitempty {
+		case omitempty:
 			cTag.isOmitEmpty = true
+
+		case structOnlyTag:
+			cTag.isStructOnly = true
+
+		case noStructLevelTag:
+			cTag.isNoStructLevel = true
 		}
 
 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
