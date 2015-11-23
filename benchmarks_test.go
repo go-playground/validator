@@ -7,26 +7,56 @@ import (
 )
 
 func BenchmarkFieldSuccess(b *testing.B) {
+
+	var s *string
+	tmp := "1"
+	s = &tmp
+
 	for n := 0; n < b.N; n++ {
-		validate.Field("1", "len=1")
+		validate.Field(s, "len=1")
 	}
 }
 
 func BenchmarkFieldFailure(b *testing.B) {
+
+	var s *string
+	tmp := "12"
+	s = &tmp
+
 	for n := 0; n < b.N; n++ {
-		validate.Field("2", "len=1")
+		validate.Field(s, "len=1")
 	}
 }
 
 func BenchmarkFieldDiveSuccess(b *testing.B) {
+
+	m := make([]*string, 3)
+	t1 := "val1"
+	t2 := "val2"
+	t3 := "val3"
+
+	m[0] = &t1
+	m[1] = &t2
+	m[2] = &t3
+
 	for n := 0; n < b.N; n++ {
-		validate.Field([]string{"val1", "val2", "val3"}, "required,dive,required")
+		validate.Field(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldDiveFailure(b *testing.B) {
+
+	m := make([]*string, 3)
+	t1 := "val1"
+	t2 := ""
+	t3 := "val3"
+
+	m[0] = &t1
+	m[1] = &t2
+	m[2] = &t3
+
 	for n := 0; n < b.N; n++ {
-		validate.Field([]string{"val1", "", "val3"}, "required,dive,required")
+		validate.Field(m, "required,dive,required")
 	}
 }
 
@@ -45,7 +75,6 @@ func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 
 func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 
-	// validate := New(Config{TagName: "validate"})
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{}
@@ -56,14 +85,24 @@ func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 }
 
 func BenchmarkFieldOrTagSuccess(b *testing.B) {
+
+	var s *string
+	tmp := "rgba(0,0,0,1)"
+	s = &tmp
+
 	for n := 0; n < b.N; n++ {
-		validate.Field("rgba(0,0,0,1)", "rgb|rgba")
+		validate.Field(s, "rgb|rgba")
 	}
 }
 
 func BenchmarkFieldOrTagFailure(b *testing.B) {
+
+	var s *string
+	tmp := "#000"
+	s = &tmp
+
 	for n := 0; n < b.N; n++ {
-		validate.Field("#000", "rgb|rgba")
+		validate.Field(s, "rgb|rgba")
 	}
 }
 

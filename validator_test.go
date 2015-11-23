@@ -181,7 +181,9 @@ type CustomMadeUpStruct struct {
 }
 
 func ValidateValuerType(field reflect.Value) interface{} {
+
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
+
 		val, err := valuer.Value()
 		if err != nil {
 			// handle the error how you want
@@ -1495,12 +1497,6 @@ func TestSQLValue2Validation(t *testing.T) {
 }
 
 func TestSQLValueValidation(t *testing.T) {
-
-	// customTypes := map[reflect.Type]CustomTypeFunc{}
-	// customTypes[reflect.TypeOf((*driver.Valuer)(nil))] = ValidateValuerType
-	// customTypes[reflect.TypeOf(valuer{})] = ValidateValuerType
-	// customTypes[reflect.TypeOf(MadeUpCustomType{})] = ValidateCustomType
-	// customTypes[reflect.TypeOf(1)] = OverrideIntTypeForSomeReason
 
 	validate := New(&Config{TagName: "validate"})
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*driver.Valuer)(nil), valuer{})

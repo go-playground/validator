@@ -59,9 +59,15 @@ func (v *Validate) ExtractType(current reflect.Value) (reflect.Value, reflect.Ki
 	default:
 
 		if v.hasCustomFuncs {
+			// fmt.Println("Type", current.Type())
 			if fn, ok := v.customTypeFuncs[current.Type()]; ok {
+
+				// fmt.Println("OK")
+
 				return v.ExtractType(reflect.ValueOf(fn(current)))
 			}
+
+			// fmt.Println("NOT OK")
 		}
 
 		return current, current.Kind()
