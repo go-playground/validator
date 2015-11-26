@@ -69,15 +69,15 @@ type tagCacheMap struct {
 
 func (s *tagCacheMap) Get(key string) (*cachedTag, bool) {
 	s.lock.RLock()
-	defer s.lock.RUnlock()
 	value, ok := s.m[key]
+	s.lock.RUnlock()
 	return value, ok
 }
 
 func (s *tagCacheMap) Set(key string, value *cachedTag) {
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.m[key] = value
+	s.lock.Unlock()
 }
 
 // StructLevel contains all of the information and helper methods
