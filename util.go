@@ -247,11 +247,12 @@ func panicIf(err error) {
 	}
 }
 
-func (v *Validate) parseStruct(topStruct reflect.Type, sName string) *cachedStruct {
+func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruct {
 
+	typ := current.Type()
 	s := &cachedStruct{Name: sName, fields: map[int]cachedField{}}
 
-	numFields := topStruct.NumField()
+	numFields := current.NumField()
 
 	var fld reflect.StructField
 	var tag string
@@ -259,7 +260,7 @@ func (v *Validate) parseStruct(topStruct reflect.Type, sName string) *cachedStru
 
 	for i := 0; i < numFields; i++ {
 
-		fld = topStruct.Field(i)
+		fld = typ.Field(i)
 
 		if len(fld.PkgPath) != 0 {
 			continue
@@ -290,14 +291,14 @@ func (v *Validate) parseStruct(topStruct reflect.Type, sName string) *cachedStru
 		s.fields[i] = cachedField{Idx: i, Name: fld.Name, AltName: customName, CachedTag: cTag}
 	}
 
-	v.structCache.Set(sName, s)
+	v.structCache.Set(typ, s)
 
 	return s
 }
 
 func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
 
-	cTag := &cachedTag{}
+	cTag := &cachedTag{tag: tag}
 
 	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
 

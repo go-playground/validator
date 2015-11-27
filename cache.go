@@ -1,6 +1,9 @@
 package validator
 
-import "sync"
+import (
+	"reflect"
+	"sync"
+)
 
 type cachedField struct {
 	Idx       int
@@ -16,23 +19,24 @@ type cachedStruct struct {
 
 type structCacheMap struct {
 	lock sync.RWMutex
-	m    map[string]*cachedStruct
+	m    map[reflect.Type]*cachedStruct
 }
 
-func (s *structCacheMap) Get(key string) (*cachedStruct, bool) {
+func (s *structCacheMap) Get(key reflect.Type) (*cachedStruct, bool) {
 	s.lock.RLock()
 	value, ok := s.m[key]
 	s.lock.RUnlock()
 	return value, ok
 }
 
-func (s *structCacheMap) Set(key string, value *cachedStruct) {
+func (s *structCacheMap) Set(key reflect.Type, value *cachedStruct) {
 	s.lock.Lock()
 	s.m[key] = value
 	s.lock.Unlock()
 }
 
 type cachedTag struct {
+	tag             string
 	isOmitEmpty     bool
 	isNoStructLevel bool
 	isStructOnly    bool
