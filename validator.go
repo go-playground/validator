@@ -47,39 +47,6 @@ var (
 	emptyStructPtr = new(struct{})
 )
 
-type cachedTag struct {
-	isOmitEmpty     bool
-	isNoStructLevel bool
-	isStructOnly    bool
-	diveTag         string
-	tags            []*tagVals
-}
-
-type tagVals struct {
-	tagVals [][]string
-	isOrVal bool
-	isAlias bool
-	tag     string
-}
-
-type tagCacheMap struct {
-	lock sync.RWMutex
-	m    map[string]*cachedTag
-}
-
-func (s *tagCacheMap) Get(key string) (*cachedTag, bool) {
-	s.lock.RLock()
-	value, ok := s.m[key]
-	s.lock.RUnlock()
-	return value, ok
-}
-
-func (s *tagCacheMap) Set(key string, value *cachedTag) {
-	s.lock.Lock()
-	s.m[key] = value
-	s.lock.Unlock()
-}
-
 // StructLevel contains all of the information and helper methods
 // for reporting errors during struct level validation
 type StructLevel struct {
@@ -154,7 +121,8 @@ type Validate struct {
 	hasCustomFuncs      bool
 	hasAliasValidators  bool
 	hasStructLevelFuncs bool
-	tagsCache           *tagCacheMap
+	tagCache            *tagCacheMap
+	structCache         *structCacheMap
 	errsPool            *sync.Pool
 }
 
@@ -227,7 +195,8 @@ func New(config *Config) *Validate {
 	v := &Validate{
 		tagName:      config.TagName,
 		fieldNameTag: config.FieldNameTag,
-		tagsCache:    &tagCacheMap{m: map[string]*cachedTag{}},
+		tagCache:     &tagCacheMap{m: map[string]*cachedTag{}},
+		structCache:  &structCacheMap{m: map[string]*cachedStruct{}},
 		errsPool: &sync.Pool{New: func() interface{} {
 			return ValidationErrors{}
 		}}}
@@ -545,11 +514,10 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		return
 	}
 
-	cTag, isCached := v.tagsCache.Get(tag)
+	cTag, isCached := v.tagCache.Get(tag)
 
 	if !isCached {
 		cTag = v.parseTags(tag, name)
-		v.tagsCache.Set(tag, cTag)
 	}
 
 	current, kind := v.ExtractType(current)
