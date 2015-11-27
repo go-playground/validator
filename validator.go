@@ -16,7 +16,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode"
 )
 
 const (
@@ -46,39 +45,6 @@ var (
 	timePtrType    = reflect.TypeOf(&time.Time{})
 	emptyStructPtr = new(struct{})
 )
-
-type cachedTag struct {
-	isOmitEmpty     bool
-	isNoStructLevel bool
-	isStructOnly    bool
-	diveTag         string
-	tags            []*tagVals
-}
-
-type tagVals struct {
-	tagVals [][]string
-	isOrVal bool
-	isAlias bool
-	tag     string
-}
-
-type tagCacheMap struct {
-	lock sync.RWMutex
-	m    map[string]*cachedTag
-}
-
-func (s *tagCacheMap) Get(key string) (*cachedTag, bool) {
-	s.lock.RLock()
-	value, ok := s.m[key]
-	s.lock.RUnlock()
-	return value, ok
-}
-
-func (s *tagCacheMap) Set(key string, value *cachedTag) {
-	s.lock.Lock()
-	s.m[key] = value
-	s.lock.Unlock()
-}
 
 // StructLevel contains all of the information and helper methods
 // for reporting errors during struct level validation
@@ -154,7 +120,8 @@ type Validate struct {
 	hasCustomFuncs      bool
 	hasAliasValidators  bool
 	hasStructLevelFuncs bool
-	tagsCache           *tagCacheMap
+	tagCache            *tagCacheMap
+	structCache         *structCacheMap
 	errsPool            *sync.Pool
 }
 
@@ -227,7 +194,8 @@ func New(config *Config) *Validate {
 	v := &Validate{
 		tagName:      config.TagName,
 		fieldNameTag: config.FieldNameTag,
-		tagsCache:    &tagCacheMap{m: map[string]*cachedTag{}},
+		tagCache:     &tagCacheMap{m: map[string]*cachedTag{}},
+		structCache:  &structCacheMap{m: map[reflect.Type]*cachedStruct{}},
 		errsPool: &sync.Pool{New: func() interface{} {
 			return ValidationErrors{}
 		}}}
@@ -338,7 +306,7 @@ func (v *Validate) Field(field interface{}, tag string) error {
 	errs := v.errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
-	v.traverseField(fieldVal, fieldVal, fieldVal, blank, errs, false, tag, blank, blank, false, false, nil)
+	v.traverseField(fieldVal, fieldVal, fieldVal, blank, errs, false, tag, blank, blank, false, false, nil, nil)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -358,7 +326,7 @@ func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string
 	errs := v.errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, errs, false, tag, blank, blank, false, false, nil)
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, errs, false, tag, blank, blank, false, false, nil, nil)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -483,50 +451,80 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		panic("value passed for validation is not a struct")
 	}
 
-	var ok bool
+	// var ok bool
 	typ := current.Type()
 
+	sName := typ.Name()
+
 	if useStructName {
-		errPrefix += typ.Name() + "."
+		errPrefix += sName + "."
 	}
 
 	// structonly tag present don't tranverseFields
 	// but must still check and run below struct level validation
 	// if present
 	if !isStructOnly {
-		numFields := current.NumField()
 
 		var fld reflect.StructField
-		var customName string
 
-		for i := 0; i < numFields; i++ {
-			fld = typ.Field(i)
+		// is anonymous struct, cannot parse or cache as
+		// it has no name to index by
+		if len(sName) == 0 {
 
-			if !unicode.IsUpper(rune(fld.Name[0])) {
-				continue
-			}
+			var customName string
+			var ok bool
+			numFields := current.NumField()
 
-			if partial {
+			for i := 0; i < numFields; i++ {
 
-				_, ok = includeExclude[errPrefix+fld.Name]
+				fld = typ.Field(i)
 
-				if (ok && exclude) || (!ok && !exclude) {
+				if len(fld.PkgPath) != 0 {
 					continue
 				}
-			}
 
-			customName = fld.Name
-			if v.fieldNameTag != "" {
+				if partial {
 
-				name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+					_, ok = includeExclude[errPrefix+fld.Name]
 
-				// dash check is for json "-" means don't output in json
-				if name != "" && name != "-" {
-					customName = name
+					if (ok && exclude) || (!ok && !exclude) {
+						continue
+					}
 				}
+
+				customName = fld.Name
+				if v.fieldNameTag != "" {
+
+					name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+
+					// dash check is for json "-" means don't output in json
+					if name != "" && name != "-" {
+						customName = name
+					}
+				}
+
+				v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude, nil)
+			}
+		} else {
+			s, ok := v.structCache.Get(typ)
+			if !ok {
+				s = v.parseStruct(current, sName)
 			}
 
-			v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude)
+			for i, f := range s.fields {
+
+				if partial {
+
+					_, ok = includeExclude[errPrefix+f.Name]
+
+					if (ok && exclude) || (!ok && !exclude) {
+						continue
+					}
+				}
+				fld = typ.Field(i)
+
+				v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, errs, true, f.CachedTag.tag, fld.Name, f.AltName, partial, exclude, includeExclude, f.CachedTag)
+			}
 		}
 	}
 
@@ -539,17 +537,19 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 }
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
-func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
+func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, isStructField bool, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
 
 	if tag == skipValidationTag {
 		return
 	}
 
-	cTag, isCached := v.tagsCache.Get(tag)
+	if cTag == nil {
+		var isCached bool
+		cTag, isCached = v.tagCache.Get(tag)
 
-	if !isCached {
-		cTag = v.parseTags(tag, name)
-		v.tagsCache.Set(tag, cTag)
+		if !isCached {
+			cTag = v.parseTags(tag, name)
+		}
 	}
 
 	current, kind := v.ExtractType(current)
@@ -647,9 +647,9 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		// or panic ;)
 		switch kind {
 		case reflect.Slice, reflect.Array:
-			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude)
+			v.traverseSlice(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude, nil)
 		case reflect.Map:
-			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude)
+			v.traverseMap(topStruct, currentStruct, current, errPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude, nil)
 		default:
 			// throw error, if not a slice or map then should not have gotten here
 			// bad dive tag
@@ -659,18 +659,18 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 }
 
 // traverseSlice traverses a Slice or Array's elements and passes them to traverseField for validation
-func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
+func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
 
 	for i := 0; i < current.Len(); i++ {
-		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i), fmt.Sprintf(arrayIndexFieldName, customName, i), partial, exclude, includeExclude)
+		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i), fmt.Sprintf(arrayIndexFieldName, customName, i), partial, exclude, includeExclude, cTag)
 	}
 }
 
 // traverseMap traverses a map's elements and passes them to traverseField for validation
-func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}) {
+func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
 
 	for _, key := range current.MapKeys() {
-		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()), fmt.Sprintf(mapIndexFieldName, customName, key.Interface()), partial, exclude, includeExclude)
+		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()), fmt.Sprintf(mapIndexFieldName, customName, key.Interface()), partial, exclude, includeExclude, cTag)
 	}
 }
 

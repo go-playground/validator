@@ -247,11 +247,63 @@ func panicIf(err error) {
 	}
 }
 
+func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruct {
+
+	typ := current.Type()
+	s := &cachedStruct{Name: sName, fields: map[int]cachedField{}}
+
+	numFields := current.NumField()
+
+	var fld reflect.StructField
+	var tag string
+	var customName string
+
+	for i := 0; i < numFields; i++ {
+
+		fld = typ.Field(i)
+
+		if len(fld.PkgPath) != 0 {
+			continue
+		}
+
+		tag = fld.Tag.Get(v.tagName)
+
+		if tag == skipValidationTag {
+			continue
+		}
+
+		customName = fld.Name
+		if len(v.fieldNameTag) != 0 {
+
+			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+
+			// dash check is for json "-" (aka skipValidationTag) means don't output in json
+			if name != "" && name != skipValidationTag {
+				customName = name
+			}
+		}
+
+		cTag, ok := v.tagCache.Get(tag)
+		if !ok {
+			cTag = v.parseTags(tag, fld.Name)
+		}
+
+		s.fields[i] = cachedField{Idx: i, Name: fld.Name, AltName: customName, CachedTag: cTag}
+	}
+
+	v.structCache.Set(typ, s)
+
+	return s
+}
+
 func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
 
-	cTag := &cachedTag{}
+	cTag := &cachedTag{tag: tag}
 
 	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
+
+	v.tagCache.Set(tag, cTag)
+
 	return cTag
 }
 
