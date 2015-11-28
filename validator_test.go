@@ -296,6 +296,60 @@ type TestStructReturnValidationErrors struct {
 	Inner1 *TestStructReturnValidationErrorsInner1
 }
 
+func TestAnonymous(t *testing.T) {
+
+	v2 := New(&Config{TagName: "validate", FieldNameTag: "json"})
+
+	type Test struct {
+		Anonymous struct {
+			A string `validate:"required" json:"EH"`
+		}
+		AnonymousB struct {
+			B string `validate:"required" json:"BEE"`
+		}
+		anonymousC struct {
+			c string `validate:"required" json:"SEE"`
+		}
+	}
+
+	tst := &Test{
+		Anonymous: struct {
+			A string `validate:"required" json:"EH"`
+		}{
+			A: "1",
+		},
+		AnonymousB: struct {
+			B string `validate:"required" json:"BEE"`
+		}{
+			B: "",
+		},
+		anonymousC: struct {
+			c string `validate:"required" json:"SEE"`
+		}{
+			c: "",
+		},
+	}
+
+	err := v2.Struct(tst)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.AnonymousB.B", "B", "required")
+	Equal(t, errs["Test.AnonymousB.B"].Field, "B")
+	Equal(t, errs["Test.AnonymousB.B"].Name, "BEE")
+
+	s := struct {
+		c string `validate:"required" json:"SEE"`
+	}{
+		c: "",
+	}
+
+	err = v2.Struct(s)
+	Equal(t, err, nil)
+}
+
 func TestStructLevelReturnValidationErrors(t *testing.T) {
 	config := &Config{
 		TagName: "validate",
