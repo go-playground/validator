@@ -487,7 +487,10 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 	if useStructName {
 		errPrefix += sName + "."
-		nsPrefix += sName + "."
+
+		if v.fieldNameTag != "" {
+			nsPrefix += sName + "."
+		}
 	}
 
 	// structonly tag present don't tranverseFields
