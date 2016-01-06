@@ -284,8 +284,20 @@ func StructValidationTestStructReturnValidationErrors(v *Validate, structLevel *
 	structLevel.ReportValidationErrors("Inner1.", errs.(ValidationErrors))
 }
 
+func StructValidationTestStructReturnValidationErrors2(v *Validate, structLevel *StructLevel) {
+
+	s := structLevel.CurrentStruct.Interface().(TestStructReturnValidationErrors)
+
+	errs := v.Struct(s.Inner1.Inner2)
+	if errs == nil {
+		return
+	}
+
+	structLevel.ReportValidationErrors("Inner1.|Inner1JSON.", errs.(ValidationErrors))
+}
+
 type TestStructReturnValidationErrorsInner2 struct {
-	String string `validate:"required"`
+	String string `validate:"required" json:"JSONString"`
 }
 
 type TestStructReturnValidationErrorsInner1 struct {
@@ -293,7 +305,52 @@ type TestStructReturnValidationErrorsInner1 struct {
 }
 
 type TestStructReturnValidationErrors struct {
-	Inner1 *TestStructReturnValidationErrorsInner1
+	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
+}
+
+type Inner2Namespace struct {
+	String []string `validate:"dive,required" json:"JSONString"`
+}
+
+type Inner1Namespace struct {
+	Inner2 *Inner2Namespace `json:"Inner2JSON"`
+}
+
+type Namespace struct {
+	Inner1 *Inner1Namespace `json:"Inner1JSON"`
+}
+
+func TestNameNamespace(t *testing.T) {
+
+	config := &Config{
+		TagName:      "validate",
+		FieldNameTag: "json",
+	}
+
+	v1 := New(config)
+	i2 := &Inner2Namespace{String: []string{"ok", "ok", "ok"}}
+	i1 := &Inner1Namespace{Inner2: i2}
+	ns := &Namespace{Inner1: i1}
+
+	errs := v1.Struct(ns)
+	Equal(t, errs, nil)
+
+	i2.String[1] = ""
+
+	errs = v1.Struct(ns)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Namespace.Inner1.Inner2.String[1]", "String[1]", "required")
+
+	fe, ok := ve["Namespace.Inner1.Inner2.String[1]"]
+	Equal(t, ok, true)
+
+	Equal(t, fe.Field, "String[1]")
+	Equal(t, fe.FieldNamespace, "Namespace.Inner1.Inner2.String[1]")
+	Equal(t, fe.Name, "JSONString[1]")
+	Equal(t, fe.NameNamespace, "Namespace.Inner1JSON.Inner2JSON.JSONString[1]")
 }
 
 func TestAnonymous(t *testing.T) {
@@ -377,7 +434,62 @@ func TestStructLevelReturnValidationErrors(t *testing.T) {
 
 	errs = v1.Struct(val)
 	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 2)
 	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "required")
+	// this is an extra error reported from struct validation
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.String", "String", "required")
+}
+
+func TestStructLevelReturnValidationErrorsWithJSON(t *testing.T) {
+	config := &Config{
+		TagName:      "validate",
+		FieldNameTag: "json",
+	}
+
+	v1 := New(config)
+	v1.RegisterStructValidation(StructValidationTestStructReturnValidationErrors2, TestStructReturnValidationErrors{})
+
+	inner2 := &TestStructReturnValidationErrorsInner2{
+		String: "I'm HERE",
+	}
+
+	inner1 := &TestStructReturnValidationErrorsInner1{
+		Inner2: inner2,
+	}
+
+	val := &TestStructReturnValidationErrors{
+		Inner1: inner1,
+	}
+
+	errs := v1.Struct(val)
+	Equal(t, errs, nil)
+
+	inner2.String = ""
+
+	errs = v1.Struct(val)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 2)
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "required")
+	// this is an extra error reported from struct validation, it's a badly formatted one, but on purpose
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.String", "String", "required")
+
+	fe, ok := errs.(ValidationErrors)["TestStructReturnValidationErrors.Inner1.Inner2.String"]
+	Equal(t, ok, true)
+
+	// check for proper JSON namespace
+	Equal(t, fe.Field, "String")
+	Equal(t, fe.Name, "JSONString")
+	Equal(t, fe.FieldNamespace, "TestStructReturnValidationErrors.Inner1.Inner2.String")
+	Equal(t, fe.NameNamespace, "TestStructReturnValidationErrors.Inner1JSON.Inner2.JSONString")
+
+	fe, ok = errs.(ValidationErrors)["TestStructReturnValidationErrors.Inner1.String"]
+	Equal(t, ok, true)
+
+	// check for proper JSON namespace
+	Equal(t, fe.Field, "String")
+	Equal(t, fe.Name, "JSONString")
+	Equal(t, fe.FieldNamespace, "TestStructReturnValidationErrors.Inner1.String")
+	Equal(t, fe.NameNamespace, "TestStructReturnValidationErrors.Inner1JSON.JSONString")
 }
 
 func TestStructLevelValidations(t *testing.T) {
