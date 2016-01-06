@@ -94,15 +94,15 @@ func (sl *StructLevel) ReportError(field reflect.Value, fieldName string, custom
 
 	field, kind := sl.v.ExtractType(field)
 
-	if len(fieldName) == 0 {
+	if fieldName == blank {
 		panic(fieldNameRequired)
 	}
 
-	if len(customName) == 0 {
+	if customName == blank {
 		customName = fieldName
 	}
 
-	if len(tag) == 0 {
+	if tag == blank {
 		panic(tagRequired)
 	}
 
@@ -270,7 +270,7 @@ func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interfa
 func (v *Validate) RegisterValidation(key string, fn Func) error {
 	v.initCheck()
 
-	if len(key) == 0 {
+	if key == blank {
 		return errors.New("Function Key cannot be empty")
 	}
 
@@ -435,7 +435,7 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 	m := map[string]*struct{}{}
 
 	for _, key := range fields {
-		m[name+"."+key] = emptyStructPtr
+		m[name+namespaceSeparator+key] = emptyStructPtr
 	}
 
 	errs := v.errsPool.Get().(ValidationErrors)
@@ -486,10 +486,10 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	sName := typ.Name()
 
 	if useStructName {
-		errPrefix += sName + "."
+		errPrefix += sName + namespaceSeparator
 
-		if v.fieldNameTag != "" {
-			nsPrefix += sName + "."
+		if v.fieldNameTag != blank {
+			nsPrefix += sName + namespaceSeparator
 		}
 	}
 
@@ -502,7 +502,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 		// is anonymous struct, cannot parse or cache as
 		// it has no name to index by
-		if len(sName) == 0 {
+		if sName == blank {
 
 			var customName string
 			var ok bool
@@ -512,7 +512,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 				fld = typ.Field(i)
 
-				if len(fld.PkgPath) != 0 {
+				if fld.PkgPath != blank {
 					continue
 				}
 
@@ -527,12 +527,12 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 				customName = fld.Name
 
-				if v.fieldNameTag != "" {
+				if v.fieldNameTag != blank {
 
 					name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
 
 					// dash check is for json "-" means don't output in json
-					if name != "" && name != "-" {
+					if name != blank && name != dash {
 						customName = name
 					}
 				}
@@ -595,7 +595,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			return
 		}
 
-		if len(tag) > 0 {
+		if tag != blank {
 
 			ns := errPrefix + name
 
@@ -643,12 +643,12 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				return
 			}
 
-			v.tranverseStruct(topStruct, current, current, errPrefix+name+".", nsPrefix+customName+".", errs, false, partial, exclude, includeExclude, cTag.isStructOnly)
+			v.tranverseStruct(topStruct, current, current, errPrefix+name+namespaceSeparator, nsPrefix+customName+namespaceSeparator, errs, false, partial, exclude, includeExclude, cTag.isStructOnly)
 			return
 		}
 	}
 
-	if len(tag) == 0 {
+	if tag == blank {
 		return
 	}
 
