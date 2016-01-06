@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	dash               = "-"
 	blank              = ""
 	namespaceSeparator = "."
 	leftBracket        = "["
@@ -86,7 +87,7 @@ func (v *Validate) GetStructFieldOK(current reflect.Value, namespace string) (re
 		return current, kind, false
 	}
 
-	if len(namespace) == 0 {
+	if namespace == blank {
 		return current, kind, true
 	}
 
@@ -262,7 +263,7 @@ func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruc
 
 		fld = typ.Field(i)
 
-		if len(fld.PkgPath) != 0 {
+		if fld.PkgPath != blank {
 			continue
 		}
 
@@ -273,7 +274,7 @@ func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruc
 		}
 
 		customName = fld.Name
-		if len(v.fieldNameTag) != 0 {
+		if v.fieldNameTag != blank {
 
 			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
 
@@ -309,7 +310,7 @@ func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
 
 func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
 
-	if len(tag) == 0 {
+	if tag == blank {
 		return true
 	}
 
@@ -365,7 +366,7 @@ func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias str
 				tagVal.tag = alias
 			}
 
-			if len(key) == 0 {
+			if key == blank {
 				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 			}
 

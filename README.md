@@ -308,38 +308,38 @@ func validateStruct() {
 
 Benchmarks
 ------
-###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go 1.5.1
+###### Run on MacBook Pro (Retina, 15-inch, Late 2013) 2.6 GHz Intel Core i7 16 GB 1600 MHz DDR3 using Go version go1.5.2 darwin/amd64
 ```go
-$ go test -cpu=4 -bench=. -benchmem=true
+go test -cpu=4 -bench=. -benchmem=true
 PASS
-BenchmarkFieldSuccess-4                            	10000000	       162 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFieldFailure-4                            	 2000000	       678 ns/op	     400 B/op	       4 allocs/op
-BenchmarkFieldDiveSuccess-4                        	  500000	      3079 ns/op	     480 B/op	      27 allocs/op
-BenchmarkFieldDiveFailure-4                        	  300000	      3584 ns/op	     880 B/op	      31 allocs/op
-BenchmarkFieldCustomTypeSuccess-4                  	 5000000	       345 ns/op	      32 B/op	       2 allocs/op
-BenchmarkFieldCustomTypeFailure-4                  	 2000000	       650 ns/op	     400 B/op	       4 allocs/op
-BenchmarkFieldOrTagSuccess-4                       	 1000000	      1188 ns/op	      16 B/op	       1 allocs/op
-BenchmarkFieldOrTagFailure-4                       	 1000000	      1088 ns/op	     432 B/op	       6 allocs/op
-BenchmarkStructLevelValidationSuccess-4            	 2000000	       689 ns/op	     160 B/op	       6 allocs/op
-BenchmarkStructLevelValidationFailure-4            	 1000000	      1290 ns/op	     592 B/op	      11 allocs/op
-BenchmarkStructSimpleCustomTypeSuccess-4           	 2000000	       911 ns/op	      80 B/op	       5 allocs/op
-BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1446 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructPartialSuccess-4                    	 1000000	      1221 ns/op	     384 B/op	      10 allocs/op
-BenchmarkStructPartialFailure-4                    	 1000000	      1764 ns/op	     800 B/op	      15 allocs/op
-BenchmarkStructExceptSuccess-4                     	 2000000	       941 ns/op	     336 B/op	       7 allocs/op
-BenchmarkStructExceptFailure-4                     	 1000000	      1237 ns/op	     384 B/op	      10 allocs/op
-BenchmarkStructSimpleCrossFieldSuccess-4           	 2000000	       970 ns/op	     128 B/op	       6 allocs/op
-BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1560 ns/op	     560 B/op	      11 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1542 ns/op	     176 B/op	       9 allocs/op
-BenchmarkStructSimpleCrossStructCrossFieldFailure-4	 1000000	      2147 ns/op	     608 B/op	      14 allocs/op
-BenchmarkStructSimpleSuccess-4                     	 2000000	       847 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailure-4                     	 1000000	      1497 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructSimpleSuccessParallel-4             	 5000000	       257 ns/op	      48 B/op	       3 allocs/op
-BenchmarkStructSimpleFailureParallel-4             	 2000000	       586 ns/op	     624 B/op	      11 allocs/op
-BenchmarkStructComplexSuccess-4                    	  300000	      5104 ns/op	     496 B/op	      29 allocs/op
-BenchmarkStructComplexFailure-4                    	  200000	      9840 ns/op	    3400 B/op	      71 allocs/op
-BenchmarkStructComplexSuccessParallel-4            	 1000000	      1540 ns/op	     496 B/op	      29 allocs/op
-BenchmarkStructComplexFailureParallel-4            	  500000	      3478 ns/op	    3400 B/op	      71 allocs/op
+BenchmarkFieldSuccess-4                            	10000000	       176 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFieldFailure-4                            	 2000000	       727 ns/op	     432 B/op	       4 allocs/op
+BenchmarkFieldDiveSuccess-4                        	  500000	      3220 ns/op	     480 B/op	      27 allocs/op
+BenchmarkFieldDiveFailure-4                        	  500000	      3823 ns/op	     912 B/op	      31 allocs/op
+BenchmarkFieldCustomTypeSuccess-4                  	 5000000	       368 ns/op	      32 B/op	       2 allocs/op
+BenchmarkFieldCustomTypeFailure-4                  	 2000000	       699 ns/op	     432 B/op	       4 allocs/op
+BenchmarkFieldOrTagSuccess-4                       	 1000000	      1265 ns/op	      16 B/op	       1 allocs/op
+BenchmarkFieldOrTagFailure-4                       	 1000000	      1182 ns/op	     464 B/op	       6 allocs/op
+BenchmarkStructLevelValidationSuccess-4            	 2000000	       739 ns/op	     176 B/op	       6 allocs/op
+BenchmarkStructLevelValidationFailure-4            	 1000000	      1368 ns/op	     640 B/op	      11 allocs/op
+BenchmarkStructSimpleCustomTypeSuccess-4           	 2000000	       965 ns/op	      80 B/op	       5 allocs/op
+BenchmarkStructSimpleCustomTypeFailure-4           	 1000000	      1561 ns/op	     688 B/op	      11 allocs/op
+BenchmarkStructPartialSuccess-4                    	 1000000	      1285 ns/op	     384 B/op	      10 allocs/op
+BenchmarkStructPartialFailure-4                    	 1000000	      1879 ns/op	     832 B/op	      15 allocs/op
+BenchmarkStructExceptSuccess-4                     	 2000000	      1038 ns/op	     336 B/op	       7 allocs/op
+BenchmarkStructExceptFailure-4                     	 1000000	      1330 ns/op	     384 B/op	      10 allocs/op
+BenchmarkStructSimpleCrossFieldSuccess-4           	 1000000	      1081 ns/op	     128 B/op	       6 allocs/op
+BenchmarkStructSimpleCrossFieldFailure-4           	 1000000	      1737 ns/op	     592 B/op	      11 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldSuccess-4	 1000000	      1790 ns/op	     192 B/op	      10 allocs/op
+BenchmarkStructSimpleCrossStructCrossFieldFailure-4	  500000	      2431 ns/op	     656 B/op	      15 allocs/op
+BenchmarkStructSimpleSuccess-4                     	 2000000	       950 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailure-4                     	 1000000	      1672 ns/op	     688 B/op	      11 allocs/op
+BenchmarkStructSimpleSuccessParallel-4             	 5000000	       271 ns/op	      48 B/op	       3 allocs/op
+BenchmarkStructSimpleFailureParallel-4             	 2000000	       670 ns/op	     688 B/op	      11 allocs/op
+BenchmarkStructComplexSuccess-4                    	  300000	      5828 ns/op	     544 B/op	      32 allocs/op
+BenchmarkStructComplexFailure-4                    	  200000	     11382 ns/op	    3912 B/op	      77 allocs/op
+BenchmarkStructComplexSuccessParallel-4            	 1000000	      1739 ns/op	     544 B/op	      32 allocs/op
+BenchmarkStructComplexFailureParallel-4            	  300000	      4682 ns/op	    3912 B/op	      77 allocs/op
 ```
 
 How to Contribute

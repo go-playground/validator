@@ -756,7 +756,7 @@ func IsURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 			return false
 		}
 
-		if len(url.Scheme) == 0 {
+		if url.Scheme == blank {
 			return false
 		}
 
