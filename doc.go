@@ -150,7 +150,7 @@ use the UTF-8 hex representation 0x7C, which is replaced in the code as a pipe,
 so the above will become excludesall=0x7C
 
 	type Test struct {
-		Field `validate:"excludesall=|"`    // BAD! Do not include a a pipe!.
+		Field `validate:"excludesall=|"`    // BAD! Do not include a a pipe!
 		Field `validate:"excludesall=0x7C"` // GOOD! Use the UTF-8 hex representation.
 	}
 
