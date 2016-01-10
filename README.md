@@ -4,8 +4,8 @@ Package validator
 ![Validator](logo.png)
 
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/523019/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8-development&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8-development)
+[![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/530054/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
+[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8)
 [![Go Report Card](http://goreportcard.com/badge/go-playground/validator)](http://goreportcard.com/report/go-playground/validator)
 [![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v8?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v8)
 
@@ -341,6 +341,14 @@ BenchmarkStructComplexFailure-4                    	  200000	     11382 ns/op	  
 BenchmarkStructComplexSuccessParallel-4            	 1000000	      1739 ns/op	     544 B/op	      32 allocs/op
 BenchmarkStructComplexFailureParallel-4            	  300000	      4682 ns/op	    3912 B/op	      77 allocs/op
 ```
+
+Complimentary Software
+----------------------
+
+Here is a list of software that compliments using this library either pre or post validation.
+
+* [Gorilla Schema](https://github.com/gorilla/schema) - Package gorilla/schema fills a struct with form values.
+* [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
 
 How to Contribute
 ------
