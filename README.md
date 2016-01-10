@@ -342,6 +342,14 @@ BenchmarkStructComplexSuccessParallel-4            	 1000000	      1739 ns/op	  
 BenchmarkStructComplexFailureParallel-4            	  300000	      4682 ns/op	    3912 B/op	      77 allocs/op
 ```
 
+Complimentary Software
+----------------------
+
+Here is a list of software that compliments using this library either pre or post validation.
+
+* [Gorilla Schema](https://github.com/gorilla/schema) - Package gorilla/schema fills a struct with form values.
+* [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
+
 How to Contribute
 ------
 
