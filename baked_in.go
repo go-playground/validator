@@ -84,6 +84,16 @@ var bakedInValidators = map[string]Func{
 	"cidrv4":       IsCIDRv4,
 	"cidrv6":       IsCIDRv6,
 	"cidr":         IsCIDR,
+	"tcp4_addr":    IsTCP4Addr,
+	"tcp6_addr":    IsTCP6Addr,
+	"tcp_addr":     IsTCPAddr,
+	"udp4_addr":    IsUDP4Addr,
+	"udp6_addr":    IsUDP6Addr,
+	"udp_addr":     IsUDPAddr,
+	"ip4_addr":     IsIP4Addr,
+	"ip6_addr":     IsIP6Addr,
+	"ip_addr":      IsIPAddr,
+	"unix_addr":    IsUnixAddr,
 	"mac":          IsMAC,
 }
 
@@ -1235,4 +1245,74 @@ func IsLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func HasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return IsLte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+}
+
+// IsTCP4Addr is the validation function for validating if the field's value is a valid tcp4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCP4Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveTCPAddr("tcp4", field.String())
+	return err == nil
+}
+
+// IsTCP6Addr is the validation function for validating if the field's value is a valid tcp6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCP6Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveTCPAddr("tcp6", field.String())
+	return err == nil
+}
+
+// IsTCPAddr is the validation function for validating if the field's value is a valid tcp address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCPAddr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveTCPAddr("tcp", field.String())
+	return err == nil
+}
+
+// IsUDP4Addr is the validation function for validating if the field's value is a valid udp4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDP4Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveUDPAddr("udp4", field.String())
+	return err == nil
+}
+
+// IsUDP6Addr is the validation function for validating if the field's value is a valid udp6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDP6Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveUDPAddr("udp6", field.String())
+	return err == nil
+}
+
+// IsUDPAddr is the validation function for validating if the field's value is a valid udp address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDPAddr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveUDPAddr("udp", field.String())
+	return err == nil
+}
+
+// IsIP4Addr is the validation function for validating if the field's value is a valid ip4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIP4Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveIPAddr("ip4", field.String())
+	return err == nil
+}
+
+// IsIP6Addr is the validation function for validating if the field's value is a valid ip6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIP6Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveIPAddr("ip6", field.String())
+	return err == nil
+}
+
+// IsIPAddr is the validation function for validating if the field's value is a valid ip address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIPAddr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveIPAddr("ip", field.String())
+	return err == nil
+}
+
+// IsUnixAddr is the validation function for validating if the field's value is a valid unix address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUnixAddr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveUnixAddr("unix", field.String())
+	return err == nil
 }
