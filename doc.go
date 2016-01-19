@@ -745,8 +745,6 @@ Note: See Go's ParseMAC for accepted formats and types:
 
 	http://golang.org/src/net/mac.go?s=866:918#L29
 
-	Usage: mac
-
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
