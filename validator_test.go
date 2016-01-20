@@ -1755,6 +1755,7 @@ func TestIPValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{"10.0.0.1", true},
 		{"172.16.0.1", true},
 		{"192.168.0.1", true},
@@ -2023,8 +2024,8 @@ func TestTCP6AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
-		{"127.0.0.1:80", true},
+		{":80", false},
+		{"127.0.0.1:80", false},
 		{"[::1]:80", true},
 		{"256.0.0.0:1", false},
 		{"[::1]", false},
@@ -2054,9 +2055,9 @@ func TestTCP4AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
+		{":80", false},
 		{"127.0.0.1:80", true},
-		{"[::1]:80", true}, // https://github.com/golang/go/issues/14037
+		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
 		{"256.0.0.0:1", false},
 		{"[::1]", false},
 	}
@@ -2180,10 +2181,12 @@ func TestIPAddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"", true},
+		{"", false},
 		{"127.0.0.1", true},
+		{"127.0.0.1:80", false},
 		{"::1", true},
 		{"256.0.0.0", false},
+		{"localhost", false},
 	}
 
 	for i, test := range tests {
@@ -2210,9 +2213,11 @@ func TestIP6AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"", true},
-		{"127.0.0.1", true}, // https://github.com/golang/go/issues/14037
+		{"", false},
+		{"127.0.0.1", false}, // https://github.com/golang/go/issues/14037
+		{"127.0.0.1:80", false},
 		{"::1", true},
+		{"0:0:0:0:0:0:0:1", true},
 		{"256.0.0.0", false},
 	}
 
@@ -2240,10 +2245,12 @@ func TestIP4AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"", true},
+		{"", false},
 		{"127.0.0.1", true},
-		{"::1", true}, // https://github.com/golang/go/issues/14037
+		{"127.0.0.1:80", false},
+		{"::1", false}, // https://github.com/golang/go/issues/14037
 		{"256.0.0.0", false},
+		{"localhost", false},
 	}
 
 	for i, test := range tests {
