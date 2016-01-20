@@ -1987,6 +1987,314 @@ func TestCIDRv4Validation(t *testing.T) {
 	}
 }
 
+func TestTCPAddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true},
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "tcp_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "tcp_addr" {
+					t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestTCP6AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true},
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "tcp6_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "tcp6_addr" {
+					t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestTCP4AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true}, // https://github.com/golang/go/issues/14037
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "tcp4_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Log(test.param, IsEqual(errs, nil))
+				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "tcp4_addr" {
+					t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUDPAddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true},
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "udp_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "udp_addr" {
+					t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUDP6AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true},
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "udp6_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "udp6_addr" {
+					t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUDP4AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{":80", true},
+		{"127.0.0.1:80", true},
+		{"[::1]:80", true}, // https://github.com/golang/go/issues/14037
+		{"256.0.0.0:1", false},
+		{"[::1]", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "udp4_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Log(test.param, IsEqual(errs, nil))
+				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "udp4_addr" {
+					t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIPAddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"127.0.0.1", true},
+		{"::1", true},
+		{"256.0.0.0", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "ip_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "ip_addr" {
+					t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIP6AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"127.0.0.1", true}, // https://github.com/golang/go/issues/14037
+		{"::1", true},
+		{"256.0.0.0", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "ip6_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "ip6_addr" {
+					t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestIP4AddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"127.0.0.1", true},
+		{"::1", true}, // https://github.com/golang/go/issues/14037
+		{"256.0.0.0", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "ip4_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Log(test.param, IsEqual(errs, nil))
+				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "ip4_addr" {
+					t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUnixAddrValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", true},
+		{"v.sock", true},
+	}
+
+	for i, test := range tests {
+		errs := validate.Field(test.param, "unix_addr")
+		if test.expected == true {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Log(test.param, IsEqual(errs, nil))
+				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
+			} else {
+				val := errs.(ValidationErrors)[""]
+				if val.Tag != "unix_addr" {
+					t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 
 	var m map[string]string
