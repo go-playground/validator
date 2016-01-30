@@ -1,8 +1,6 @@
 Package validator
 ================
-
-![Validator](logo.png)
-
+<img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v8/logo.png">
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/530054/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
 [![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8)
