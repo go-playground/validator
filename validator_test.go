@@ -1993,6 +1993,7 @@ func TestTCPAddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", true},
@@ -2024,6 +2025,7 @@ func TestTCP6AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", false},
 		{"[::1]:80", true},
@@ -2055,6 +2057,7 @@ func TestTCP4AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
@@ -2087,6 +2090,7 @@ func TestUDPAddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", true},
@@ -2118,6 +2122,7 @@ func TestUDP6AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", false},
 		{"[::1]:80", true},
@@ -2149,6 +2154,7 @@ func TestUDP4AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
+		{"", false},
 		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
