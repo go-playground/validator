@@ -1993,7 +1993,7 @@ func TestTCPAddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
+		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", true},
 		{"256.0.0.0:1", false},

@@ -87,13 +87,13 @@ var bakedInValidators = map[string]Func{
 	"tcp4_addr":    IsTCP4AddrResolvable,
 	"tcp6_addr":    IsTCP6AddrResolvable,
 	"tcp_addr":     IsTCPAddrResolvable,
-	"udp4_addr":    IsUDP4AddrResolvable,
-	"udp6_addr":    IsUDP6AddrResolvable,
-	"udp_addr":     IsUDPAddrResolvable,
+	"udp4_addr":    IsUDP4AddrResolvable, // need to do
+	"udp6_addr":    IsUDP6AddrResolvable, // need to do
+	"udp_addr":     IsUDPAddrResolvable,  // need to do
 	"ip4_addr":     IsIP4AddrResolvable,
 	"ip6_addr":     IsIP6AddrResolvable,
 	"ip_addr":      IsIPAddrResolvable,
-	"unix_addr":    IsUnixAddrResolvable,
+	"unix_addr":    IsUnixAddrResolvable, // need to do
 	"mac":          IsMAC,
 }
 
@@ -1290,6 +1290,10 @@ func IsTCP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrF
 func IsTCPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 	// if string before the post is blank then invalid
+	if !IsTCP4AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
+		!IsTCP6AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
 
 	_, err := net.ResolveTCPAddr("tcp", field.String())
 	return err == nil
