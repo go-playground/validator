@@ -2087,7 +2087,7 @@ func TestUDPAddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
+		{":80", false},
 		{"127.0.0.1:80", true},
 		{"[::1]:80", true},
 		{"256.0.0.0:1", false},
@@ -2118,8 +2118,8 @@ func TestUDP6AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
-		{"127.0.0.1:80", true},
+		{":80", false},
+		{"127.0.0.1:80", false},
 		{"[::1]:80", true},
 		{"256.0.0.0:1", false},
 		{"[::1]", false},
@@ -2149,9 +2149,9 @@ func TestUDP4AddrValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{":80", true},
+		{":80", false},
 		{"127.0.0.1:80", true},
-		{"[::1]:80", true}, // https://github.com/golang/go/issues/14037
+		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
 		{"256.0.0.0:1", false},
 		{"[::1]", false},
 	}
