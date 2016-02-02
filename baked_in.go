@@ -93,7 +93,7 @@ var bakedInValidators = map[string]Func{
 	"ip4_addr":     IsIP4AddrResolvable,
 	"ip6_addr":     IsIP6AddrResolvable,
 	"ip_addr":      IsIPAddrResolvable,
-	"unix_addr":    IsUnixAddrResolvable, // need to do
+	"unix_addr":    IsUnixAddrResolvable,
 	"mac":          IsMAC,
 }
 
@@ -1251,13 +1251,7 @@ func HasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsTCP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	val := field.String()
-
-	if idx := strings.LastIndex(val, ":"); idx != -1 {
-		val = val[0:idx]
-	}
-
-	if !IsIPv4(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1269,15 +1263,7 @@ func IsTCP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrF
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsTCP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	val := field.String()
-
-	if idx := strings.LastIndex(val, ":"); idx != -1 {
-		if idx != 0 && val[idx-1:idx] == "]" {
-			val = val[1 : idx-1]
-		}
-	}
-
-	if !IsIPv6(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+	if !isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1289,9 +1275,8 @@ func IsTCP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrF
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsTCPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	// if string before the post is blank then invalid
-	if !IsTCP4AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
-		!IsTCP6AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
+		!isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1303,13 +1288,7 @@ func IsTCPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrFi
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsUDP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	val := field.String()
-
-	if idx := strings.LastIndex(val, ":"); idx != -1 {
-		val = val[0:idx]
-	}
-
-	if !IsIPv4(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1321,15 +1300,7 @@ func IsUDP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrF
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsUDP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	val := field.String()
-
-	if idx := strings.LastIndex(val, ":"); idx != -1 {
-		if idx != 0 && val[idx-1:idx] == "]" {
-			val = val[1 : idx-1]
-		}
-	}
-
-	if !IsIPv6(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+	if !isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1341,9 +1312,8 @@ func IsUDP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrF
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func IsUDPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-	// if string before the post is blank then invalid
-	if !IsUDP4AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
-		!IsUDP6AddrResolvable(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
+		!isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
 		return false
 	}
 
@@ -1392,4 +1362,34 @@ func IsIPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrFie
 func IsUnixAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	_, err := net.ResolveUnixAddr("unix", field.String())
 	return err == nil
+}
+
+func isIP4Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	val := field.String()
+
+	if idx := strings.LastIndex(val, ":"); idx != -1 {
+		val = val[0:idx]
+	}
+
+	if !IsIPv4(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+		return false
+	}
+
+	return true
+}
+
+func isIP6Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	val := field.String()
+
+	if idx := strings.LastIndex(val, ":"); idx != -1 {
+		if idx != 0 && val[idx-1:idx] == "]" {
+			val = val[1 : idx-1]
+		}
+	}
+
+	if !IsIPv6(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+		return false
+	}
+
+	return true
 }
