@@ -84,6 +84,16 @@ var bakedInValidators = map[string]Func{
 	"cidrv4":       IsCIDRv4,
 	"cidrv6":       IsCIDRv6,
 	"cidr":         IsCIDR,
+	"tcp4_addr":    IsTCP4AddrResolvable,
+	"tcp6_addr":    IsTCP6AddrResolvable,
+	"tcp_addr":     IsTCPAddrResolvable,
+	"udp4_addr":    IsUDP4AddrResolvable,
+	"udp6_addr":    IsUDP6AddrResolvable,
+	"udp_addr":     IsUDPAddrResolvable,
+	"ip4_addr":     IsIP4AddrResolvable,
+	"ip6_addr":     IsIP6AddrResolvable,
+	"ip_addr":      IsIPAddrResolvable,
+	"unix_addr":    IsUnixAddrResolvable,
 	"mac":          IsMAC,
 }
 
@@ -1235,4 +1245,151 @@ func IsLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 // NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
 func HasMaxOf(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
 	return IsLte(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param)
+}
+
+// IsTCP4AddrResolvable is the validation function for validating if the field's value is a resolvable tcp4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveTCPAddr("tcp4", field.String())
+	return err == nil
+}
+
+// IsTCP6AddrResolvable is the validation function for validating if the field's value is a resolvable tcp6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveTCPAddr("tcp6", field.String())
+	return err == nil
+}
+
+// IsTCPAddrResolvable is the validation function for validating if the field's value is a resolvable tcp address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsTCPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
+		!isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveTCPAddr("tcp", field.String())
+	return err == nil
+}
+
+// IsUDP4AddrResolvable is the validation function for validating if the field's value is a resolvable udp4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveUDPAddr("udp4", field.String())
+	return err == nil
+}
+
+// IsUDP6AddrResolvable is the validation function for validating if the field's value is a resolvable udp6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveUDPAddr("udp6", field.String())
+	return err == nil
+}
+
+// IsUDPAddrResolvable is the validation function for validating if the field's value is a resolvable udp address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUDPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !isIP4Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) &&
+		!isIP6Addr(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveUDPAddr("udp", field.String())
+	return err == nil
+}
+
+// IsIP4AddrResolvable is the validation function for validating if the field's value is a resolvable ip4 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIP4AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !IsIPv4(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip4", field.String())
+	return err == nil
+}
+
+// IsIP6AddrResolvable is the validation function for validating if the field's value is a resolvable ip6 address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIP6AddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !IsIPv6(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip6", field.String())
+	return err == nil
+}
+
+// IsIPAddrResolvable is the validation function for validating if the field's value is a resolvable ip address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsIPAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	if !IsIP(v, topStruct, currentStructOrField, field, fieldType, fieldKind, param) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip", field.String())
+	return err == nil
+}
+
+// IsUnixAddrResolvable is the validation function for validating if the field's value is a resolvable unix address.
+// NOTE: This is exposed for use within your own custom functions and not intended to be called directly.
+func IsUnixAddrResolvable(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	_, err := net.ResolveUnixAddr("unix", field.String())
+	return err == nil
+}
+
+func isIP4Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	val := field.String()
+
+	if idx := strings.LastIndex(val, ":"); idx != -1 {
+		val = val[0:idx]
+	}
+
+	if !IsIPv4(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+		return false
+	}
+
+	return true
+}
+
+func isIP6Addr(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	val := field.String()
+
+	if idx := strings.LastIndex(val, ":"); idx != -1 {
+		if idx != 0 && val[idx-1:idx] == "]" {
+			val = val[1 : idx-1]
+		}
+	}
+
+	if !IsIPv6(v, topStruct, currentStructOrField, reflect.ValueOf(val), fieldType, fieldKind, param) {
+		return false
+	}
+
+	return true
 }

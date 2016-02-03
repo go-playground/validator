@@ -735,6 +735,66 @@ This validates that a string value contains a valid v6 CIDR Adress.
 
 	Usage: cidrv6
 
+Transmission Control Protocol Address TCP
+
+This validates that a string value contains a valid resolvable TCP Adress.
+
+	Usage: tcp_addr
+
+Transmission Control Protocol Address TCPv4
+
+This validates that a string value contains a valid resolvable v4 TCP Adress.
+
+	Usage: tcp4_addr
+
+Transmission Control Protocol Address TCPv6
+
+This validates that a string value contains a valid resolvable v6 TCP Adress.
+
+	Usage: tcp6_addr
+
+User Datagram Protocol Address UDP
+
+This validates that a string value contains a valid resolvable UDP Adress.
+
+	Usage: udp_addr
+
+User Datagram Protocol Address UDPv4
+
+This validates that a string value contains a valid resolvable v4 UDP Adress.
+
+	Usage: udp4_addr
+
+User Datagram Protocol Address UDPv6
+
+This validates that a string value contains a valid resolvable v6 UDP Adress.
+
+	Usage: udp6_addr
+
+Internet Protocol Address IP
+
+This validates that a string value contains a valid resolvable IP Adress.
+
+	Usage: ip_addr
+
+Internet Protocol Address IPv4
+
+This validates that a string value contains a valid resolvable v4 IP Adress.
+
+	Usage: ip4_addr
+
+Internet Protocol Address IPv6
+
+This validates that a string value contains a valid resolvable v6 IP Adress.
+
+	Usage: ip6_addr
+
+Unix domain socket end point Address
+
+This validates that a string value contains a valid Unix Adress.
+
+	Usage: unix_addr
+
 Media Access Control Address MAC
 
 This validates that a string value contains a valid MAC Adress.
@@ -744,8 +804,6 @@ This validates that a string value contains a valid MAC Adress.
 Note: See Go's ParseMAC for accepted formats and types:
 
 	http://golang.org/src/net/mac.go?s=866:918#L29
-
-	Usage: mac
 
 Alias Validators and Tags
 
