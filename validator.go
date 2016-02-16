@@ -512,7 +512,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 				fld = typ.Field(i)
 
-				if fld.PkgPath != blank {
+				if fld.PkgPath != blank && !fld.Anonymous {
 					continue
 				}
 
