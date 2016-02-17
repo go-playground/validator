@@ -5280,6 +5280,26 @@ func TestEmail(t *testing.T) {
 	errs := validate.Field(s, "email")
 	Equal(t, errs, nil)
 
+	s = "Dörte@Sörensen.example.com"
+	errs = validate.Field(s, "email")
+	Equal(t, errs, nil)
+
+	s = "θσερ@εχαμπλε.ψομ"
+	errs = validate.Field(s, "email")
+	Equal(t, errs, nil)
+
+	s = "юзер@екзампл.ком"
+	errs = validate.Field(s, "email")
+	Equal(t, errs, nil)
+
+	s = "उपयोगकर्ता@उदाहरण.कॉम"
+	errs = validate.Field(s, "email")
+	Equal(t, errs, nil)
+
+	s = "用户@例子.广告"
+	errs = validate.Field(s, "email")
+	Equal(t, errs, nil)
+
 	s = ""
 	errs = validate.Field(s, "email")
 	NotEqual(t, errs, nil)
