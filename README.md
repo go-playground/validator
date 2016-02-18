@@ -2,10 +2,12 @@ Package validator
 ================
 <img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v8/logo.png">
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![Project status](https://img.shields.io/badge/version-8.17-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/530054/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
 [![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8)
 [![Go Report Card](http://goreportcard.com/badge/go-playground/validator)](http://goreportcard.com/report/go-playground/validator)
 [![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v8?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v8)
+![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 Package validator implements value validations for structs and individual fields based on tags.
 
