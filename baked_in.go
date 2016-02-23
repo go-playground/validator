@@ -748,7 +748,7 @@ func IsURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 
 		s := field.String()
 
-		// checks needed as of Go 1.6 becuase of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
+		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
 		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
 		if i := strings.Index(s, "#"); i > -1 {
 			s = s[:i]
@@ -777,7 +777,7 @@ func IsURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 		var i int
 		s := field.String()
 
-		// checks needed as of Go 1.6 becuase of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
+		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
 		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
 		if i = strings.Index(s, "#"); i > -1 {
 			s = s[:i]
