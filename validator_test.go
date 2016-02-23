@@ -4977,6 +4977,7 @@ func TestUrl(t *testing.T) {
 		{"rtmp://foobar.com", true},
 		{"http://www.foo_bar.com/", true},
 		{"http://localhost:3000/", true},
+		{"http://foobar.com/#baz", true},
 		{"http://foobar.com#baz=qux", true},
 		{"http://foobar.com/t$-_.+!*\\'(),", true},
 		{"http://www.foobar.com/~foobar", true},

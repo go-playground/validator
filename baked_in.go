@@ -745,7 +745,20 @@ func IsURI(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	switch fieldKind {
 
 	case reflect.String:
-		_, err := url.ParseRequestURI(field.String())
+
+		s := field.String()
+
+		// checks needed as of Go 1.6 becuase of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
+		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
+		if i := strings.Index(s, "#"); i > -1 {
+			s = s[:i]
+		}
+
+		if s == blank {
+			return false
+		}
+
+		_, err := url.ParseRequestURI(s)
 
 		return err == nil
 	}
@@ -760,13 +773,23 @@ func IsURL(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Va
 	switch fieldKind {
 
 	case reflect.String:
-		url, err := url.ParseRequestURI(field.String())
 
-		if err != nil {
+		var i int
+		s := field.String()
+
+		// checks needed as of Go 1.6 becuase of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
+		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
+		if i = strings.Index(s, "#"); i > -1 {
+			s = s[:i]
+		}
+
+		if s == blank {
 			return false
 		}
 
-		if url.Scheme == blank {
+		url, err := url.ParseRequestURI(s)
+
+		if err != nil || url.Scheme == blank {
 			return false
 		}
 
