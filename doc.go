@@ -284,7 +284,7 @@ For strings & numbers, eq will ensure that the value is not
 equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
-	Usage: eq=10
+	Usage: ne=10
 
 Greater Than
 
