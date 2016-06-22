@@ -280,7 +280,7 @@ validates the number of items.
 
 Not Equal
 
-For strings & numbers, eq will ensure that the value is not
+For strings & numbers, ne will ensure that the value is not
 equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
