@@ -413,7 +413,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, false, m, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, false, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -440,7 +440,7 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, true, m, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, true, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -459,7 +459,7 @@ func (v *Validate) Struct(current interface{}) error {
 	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, false, false, nil, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, false, false, nil, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -469,8 +469,7 @@ func (v *Validate) Struct(current interface{}) error {
 	return errs
 }
 
-// tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
+func (v *Validate) ensureValidStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -479,6 +478,12 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	if current.Kind() != reflect.Struct && current.Kind() != reflect.Interface {
 		panic("value passed for validation is not a struct")
 	}
+
+	v.tranverseStruct(topStruct, currentStruct, current, errPrefix, nsPrefix, errs, useStructName, partial, exclude, includeExclude, isStructOnly)
+}
+
+// tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
 
 	// var ok bool
 	typ := current.Type()
@@ -512,7 +517,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 
 				fld = typ.Field(i)
 
-				if fld.PkgPath != blank && !fld.Anonymous {
+				if !fld.Anonymous && fld.PkgPath != blank {
 					continue
 				}
 
