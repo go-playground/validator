@@ -112,7 +112,6 @@ func (v *Validate) GetStructFieldOK(current reflect.Value, namespace string) (re
 				ns = namespace[idx+1:]
 			} else {
 				ns = blank
-				idx = len(namespace)
 			}
 
 			bracketIdx := strings.Index(fld, leftBracket)

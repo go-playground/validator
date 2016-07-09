@@ -365,7 +365,7 @@ func TestAnonymous(t *testing.T) {
 			B string `validate:"required" json:"BEE"`
 		}
 		anonymousC struct {
-			c string `validate:"required" json:"SEE"`
+			c string `validate:"required"`
 		}
 	}
 
@@ -381,7 +381,7 @@ func TestAnonymous(t *testing.T) {
 			B: "",
 		},
 		anonymousC: struct {
-			c string `validate:"required" json:"SEE"`
+			c string `validate:"required"`
 		}{
 			c: "",
 		},
@@ -398,7 +398,7 @@ func TestAnonymous(t *testing.T) {
 	Equal(t, errs["Test.AnonymousB.B"].Name, "BEE")
 
 	s := struct {
-		c string `validate:"required" json:"SEE"`
+		c string `validate:"required"`
 	}{
 		c: "",
 	}
@@ -1733,7 +1733,7 @@ func TestMACValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "mac")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d mac failed Error: %s", i, errs)
 			}
@@ -1772,7 +1772,7 @@ func TestIPValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "ip")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ip failed Error: %s", i, errs)
 			}
@@ -1810,7 +1810,7 @@ func TestIPv6Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "ipv6")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ipv6 failed Error: %s", i, errs)
 			}
@@ -1848,7 +1848,7 @@ func TestIPv4Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "ipv4")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ipv4 failed Error: %s", i, errs)
 			}
@@ -1889,7 +1889,7 @@ func TestCIDRValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "cidr")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d cidr failed Error: %s", i, errs)
 			}
@@ -1930,7 +1930,7 @@ func TestCIDRv6Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "cidrv6")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d cidrv6 failed Error: %s", i, errs)
 			}
@@ -1971,7 +1971,7 @@ func TestCIDRv4Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "cidrv4")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d cidrv4 failed Error: %s", i, errs)
 			}
@@ -2003,7 +2003,7 @@ func TestTCPAddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "tcp_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
 			}
@@ -2035,7 +2035,7 @@ func TestTCP6AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "tcp6_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
 			}
@@ -2067,7 +2067,7 @@ func TestTCP4AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "tcp4_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
 			}
@@ -2100,7 +2100,7 @@ func TestUDPAddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "udp_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
 			}
@@ -2132,7 +2132,7 @@ func TestUDP6AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "udp6_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
 			}
@@ -2164,7 +2164,7 @@ func TestUDP4AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "udp4_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
 			}
@@ -2197,7 +2197,7 @@ func TestIPAddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "ip_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
 			}
@@ -2229,7 +2229,7 @@ func TestIP6AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "ip6_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
 			}
@@ -2261,7 +2261,7 @@ func TestIP4AddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "ip4_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
 			}
@@ -2290,7 +2290,7 @@ func TestUnixAddrValidation(t *testing.T) {
 
 	for i, test := range tests {
 		errs := validate.Field(test.param, "unix_addr")
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
 			}
@@ -3018,7 +3018,7 @@ func TestSSNValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "ssn")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d SSN failed Error: %s", i, errs)
 			}
@@ -3052,7 +3052,7 @@ func TestLongitudeValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "longitude")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 			}
@@ -3086,7 +3086,7 @@ func TestLatitudeValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "latitude")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 			}
@@ -3126,7 +3126,7 @@ func TestDataURIValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "datauri")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d DataURI failed Error: %s", i, errs)
 			}
@@ -3164,7 +3164,7 @@ func TestMultibyteValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "multibyte")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Multibyte failed Error: %s", i, errs)
 			}
@@ -3203,7 +3203,7 @@ func TestPrintableASCIIValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "printascii")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d Printable ASCII failed Error: %s", i, errs)
 			}
@@ -3241,7 +3241,7 @@ func TestASCIIValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "ascii")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ASCII failed Error: %s", i, errs)
 			}
@@ -3276,7 +3276,7 @@ func TestUUID5Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "uuid5")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID5 failed Error: %s", i, errs)
 			}
@@ -3310,7 +3310,7 @@ func TestUUID4Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "uuid4")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID4 failed Error: %s", i, errs)
 			}
@@ -3343,7 +3343,7 @@ func TestUUID3Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "uuid3")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID3 failed Error: %s", i, errs)
 			}
@@ -3379,7 +3379,7 @@ func TestUUIDValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "uuid")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d UUID failed Error: %s", i, errs)
 			}
@@ -3417,7 +3417,7 @@ func TestISBNValidation(t *testing.T) {
 
 		errs := validate.Field(test.param, "isbn")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN failed Error: %s", i, errs)
 			}
@@ -3454,7 +3454,7 @@ func TestISBN13Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "isbn13")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN13 failed Error: %s", i, errs)
 			}
@@ -3492,7 +3492,7 @@ func TestISBN10Validation(t *testing.T) {
 
 		errs := validate.Field(test.param, "isbn10")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
 			}
@@ -4993,7 +4993,7 @@ func TestUrl(t *testing.T) {
 
 		errs := validate.Field(test.param, "url")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
 			}
@@ -5057,7 +5057,7 @@ func TestUri(t *testing.T) {
 
 		errs := validate.Field(test.param, "uri")
 
-		if test.expected == true {
+		if test.expected {
 			if !IsEqual(errs, nil) {
 				t.Fatalf("Index: %d URI failed Error: %s", i, errs)
 			}
@@ -5481,6 +5481,16 @@ func TestAlpha(t *testing.T) {
 	errs := validate.Field(s, "alpha")
 	Equal(t, errs, nil)
 
+	s = "abc®"
+	errs = validate.Field(s, "alpha")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alpha")
+
+	s = "abc÷"
+	errs = validate.Field(s, "alpha")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "alpha")
+
 	s = "abc1"
 	errs = validate.Field(s, "alpha")
 	NotEqual(t, errs, nil)
@@ -5489,6 +5499,7 @@ func TestAlpha(t *testing.T) {
 	errs = validate.Field(1, "alpha")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "alpha")
+
 }
 
 func TestStructStringValidation(t *testing.T) {
