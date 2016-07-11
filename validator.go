@@ -548,7 +548,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	// structonly tag present don't tranverseFields
 	// but must still check and run below struct level validation
 	// if present
-	if first || ct == nil || !ct.isStructOnly {
+	if first || ct == nil || ct.typeof != typeStructOnly {
 
 		for _, f := range cs.fields {
 
@@ -584,7 +584,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			return
 		}
 
-		if ct.isOmitEmpty {
+		if ct.typeof == typeOmitEmpty {
 			return
 		}
 
@@ -631,7 +631,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 				ct = ct.next
 			}
 
-			if ct != nil && ct.isNoStructLevel {
+			if ct != nil && ct.typeof == typeNoStructLevel {
 				return
 			}
 
@@ -652,12 +652,13 @@ OUTER:
 			return
 		}
 
-		if ct.exists {
+		switch ct.typeof {
+
+		case typeExists:
 			ct = ct.next
 			continue
-		}
 
-		if ct.isOmitEmpty {
+		case typeOmitEmpty:
 
 			if !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
@@ -665,9 +666,8 @@ OUTER:
 
 			ct = ct.next
 			continue
-		}
 
-		if ct.isDive {
+		case typeDive:
 
 			ct = ct.next
 
@@ -692,9 +692,8 @@ OUTER:
 			}
 
 			return
-		}
 
-		if ct.isOrVal {
+		case typeOr:
 
 			errTag := blank
 
@@ -711,7 +710,7 @@ OUTER:
 							return
 						}
 
-						if !ct.isOrVal {
+						if ct.typeof != typeOr {
 							continue OUTER
 						}
 					}
@@ -755,29 +754,30 @@ OUTER:
 
 				ct = ct.next
 			}
-		}
 
-		if !ct.fn(v, topStruct, currentStruct, current, typ, kind, ct.param) {
+		default:
+			if !ct.fn(v, topStruct, currentStruct, current, typ, kind, ct.param) {
 
-			ns := errPrefix + cf.Name
+				ns := errPrefix + cf.Name
 
-			errs[ns] = &FieldError{
-				FieldNamespace: ns,
-				NameNamespace:  nsPrefix + cf.AltName,
-				Name:           cf.AltName,
-				Field:          cf.Name,
-				Tag:            ct.aliasTag,
-				ActualTag:      ct.tag,
-				Value:          current.Interface(),
-				Param:          ct.param,
-				Type:           typ,
-				Kind:           kind,
+				errs[ns] = &FieldError{
+					FieldNamespace: ns,
+					NameNamespace:  nsPrefix + cf.AltName,
+					Name:           cf.AltName,
+					Field:          cf.Name,
+					Tag:            ct.aliasTag,
+					ActualTag:      ct.tag,
+					Value:          current.Interface(),
+					Param:          ct.param,
+					Type:           typ,
+					Kind:           kind,
+				}
+
+				return
+
 			}
 
-			return
-
+			ct = ct.next
 		}
-
-		ct = ct.next
 	}
 }

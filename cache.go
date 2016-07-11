@@ -8,6 +8,18 @@ import (
 	"sync/atomic"
 )
 
+type tagType uint8
+
+const (
+	typeDefault tagType = iota
+	typeOmitEmpty
+	typeNoStructLevel
+	typeStructOnly
+	typeDive
+	typeOr
+	typeExists
+)
+
 type structCache struct {
 	lock sync.Mutex
 	m    atomic.Value // map[reflect.Type]*cStruct
@@ -68,20 +80,15 @@ type cField struct {
 // TODO: investigate using enum instead of so many booleans, may be faster
 // but let's get the new cache system working first
 type cTag struct {
-	tag             string
-	aliasTag        string
-	actualAliasTag  string
-	param           string
-	hasAlias        bool
-	isOmitEmpty     bool
-	isNoStructLevel bool
-	isStructOnly    bool
-	isDive          bool
-	isOrVal         bool
-	exists          bool
-	hasTag          bool
-	fn              Func
-	next            *cTag
+	tag            string
+	aliasTag       string
+	actualAliasTag string
+	param          string
+	hasAlias       bool
+	typeof         tagType
+	hasTag         bool
+	fn             Func
+	next           *cTag
 }
 
 // TODO: eliminate get and set functions from cache, they are pure overhead for nicer syntax.
@@ -198,23 +205,23 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		switch t {
 
 		case diveTag:
-			current.isDive = true
+			current.typeof = typeDive
 			continue
 
 		case omitempty:
-			current.isOmitEmpty = true
+			current.typeof = typeOmitEmpty
 			continue
 
 		case structOnlyTag:
-			current.isStructOnly = true
+			current.typeof = typeStructOnly
 			continue
 
 		case noStructLevelTag:
-			current.isNoStructLevel = true
+			current.typeof = typeNoStructLevel
 			continue
 
 		case existsTag:
-			current.exists = true
+			current.typeof = typeExists
 			continue
 
 		default:
@@ -247,7 +254,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, fieldName)))
 				}
 
-				current.isOrVal = len(orVals) > 1
+				if len(orVals) > 1 {
+					current.typeof = typeOr
+				}
 
 				if len(vals) > 1 {
 					current.param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
