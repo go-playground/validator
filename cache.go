@@ -77,8 +77,6 @@ type cField struct {
 	cTags   *cTag
 }
 
-// TODO: investigate using enum instead of so many booleans, may be faster
-// but let's get the new cache system working first
 type cTag struct {
 	tag            string
 	aliasTag       string
@@ -90,8 +88,6 @@ type cTag struct {
 	fn             Func
 	next           *cTag
 }
-
-// TODO: eliminate get and set functions from cache, they are pure overhead for nicer syntax.
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
 
