@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	// dash               = "-"
 	blank              = ""
 	namespaceSeparator = "."
 	leftBracket        = "["
@@ -59,15 +58,10 @@ func (v *Validate) ExtractType(current reflect.Value) (reflect.Value, reflect.Ki
 	default:
 
 		if v.hasCustomFuncs {
-			// fmt.Println("Type", current.Type())
+
 			if fn, ok := v.customTypeFuncs[current.Type()]; ok {
-
-				// fmt.Println("OK")
-
 				return v.ExtractType(reflect.ValueOf(fn(current)))
 			}
-
-			// fmt.Println("NOT OK")
 		}
 
 		return current, current.Kind()
@@ -245,136 +239,3 @@ func panicIf(err error) {
 		panic(err.Error())
 	}
 }
-
-// func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruct {
-
-// 	typ := current.Type()
-// 	s := &cachedStruct{Name: sName, fields: map[int]cachedField{}}
-
-// 	numFields := current.NumField()
-
-// 	var fld reflect.StructField
-// 	var tag string
-// 	var customName string
-
-// 	for i := 0; i < numFields; i++ {
-
-// 		fld = typ.Field(i)
-
-// 		if fld.PkgPath != blank {
-// 			continue
-// 		}
-
-// 		tag = fld.Tag.Get(v.tagName)
-
-// 		if tag == skipValidationTag {
-// 			continue
-// 		}
-
-// 		customName = fld.Name
-// 		if v.fieldNameTag != blank {
-
-// 			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
-
-// 			// dash check is for json "-" (aka skipValidationTag) means don't output in json
-// 			if name != "" && name != skipValidationTag {
-// 				customName = name
-// 			}
-// 		}
-
-// 		cTag, ok := v.oldTagCache.Get(tag)
-// 		if !ok {
-// 			cTag = v.parseTags(tag, fld.Name)
-// 		}
-
-// 		s.fields[i] = cachedField{Idx: i, Name: fld.Name, AltName: customName, CachedTag: cTag}
-// 	}
-
-// 	v.oldStructCache.Set(typ, s)
-
-// 	return s
-// }
-
-// func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
-
-// 	cTag := &cachedTag{tag: tag}
-
-// 	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
-
-// 	v.oldTagCache.Set(tag, cTag)
-
-// 	return cTag
-// }
-
-// func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
-
-// 	if tag == blank {
-// 		return true
-// 	}
-
-// 	for _, t := range strings.Split(tag, tagSeparator) {
-
-// 		if v.hasAliasValidators {
-// 			// check map for alias and process new tags, otherwise process as usual
-// 			if tagsVal, ok := v.aliasValidators[t]; ok {
-
-// 				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
-
-// 				if leave {
-// 					return leave
-// 				}
-
-// 				continue
-// 			}
-// 		}
-
-// 		switch t {
-
-// 		case diveTag:
-// 			cTag.diveTag = tag
-// 			tVals := &tagVals{tagVals: [][]string{{t}}}
-// 			cTag.tags = append(cTag.tags, tVals)
-// 			return true
-
-// 		case omitempty:
-// 			cTag.isOmitEmpty = true
-
-// 		case structOnlyTag:
-// 			cTag.isStructOnly = true
-
-// 		case noStructLevelTag:
-// 			cTag.isNoStructLevel = true
-// 		}
-
-// 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
-// 		orVals := strings.Split(t, orSeparator)
-// 		tagVal := &tagVals{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
-// 		cTag.tags = append(cTag.tags, tagVal)
-
-// 		var key string
-// 		var param string
-
-// 		for i, val := range orVals {
-// 			vals := strings.SplitN(val, tagKeySeparator, 2)
-// 			key = vals[0]
-
-// 			tagVal.tag = key
-
-// 			if isAlias {
-// 				tagVal.tag = alias
-// 			}
-
-// 			if key == blank {
-// 				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
-// 			}
-
-// 			if len(vals) > 1 {
-// 				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
-// 			}
-
-// 			tagVal.tagVals[i] = []string{key, param}
-// 		}
-// 	}
-
-// 	return false
-// }
