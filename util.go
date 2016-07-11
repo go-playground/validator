@@ -1,14 +1,13 @@
 package validator
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
 const (
-	dash               = "-"
+	// dash               = "-"
 	blank              = ""
 	namespaceSeparator = "."
 	leftBracket        = "["
@@ -247,135 +246,135 @@ func panicIf(err error) {
 	}
 }
 
-func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruct {
+// func (v *Validate) parseStruct(current reflect.Value, sName string) *cachedStruct {
 
-	typ := current.Type()
-	s := &cachedStruct{Name: sName, fields: map[int]cachedField{}}
+// 	typ := current.Type()
+// 	s := &cachedStruct{Name: sName, fields: map[int]cachedField{}}
 
-	numFields := current.NumField()
+// 	numFields := current.NumField()
 
-	var fld reflect.StructField
-	var tag string
-	var customName string
+// 	var fld reflect.StructField
+// 	var tag string
+// 	var customName string
 
-	for i := 0; i < numFields; i++ {
+// 	for i := 0; i < numFields; i++ {
 
-		fld = typ.Field(i)
+// 		fld = typ.Field(i)
 
-		if fld.PkgPath != blank {
-			continue
-		}
+// 		if fld.PkgPath != blank {
+// 			continue
+// 		}
 
-		tag = fld.Tag.Get(v.tagName)
+// 		tag = fld.Tag.Get(v.tagName)
 
-		if tag == skipValidationTag {
-			continue
-		}
+// 		if tag == skipValidationTag {
+// 			continue
+// 		}
 
-		customName = fld.Name
-		if v.fieldNameTag != blank {
+// 		customName = fld.Name
+// 		if v.fieldNameTag != blank {
 
-			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+// 			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
 
-			// dash check is for json "-" (aka skipValidationTag) means don't output in json
-			if name != "" && name != skipValidationTag {
-				customName = name
-			}
-		}
+// 			// dash check is for json "-" (aka skipValidationTag) means don't output in json
+// 			if name != "" && name != skipValidationTag {
+// 				customName = name
+// 			}
+// 		}
 
-		cTag, ok := v.tagCache.Get(tag)
-		if !ok {
-			cTag = v.parseTags(tag, fld.Name)
-		}
+// 		cTag, ok := v.oldTagCache.Get(tag)
+// 		if !ok {
+// 			cTag = v.parseTags(tag, fld.Name)
+// 		}
 
-		s.fields[i] = cachedField{Idx: i, Name: fld.Name, AltName: customName, CachedTag: cTag}
-	}
+// 		s.fields[i] = cachedField{Idx: i, Name: fld.Name, AltName: customName, CachedTag: cTag}
+// 	}
 
-	v.structCache.Set(typ, s)
+// 	v.oldStructCache.Set(typ, s)
 
-	return s
-}
+// 	return s
+// }
 
-func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
+// func (v *Validate) parseTags(tag, fieldName string) *cachedTag {
 
-	cTag := &cachedTag{tag: tag}
+// 	cTag := &cachedTag{tag: tag}
 
-	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
+// 	v.parseTagsRecursive(cTag, tag, fieldName, blank, false)
 
-	v.tagCache.Set(tag, cTag)
+// 	v.oldTagCache.Set(tag, cTag)
 
-	return cTag
-}
+// 	return cTag
+// }
 
-func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
+// func (v *Validate) parseTagsRecursive(cTag *cachedTag, tag, fieldName, alias string, isAlias bool) bool {
 
-	if tag == blank {
-		return true
-	}
+// 	if tag == blank {
+// 		return true
+// 	}
 
-	for _, t := range strings.Split(tag, tagSeparator) {
+// 	for _, t := range strings.Split(tag, tagSeparator) {
 
-		if v.hasAliasValidators {
-			// check map for alias and process new tags, otherwise process as usual
-			if tagsVal, ok := v.aliasValidators[t]; ok {
+// 		if v.hasAliasValidators {
+// 			// check map for alias and process new tags, otherwise process as usual
+// 			if tagsVal, ok := v.aliasValidators[t]; ok {
 
-				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
+// 				leave := v.parseTagsRecursive(cTag, tagsVal, fieldName, t, true)
 
-				if leave {
-					return leave
-				}
+// 				if leave {
+// 					return leave
+// 				}
 
-				continue
-			}
-		}
+// 				continue
+// 			}
+// 		}
 
-		switch t {
+// 		switch t {
 
-		case diveTag:
-			cTag.diveTag = tag
-			tVals := &tagVals{tagVals: [][]string{{t}}}
-			cTag.tags = append(cTag.tags, tVals)
-			return true
+// 		case diveTag:
+// 			cTag.diveTag = tag
+// 			tVals := &tagVals{tagVals: [][]string{{t}}}
+// 			cTag.tags = append(cTag.tags, tVals)
+// 			return true
 
-		case omitempty:
-			cTag.isOmitEmpty = true
+// 		case omitempty:
+// 			cTag.isOmitEmpty = true
 
-		case structOnlyTag:
-			cTag.isStructOnly = true
+// 		case structOnlyTag:
+// 			cTag.isStructOnly = true
 
-		case noStructLevelTag:
-			cTag.isNoStructLevel = true
-		}
+// 		case noStructLevelTag:
+// 			cTag.isNoStructLevel = true
+// 		}
 
-		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
-		orVals := strings.Split(t, orSeparator)
-		tagVal := &tagVals{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
-		cTag.tags = append(cTag.tags, tagVal)
+// 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
+// 		orVals := strings.Split(t, orSeparator)
+// 		tagVal := &tagVals{isAlias: isAlias, isOrVal: len(orVals) > 1, tagVals: make([][]string, len(orVals))}
+// 		cTag.tags = append(cTag.tags, tagVal)
 
-		var key string
-		var param string
+// 		var key string
+// 		var param string
 
-		for i, val := range orVals {
-			vals := strings.SplitN(val, tagKeySeparator, 2)
-			key = vals[0]
+// 		for i, val := range orVals {
+// 			vals := strings.SplitN(val, tagKeySeparator, 2)
+// 			key = vals[0]
 
-			tagVal.tag = key
+// 			tagVal.tag = key
 
-			if isAlias {
-				tagVal.tag = alias
-			}
+// 			if isAlias {
+// 				tagVal.tag = alias
+// 			}
 
-			if key == blank {
-				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
-			}
+// 			if key == blank {
+// 				panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
+// 			}
 
-			if len(vals) > 1 {
-				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
-			}
+// 			if len(vals) > 1 {
+// 				param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+// 			}
 
-			tagVal.tagVals[i] = []string{key, param}
-		}
-	}
+// 			tagVal.tagVals[i] = []string{key, param}
+// 		}
+// 	}
 
-	return false
-}
+// 	return false
+// }

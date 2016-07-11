@@ -576,6 +576,7 @@ func TestAliasTags(t *testing.T) {
 
 	validate.RegisterAliasValidation("req", "required,dive,iscolor")
 	arr := []string{"val1", "#fff", "#000"}
+
 	errs = validate.Field(arr, "req")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "[0]", "[0]", "iscolor")
