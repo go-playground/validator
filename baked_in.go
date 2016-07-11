@@ -1032,7 +1032,7 @@ func IsGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 		return field.Float() > p
 	case reflect.Struct:
 
-		if field.Type() == timeType || field.Type() == timePtrType {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			return field.Interface().(time.Time).After(time.Now().UTC())
 		}
@@ -1247,7 +1247,7 @@ func IsLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 
 	case reflect.Struct:
 
-		if field.Type() == timeType || field.Type() == timePtrType {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			return field.Interface().(time.Time).Before(time.Now().UTC())
 		}
