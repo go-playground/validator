@@ -41,10 +41,9 @@ const (
 )
 
 var (
-	timeType       = reflect.TypeOf(time.Time{})
-	timePtrType    = reflect.TypeOf(&time.Time{})
-	emptyStructPtr = new(struct{})
-	defaultCField  = new(cField)
+	timeType      = reflect.TypeOf(time.Time{})
+	timePtrType   = reflect.TypeOf(&time.Time{})
+	defaultCField = new(cField)
 )
 
 // StructLevel contains all of the information and helper methods
@@ -417,7 +416,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
-	m := map[string]*struct{}{}
+	m := map[string]struct{}{}
 
 	if fields != nil {
 		for _, k := range fields {
@@ -433,19 +432,19 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 					if idx != -1 {
 						for idx != -1 {
 							key += s[:idx]
-							m[key] = emptyStructPtr
+							m[key] = struct{}{}
 
 							idx2 := strings.Index(s, rightBracket)
 							idx2++
 							key += s[idx:idx2]
-							m[key] = emptyStructPtr
+							m[key] = struct{}{}
 							s = s[idx2:]
 							idx = strings.Index(s, leftBracket)
 						}
 					} else {
 
 						key += s
-						m[key] = emptyStructPtr
+						m[key] = struct{}{}
 					}
 
 					key += namespaceSeparator
@@ -475,10 +474,10 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 
 	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
-	m := map[string]*struct{}{}
+	m := map[string]struct{}{}
 
 	for _, key := range fields {
-		m[name+namespaceSeparator+key] = emptyStructPtr
+		m[name+namespaceSeparator+key] = struct{}{}
 	}
 
 	errs := v.errsPool.Get().(ValidationErrors)
@@ -512,7 +511,7 @@ func (v *Validate) Struct(current interface{}) error {
 	return errs
 }
 
-func (v *Validate) ensureValidStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
+func (v *Validate) ensureValidStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]struct{}, isStructOnly bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -526,7 +525,7 @@ func (v *Validate) ensureValidStruct(topStruct reflect.Value, currentStruct refl
 }
 
 // tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, cs *cStruct, ct *cTag) {
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]struct{}, cs *cStruct, ct *cTag) {
 
 	var ok bool
 	first := len(nsPrefix) == 0
@@ -572,7 +571,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 }
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
-func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, partial bool, exclude bool, includeExclude map[string]*struct{}, cs *cStruct, cf *cField, ct *cTag) {
+func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, partial bool, exclude bool, includeExclude map[string]struct{}, cs *cStruct, cf *cField, ct *cTag) {
 
 	current, kind := v.ExtractType(current)
 	var typ reflect.Type

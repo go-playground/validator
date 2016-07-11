@@ -17,15 +17,15 @@ const (
 )
 
 var (
-	restrictedTags = map[string]*struct{}{
-		diveTag:           emptyStructPtr,
-		existsTag:         emptyStructPtr,
-		structOnlyTag:     emptyStructPtr,
-		omitempty:         emptyStructPtr,
-		skipValidationTag: emptyStructPtr,
-		utf8HexComma:      emptyStructPtr,
-		utf8Pipe:          emptyStructPtr,
-		noStructLevelTag:  emptyStructPtr,
+	restrictedTags = map[string]struct{}{
+		diveTag:           {},
+		existsTag:         {},
+		structOnlyTag:     {},
+		omitempty:         {},
+		skipValidationTag: {},
+		utf8HexComma:      {},
+		utf8Pipe:          {},
+		noStructLevelTag:  {},
 	}
 )
 

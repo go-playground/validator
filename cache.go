@@ -157,8 +157,6 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	return cs
 }
 
-// TODO: Optimize for to not Split but ust for over string chunk, by chunk
-
 func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
 
 	var t string
