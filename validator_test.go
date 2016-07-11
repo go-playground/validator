@@ -2370,6 +2370,9 @@ func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 	errs = validate.Field(iface, "")
 	Equal(t, errs, nil)
 
+	errs = validate.FieldWithValue(nil, iface, "")
+	Equal(t, errs, nil)
+
 	var f func(string)
 
 	errs = validate.Field(f, "required")
@@ -5786,4 +5789,31 @@ func TestCustomFieldName(t *testing.T) {
 	Equal(t, errs["A.C"].Name, "C")
 	Equal(t, errs["A.D"].Name, "D")
 	Equal(t, errs["A.E"].Name, "E")
+}
+
+func TestMutipleRecursiveExtractStructCache(t *testing.T) {
+
+	type Recursive struct {
+		Field *string `validate:"exists,required,len=5,ne=string"`
+	}
+
+	var test Recursive
+
+	current := reflect.ValueOf(test)
+	name := "Recursive"
+	proceed := make(chan struct{})
+
+	sc := validate.extractStructCache(current, name)
+	ptr := fmt.Sprintf("%p", sc)
+
+	for i := 0; i < 100; i++ {
+
+		go func() {
+			<-proceed
+			sc := validate.extractStructCache(current, name)
+			Equal(t, ptr, fmt.Sprintf("%p", sc))
+		}()
+	}
+
+	close(proceed)
 }

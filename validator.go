@@ -622,11 +622,6 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			return
 		}
 
-		// if we get here tag length is zero and we can leave
-		if kind == reflect.Invalid {
-			return
-		}
-
 	case reflect.Struct:
 		typ = current.Type()
 
@@ -704,40 +699,6 @@ OUTER:
 			errTag := blank
 
 			for {
-
-				if !ct.isOrVal {
-					// if we get here, no valid 'or' value, but more tags
-
-					ns := errPrefix + cf.Name
-
-					if ct.hasAlias {
-						errs[ns] = &FieldError{
-							FieldNamespace: ns,
-							NameNamespace:  nsPrefix + cf.AltName,
-							Name:           cf.AltName,
-							Field:          cf.Name,
-							Tag:            ct.aliasTag,
-							ActualTag:      ct.actualAliasTag,
-							Value:          current.Interface(),
-							Type:           typ,
-							Kind:           kind,
-						}
-					} else {
-						errs[errPrefix+cf.Name] = &FieldError{
-							FieldNamespace: ns,
-							NameNamespace:  nsPrefix + cf.AltName,
-							Name:           cf.AltName,
-							Field:          cf.Name,
-							Tag:            errTag[1:],
-							ActualTag:      errTag[1:],
-							Value:          current.Interface(),
-							Type:           typ,
-							Kind:           kind,
-						}
-					}
-
-					continue OUTER
-				}
 
 				if ct.fn(v, topStruct, currentStruct, current, typ, kind, ct.param) {
 
