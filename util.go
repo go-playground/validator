@@ -35,43 +35,54 @@ var (
 // it is exposed for use within you Custom Functions
 func (v *Validate) ExtractType(current reflect.Value) (reflect.Value, reflect.Kind) {
 
+	val, k, _ := v.extractTypeInternal(current, false)
+	return val, k
+}
+
+// only exists to not break backward compatibility, needed to return the third param for a bug fix internally
+func (v *Validate) extractTypeInternal(current reflect.Value, nullable bool) (reflect.Value, reflect.Kind, bool) {
+
 	switch current.Kind() {
 	case reflect.Ptr:
 
+		nullable = true
+
 		if current.IsNil() {
-			return current, reflect.Ptr
+			return current, reflect.Ptr, nullable
 		}
 
-		return v.ExtractType(current.Elem())
+		return v.extractTypeInternal(current.Elem(), nullable)
 
 	case reflect.Interface:
 
+		nullable = true
+
 		if current.IsNil() {
-			return current, reflect.Interface
+			return current, reflect.Interface, nullable
 		}
 
-		return v.ExtractType(current.Elem())
+		return v.extractTypeInternal(current.Elem(), nullable)
 
 	case reflect.Invalid:
-		return current, reflect.Invalid
+		return current, reflect.Invalid, nullable
 
 	default:
 
 		if v.hasCustomFuncs {
 
 			if fn, ok := v.customTypeFuncs[current.Type()]; ok {
-				return v.ExtractType(reflect.ValueOf(fn(current)))
+				return v.extractTypeInternal(reflect.ValueOf(fn(current)), nullable)
 			}
 		}
 
-		return current, current.Kind()
+		return current, current.Kind(), nullable
 	}
 }
 
 // GetStructFieldOK traverses a struct to retrieve a specific field denoted by the provided namespace and
 // returns the field, field kind and whether is was successful in retrieving the field at all.
 // NOTE: when not successful ok will be false, this can happen when a nested struct is nil and so the field
-// could not be retrived because it didnt exist.
+// could not be retrived because it didn't exist.
 func (v *Validate) GetStructFieldOK(current reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
 
 	current, kind := v.ExtractType(current)

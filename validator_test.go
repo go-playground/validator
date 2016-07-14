@@ -5817,3 +5817,48 @@ func TestMutipleRecursiveExtractStructCache(t *testing.T) {
 
 	close(proceed)
 }
+
+// Thanks @robbrockbank, see https://github.com/go-playground/validator/issues/249
+func TestPointerAndOmitEmpty(t *testing.T) {
+
+	type Test struct {
+		MyInt *int `validate:"omitempty,gte=2,lte=255"`
+	}
+
+	val1 := 0
+	val2 := 256
+
+	t1 := Test{MyInt: &val1} // This should fail validation on gte because value is 0
+	t2 := Test{MyInt: &val2} // This should fail validate on lte because value is 256
+	t3 := Test{MyInt: nil}   // This should succeed validation because pointer is nil
+
+	errs := validate.Struct(t1)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.MyInt", "MyInt", "gte")
+
+	errs = validate.Struct(t2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.MyInt", "MyInt", "lte")
+
+	errs = validate.Struct(t3)
+	Equal(t, errs, nil)
+
+	type TestIface struct {
+		MyInt interface{} `validate:"omitempty,gte=2,lte=255"`
+	}
+
+	ti1 := TestIface{MyInt: &val1} // This should fail validation on gte because value is 0
+	ti2 := TestIface{MyInt: &val2} // This should fail validate on lte because value is 256
+	ti3 := TestIface{MyInt: nil}   // This should succeed validation because pointer is nil
+
+	errs = validate.Struct(ti1)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestIface.MyInt", "MyInt", "gte")
+
+	errs = validate.Struct(ti2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestIface.MyInt", "MyInt", "lte")
+
+	errs = validate.Struct(ti3)
+	Equal(t, errs, nil)
+}

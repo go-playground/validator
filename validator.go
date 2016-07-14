@@ -573,7 +573,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
 func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, partial bool, exclude bool, includeExclude map[string]struct{}, cs *cStruct, cf *cField, ct *cTag) {
 
-	current, kind := v.ExtractType(current)
+	current, kind, nullable := v.extractTypeInternal(current, false)
 	var typ reflect.Type
 
 	switch kind {
@@ -659,7 +659,7 @@ OUTER:
 
 		case typeOmitEmpty:
 
-			if !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
+			if !nullable && !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
 
