@@ -586,7 +586,7 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 		}
 	}
 
-	current, kind := v.ExtractType(current)
+	current, kind, nullable := v.extractTypeInternal(current, false)
 	var typ reflect.Type
 
 	switch kind {
@@ -671,9 +671,10 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 		if valTag.tagVals[0][0] == omitempty {
 
-			if !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
+			if !nullable && !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
+
 			continue
 		}
 
