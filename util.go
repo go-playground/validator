@@ -82,7 +82,7 @@ func (v *Validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 // GetStructFieldOK traverses a struct to retrieve a specific field denoted by the provided namespace and
 // returns the field, field kind and whether is was successful in retrieving the field at all.
 // NOTE: when not successful ok will be false, this can happen when a nested struct is nil and so the field
-// could not be retrived because it didn't exist.
+// could not be retrieved because it didn't exist.
 func (v *Validate) GetStructFieldOK(current reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
 
 	current, kind := v.ExtractType(current)
@@ -215,7 +215,7 @@ func (v *Validate) GetStructFieldOK(current reflect.Value, namespace string) (re
 	panic("Invalid field namespace")
 }
 
-// asInt retuns the parameter as a int64
+// asInt returns the parameter as a int64
 // or panics if it can't convert
 func asInt(param string) int64 {
 

@@ -723,7 +723,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial, p2...)
 	Equal(t, errs, nil)
 
-	// this isnt really a robust test, but is ment to illustrate the ANON CASE below
+	// this isn't really a robust test, but is ment to illustrate the ANON CASE below
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	Equal(t, errs, nil)
 

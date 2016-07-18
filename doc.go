@@ -162,7 +162,7 @@ Here is a list of the current built in validators:
 
 Skip Field
 
-Tells the validation to skip this struct field; this is particularily
+Tells the validation to skip this struct field; this is particularly
 handy in ignoring embedded structs from being validated. (Usage: -)
 	Usage: -
 
