@@ -407,6 +407,42 @@ func TestAnonymous(t *testing.T) {
 	Equal(t, err, nil)
 }
 
+func TestAnonymousSameStructDifferentTags(t *testing.T) {
+
+	v2 := New(&Config{TagName: "validate", FieldNameTag: "json"})
+
+	type Test struct {
+		A interface{}
+	}
+
+	tst := &Test{
+		A: struct {
+			A string `validate:"required"`
+		}{
+			A: "",
+		},
+	}
+
+	err := v2.Struct(tst)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.A.A", "A", "required")
+
+	tst = &Test{
+		A: struct {
+			A string `validate:"omitempty,required"`
+		}{
+			A: "",
+		},
+	}
+
+	err = v2.Struct(tst)
+	Equal(t, err, nil)
+}
+
 func TestStructLevelReturnValidationErrors(t *testing.T) {
 	config := &Config{
 		TagName: "validate",
