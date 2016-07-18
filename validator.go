@@ -41,9 +41,9 @@ const (
 )
 
 var (
-	timeType       = reflect.TypeOf(time.Time{})
-	timePtrType    = reflect.TypeOf(&time.Time{})
-	emptyStructPtr = new(struct{})
+	timeType      = reflect.TypeOf(time.Time{})
+	timePtrType   = reflect.TypeOf(&time.Time{})
+	defaultCField = new(cField)
 )
 
 // StructLevel contains all of the information and helper methods
@@ -147,8 +147,8 @@ type Validate struct {
 	hasCustomFuncs      bool
 	hasAliasValidators  bool
 	hasStructLevelFuncs bool
-	tagCache            *tagCacheMap
-	structCache         *structCacheMap
+	tagCache            *tagCache
+	structCache         *structCache
 	errsPool            *sync.Pool
 }
 
@@ -220,11 +220,17 @@ type FieldError struct {
 // New creates a new Validate instance for use.
 func New(config *Config) *Validate {
 
+	tc := new(tagCache)
+	tc.m.Store(make(map[string]*cTag))
+
+	sc := new(structCache)
+	sc.m.Store(make(map[reflect.Type]*cStruct))
+
 	v := &Validate{
 		tagName:      config.TagName,
 		fieldNameTag: config.FieldNameTag,
-		tagCache:     &tagCacheMap{m: map[string]*cachedTag{}},
-		structCache:  &structCacheMap{m: map[reflect.Type]*cachedStruct{}},
+		tagCache:     tc,
+		structCache:  sc,
 		errsPool: &sync.Pool{New: func() interface{} {
 			return ValidationErrors{}
 		}}}
@@ -332,10 +338,28 @@ func (v *Validate) RegisterAliasValidation(alias, tags string) {
 func (v *Validate) Field(field interface{}, tag string) error {
 	v.initCheck()
 
+	if len(tag) == 0 || tag == skipValidationTag {
+		return nil
+	}
+
 	errs := v.errsPool.Get().(ValidationErrors)
 	fieldVal := reflect.ValueOf(field)
 
-	v.traverseField(fieldVal, fieldVal, fieldVal, blank, blank, errs, false, tag, blank, blank, false, false, nil, nil)
+	ctag, ok := v.tagCache.Get(tag)
+	if !ok {
+		v.tagCache.lock.Lock()
+		defer v.tagCache.lock.Unlock()
+
+		// could have been multiple trying to access, but once first is done this ensures tag
+		// isn't parsed again.
+		ctag, ok = v.tagCache.Get(tag)
+		if !ok {
+			ctag, _ = v.parseFieldTagsRecursive(tag, blank, blank, false)
+			v.tagCache.Set(tag, ctag)
+		}
+	}
+
+	v.traverseField(fieldVal, fieldVal, fieldVal, blank, blank, errs, false, false, nil, nil, defaultCField, ctag)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -352,10 +376,28 @@ func (v *Validate) Field(field interface{}, tag string) error {
 func (v *Validate) FieldWithValue(val interface{}, field interface{}, tag string) error {
 	v.initCheck()
 
+	if len(tag) == 0 || tag == skipValidationTag {
+		return nil
+	}
+
 	errs := v.errsPool.Get().(ValidationErrors)
 	topVal := reflect.ValueOf(val)
 
-	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, blank, errs, false, tag, blank, blank, false, false, nil, nil)
+	ctag, ok := v.tagCache.Get(tag)
+	if !ok {
+		v.tagCache.lock.Lock()
+		defer v.tagCache.lock.Unlock()
+
+		// could have been multiple trying to access, but once first is done this ensures tag
+		// isn't parsed again.
+		ctag, ok = v.tagCache.Get(tag)
+		if !ok {
+			ctag, _ = v.parseFieldTagsRecursive(tag, blank, blank, false)
+			v.tagCache.Set(tag, ctag)
+		}
+	}
+
+	v.traverseField(topVal, topVal, reflect.ValueOf(field), blank, blank, errs, false, false, nil, nil, defaultCField, ctag)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -374,7 +416,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
-	m := map[string]*struct{}{}
+	m := map[string]struct{}{}
 
 	if fields != nil {
 		for _, k := range fields {
@@ -390,19 +432,19 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 					if idx != -1 {
 						for idx != -1 {
 							key += s[:idx]
-							m[key] = emptyStructPtr
+							m[key] = struct{}{}
 
 							idx2 := strings.Index(s, rightBracket)
 							idx2++
 							key += s[idx:idx2]
-							m[key] = emptyStructPtr
+							m[key] = struct{}{}
 							s = s[idx2:]
 							idx = strings.Index(s, leftBracket)
 						}
 					} else {
 
 						key += s
-						m[key] = emptyStructPtr
+						m[key] = struct{}{}
 					}
 
 					key += namespaceSeparator
@@ -413,7 +455,7 @@ func (v *Validate) StructPartial(current interface{}, fields ...string) error {
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, false, m, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, false, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -432,15 +474,15 @@ func (v *Validate) StructExcept(current interface{}, fields ...string) error {
 
 	sv, _ := v.ExtractType(reflect.ValueOf(current))
 	name := sv.Type().Name()
-	m := map[string]*struct{}{}
+	m := map[string]struct{}{}
 
 	for _, key := range fields {
-		m[name+namespaceSeparator+key] = emptyStructPtr
+		m[name+namespaceSeparator+key] = struct{}{}
 	}
 
 	errs := v.errsPool.Get().(ValidationErrors)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, true, m, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, len(m) != 0, true, m, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -459,7 +501,7 @@ func (v *Validate) Struct(current interface{}) error {
 	errs := v.errsPool.Get().(ValidationErrors)
 	sv := reflect.ValueOf(current)
 
-	v.tranverseStruct(sv, sv, sv, blank, blank, errs, true, false, false, nil, false)
+	v.ensureValidStruct(sv, sv, sv, blank, blank, errs, true, false, false, nil, false)
 
 	if len(errs) == 0 {
 		v.errsPool.Put(errs)
@@ -469,8 +511,7 @@ func (v *Validate) Struct(current interface{}) error {
 	return errs
 }
 
-// tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
-func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]*struct{}, isStructOnly bool) {
+func (v *Validate) ensureValidStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]struct{}, isStructOnly bool) {
 
 	if current.Kind() == reflect.Ptr && !current.IsNil() {
 		current = current.Elem()
@@ -480,134 +521,85 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 		panic("value passed for validation is not a struct")
 	}
 
-	// var ok bool
+	v.tranverseStruct(topStruct, currentStruct, current, errPrefix, nsPrefix, errs, useStructName, partial, exclude, includeExclude, nil, nil)
+}
+
+// tranverseStruct traverses a structs fields and then passes them to be validated by traverseField
+func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, useStructName bool, partial bool, exclude bool, includeExclude map[string]struct{}, cs *cStruct, ct *cTag) {
+
+	var ok bool
+	first := len(nsPrefix) == 0
 	typ := current.Type()
 
-	sName := typ.Name()
+	cs, ok = v.structCache.Get(typ)
+	if !ok {
+		cs = v.extractStructCache(current, typ.Name())
+	}
 
 	if useStructName {
-		errPrefix += sName + namespaceSeparator
+		errPrefix += cs.Name + namespaceSeparator
 
-		if v.fieldNameTag != blank {
-			nsPrefix += sName + namespaceSeparator
+		if len(v.fieldNameTag) != 0 {
+			nsPrefix += cs.Name + namespaceSeparator
 		}
 	}
 
 	// structonly tag present don't tranverseFields
 	// but must still check and run below struct level validation
 	// if present
-	if !isStructOnly {
+	if first || ct == nil || ct.typeof != typeStructOnly {
 
-		var fld reflect.StructField
+		for _, f := range cs.fields {
 
-		// is anonymous struct, cannot parse or cache as
-		// it has no name to index by
-		if sName == blank {
+			if partial {
 
-			var customName string
-			var ok bool
-			numFields := current.NumField()
+				_, ok = includeExclude[errPrefix+f.Name]
 
-			for i := 0; i < numFields; i++ {
-
-				fld = typ.Field(i)
-
-				if fld.PkgPath != blank && !fld.Anonymous {
+				if (ok && exclude) || (!ok && !exclude) {
 					continue
 				}
-
-				if partial {
-
-					_, ok = includeExclude[errPrefix+fld.Name]
-
-					if (ok && exclude) || (!ok && !exclude) {
-						continue
-					}
-				}
-
-				customName = fld.Name
-
-				if v.fieldNameTag != blank {
-
-					name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
-
-					// dash check is for json "-" means don't output in json
-					if name != blank && name != dash {
-						customName = name
-					}
-				}
-
-				v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, nsPrefix, errs, true, fld.Tag.Get(v.tagName), fld.Name, customName, partial, exclude, includeExclude, nil)
-			}
-		} else {
-			s, ok := v.structCache.Get(typ)
-			if !ok {
-				s = v.parseStruct(current, sName)
 			}
 
-			for i, f := range s.fields {
-
-				if partial {
-
-					_, ok = includeExclude[errPrefix+f.Name]
-
-					if (ok && exclude) || (!ok && !exclude) {
-						continue
-					}
-				}
-				fld = typ.Field(i)
-
-				v.traverseField(topStruct, currentStruct, current.Field(i), errPrefix, nsPrefix, errs, true, f.CachedTag.tag, fld.Name, f.AltName, partial, exclude, includeExclude, f.CachedTag)
-			}
+			v.traverseField(topStruct, currentStruct, current.Field(f.Idx), errPrefix, nsPrefix, errs, partial, exclude, includeExclude, cs, f, f.cTags)
 		}
 	}
 
 	// check if any struct level validations, after all field validations already checked.
-	if v.hasStructLevelFuncs {
-		if fn, ok := v.structLevelFuncs[current.Type()]; ok {
-			fn(v, &StructLevel{v: v, TopStruct: topStruct, CurrentStruct: current, errPrefix: errPrefix, nsPrefix: nsPrefix, errs: errs})
-		}
+	if cs.fn != nil {
+		cs.fn(v, &StructLevel{v: v, TopStruct: topStruct, CurrentStruct: current, errPrefix: errPrefix, nsPrefix: nsPrefix, errs: errs})
 	}
 }
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
-func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, isStructField bool, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
-
-	if tag == skipValidationTag {
-		return
-	}
-
-	if cTag == nil {
-		var isCached bool
-		cTag, isCached = v.tagCache.Get(tag)
-
-		if !isCached {
-			cTag = v.parseTags(tag, name)
-		}
-	}
+func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, partial bool, exclude bool, includeExclude map[string]struct{}, cs *cStruct, cf *cField, ct *cTag) {
 
 	current, kind, nullable := v.extractTypeInternal(current, false)
 	var typ reflect.Type
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
-		if cTag.isOmitEmpty {
+
+		if ct == nil {
 			return
 		}
 
-		if tag != blank {
+		if ct.typeof == typeOmitEmpty {
+			return
+		}
 
-			ns := errPrefix + name
+		if ct.hasTag {
+
+			ns := errPrefix + cf.Name
 
 			if kind == reflect.Invalid {
 				errs[ns] = &FieldError{
 					FieldNamespace: ns,
-					NameNamespace:  nsPrefix + customName,
-					Name:           customName,
-					Field:          name,
-					Tag:            cTag.tags[0].tag,
-					ActualTag:      cTag.tags[0].tagVals[0][0],
-					Param:          cTag.tags[0].tagVals[0][1],
+					NameNamespace:  nsPrefix + cf.AltName,
+					Name:           cf.AltName,
+					Field:          cf.Name,
+					Tag:            ct.aliasTag,
+					ActualTag:      ct.tag,
+					Param:          ct.param,
 					Kind:           kind,
 				}
 				return
@@ -615,12 +607,12 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 
 			errs[ns] = &FieldError{
 				FieldNamespace: ns,
-				NameNamespace:  nsPrefix + customName,
-				Name:           customName,
-				Field:          name,
-				Tag:            cTag.tags[0].tag,
-				ActualTag:      cTag.tags[0].tagVals[0][0],
-				Param:          cTag.tags[0].tagVals[0][1],
+				NameNamespace:  nsPrefix + cf.AltName,
+				Name:           cf.AltName,
+				Field:          cf.Name,
+				Tag:            ct.aliasTag,
+				ActualTag:      ct.tag,
+				Param:          ct.param,
 				Value:          current.Interface(),
 				Kind:           kind,
 				Type:           current.Type(),
@@ -629,170 +621,162 @@ func (v *Validate) traverseField(topStruct reflect.Value, currentStruct reflect.
 			return
 		}
 
-		// if we get here tag length is zero and we can leave
-		if kind == reflect.Invalid {
-			return
-		}
-
 	case reflect.Struct:
 		typ = current.Type()
 
 		if typ != timeType {
 
-			if cTag.isNoStructLevel {
+			if ct != nil {
+				ct = ct.next
+			}
+
+			if ct != nil && ct.typeof == typeNoStructLevel {
 				return
 			}
 
-			v.tranverseStruct(topStruct, current, current, errPrefix+name+namespaceSeparator, nsPrefix+customName+namespaceSeparator, errs, false, partial, exclude, includeExclude, cTag.isStructOnly)
+			v.tranverseStruct(topStruct, current, current, errPrefix+cf.Name+namespaceSeparator, nsPrefix+cf.AltName+namespaceSeparator, errs, false, partial, exclude, includeExclude, cs, ct)
 			return
 		}
 	}
 
-	if tag == blank {
+	if !ct.hasTag {
 		return
 	}
 
 	typ = current.Type()
 
-	var dive bool
-	var diveSubTag string
+OUTER:
+	for {
+		if ct == nil {
+			return
+		}
 
-	for _, valTag := range cTag.tags {
+		switch ct.typeof {
 
-		if valTag.tagVals[0][0] == existsTag {
+		case typeExists:
+			ct = ct.next
 			continue
-		}
 
-		if valTag.tagVals[0][0] == diveTag {
-			dive = true
-			diveSubTag = strings.TrimLeft(strings.SplitN(cTag.diveTag, diveTag, 2)[1], ",")
-			break
-		}
-
-		if valTag.tagVals[0][0] == omitempty {
+		case typeOmitEmpty:
 
 			if !nullable && !HasValue(v, topStruct, currentStruct, current, typ, kind, blank) {
 				return
 			}
 
+			ct = ct.next
 			continue
-		}
 
-		if v.validateField(topStruct, currentStruct, current, typ, kind, errPrefix, nsPrefix, errs, valTag, name, customName) {
+		case typeDive:
+
+			ct = ct.next
+
+			// traverse slice or map here
+			// or panic ;)
+			switch kind {
+			case reflect.Slice, reflect.Array:
+
+				for i := 0; i < current.Len(); i++ {
+					v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, nsPrefix, errs, partial, exclude, includeExclude, cs, &cField{Name: fmt.Sprintf(arrayIndexFieldName, cf.Name, i), AltName: fmt.Sprintf(arrayIndexFieldName, cf.AltName, i)}, ct)
+				}
+
+			case reflect.Map:
+				for _, key := range current.MapKeys() {
+					v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, nsPrefix, errs, partial, exclude, includeExclude, cs, &cField{Name: fmt.Sprintf(mapIndexFieldName, cf.Name, key.Interface()), AltName: fmt.Sprintf(mapIndexFieldName, cf.AltName, key.Interface())}, ct)
+				}
+
+			default:
+				// throw error, if not a slice or map then should not have gotten here
+				// bad dive tag
+				panic("dive error! can't dive on a non slice or map")
+			}
+
 			return
-		}
-	}
 
-	if dive {
-		// traverse slice or map here
-		// or panic ;)
-		switch kind {
-		case reflect.Slice, reflect.Array:
-			v.traverseSlice(topStruct, currentStruct, current, errPrefix, nsPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude, nil)
-		case reflect.Map:
-			v.traverseMap(topStruct, currentStruct, current, errPrefix, nsPrefix, errs, diveSubTag, name, customName, partial, exclude, includeExclude, nil)
+		case typeOr:
+
+			errTag := blank
+
+			for {
+
+				if ct.fn(v, topStruct, currentStruct, current, typ, kind, ct.param) {
+
+					// drain rest of the 'or' values, then continue or leave
+					for {
+
+						ct = ct.next
+
+						if ct == nil {
+							return
+						}
+
+						if ct.typeof != typeOr {
+							continue OUTER
+						}
+					}
+				}
+
+				errTag += orSeparator + ct.tag
+
+				if ct.next == nil {
+					// if we get here, no valid 'or' value and no more tags
+
+					ns := errPrefix + cf.Name
+
+					if ct.hasAlias {
+						errs[ns] = &FieldError{
+							FieldNamespace: ns,
+							NameNamespace:  nsPrefix + cf.AltName,
+							Name:           cf.AltName,
+							Field:          cf.Name,
+							Tag:            ct.aliasTag,
+							ActualTag:      ct.actualAliasTag,
+							Value:          current.Interface(),
+							Type:           typ,
+							Kind:           kind,
+						}
+					} else {
+						errs[errPrefix+cf.Name] = &FieldError{
+							FieldNamespace: ns,
+							NameNamespace:  nsPrefix + cf.AltName,
+							Name:           cf.AltName,
+							Field:          cf.Name,
+							Tag:            errTag[1:],
+							ActualTag:      errTag[1:],
+							Value:          current.Interface(),
+							Type:           typ,
+							Kind:           kind,
+						}
+					}
+
+					return
+				}
+
+				ct = ct.next
+			}
+
 		default:
-			// throw error, if not a slice or map then should not have gotten here
-			// bad dive tag
-			panic("dive error! can't dive on a non slice or map")
+			if !ct.fn(v, topStruct, currentStruct, current, typ, kind, ct.param) {
+
+				ns := errPrefix + cf.Name
+
+				errs[ns] = &FieldError{
+					FieldNamespace: ns,
+					NameNamespace:  nsPrefix + cf.AltName,
+					Name:           cf.AltName,
+					Field:          cf.Name,
+					Tag:            ct.aliasTag,
+					ActualTag:      ct.tag,
+					Value:          current.Interface(),
+					Param:          ct.param,
+					Type:           typ,
+					Kind:           kind,
+				}
+
+				return
+
+			}
+
+			ct = ct.next
 		}
 	}
-}
-
-// traverseSlice traverses a Slice or Array's elements and passes them to traverseField for validation
-func (v *Validate) traverseSlice(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
-
-	for i := 0; i < current.Len(); i++ {
-		v.traverseField(topStruct, currentStruct, current.Index(i), errPrefix, nsPrefix, errs, false, tag, fmt.Sprintf(arrayIndexFieldName, name, i), fmt.Sprintf(arrayIndexFieldName, customName, i), partial, exclude, includeExclude, cTag)
-	}
-}
-
-// traverseMap traverses a map's elements and passes them to traverseField for validation
-func (v *Validate) traverseMap(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, errPrefix string, nsPrefix string, errs ValidationErrors, tag, name, customName string, partial bool, exclude bool, includeExclude map[string]*struct{}, cTag *cachedTag) {
-
-	for _, key := range current.MapKeys() {
-		v.traverseField(topStruct, currentStruct, current.MapIndex(key), errPrefix, nsPrefix, errs, false, tag, fmt.Sprintf(mapIndexFieldName, name, key.Interface()), fmt.Sprintf(mapIndexFieldName, customName, key.Interface()), partial, exclude, includeExclude, cTag)
-	}
-}
-
-// validateField validates a field based on the provided tag's key and param values and returns true if there is an error or false if all ok
-func (v *Validate) validateField(topStruct reflect.Value, currentStruct reflect.Value, current reflect.Value, currentType reflect.Type, currentKind reflect.Kind, errPrefix string, nsPrefix string, errs ValidationErrors, valTag *tagVals, name, customName string) bool {
-
-	var valFunc Func
-	var ok bool
-
-	if valTag.isOrVal {
-
-		errTag := blank
-
-		for _, val := range valTag.tagVals {
-
-			valFunc, ok = v.validationFuncs[val[0]]
-			if !ok {
-				panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
-			}
-
-			if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, val[1]) {
-				return false
-			}
-
-			errTag += orSeparator + val[0]
-		}
-
-		ns := errPrefix + name
-
-		if valTag.isAlias {
-			errs[ns] = &FieldError{
-				FieldNamespace: ns,
-				NameNamespace:  nsPrefix + customName,
-				Name:           customName,
-				Field:          name,
-				Tag:            valTag.tag,
-				ActualTag:      errTag[1:],
-				Value:          current.Interface(),
-				Type:           currentType,
-				Kind:           currentKind,
-			}
-		} else {
-			errs[errPrefix+name] = &FieldError{
-				FieldNamespace: ns,
-				NameNamespace:  nsPrefix + customName,
-				Name:           customName,
-				Field:          name,
-				Tag:            errTag[1:],
-				ActualTag:      errTag[1:],
-				Value:          current.Interface(),
-				Type:           currentType,
-				Kind:           currentKind,
-			}
-		}
-
-		return true
-	}
-
-	valFunc, ok = v.validationFuncs[valTag.tagVals[0][0]]
-	if !ok {
-		panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, name)))
-	}
-
-	if valFunc(v, topStruct, currentStruct, current, currentType, currentKind, valTag.tagVals[0][1]) {
-		return false
-	}
-
-	ns := errPrefix + name
-
-	errs[ns] = &FieldError{
-		FieldNamespace: ns,
-		NameNamespace:  nsPrefix + customName,
-		Name:           customName,
-		Field:          name,
-		Tag:            valTag.tag,
-		ActualTag:      valTag.tagVals[0][0],
-		Value:          current.Interface(),
-		Param:          valTag.tagVals[0][1],
-		Type:           currentType,
-		Kind:           currentKind,
-	}
-
-	return true
 }

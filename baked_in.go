@@ -271,11 +271,7 @@ func IsISBN13(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 		checksum += factor[i%2] * int32(s[i]-'0')
 	}
 
-	if (int32(s[12]-'0'))-((10-(checksum%10))%10) == 0 {
-		return true
-	}
-
-	return false
+	return (int32(s[12]-'0'))-((10-(checksum%10))%10) == 0
 }
 
 // IsISBN10 is the validation function for validating if the field's value is a valid v10 ISBN.
@@ -301,11 +297,7 @@ func IsISBN10(v *Validate, topStruct reflect.Value, currentStructOrField reflect
 		checksum += 10 * int32(s[9]-'0')
 	}
 
-	if checksum%11 == 0 {
-		return true
-	}
-
-	return false
+	return checksum%11 == 0
 }
 
 // ExcludesRune is the validation function for validating that the field's value does not contain the rune specified withing the param.
@@ -1040,7 +1032,7 @@ func IsGt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 		return field.Float() > p
 	case reflect.Struct:
 
-		if field.Type() == timeType || field.Type() == timePtrType {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			return field.Interface().(time.Time).After(time.Now().UTC())
 		}
@@ -1255,7 +1247,7 @@ func IsLt(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Val
 
 	case reflect.Struct:
 
-		if field.Type() == timeType || field.Type() == timePtrType {
+		if fieldType == timeType || fieldType == timePtrType {
 
 			return field.Interface().(time.Time).Before(time.Now().UTC())
 		}
