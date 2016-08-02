@@ -346,7 +346,7 @@ Complimentary Software
 
 Here is a list of software that compliments using this library either pre or post validation.
 
-* [Gorilla Schema](https://github.com/gorilla/schema) - Package gorilla/schema fills a struct with form values.
+* [form](https://github.com/go-playground/form) - Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values. Dual Array and Full map support.
 * [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
 
 How to Contribute
