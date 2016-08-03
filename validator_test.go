@@ -2,7 +2,9 @@ package validator
 
 import (
 	"database/sql/driver"
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	. "gopkg.in/go-playground/assert.v1"
@@ -96,7 +98,7 @@ type TestString struct {
 
 // var validate = New(&Config{TagName: "validate"})
 
-func AssertError(t *testing.T, err error, key, field, expectedTag string) {
+func AssertError(t *testing.T, err error, key, field, actualField, expectedTag string) {
 
 	errs := err.(ValidationErrors)
 
@@ -114,7 +116,24 @@ func AssertError(t *testing.T, err error, key, field, expectedTag string) {
 	EqualSkip(t, 2, found, true)
 	NotEqualSkip(t, 2, fe, nil)
 	EqualSkip(t, 2, fe.Field(), field)
+	EqualSkip(t, 2, fe.StructField(), actualField)
 	EqualSkip(t, 2, fe.Tag(), expectedTag)
+}
+
+func getError(err error, key string) FieldError {
+
+	errs := err.(ValidationErrors)
+
+	var fe FieldError
+
+	for i := 0; i < len(errs); i++ {
+		if errs[i].Namespace() == key {
+			fe = errs[i]
+			break
+		}
+	}
+
+	return fe
 }
 
 type valuer struct {
@@ -301,50 +320,59 @@ func StructValidationTestStruct(sl StructLevel) {
 // 	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
 // }
 
-// type Inner2Namespace struct {
-// 	String []string `validate:"dive,required" json:"JSONString"`
-// }
+func TestNameNamespace(t *testing.T) {
 
-// type Inner1Namespace struct {
-// 	Inner2 *Inner2Namespace `json:"Inner2JSON"`
-// }
+	type Inner2Namespace struct {
+		String []string `validate:"dive,required" json:"JSONString"`
+	}
 
-// type Namespace struct {
-// 	Inner1 *Inner1Namespace `json:"Inner1JSON"`
-// }
+	type Inner1Namespace struct {
+		Inner2 *Inner2Namespace `json:"Inner2JSON"`
+	}
 
-// func TestNameNamespace(t *testing.T) {
+	type Namespace struct {
+		Inner1 *Inner1Namespace `json:"Inner1JSON"`
+	}
 
-// 	config := &Config{
-// 		TagName:      "validate",
-// 		FieldNameTag: "json",
-// 	}
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 
-// 	v1 := New(config)
-// 	i2 := &Inner2Namespace{String: []string{"ok", "ok", "ok"}}
-// 	i1 := &Inner1Namespace{Inner2: i2}
-// 	ns := &Namespace{Inner1: i1}
+		if name == "-" {
+			return ""
+		}
 
-// 	errs := v1.Struct(ns)
-// 	Equal(t, errs, nil)
+		return name
+	})
 
-// 	i2.String[1] = ""
+	i2 := &Inner2Namespace{String: []string{"ok", "ok", "ok"}}
+	i1 := &Inner1Namespace{Inner2: i2}
+	ns := &Namespace{Inner1: i1}
 
-// 	errs = v1.Struct(ns)
-// 	NotEqual(t, errs, nil)
+	errs := validate.Struct(ns)
+	Equal(t, errs, nil)
 
-// 	ve := errs.(ValidationErrors)
-// 	Equal(t, len(ve), 1)
-// 	AssertError(t, errs, "Namespace.Inner1.Inner2.String[1]", "String[1]", "required")
+	i2.String[1] = ""
 
-// 	fe, ok := ve["Namespace.Inner1.Inner2.String[1]"]
-// 	Equal(t, ok, true)
+	errs = validate.Struct(ns)
+	NotEqual(t, errs, nil)
 
-// 	Equal(t, fe.Field, "String[1]")
-// 	Equal(t, fe.FieldNamespace, "Namespace.Inner1.Inner2.String[1]")
-// 	Equal(t, fe.Name, "JSONString[1]")
-// 	Equal(t, fe.NameNamespace, "Namespace.Inner1JSON.Inner2JSON.JSONString[1]")
-// }
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Namespace.Inner1.Inner2.String[1]", "JSONString[1]", "String[1]", "required")
+
+	fe := getError(ve, "Namespace.Inner1.Inner2.String[1]")
+	NotEqual(t, fe, nil)
+
+	Equal(t, fe.Field(), "JSONString[1]")
+	Equal(t, fe.StructField(), "String[1]")
+
+	fmt.Println(fe.Namespace())
+	fmt.Println(fe.StructNamespace())
+
+	Equal(t, fe.Namespace(), "Namespace.Inner1JSON.Inner2JSON.JSONString[1]")
+	Equal(t, fe.StructNamespace(), "Namespace.Inner1.Inner2.String[1]")
+}
 
 // func TestAnonymous(t *testing.T) {
 
@@ -5667,16 +5695,16 @@ func TestStructInt32Validation(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 10)
 
 	// Assert Fields
-	AssertError(t, errs, "TestInt32.Required", "Required", "required")
-	AssertError(t, errs, "TestInt32.Len", "Len", "len")
-	AssertError(t, errs, "TestInt32.Min", "Min", "min")
-	AssertError(t, errs, "TestInt32.Max", "Max", "max")
-	AssertError(t, errs, "TestInt32.MinMax", "MinMax", "min")
-	AssertError(t, errs, "TestInt32.Lt", "Lt", "lt")
-	AssertError(t, errs, "TestInt32.Lte", "Lte", "lte")
-	AssertError(t, errs, "TestInt32.Gt", "Gt", "gt")
-	AssertError(t, errs, "TestInt32.Gte", "Gte", "gte")
-	AssertError(t, errs, "TestInt32.OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestInt32.Required", "Required", "Required", "required")
+	AssertError(t, errs, "TestInt32.Len", "Len", "Len", "len")
+	AssertError(t, errs, "TestInt32.Min", "Min", "Min", "min")
+	AssertError(t, errs, "TestInt32.Max", "Max", "Max", "max")
+	AssertError(t, errs, "TestInt32.MinMax", "MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestInt32.Lt", "Lt", "Lt", "lt")
+	AssertError(t, errs, "TestInt32.Lte", "Lte", "Lte", "lte")
+	AssertError(t, errs, "TestInt32.Gt", "Gt", "Gt", "gt")
+	AssertError(t, errs, "TestInt32.Gte", "Gte", "Gte", "gte")
+	AssertError(t, errs, "TestInt32.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
 }
 
 // func TestStructUint64Validation(t *testing.T) {

@@ -10,6 +10,8 @@ type StructLevelFunc func(sl StructLevel)
 type StructLevel interface {
 
 	// returns the main validation object, in case one want to call validations internally.
+	// this is so you don;t have to use anonymous functoins to get access to the validate
+	// instance.
 	Validator() *Validate
 
 	// returns the top level struct, if any
@@ -104,7 +106,7 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 	}
 
 	ns := append(v.slNs, fieldName...)
-	nsActual := append(v.slActualNs, altName...)
+	nsActual := append(v.slStructNs, altName...)
 
 	switch kind {
 	case reflect.Invalid:
@@ -114,9 +116,9 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 				tag:         tag,
 				actualTag:   tag,
 				ns:          string(ns),
-				actualNs:    string(nsActual),
+				structNs:    string(nsActual),
 				field:       fieldName,
-				actualField: altName,
+				structField: altName,
 				param:       "",
 				kind:        kind,
 			},
@@ -129,9 +131,9 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 				tag:         tag,
 				actualTag:   tag,
 				ns:          string(ns),
-				actualNs:    string(nsActual),
+				structNs:    string(nsActual),
 				field:       fieldName,
-				actualField: altName,
+				structField: altName,
 				value:       fv.Interface(),
 				param:       "",
 				kind:        kind,
@@ -152,7 +154,7 @@ func (v *validate) ReportValidationErrors(relativeNamespace, relativeActualNames
 
 		err = errs[i].(*fieldError)
 		err.ns = string(append(append(v.slNs, err.ns...), err.field...))
-		err.actualNs = string(append(append(v.slActualNs, err.actualNs...), err.actualField...))
+		err.structNs = string(append(append(v.slStructNs, err.structNs...), err.structField...))
 
 		v.errs = append(v.errs, err)
 	}

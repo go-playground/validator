@@ -25,13 +25,13 @@ type validate struct {
 	slflParent reflect.Value
 	slCurrent  reflect.Value
 	slNs       []byte
-	slActualNs []byte
+	slStructNs []byte
 	flField    reflect.Value
 	flParam    string
 }
 
 // parent and current will be the same the first run of validateStruct
-func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, actualNs []byte, ct *cTag) {
+func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, structNs []byte, ct *cTag) {
 
 	first := len(ns) == 0
 
@@ -45,8 +45,8 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 		ns = append(ns, cs.Name...)
 		ns = append(ns, '.')
 
-		actualNs = append(actualNs, cs.Name...)
-		actualNs = append(actualNs, '.')
+		structNs = append(structNs, cs.Name...)
+		structNs = append(structNs, '.')
 	}
 
 	// ct is nil on top level struct, and structs as fields that have no tag info
@@ -64,7 +64,7 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 				}
 			}
 
-			v.traverseField(parent, current.Field(f.Idx), ns, actualNs, f, f.cTags)
+			v.traverseField(parent, current.Field(f.Idx), ns, structNs, f, f.cTags)
 		}
 	}
 
@@ -76,14 +76,14 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 		v.slflParent = parent
 		v.slCurrent = current
 		v.slNs = ns
-		v.slActualNs = actualNs
+		v.slStructNs = structNs
 
 		cs.fn(v)
 	}
 }
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
-func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns []byte, actualNs []byte, cf *cField, ct *cTag) {
+func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns []byte, structNs []byte, cf *cField, ct *cTag) {
 
 	var typ reflect.Type
 	var kind reflect.Kind
@@ -111,9 +111,9 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
 						ns:          string(append(ns, cf.Name...)),
-						actualNs:    string(append(actualNs, cf.AltName...)),
+						structNs:    string(append(structNs, cf.AltName...)),
 						field:       cf.AltName,
-						actualField: cf.Name,
+						structField: cf.Name,
 						param:       ct.param,
 						kind:        kind,
 					},
@@ -127,9 +127,9 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					tag:         ct.aliasTag,
 					actualTag:   ct.tag,
 					ns:          string(append(ns, cf.Name...)),
-					actualNs:    string(append(actualNs, cf.AltName...)),
+					structNs:    string(append(structNs, cf.AltName...)),
 					field:       cf.AltName,
-					actualField: cf.Name,
+					structField: cf.Name,
 					value:       current.Interface(),
 					param:       ct.param,
 					kind:        kind,
@@ -154,7 +154,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				return
 			}
 
-			v.validateStruct(current, current, typ, append(append(ns, cf.Name...), '.'), append(append(actualNs, cf.AltName...), '.'), ct)
+			v.validateStruct(current, current, typ, append(append(ns, cf.Name...), '.'), append(append(structNs, cf.AltName...), '.'), ct)
 			return
 		}
 	}
@@ -201,12 +201,12 @@ OUTER:
 			case reflect.Slice, reflect.Array:
 
 				for i := 0; i < current.Len(); i++ {
-					v.traverseField(parent, current.Index(i), ns, actualNs, &cField{Name: fmt.Sprintf(arrayIndexFieldName, cf.Name, i), AltName: fmt.Sprintf(arrayIndexFieldName, cf.AltName, i)}, ct)
+					v.traverseField(parent, current.Index(i), ns, structNs, &cField{Name: fmt.Sprintf(arrayIndexFieldName, cf.Name, i), AltName: fmt.Sprintf(arrayIndexFieldName, cf.AltName, i)}, ct)
 				}
 
 			case reflect.Map:
 				for _, key := range current.MapKeys() {
-					v.traverseField(parent, current.MapIndex(key), ns, actualNs, &cField{Name: fmt.Sprintf(mapIndexFieldName, cf.Name, key.Interface()), AltName: fmt.Sprintf(mapIndexFieldName, cf.AltName, key.Interface())}, ct)
+					v.traverseField(parent, current.MapIndex(key), ns, structNs, &cField{Name: fmt.Sprintf(mapIndexFieldName, cf.Name, key.Interface()), AltName: fmt.Sprintf(mapIndexFieldName, cf.AltName, key.Interface())}, ct)
 				}
 
 			default:
@@ -257,9 +257,9 @@ OUTER:
 								tag:         ct.aliasTag,
 								actualTag:   ct.actualAliasTag,
 								ns:          string(append(ns, cf.Name...)),
-								actualNs:    string(append(actualNs, cf.AltName...)),
+								structNs:    string(append(structNs, cf.AltName...)),
 								field:       cf.AltName,
-								actualField: cf.Name,
+								structField: cf.Name,
 								value:       current.Interface(),
 								param:       ct.param,
 								kind:        kind,
@@ -274,9 +274,9 @@ OUTER:
 								tag:         errTag[1:],
 								actualTag:   errTag[1:],
 								ns:          string(append(ns, cf.Name...)),
-								actualNs:    string(append(actualNs, cf.AltName...)),
+								structNs:    string(append(structNs, cf.AltName...)),
 								field:       cf.AltName,
-								actualField: cf.Name,
+								structField: cf.Name,
 								value:       current.Interface(),
 								param:       ct.param,
 								kind:        kind,
@@ -305,9 +305,9 @@ OUTER:
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
 						ns:          string(append(ns, cf.Name...)),
-						actualNs:    string(append(actualNs, cf.AltName...)),
+						structNs:    string(append(structNs, cf.AltName...)),
 						field:       cf.AltName,
-						actualField: cf.Name,
+						structField: cf.Name,
 						value:       current.Interface(),
 						param:       ct.param,
 						kind:        kind,

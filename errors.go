@@ -86,7 +86,7 @@ type FieldError interface {
 	//
 	// NOTE: this field can be blank when validating a single primitive field
 	// using validate.Field(...) as there is no way to extract it's name
-	ActualNamespace() string
+	StructNamespace() string
 
 	// returns the fields name with the tag name taking precedence over the
 	// fields actual name.
@@ -95,11 +95,11 @@ type FieldError interface {
 	// see ActualField for comparison
 	Field() string
 
-	// returns the fields actual name.
+	// returns the fields actual name from the struct, when able to determine.
 	//
 	// eq.  "FirstName"
 	// see Field for comparison
-	ActualField() string
+	StructField() string
 
 	// returns the actual fields value in case needed for creating the error
 	// message
@@ -131,9 +131,9 @@ type fieldError struct {
 	tag         string
 	actualTag   string
 	ns          string
-	actualNs    string
+	structNs    string
 	field       string
-	actualField string
+	structField string
 	value       interface{}
 	param       interface{}
 	kind        reflect.Kind
@@ -157,10 +157,10 @@ func (fe *fieldError) Namespace() string {
 	return fe.ns
 }
 
-// ActualNamespace returns the namespace for the field error, with the fields
+// StructNamespace returns the namespace for the field error, with the fields
 // actual name.
-func (fe *fieldError) ActualNamespace() string {
-	return fe.actualNs
+func (fe *fieldError) StructNamespace() string {
+	return fe.structNs
 }
 
 // Field returns the fields name with the tag name taking precedence over the
@@ -169,9 +169,9 @@ func (fe *fieldError) Field() string {
 	return fe.field
 }
 
-// ActualField returns the fields actual name.
-func (fe *fieldError) ActualField() string {
-	return fe.actualField
+// returns the fields actual name from the struct, when able to determine.
+func (fe *fieldError) StructField() string {
+	return fe.structField
 }
 
 // Value returns the actual fields value in case needed for creating the error
