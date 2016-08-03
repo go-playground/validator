@@ -8,27 +8,37 @@ import (
 
 func BenchmarkFieldSuccess(b *testing.B) {
 
+	validate := New()
+
 	var s *string
 	tmp := "1"
 	s = &tmp
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(s, "len=1")
+		validate.Var(s, "len=1")
 	}
 }
 
 func BenchmarkFieldFailure(b *testing.B) {
 
+	validate := New()
+
 	var s *string
 	tmp := "12"
 	s = &tmp
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(s, "len=1")
+		validate.Var(s, "len=1")
 	}
 }
 
 func BenchmarkFieldDiveSuccess(b *testing.B) {
+
+	validate := New()
 
 	m := make([]*string, 3)
 	t1 := "val1"
@@ -39,12 +49,16 @@ func BenchmarkFieldDiveSuccess(b *testing.B) {
 	m[1] = &t2
 	m[2] = &t3
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(m, "required,dive,required")
+		validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldDiveFailure(b *testing.B) {
+
+	validate := New()
 
 	m := make([]*string, 3)
 	t1 := "val1"
@@ -55,64 +69,83 @@ func BenchmarkFieldDiveFailure(b *testing.B) {
 	m[1] = &t2
 	m[2] = &t3
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(m, "required,dive,required")
+		validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 
+	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{
 		Name: "1",
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(val, "len=1")
+		validate.Var(val, "len=1")
 	}
 }
 
 func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 
+	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(val, "len=1")
+		validate.Var(val, "len=1")
 	}
 }
 
 func BenchmarkFieldOrTagSuccess(b *testing.B) {
 
+	validate := New()
+
 	var s *string
 	tmp := "rgba(0,0,0,1)"
 	s = &tmp
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(s, "rgb|rgba")
+		validate.Var(s, "rgb|rgba")
 	}
 }
 
 func BenchmarkFieldOrTagFailure(b *testing.B) {
 
+	validate := New()
+
 	var s *string
 	tmp := "#000"
 	s = &tmp
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
-		validate.Field(s, "rgb|rgba")
+		validate.Var(s, "rgb|rgba")
 	}
 }
 
 func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 
+	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
 	tst := &TestStruct{
 		String: "good value",
 	}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tst)
@@ -121,11 +154,14 @@ func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 
 func BenchmarkStructLevelValidationFailure(b *testing.B) {
 
+	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
 	tst := &TestStruct{
 		String: "good value",
 	}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tst)
@@ -134,6 +170,7 @@ func BenchmarkStructLevelValidationFailure(b *testing.B) {
 
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
+	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{
@@ -147,6 +184,8 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	validFoo := &Foo{Valuer: val, IntValue: 7}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
 	}
@@ -154,6 +193,7 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
+	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
 	val := valuer{}
@@ -165,12 +205,16 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
 	validFoo := &Foo{Valuer: val, IntValue: 3}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
 	}
 }
 
 func BenchmarkStructPartialSuccess(b *testing.B) {
+
+	validate := New()
 
 	type Test struct {
 		Name     string `validate:"required"`
@@ -180,6 +224,8 @@ func BenchmarkStructPartialSuccess(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Name")
@@ -188,6 +234,8 @@ func BenchmarkStructPartialSuccess(b *testing.B) {
 
 func BenchmarkStructPartialFailure(b *testing.B) {
 
+	validate := New()
+
 	type Test struct {
 		Name     string `validate:"required"`
 		NickName string `validate:"required"`
@@ -196,6 +244,8 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "NickName")
@@ -204,6 +254,8 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 
 func BenchmarkStructExceptSuccess(b *testing.B) {
 
+	validate := New()
+
 	type Test struct {
 		Name     string `validate:"required"`
 		NickName string `validate:"required"`
@@ -212,6 +264,8 @@ func BenchmarkStructExceptSuccess(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Nickname")
@@ -220,6 +274,8 @@ func BenchmarkStructExceptSuccess(b *testing.B) {
 
 func BenchmarkStructExceptFailure(b *testing.B) {
 
+	validate := New()
+
 	type Test struct {
 		Name     string `validate:"required"`
 		NickName string `validate:"required"`
@@ -229,12 +285,16 @@ func BenchmarkStructExceptFailure(b *testing.B) {
 		Name: "Joey Bloggs",
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Name")
 	}
 }
 
 func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
+
+	validate := New()
 
 	type Test struct {
 		Start time.Time
@@ -249,12 +309,16 @@ func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 		End:   then,
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(test)
 	}
 }
 
 func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
+
+	validate := New()
 
 	type Test struct {
 		Start time.Time
@@ -269,12 +333,16 @@ func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
 		End:   then,
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(test)
 	}
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
+
+	validate := New()
 
 	type Inner struct {
 		Start time.Time
@@ -296,12 +364,16 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
 		CreatedAt: now,
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(outer)
 	}
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
+
+	validate := New()
 
 	type Inner struct {
 		Start time.Time
@@ -324,6 +396,8 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
 		CreatedAt: now,
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(outer)
 	}
@@ -331,12 +405,16 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
 
 func BenchmarkStructSimpleSuccess(b *testing.B) {
 
+	validate := New()
+
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
@@ -345,12 +423,16 @@ func BenchmarkStructSimpleSuccess(b *testing.B) {
 
 func BenchmarkStructSimpleFailure(b *testing.B) {
 
+	validate := New()
+
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		validate.Struct(invalidFoo)
@@ -359,12 +441,16 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 
 func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 
+	validate := New()
+
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+
+	b.ReportAllocs()
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -375,12 +461,16 @@ func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 
 func BenchmarkStructSimpleFailureParallel(b *testing.B) {
 
+	validate := New()
+
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
+
+	b.ReportAllocs()
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -391,6 +481,8 @@ func BenchmarkStructSimpleFailureParallel(b *testing.B) {
 
 func BenchmarkStructComplexSuccess(b *testing.B) {
 
+	validate := New()
+
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
@@ -418,12 +510,16 @@ func BenchmarkStructComplexSuccess(b *testing.B) {
 		},
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tSuccess)
 	}
 }
 
 func BenchmarkStructComplexFailure(b *testing.B) {
+
+	validate := New()
 
 	tFail := &TestString{
 		Required:  "",
@@ -449,12 +545,16 @@ func BenchmarkStructComplexFailure(b *testing.B) {
 		},
 	}
 
+	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tFail)
 	}
 }
 
 func BenchmarkStructComplexSuccessParallel(b *testing.B) {
+
+	validate := New()
 
 	tSuccess := &TestString{
 		Required:  "Required",
@@ -482,6 +582,8 @@ func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 			F: "123",
 		},
 	}
+
+	b.ReportAllocs()
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -492,6 +594,8 @@ func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 
 func BenchmarkStructComplexFailureParallel(b *testing.B) {
 
+	validate := New()
+
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
@@ -515,6 +619,8 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 			F: "12",
 		},
 	}
+
+	b.ReportAllocs()
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

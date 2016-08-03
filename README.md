@@ -1,12 +1,12 @@
 Package validator
 ================
-<img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v8/logo.png">
+<img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v9/logo.png">
 [![Join the chat at https://gitter.im/bluesuncorp/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![Project status](https://img.shields.io/badge/version-8.18.1-green.svg)
+![Project status](https://img.shields.io/badge/alpha-9.0.0-red.svg)
 [![Build Status](https://semaphoreci.com/api/v1/projects/ec20115f-ef1b-4c7d-9393-cc76aba74eb4/530054/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v8&service=github)](https://coveralls.io/github/go-playground/validator?branch=v8)
+[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v9&service=github)](https://coveralls.io/github/go-playground/validator?branch=v9)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/validator)](https://goreportcard.com/report/github.com/go-playground/validator)
-[![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v8?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v8)
+[![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v9?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v8)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 Package validator implements value validations for structs and individual fields based on tags.
@@ -25,15 +25,15 @@ Installation
 
 Use go get.
 
-	go get gopkg.in/go-playground/validator.v8
+	go get gopkg.in/go-playground/validator.v9
 
 or to update
 
-	go get -u gopkg.in/go-playground/validator.v8
+	go get -u gopkg.in/go-playground/validator.v9
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/go-playground/validator.v8"
+	import "gopkg.in/go-playground/validator.v9"
 
 Error Return Value
 -------
@@ -57,7 +57,7 @@ validationErrors := err.(validator.ValidationErrors)
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/go-playground/validator.v8 for detailed usage docs.
+Please see http://godoc.org/gopkg.in/go-playground/validator.v9 for detailed usage docs.
 
 ##### Examples:
 
@@ -68,7 +68,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/go-playground/validator.v8"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // User contains user information
@@ -211,7 +211,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/go-playground/validator.v8"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // User contains user information
@@ -346,21 +346,13 @@ Complimentary Software
 
 Here is a list of software that compliments using this library either pre or post validation.
 
-* [Gorilla Schema](https://github.com/gorilla/schema) - Package gorilla/schema fills a struct with form values.
+* [form](https://github.com/go-playground/form) - Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values. Dual Array and Full map support.
 * [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
 
 How to Contribute
 ------
 
-There will always be a development branch for each version i.e. `v1-development`. In order to contribute, 
-please make your pull requests against those branches.
-
-If the changes being proposed or requested are breaking changes, please create an issue, for discussion
-or create a pull request against the highest development branch for example this package has a
-v1 and v1-development branch however, there will also be a v2-development branch even though v2 doesn't exist yet.
-
-I strongly encourage everyone whom creates a custom validation function to contribute them and
-help make this package even better.
+Make a pull request...
 
 License
 ------

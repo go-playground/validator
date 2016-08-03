@@ -192,17 +192,6 @@ Same as structonly tag except that any struct level validations will not run.
 
 	Usage: nostructlevel
 
-Exists
-
-Is a special tag without a validation function attached. It is used when a field
-is a Pointer, Interface or Invalid and you wish to validate that it exists.
-Example: want to ensure a bool exists if you define the bool as a pointer and
-use exists it will ensure there is a value; couldn't use required as it would
-fail when the bool was false. exists will fail is the value is a Pointer, Interface
-or Invalid and is nil.
-
-	Usage: exists
-
 Omit Empty
 
 Allows conditional validation, for example if a field is not set with

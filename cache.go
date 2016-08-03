@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -19,6 +20,15 @@ const (
 	typeOr
 	typeExists
 )
+
+const (
+	invalidValidation   = "Invalid validation tag on field %s"
+	undefinedValidation = "Undefined validation function on field %s"
+)
+
+// var (
+// 	validatable = reflect.ValueOf((*Validatable)(nil)).Elem()
+// )
 
 type structCache struct {
 	lock sync.Mutex
@@ -105,6 +115,15 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 	cs = &cStruct{Name: sName, fields: make(map[int]*cField), fn: v.structLevelFuncs[typ]}
 
+	if vable, ok := reflect.PtrTo(typ).(Validatable); ok {
+
+		if cs.fn != nil {
+			log.Println("warning: struct level validation overriding 'Validatabe' interface function")
+		} else {
+			cs.fn = vable.Validate
+		}
+	}
+
 	numFields := current.NumField()
 
 	var ctag *cTag
@@ -116,7 +135,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 		fld = typ.Field(i)
 
-		if !fld.Anonymous && fld.PkgPath != blank {
+		if !fld.Anonymous && len(fld.PkgPath) > 0 {
 			continue
 		}
 
@@ -128,12 +147,11 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 		customName = fld.Name
 
-		if v.fieldNameTag != blank {
+		if v.hasTagNameFunc {
 
-			name := strings.SplitN(fld.Tag.Get(v.fieldNameTag), ",", 2)[0]
+			name := v.tagNameFunc(fld)
 
-			// dash check is for json "-" (aka skipValidationTag) means don't output in json
-			if name != "" && name != skipValidationTag {
+			if len(name) > 0 {
 				customName = name
 			}
 		}
@@ -142,7 +160,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		// and so only struct level caching can be used instead of combined with Field tag caching
 
 		if len(tag) > 0 {
-			ctag, _ = v.parseFieldTagsRecursive(tag, fld.Name, blank, false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, fld.Name, "", false)
 		} else {
 			// even if field doesn't have validations need cTag for traversing to potential inner/nested
 			// elements of the field.
@@ -172,20 +190,18 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			alias = t
 		}
 
-		if v.hasAliasValidators {
-			// check map for alias and process new tags, otherwise process as usual
-			if tagsVal, found := v.aliasValidators[t]; found {
+		// check map for alias and process new tags, otherwise process as usual
+		if tagsVal, found := v.aliases[t]; found {
 
-				if i == 0 {
-					firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
-				} else {
-					next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
-					current.next, current = next, curr
+			if i == 0 {
+				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+			} else {
+				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+				current.next, current = next, curr
 
-				}
-
-				continue
 			}
+
+			continue
 		}
 
 		if i == 0 {
@@ -214,10 +230,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			current.typeof = typeNoStructLevel
 			continue
 
-		case existsTag:
-			current.typeof = typeExists
-			continue
-
 		default:
 
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
@@ -244,7 +256,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 				}
 
-				if current.fn, ok = v.validationFuncs[current.tag]; !ok {
+				if current.fn, ok = v.validations[current.tag]; !ok {
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, fieldName)))
 				}
 
