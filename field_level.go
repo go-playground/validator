@@ -9,7 +9,8 @@ type FieldLevel interface {
 	// returns the top level struct, if any
 	Top() reflect.Value
 
-	// returns the current fields parent struct, if any
+	// returns the current fields parent struct, if any or
+	// the comparison value if called 'VarWithValue'
 	Parent() reflect.Value
 
 	// returns current field for validation

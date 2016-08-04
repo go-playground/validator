@@ -33,14 +33,12 @@ type validate struct {
 // parent and current will be the same the first run of validateStruct
 func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, structNs []byte, ct *cTag) {
 
-	first := len(ns) == 0
-
 	cs, ok := v.v.structCache.Get(typ)
 	if !ok {
 		cs = v.v.extractStructCache(current, typ.Name())
 	}
 
-	if first {
+	if len(ns) == 0 {
 
 		ns = append(ns, cs.Name...)
 		ns = append(ns, '.')
@@ -154,7 +152,16 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				return
 			}
 
-			v.validateStruct(current, current, typ, append(append(ns, cf.AltName...), '.'), append(append(structNs, cf.Name...), '.'), ct)
+			// if len == 0 then validating using 'Var' or 'VarWithValue'
+			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
+			// VarWithField - this allows for validating against each field withing the struct against a specific value
+			//                pretty handly in certain situations
+			if len(ns) > 0 {
+				ns = append(append(ns, cf.AltName...), '.')
+				structNs = append(append(structNs, cf.Name...), '.')
+			}
+
+			v.validateStruct(current, current, typ, ns, structNs, ct)
 			return
 		}
 	}
