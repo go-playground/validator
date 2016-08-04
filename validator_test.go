@@ -2,7 +2,6 @@ package validator
 
 import (
 	"database/sql/driver"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -98,7 +97,7 @@ type TestString struct {
 
 // var validate = New(&Config{TagName: "validate"})
 
-func AssertError(t *testing.T, err error, key, field, actualField, expectedTag string) {
+func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag string) {
 
 	errs := err.(ValidationErrors)
 
@@ -106,7 +105,7 @@ func AssertError(t *testing.T, err error, key, field, actualField, expectedTag s
 	var fe FieldError
 
 	for i := 0; i < len(errs); i++ {
-		if errs[i].Namespace() == key {
+		if errs[i].Namespace() == nsKey && errs[i].StructNamespace() == structNsKey {
 			found = true
 			fe = errs[i]
 			break
@@ -116,18 +115,18 @@ func AssertError(t *testing.T, err error, key, field, actualField, expectedTag s
 	EqualSkip(t, 2, found, true)
 	NotEqualSkip(t, 2, fe, nil)
 	EqualSkip(t, 2, fe.Field(), field)
-	EqualSkip(t, 2, fe.StructField(), actualField)
+	EqualSkip(t, 2, fe.StructField(), structField)
 	EqualSkip(t, 2, fe.Tag(), expectedTag)
 }
 
-func getError(err error, key string) FieldError {
+func getError(err error, nsKey, structNsKey string) FieldError {
 
 	errs := err.(ValidationErrors)
 
 	var fe FieldError
 
 	for i := 0; i < len(errs); i++ {
-		if errs[i].Namespace() == key {
+		if errs[i].Namespace() == nsKey && errs[i].StructNamespace() == structNsKey {
 			fe = errs[i]
 			break
 		}
@@ -235,7 +234,7 @@ func StructValidationTestStructSuccess(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "good value" {
-		sl.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "badvalueteststruct")
+		sl.ReportError(reflect.ValueOf(st.String), "StringVal", "String", "badvalueteststruct")
 	}
 }
 
@@ -244,81 +243,63 @@ func StructValidationTestStruct(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "badvalueteststruct")
+		sl.ReportError(reflect.ValueOf(st.String), "StringVal", "String", "badvalueteststruct")
 	}
 }
 
-// func StructValidationBadTestStructFieldName(v *Validate, structLevel *StructLevel) {
+func StructValidationNoTestStructCustomName(sl StructLevel) {
 
-// 	st := structLevel.CurrentStruct.Interface().(TestStruct)
+	st := sl.Current().Interface().(TestStruct)
 
-// 	if st.String != "bad value" {
-// 		structLevel.ReportError(reflect.ValueOf(st.String), "", "StringVal", "badvalueteststruct")
-// 	}
-// }
+	if st.String != "bad value" {
+		sl.ReportError(reflect.ValueOf(st.String), "String", "", "badvalueteststruct")
+	}
+}
 
-// func StructValidationBadTestStructTag(v *Validate, structLevel *StructLevel) {
+func StructValidationTestStructInvalid(sl StructLevel) {
 
-// 	st := structLevel.CurrentStruct.Interface().(TestStruct)
+	st := sl.Current().Interface().(TestStruct)
 
-// 	if st.String != "bad value" {
-// 		structLevel.ReportError(reflect.ValueOf(st.String), "String", "StringVal", "")
-// 	}
-// }
+	if st.String != "bad value" {
+		sl.ReportError(reflect.ValueOf(nil), "StringVal", "String", "badvalueteststruct")
+	}
+}
 
-// func StructValidationNoTestStructCustomName(v *Validate, structLevel *StructLevel) {
+func StructValidationTestStructReturnValidationErrors(sl StructLevel) {
 
-// 	st := structLevel.CurrentStruct.Interface().(TestStruct)
+	s := sl.Current().Interface().(TestStructReturnValidationErrors)
 
-// 	if st.String != "bad value" {
-// 		structLevel.ReportError(reflect.ValueOf(st.String), "String", "", "badvalueteststruct")
-// 	}
-// }
+	errs := sl.Validator().Struct(s.Inner1.Inner2)
+	if errs == nil {
+		return
+	}
 
-// func StructValidationTestStructInvalid(v *Validate, structLevel *StructLevel) {
+	sl.ReportValidationErrors("Inner1.", "Inner1.", errs.(ValidationErrors))
+}
 
-// 	st := structLevel.CurrentStruct.Interface().(TestStruct)
+func StructValidationTestStructReturnValidationErrors2(sl StructLevel) {
 
-// 	if st.String != "bad value" {
-// 		structLevel.ReportError(reflect.ValueOf(nil), "String", "StringVal", "badvalueteststruct")
-// 	}
-// }
+	s := sl.Current().Interface().(TestStructReturnValidationErrors)
 
-// func StructValidationTestStructReturnValidationErrors(v *Validate, structLevel *StructLevel) {
+	errs := sl.Validator().Struct(s.Inner1.Inner2)
+	if errs == nil {
+		return
+	}
 
-// 	s := structLevel.CurrentStruct.Interface().(TestStructReturnValidationErrors)
+	sl.ReportValidationErrors("Inner1JSON.", "Inner1.", errs.(ValidationErrors))
+}
 
-// 	errs := v.Struct(s.Inner1.Inner2)
-// 	if errs == nil {
-// 		return
-// 	}
+type TestStructReturnValidationErrorsInner2 struct {
+	String string `validate:"required" json:"JSONString"`
+}
 
-// 	structLevel.ReportValidationErrors("Inner1.", errs.(ValidationErrors))
-// }
+type TestStructReturnValidationErrorsInner1 struct {
+	Inner2 *TestStructReturnValidationErrorsInner2
+}
 
-// func StructValidationTestStructReturnValidationErrors2(v *Validate, structLevel *StructLevel) {
-
-// 	s := structLevel.CurrentStruct.Interface().(TestStructReturnValidationErrors)
-
-// 	errs := v.Struct(s.Inner1.Inner2)
-// 	if errs == nil {
-// 		return
-// 	}
-
-// 	structLevel.ReportValidationErrors("Inner1.|Inner1JSON.", errs.(ValidationErrors))
-// }
-
-// type TestStructReturnValidationErrorsInner2 struct {
-// 	String string `validate:"required" json:"JSONString"`
-// }
-
-// type TestStructReturnValidationErrorsInner1 struct {
-// 	Inner2 *TestStructReturnValidationErrorsInner2
-// }
-
-// type TestStructReturnValidationErrors struct {
-// 	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
-// }
+type TestStructReturnValidationErrors struct {
+	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
+}
 
 func TestNameNamespace(t *testing.T) {
 
@@ -359,287 +340,295 @@ func TestNameNamespace(t *testing.T) {
 
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 1)
-	AssertError(t, errs, "Namespace.Inner1.Inner2.String[1]", "JSONString[1]", "String[1]", "required")
+	AssertError(t, errs, "Namespace.Inner1JSON.Inner2JSON.JSONString[1]", "Namespace.Inner1.Inner2.String[1]", "JSONString[1]", "String[1]", "required")
 
-	fe := getError(ve, "Namespace.Inner1.Inner2.String[1]")
+	fe := getError(ve, "Namespace.Inner1JSON.Inner2JSON.JSONString[1]", "Namespace.Inner1.Inner2.String[1]")
 	NotEqual(t, fe, nil)
-
 	Equal(t, fe.Field(), "JSONString[1]")
 	Equal(t, fe.StructField(), "String[1]")
-
-	fmt.Println(fe.Namespace())
-	fmt.Println(fe.StructNamespace())
-
 	Equal(t, fe.Namespace(), "Namespace.Inner1JSON.Inner2JSON.JSONString[1]")
 	Equal(t, fe.StructNamespace(), "Namespace.Inner1.Inner2.String[1]")
 }
 
-// func TestAnonymous(t *testing.T) {
-
-// 	v2 := New(&Config{TagName: "validate", FieldNameTag: "json"})
-
-// 	type Test struct {
-// 		Anonymous struct {
-// 			A string `validate:"required" json:"EH"`
-// 		}
-// 		AnonymousB struct {
-// 			B string `validate:"required" json:"BEE"`
-// 		}
-// 		anonymousC struct {
-// 			c string `validate:"required"`
-// 		}
-// 	}
-
-// 	tst := &Test{
-// 		Anonymous: struct {
-// 			A string `validate:"required" json:"EH"`
-// 		}{
-// 			A: "1",
-// 		},
-// 		AnonymousB: struct {
-// 			B string `validate:"required" json:"BEE"`
-// 		}{
-// 			B: "",
-// 		},
-// 		anonymousC: struct {
-// 			c string `validate:"required"`
-// 		}{
-// 			c: "",
-// 		},
-// 	}
-
-// 	err := v2.Struct(tst)
-// 	NotEqual(t, err, nil)
-
-// 	errs := err.(ValidationErrors)
-
-// 	Equal(t, len(errs), 1)
-// 	AssertError(t, errs, "Test.AnonymousB.B", "B", "required")
-// 	Equal(t, errs["Test.AnonymousB.B"].Field, "B")
-// 	Equal(t, errs["Test.AnonymousB.B"].Name, "BEE")
-
-// 	s := struct {
-// 		c string `validate:"required"`
-// 	}{
-// 		c: "",
-// 	}
-
-// 	err = v2.Struct(s)
-// 	Equal(t, err, nil)
-// }
-
-// func TestAnonymousSameStructDifferentTags(t *testing.T) {
-
-// 	v2 := New(&Config{TagName: "validate", FieldNameTag: "json"})
-
-// 	type Test struct {
-// 		A interface{}
-// 	}
-
-// 	tst := &Test{
-// 		A: struct {
-// 			A string `validate:"required"`
-// 		}{
-// 			A: "",
-// 		},
-// 	}
-
-// 	err := v2.Struct(tst)
-// 	NotEqual(t, err, nil)
-
-// 	errs := err.(ValidationErrors)
-
-// 	Equal(t, len(errs), 1)
-// 	AssertError(t, errs, "Test.A.A", "A", "required")
-
-// 	tst = &Test{
-// 		A: struct {
-// 			A string `validate:"omitempty,required"`
-// 		}{
-// 			A: "",
-// 		},
-// 	}
-
-// 	err = v2.Struct(tst)
-// 	Equal(t, err, nil)
-// }
-
-// func TestStructLevelReturnValidationErrors(t *testing.T) {
-// 	config := &Config{
-// 		TagName: "validate",
-// 	}
-
-// 	v1 := New(config)
-// 	v1.RegisterStructValidation(StructValidationTestStructReturnValidationErrors, TestStructReturnValidationErrors{})
-
-// 	inner2 := &TestStructReturnValidationErrorsInner2{
-// 		String: "I'm HERE",
-// 	}
+func TestAnonymous(t *testing.T) {
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Test struct {
+		Anonymous struct {
+			A string `validate:"required" json:"EH"`
+		}
+		AnonymousB struct {
+			B string `validate:"required" json:"BEE"`
+		}
+		anonymousC struct {
+			c string `validate:"required"`
+		}
+	}
+
+	tst := &Test{
+		Anonymous: struct {
+			A string `validate:"required" json:"EH"`
+		}{
+			A: "1",
+		},
+		AnonymousB: struct {
+			B string `validate:"required" json:"BEE"`
+		}{
+			B: "",
+		},
+		anonymousC: struct {
+			c string `validate:"required"`
+		}{
+			c: "",
+		},
+	}
+
+	err := validate.Struct(tst)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B", "BEE", "B", "required")
+
+	fe := getError(errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "BEE")
+	Equal(t, fe.StructField(), "B")
+
+	s := struct {
+		c string `validate:"required"`
+	}{
+		c: "",
+	}
+
+	err = validate.Struct(s)
+	Equal(t, err, nil)
+}
+
+func TestAnonymousSameStructDifferentTags(t *testing.T) {
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Test struct {
+		A interface{}
+	}
+
+	tst := &Test{
+		A: struct {
+			A string `validate:"required"`
+		}{
+			A: "",
+		},
+	}
+
+	err := validate.Struct(tst)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.A.A", "Test.A.A", "A", "A", "required")
+
+	tst = &Test{
+		A: struct {
+			A string `validate:"omitempty,required"`
+		}{
+			A: "",
+		},
+	}
+
+	err = validate.Struct(tst)
+	Equal(t, err, nil)
+}
+
+func TestStructLevelReturnValidationErrors(t *testing.T) {
 
-// 	inner1 := &TestStructReturnValidationErrorsInner1{
-// 		Inner2: inner2,
-// 	}
+	validate := New()
+	validate.RegisterStructValidation(StructValidationTestStructReturnValidationErrors, TestStructReturnValidationErrors{})
 
-// 	val := &TestStructReturnValidationErrors{
-// 		Inner1: inner1,
-// 	}
+	inner2 := &TestStructReturnValidationErrorsInner2{
+		String: "I'm HERE",
+	}
 
-// 	errs := v1.Struct(val)
-// 	Equal(t, errs, nil)
+	inner1 := &TestStructReturnValidationErrorsInner1{
+		Inner2: inner2,
+	}
 
-// 	inner2.String = ""
+	val := &TestStructReturnValidationErrors{
+		Inner1: inner1,
+	}
 
-// 	errs = v1.Struct(val)
-// 	NotEqual(t, errs, nil)
-// 	Equal(t, len(errs.(ValidationErrors)), 2)
-// 	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "required")
-// 	// this is an extra error reported from struct validation
-// 	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.String", "String", "required")
-// }
+	errs := validate.Struct(val)
+	Equal(t, errs, nil)
 
-// func TestStructLevelReturnValidationErrorsWithJSON(t *testing.T) {
-// 	config := &Config{
-// 		TagName:      "validate",
-// 		FieldNameTag: "json",
-// 	}
+	inner2.String = ""
 
-// 	v1 := New(config)
-// 	v1.RegisterStructValidation(StructValidationTestStructReturnValidationErrors2, TestStructReturnValidationErrors{})
+	errs = validate.Struct(val)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 2)
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "String", "required")
+	// this is an extra error reported from struct validation
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.TestStructReturnValidationErrorsInner2.String", "TestStructReturnValidationErrors.Inner1.TestStructReturnValidationErrorsInner2.String", "String", "String", "required")
+}
 
-// 	inner2 := &TestStructReturnValidationErrorsInner2{
-// 		String: "I'm HERE",
-// 	}
+func TestStructLevelReturnValidationErrorsWithJSON(t *testing.T) {
 
-// 	inner1 := &TestStructReturnValidationErrorsInner1{
-// 		Inner2: inner2,
-// 	}
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 
-// 	val := &TestStructReturnValidationErrors{
-// 		Inner1: inner1,
-// 	}
+		if name == "-" {
+			return ""
+		}
 
-// 	errs := v1.Struct(val)
-// 	Equal(t, errs, nil)
+		return name
+	})
+	validate.RegisterStructValidation(StructValidationTestStructReturnValidationErrors2, TestStructReturnValidationErrors{})
 
-// 	inner2.String = ""
+	inner2 := &TestStructReturnValidationErrorsInner2{
+		String: "I'm HERE",
+	}
 
-// 	errs = v1.Struct(val)
-// 	NotEqual(t, errs, nil)
-// 	Equal(t, len(errs.(ValidationErrors)), 2)
-// 	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.Inner2.String", "String", "required")
-// 	// this is an extra error reported from struct validation, it's a badly formatted one, but on purpose
-// 	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1.String", "String", "required")
+	inner1 := &TestStructReturnValidationErrorsInner1{
+		Inner2: inner2,
+	}
 
-// 	fe, ok := errs.(ValidationErrors)["TestStructReturnValidationErrors.Inner1.Inner2.String"]
-// 	Equal(t, ok, true)
+	val := &TestStructReturnValidationErrors{
+		Inner1: inner1,
+	}
 
-// 	// check for proper JSON namespace
-// 	Equal(t, fe.Field, "String")
-// 	Equal(t, fe.Name, "JSONString")
-// 	Equal(t, fe.FieldNamespace, "TestStructReturnValidationErrors.Inner1.Inner2.String")
-// 	Equal(t, fe.NameNamespace, "TestStructReturnValidationErrors.Inner1JSON.Inner2.JSONString")
+	errs := validate.Struct(val)
+	Equal(t, errs, nil)
 
-// 	fe, ok = errs.(ValidationErrors)["TestStructReturnValidationErrors.Inner1.String"]
-// 	Equal(t, ok, true)
+	inner2.String = ""
 
-// 	// check for proper JSON namespace
-// 	Equal(t, fe.Field, "String")
-// 	Equal(t, fe.Name, "JSONString")
-// 	Equal(t, fe.FieldNamespace, "TestStructReturnValidationErrors.Inner1.String")
-// 	Equal(t, fe.NameNamespace, "TestStructReturnValidationErrors.Inner1JSON.JSONString")
-// }
+	errs = validate.Struct(val)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 2)
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1JSON.Inner2.JSONString", "TestStructReturnValidationErrors.Inner1.Inner2.String", "JSONString", "String", "required")
+	// this is an extra error reported from struct validation, it's a badly formatted one, but on purpose
+	AssertError(t, errs, "TestStructReturnValidationErrors.Inner1JSON.TestStructReturnValidationErrorsInner2.JSONString", "TestStructReturnValidationErrors.Inner1.TestStructReturnValidationErrorsInner2.String", "JSONString", "String", "required")
 
-// func TestStructLevelValidations(t *testing.T) {
+	fe := getError(errs, "TestStructReturnValidationErrors.Inner1JSON.Inner2.JSONString", "TestStructReturnValidationErrors.Inner1.Inner2.String")
+	NotEqual(t, fe, nil)
 
-// 	config := &Config{
-// 		TagName: "validate",
-// 	}
+	// check for proper JSON namespace
+	Equal(t, fe.Field(), "JSONString")
+	Equal(t, fe.StructField(), "String")
+	Equal(t, fe.Namespace(), "TestStructReturnValidationErrors.Inner1JSON.Inner2.JSONString")
+	Equal(t, fe.StructNamespace(), "TestStructReturnValidationErrors.Inner1.Inner2.String")
 
-// 	v1 := New(config)
-// 	v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
+	fe = getError(errs, "TestStructReturnValidationErrors.Inner1JSON.TestStructReturnValidationErrorsInner2.JSONString", "TestStructReturnValidationErrors.Inner1.TestStructReturnValidationErrorsInner2.String")
+	NotEqual(t, fe, nil)
 
-// 	tst := &TestStruct{
-// 		String: "good value",
-// 	}
+	// check for proper JSON namespace
+	Equal(t, fe.Field(), "JSONString")
+	Equal(t, fe.StructField(), "String")
+	Equal(t, fe.Namespace(), "TestStructReturnValidationErrors.Inner1JSON.TestStructReturnValidationErrorsInner2.JSONString")
+	Equal(t, fe.StructNamespace(), "TestStructReturnValidationErrors.Inner1.TestStructReturnValidationErrorsInner2.String")
+}
 
-// 	errs := v1.Struct(tst)
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+func TestStructLevelValidations(t *testing.T) {
 
-// 	v2 := New(config)
-// 	v2.RegisterStructValidation(StructValidationBadTestStructFieldName, TestStruct{})
+	v1 := New()
+	v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
-// 	PanicMatches(t, func() { v2.Struct(tst) }, fieldNameRequired)
+	tst := &TestStruct{
+		String: "good value",
+	}
 
-// 	v3 := New(config)
-// 	v3.RegisterStructValidation(StructValidationBadTestStructTag, TestStruct{})
+	errs := v1.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
 
-// 	PanicMatches(t, func() { v3.Struct(tst) }, tagRequired)
+	v2 := New()
+	v2.RegisterStructValidation(StructValidationNoTestStructCustomName, TestStruct{})
 
-// 	v4 := New(config)
-// 	v4.RegisterStructValidation(StructValidationNoTestStructCustomName, TestStruct{})
+	errs = v2.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "badvalueteststruct")
 
-// 	errs = v4.Struct(tst)
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+	v3 := New()
+	v3.RegisterStructValidation(StructValidationTestStructInvalid, TestStruct{})
 
-// 	v5 := New(config)
-// 	v5.RegisterStructValidation(StructValidationTestStructInvalid, TestStruct{})
+	errs = v3.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
 
-// 	errs = v5.Struct(tst)
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "TestStruct.String", "String", "badvalueteststruct")
+	v4 := New()
+	v4.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
-// 	v6 := New(config)
-// 	v6.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
+	errs = v4.Struct(tst)
+	Equal(t, errs, nil)
+}
 
-// 	errs = v6.Struct(tst)
-// 	Equal(t, errs, nil)
-// }
+func TestAliasTags(t *testing.T) {
 
-// func TestAliasTags(t *testing.T) {
+	validate := New()
+	validate.RegisterAlias("iscoloralias", "hexcolor|rgb|rgba|hsl|hsla")
 
-// 	validate.RegisterAliasValidation("iscolor", "hexcolor|rgb|rgba|hsl|hsla")
+	s := "rgb(255,255,255)"
+	errs := validate.Var(s, "iscoloralias")
+	Equal(t, errs, nil)
 
-// 	s := "rgb(255,255,255)"
-// 	errs := validate.Field(s, "iscolor")
-// 	Equal(t, errs, nil)
+	s = ""
+	errs = validate.Var(s, "omitempty,iscoloralias")
+	Equal(t, errs, nil)
 
-// 	s = ""
-// 	errs = validate.Field(s, "omitempty,iscolor")
-// 	Equal(t, errs, nil)
+	s = "rgb(255,255,0)"
+	errs = validate.Var(s, "iscoloralias,len=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "len")
 
-// 	s = "rgb(255,255,0)"
-// 	errs = validate.Field(s, "iscolor,len=5")
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "", "", "len")
+	type Test struct {
+		Color string `validate:"iscoloralias"`
+	}
 
-// 	type Test struct {
-// 		Color string `validate:"iscolor"`
-// 	}
+	tst := &Test{
+		Color: "#000",
+	}
 
-// 	tst := &Test{
-// 		Color: "#000",
-// 	}
+	errs = validate.Struct(tst)
+	Equal(t, errs, nil)
 
-// 	errs = validate.Struct(tst)
-// 	Equal(t, errs, nil)
+	tst.Color = "cfvre"
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Color", "Test.Color", "Color", "Color", "iscoloralias")
 
-// 	tst.Color = "cfvre"
-// 	errs = validate.Struct(tst)
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "Test.Color", "Color", "iscolor")
-// 	Equal(t, errs.(ValidationErrors)["Test.Color"].ActualTag, "hexcolor|rgb|rgba|hsl|hsla")
+	fe := getError(errs, "Test.Color", "Test.Color")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.ActualTag(), "hexcolor|rgb|rgba|hsl|hsla")
 
-// 	validate.RegisterAliasValidation("req", "required,dive,iscolor")
-// 	arr := []string{"val1", "#fff", "#000"}
+	validate.RegisterAlias("req", "required,dive,iscoloralias")
+	arr := []string{"val1", "#fff", "#000"}
 
-// 	errs = validate.Field(arr, "req")
-// 	NotEqual(t, errs, nil)
-// 	AssertError(t, errs, "[0]", "[0]", "iscolor")
+	errs = validate.Var(arr, "req")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "[0]", "[0]", "[0]", "[0]", "iscoloralias")
 
-// 	PanicMatches(t, func() { validate.RegisterAliasValidation("exists", "gt=5,lt=10") }, "Alias 'exists' either contains restricted characters or is the same as a restricted tag needed for normal operation")
-// }
+	PanicMatches(t, func() { validate.RegisterAlias("exists!", "gt=5,lt=10") }, "Alias 'exists!' either contains restricted characters or is the same as a restricted tag needed for normal operation")
+}
 
 // func TestNilValidator(t *testing.T) {
 
@@ -952,11 +941,11 @@ func TestNameNamespace(t *testing.T) {
 // 	AssertError(t, errs, "Test.Float", "Float", "ltecsfield")
 // 	AssertError(t, errs, "Test.Array", "Array", "ltecsfield")
 
-// 	errs = validate.FieldWithValue(1, "", "ltecsfield")
+// 	errs = validate.VarWithValue(1, "", "ltecsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltecsfield")
 
-// 	errs = validate.FieldWithValue(test, now, "ltecsfield")
+// 	errs = validate.VarWithValue(test, now, "ltecsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltecsfield")
 // }
@@ -1023,11 +1012,11 @@ func TestNameNamespace(t *testing.T) {
 // 	AssertError(t, errs, "Test.Float", "Float", "ltcsfield")
 // 	AssertError(t, errs, "Test.Array", "Array", "ltcsfield")
 
-// 	errs = validate.FieldWithValue(1, "", "ltcsfield")
+// 	errs = validate.VarWithValue(1, "", "ltcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltcsfield")
 
-// 	errs = validate.FieldWithValue(test, now, "ltcsfield")
+// 	errs = validate.VarWithValue(test, now, "ltcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltcsfield")
 // }
@@ -1106,11 +1095,11 @@ func TestNameNamespace(t *testing.T) {
 // 	AssertError(t, errs, "Test.Float", "Float", "gtecsfield")
 // 	AssertError(t, errs, "Test.Array", "Array", "gtecsfield")
 
-// 	errs = validate.FieldWithValue(1, "", "gtecsfield")
+// 	errs = validate.VarWithValue(1, "", "gtecsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtecsfield")
 
-// 	errs = validate.FieldWithValue(test, now, "gtecsfield")
+// 	errs = validate.VarWithValue(test, now, "gtecsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtecsfield")
 // }
@@ -1177,11 +1166,11 @@ func TestNameNamespace(t *testing.T) {
 // 	AssertError(t, errs, "Test.Float", "Float", "gtcsfield")
 // 	AssertError(t, errs, "Test.Array", "Array", "gtcsfield")
 
-// 	errs = validate.FieldWithValue(1, "", "gtcsfield")
+// 	errs = validate.VarWithValue(1, "", "gtcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtcsfield")
 
-// 	errs = validate.FieldWithValue(test, now, "gtcsfield")
+// 	errs = validate.VarWithValue(test, now, "gtcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtcsfield")
 // }
@@ -1236,31 +1225,31 @@ func TestNameNamespace(t *testing.T) {
 // 	arr3 := []string{"test", "test2"}
 // 	now2 := now
 
-// 	errs = validate.FieldWithValue(s, s2, "necsfield")
+// 	errs = validate.VarWithValue(s, s2, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(i2, i, "necsfield")
+// 	errs = validate.VarWithValue(i2, i, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(j2, j, "necsfield")
+// 	errs = validate.VarWithValue(j2, j, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(k2, k, "necsfield")
+// 	errs = validate.VarWithValue(k2, k, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(arr2, arr, "necsfield")
+// 	errs = validate.VarWithValue(arr2, arr, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(now2, now, "necsfield")
+// 	errs = validate.VarWithValue(now2, now, "necsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "necsfield")
 
-// 	errs = validate.FieldWithValue(arr3, arr, "necsfield")
+// 	errs = validate.VarWithValue(arr3, arr, "necsfield")
 // 	Equal(t, errs, nil)
 
 // 	type SInner struct {
@@ -1288,7 +1277,7 @@ func TestNameNamespace(t *testing.T) {
 // 	errs = validate.Struct(test2)
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(nil, 1, "necsfield")
+// 	errs = validate.VarWithValue(nil, 1, "necsfield")
 // 	Equal(t, errs, nil)
 // }
 
@@ -1342,25 +1331,25 @@ func TestNameNamespace(t *testing.T) {
 // 	arr3 := []string{"test", "test2"}
 // 	now2 := now
 
-// 	errs = validate.FieldWithValue(s, s2, "eqcsfield")
+// 	errs = validate.VarWithValue(s, s2, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(i2, i, "eqcsfield")
+// 	errs = validate.VarWithValue(i2, i, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(j2, j, "eqcsfield")
+// 	errs = validate.VarWithValue(j2, j, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(k2, k, "eqcsfield")
+// 	errs = validate.VarWithValue(k2, k, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(arr2, arr, "eqcsfield")
+// 	errs = validate.VarWithValue(arr2, arr, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(now2, now, "eqcsfield")
+// 	errs = validate.VarWithValue(now2, now, "eqcsfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(arr3, arr, "eqcsfield")
+// 	errs = validate.VarWithValue(arr3, arr, "eqcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqcsfield")
 
@@ -1391,7 +1380,7 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "TStruct.CreatedAt", "CreatedAt", "eqcsfield")
 
-// 	errs = validate.FieldWithValue(nil, 1, "eqcsfield")
+// 	errs = validate.VarWithValue(nil, 1, "eqcsfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqcsfield")
 // }
@@ -1678,17 +1667,17 @@ func TestNameNamespace(t *testing.T) {
 // 		Name: "",
 // 	}
 
-// 	errs := validate.Field(val, "required")
+// 	errs := validate.Var(val, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	val.Name = "Valid Name"
-// 	errs = validate.Field(val, "required")
+// 	errs = validate.Var(val, "required")
 // 	Equal(t, errs, nil)
 
 // 	val.Name = "errorme"
 
-// 	PanicMatches(t, func() { validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+// 	PanicMatches(t, func() { validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
 
 // 	type myValuer valuer
 
@@ -1696,7 +1685,7 @@ func TestNameNamespace(t *testing.T) {
 // 		Name: "",
 // 	}
 
-// 	errs = validate.Field(myVal, "required")
+// 	errs = validate.Var(myVal, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
@@ -1731,17 +1720,17 @@ func TestNameNamespace(t *testing.T) {
 // 		Name: "",
 // 	}
 
-// 	errs := validate.Field(val, "required")
+// 	errs := validate.Var(val, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	val.Name = "Valid Name"
-// 	errs = validate.Field(val, "required")
+// 	errs = validate.Var(val, "required")
 // 	Equal(t, errs, nil)
 
 // 	val.Name = "errorme"
 
-// 	PanicMatches(t, func() { errs = validate.Field(val, "required") }, "SQL Driver Valuer error: some kind of error")
+// 	PanicMatches(t, func() { errs = validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
 
 // 	type myValuer valuer
 
@@ -1749,7 +1738,7 @@ func TestNameNamespace(t *testing.T) {
 // 		Name: "",
 // 	}
 
-// 	errs = validate.Field(myVal, "required")
+// 	errs = validate.Var(myVal, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
@@ -1789,7 +1778,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "mac")
+// 		errs := validate.Var(test.param, "mac")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -1828,7 +1817,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "ip")
+// 		errs := validate.Var(test.param, "ip")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -1866,7 +1855,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "ipv6")
+// 		errs := validate.Var(test.param, "ipv6")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -1904,7 +1893,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "ipv4")
+// 		errs := validate.Var(test.param, "ipv4")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -1945,7 +1934,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "cidr")
+// 		errs := validate.Var(test.param, "cidr")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -1986,7 +1975,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "cidrv6")
+// 		errs := validate.Var(test.param, "cidrv6")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -2027,7 +2016,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "cidrv4")
+// 		errs := validate.Var(test.param, "cidrv4")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -2060,7 +2049,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "tcp_addr")
+// 		errs := validate.Var(test.param, "tcp_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
@@ -2092,7 +2081,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "tcp6_addr")
+// 		errs := validate.Var(test.param, "tcp6_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
@@ -2124,7 +2113,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "tcp4_addr")
+// 		errs := validate.Var(test.param, "tcp4_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
@@ -2157,7 +2146,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "udp_addr")
+// 		errs := validate.Var(test.param, "udp_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
@@ -2189,7 +2178,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "udp6_addr")
+// 		errs := validate.Var(test.param, "udp6_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
@@ -2221,7 +2210,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "udp4_addr")
+// 		errs := validate.Var(test.param, "udp4_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
@@ -2254,7 +2243,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "ip_addr")
+// 		errs := validate.Var(test.param, "ip_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
@@ -2286,7 +2275,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "ip6_addr")
+// 		errs := validate.Var(test.param, "ip6_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
@@ -2318,7 +2307,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "ip4_addr")
+// 		errs := validate.Var(test.param, "ip4_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
@@ -2347,7 +2336,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, test := range tests {
-// 		errs := validate.Field(test.param, "unix_addr")
+// 		errs := validate.Var(test.param, "unix_addr")
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
 // 				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
@@ -2370,75 +2359,75 @@ func TestNameNamespace(t *testing.T) {
 
 // 	var m map[string]string
 
-// 	errs := validate.Field(m, "required")
+// 	errs := validate.Var(m, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	m = map[string]string{}
-// 	errs = validate.Field(m, "required")
+// 	errs = validate.Var(m, "required")
 // 	Equal(t, errs, nil)
 
 // 	var arr [5]string
-// 	errs = validate.Field(arr, "required")
+// 	errs = validate.Var(arr, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	arr[0] = "ok"
-// 	errs = validate.Field(arr, "required")
+// 	errs = validate.Var(arr, "required")
 // 	Equal(t, errs, nil)
 
 // 	var s []string
-// 	errs = validate.Field(s, "required")
+// 	errs = validate.Var(s, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	s = []string{}
-// 	errs = validate.Field(s, "required")
+// 	errs = validate.Var(s, "required")
 // 	Equal(t, errs, nil)
 
 // 	var c chan string
-// 	errs = validate.Field(c, "required")
+// 	errs = validate.Var(c, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	c = make(chan string)
-// 	errs = validate.Field(c, "required")
+// 	errs = validate.Var(c, "required")
 // 	Equal(t, errs, nil)
 
 // 	var tst *int
-// 	errs = validate.Field(tst, "required")
+// 	errs = validate.Var(tst, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	one := 1
 // 	tst = &one
-// 	errs = validate.Field(tst, "required")
+// 	errs = validate.Var(tst, "required")
 // 	Equal(t, errs, nil)
 
 // 	var iface interface{}
 
-// 	errs = validate.Field(iface, "required")
+// 	errs = validate.Var(iface, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
-// 	errs = validate.Field(iface, "omitempty,required")
+// 	errs = validate.Var(iface, "omitempty,required")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(iface, "")
+// 	errs = validate.Var(iface, "")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(nil, iface, "")
+// 	errs = validate.VarWithValue(nil, iface, "")
 // 	Equal(t, errs, nil)
 
 // 	var f func(string)
 
-// 	errs = validate.Field(f, "required")
+// 	errs = validate.Var(f, "required")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "required")
 
 // 	f = func(name string) {}
 
-// 	errs = validate.Field(f, "required")
+// 	errs = validate.Var(f, "required")
 // 	Equal(t, errs, nil)
 // }
 
@@ -2458,11 +2447,11 @@ func TestNameNamespace(t *testing.T) {
 // func TestCommaAndPipeObfuscationValidation(t *testing.T) {
 // 	s := "My Name Is, |joeybloggs|"
 
-// 	errs := validate.Field(s, "excludesall=0x2C")
+// 	errs := validate.Var(s, "excludesall=0x2C")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "excludesall")
 
-// 	errs = validate.Field(s, "excludesall=0x7C")
+// 	errs = validate.Var(s, "excludesall=0x7C")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "excludesall")
 // }
@@ -2497,10 +2486,10 @@ func TestNameNamespace(t *testing.T) {
 // 	v2 = 1
 // 	v1 = v2
 
-// 	errs := validate.Field(v1, "len=1")
+// 	errs := validate.Var(v1, "len=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(v2, "len=1")
+// 	errs = validate.Var(v2, "len=1")
 // 	Equal(t, errs, nil)
 
 // 	type ExternalCMD struct {
@@ -2629,24 +2618,24 @@ func TestNameNamespace(t *testing.T) {
 
 // 	m := map[int]interface{}{0: "ok", 3: "", 4: "ok"}
 
-// 	errs = validate.Field(m, "len=3,dive,len=2")
+// 	errs = validate.Var(m, "len=3,dive,len=2")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "[3]", "[3]", "len")
 
-// 	errs = validate.Field(m, "len=2,dive,required")
+// 	errs = validate.Var(m, "len=2,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "", "", "len")
 
 // 	arr := []interface{}{"ok", "", "ok"}
 
-// 	errs = validate.Field(arr, "len=3,dive,len=2")
+// 	errs = validate.Var(arr, "len=3,dive,len=2")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "[1]", "[1]", "len")
 
-// 	errs = validate.Field(arr, "len=2,dive,required")
+// 	errs = validate.Var(arr, "len=2,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "", "", "len")
@@ -2668,17 +2657,17 @@ func TestNameNamespace(t *testing.T) {
 // func TestMapDiveValidation(t *testing.T) {
 
 // 	n := map[int]interface{}{0: nil}
-// 	errs := validate.Field(n, "omitempty,required")
+// 	errs := validate.Var(n, "omitempty,required")
 // 	Equal(t, errs, nil)
 
 // 	m := map[int]string{0: "ok", 3: "", 4: "ok"}
 
-// 	errs = validate.Field(m, "len=3,dive,required")
+// 	errs = validate.Var(m, "len=3,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "[3]", "[3]", "required")
 
-// 	errs = validate.Field(m, "len=2,dive,required")
+// 	errs = validate.Var(m, "len=2,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "", "", "len")
@@ -2757,12 +2746,12 @@ func TestNameNamespace(t *testing.T) {
 
 // 	arr := []string{"ok", "", "ok"}
 
-// 	errs := validate.Field(arr, "len=3,dive,required")
+// 	errs := validate.Var(arr, "len=3,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "[1]", "[1]", "required")
 
-// 	errs = validate.Field(arr, "len=2,dive,required")
+// 	errs = validate.Var(arr, "len=2,dive,required")
 // 	NotEqual(t, errs, nil)
 // 	Equal(t, len(errs.(ValidationErrors)), 1)
 // 	AssertError(t, errs, "", "", "len")
@@ -3077,7 +3066,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "ssn")
+// 		errs := validate.Var(test.param, "ssn")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3111,7 +3100,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "longitude")
+// 		errs := validate.Var(test.param, "longitude")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3145,7 +3134,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "latitude")
+// 		errs := validate.Var(test.param, "latitude")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3185,7 +3174,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "datauri")
+// 		errs := validate.Var(test.param, "datauri")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3223,7 +3212,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "multibyte")
+// 		errs := validate.Var(test.param, "multibyte")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3262,7 +3251,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "printascii")
+// 		errs := validate.Var(test.param, "printascii")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3300,7 +3289,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "ascii")
+// 		errs := validate.Var(test.param, "ascii")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3335,7 +3324,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "uuid5")
+// 		errs := validate.Var(test.param, "uuid5")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3369,7 +3358,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "uuid4")
+// 		errs := validate.Var(test.param, "uuid4")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3402,7 +3391,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "uuid3")
+// 		errs := validate.Var(test.param, "uuid3")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3438,7 +3427,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "uuid")
+// 		errs := validate.Var(test.param, "uuid")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3476,7 +3465,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "isbn")
+// 		errs := validate.Var(test.param, "isbn")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3513,7 +3502,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "isbn13")
+// 		errs := validate.Var(test.param, "isbn13")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3551,7 +3540,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "isbn10")
+// 		errs := validate.Var(test.param, "isbn10")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -3582,7 +3571,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3608,7 +3597,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3623,19 +3612,19 @@ func TestNameNamespace(t *testing.T) {
 
 // 	username := "joeybloggs "
 
-// 	errs := validate.Field(username, "excludesall=@ ")
+// 	errs := validate.Var(username, "excludesall=@ ")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "excludesall")
 
 // 	excluded := ","
 
-// 	errs = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C?")
+// 	errs = validate.Var(excluded, "excludesall=!@#$%^&*()_+.0x2C?")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "excludesall")
 
 // 	excluded = "="
 
-// 	errs = validate.Field(excluded, "excludesall=!@#$%^&*()_+.0x2C=?")
+// 	errs = validate.Var(excluded, "excludesall=!@#$%^&*()_+.0x2C=?")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "excludesall")
 // }
@@ -3652,7 +3641,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3678,7 +3667,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3704,7 +3693,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3730,7 +3719,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	for i, s := range tests {
-// 		errs := validate.Field(s.Value, s.Tag)
+// 		errs := validate.Var(s.Value, s.Tag)
 
 // 		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
 // 			t.Fatalf("Index: %d failed Error: %s", i, errs)
@@ -3765,26 +3754,26 @@ func TestNameNamespace(t *testing.T) {
 // 	arr3 := []string{"test"}
 // 	now2 := now
 
-// 	errs := validate.FieldWithValue(s, s2, "nefield")
+// 	errs := validate.VarWithValue(s, s2, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(i2, i, "nefield")
+// 	errs = validate.VarWithValue(i2, i, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(j2, j, "nefield")
+// 	errs = validate.VarWithValue(j2, j, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(k2, k, "nefield")
+// 	errs = validate.VarWithValue(k2, k, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(arr2, arr, "nefield")
+// 	errs = validate.VarWithValue(arr2, arr, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(now2, now, "nefield")
+// 	errs = validate.VarWithValue(now2, now, "nefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "nefield")
 
-// 	errs = validate.FieldWithValue(arr3, arr, "nefield")
+// 	errs = validate.VarWithValue(arr3, arr, "nefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "nefield")
 
@@ -3812,10 +3801,10 @@ func TestNameNamespace(t *testing.T) {
 // 	errs = validate.Struct(sv)
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(nil, 1, "nefield")
+// 	errs = validate.VarWithValue(nil, 1, "nefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(sv, now, "nefield")
+// 	errs = validate.VarWithValue(sv, now, "nefield")
 // 	Equal(t, errs, nil)
 
 // 	type Test2 struct {
@@ -3843,26 +3832,26 @@ func TestNameNamespace(t *testing.T) {
 // 	arr := []string{"test"}
 // 	now := time.Now().UTC()
 
-// 	errs := validate.Field(s, "ne=abcd")
+// 	errs := validate.Var(s, "ne=abcd")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(i, "ne=1")
+// 	errs = validate.Var(i, "ne=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(j, "ne=1")
+// 	errs = validate.Var(j, "ne=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(k, "ne=1.543")
+// 	errs = validate.Var(k, "ne=1.543")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(arr, "ne=2")
+// 	errs = validate.Var(arr, "ne=2")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(arr, "ne=1")
+// 	errs = validate.Var(arr, "ne=1")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ne")
 
-// 	PanicMatches(t, func() { validate.Field(now, "ne=now") }, "Bad field type time.Time")
+// 	PanicMatches(t, func() { validate.Var(now, "ne=now") }, "Bad field type time.Time")
 // }
 
 // func TestIsEqFieldValidation(t *testing.T) {
@@ -3886,25 +3875,25 @@ func TestNameNamespace(t *testing.T) {
 // 	arr3 := []string{"test", "test2"}
 // 	now2 := now
 
-// 	errs := validate.FieldWithValue(s, s2, "eqfield")
+// 	errs := validate.VarWithValue(s, s2, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(i2, i, "eqfield")
+// 	errs = validate.VarWithValue(i2, i, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(j2, j, "eqfield")
+// 	errs = validate.VarWithValue(j2, j, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(k2, k, "eqfield")
+// 	errs = validate.VarWithValue(k2, k, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(arr2, arr, "eqfield")
+// 	errs = validate.VarWithValue(arr2, arr, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(now2, now, "eqfield")
+// 	errs = validate.VarWithValue(now2, now, "eqfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(arr3, arr, "eqfield")
+// 	errs = validate.VarWithValue(arr3, arr, "eqfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqfield")
 
@@ -3932,16 +3921,16 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "Test.Start", "Start", "eqfield")
 
-// 	errs = validate.FieldWithValue(nil, 1, "eqfield")
+// 	errs = validate.VarWithValue(nil, 1, "eqfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqfield")
 
 // 	channel := make(chan string)
-// 	errs = validate.FieldWithValue(5, channel, "eqfield")
+// 	errs = validate.VarWithValue(5, channel, "eqfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqfield")
 
-// 	errs = validate.FieldWithValue(5, now, "eqfield")
+// 	errs = validate.VarWithValue(5, now, "eqfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eqfield")
 
@@ -3993,46 +3982,46 @@ func TestNameNamespace(t *testing.T) {
 // 	arr := []string{"test"}
 // 	now := time.Now().UTC()
 
-// 	errs := validate.Field(s, "eq=abcd")
+// 	errs := validate.Var(s, "eq=abcd")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(i, "eq=1")
+// 	errs = validate.Var(i, "eq=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(j, "eq=1")
+// 	errs = validate.Var(j, "eq=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(k, "eq=1.543")
+// 	errs = validate.Var(k, "eq=1.543")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(arr, "eq=1")
+// 	errs = validate.Var(arr, "eq=1")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.Field(arr, "eq=2")
+// 	errs = validate.Var(arr, "eq=2")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "eq")
 
-// 	PanicMatches(t, func() { validate.Field(now, "eq=now") }, "Bad field type time.Time")
+// 	PanicMatches(t, func() { validate.Var(now, "eq=now") }, "Bad field type time.Time")
 // }
 
 // func TestBase64Validation(t *testing.T) {
 
 // 	s := "dW5pY29ybg=="
 
-// 	errs := validate.Field(s, "base64")
+// 	errs := validate.Var(s, "base64")
 // 	Equal(t, errs, nil)
 
 // 	s = "dGhpIGlzIGEgdGVzdCBiYXNlNjQ="
-// 	errs = validate.Field(s, "base64")
+// 	errs = validate.Var(s, "base64")
 // 	Equal(t, errs, nil)
 
 // 	s = ""
-// 	errs = validate.Field(s, "base64")
+// 	errs = validate.Var(s, "base64")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "base64")
 
 // 	s = "dW5pY29ybg== foo bar"
-// 	errs = validate.Field(s, "base64")
+// 	errs = validate.Var(s, "base64")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "base64")
 // }
@@ -4125,17 +4114,17 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "TimeTest.End", "End", "gtfield")
 
-// 	errs = validate.FieldWithValue(&start, &end, "gtfield")
+// 	errs = validate.VarWithValue(&start, &end, "gtfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(&end, &start, "gtfield")
+// 	errs = validate.VarWithValue(&end, &start, "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
-// 	errs = validate.FieldWithValue(&timeTest, &end, "gtfield")
+// 	errs = validate.VarWithValue(&timeTest, &end, "gtfield")
 // 	NotEqual(t, errs, nil)
 
-// 	errs = validate.FieldWithValue("test", "test bigger", "gtfield")
+// 	errs = validate.VarWithValue("test", "test bigger", "gtfield")
 // 	Equal(t, errs, nil)
 
 // 	type IntTest struct {
@@ -4160,10 +4149,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "IntTest.Val2", "Val2", "gtfield")
 
-// 	errs = validate.FieldWithValue(int(1), int(5), "gtfield")
+// 	errs = validate.VarWithValue(int(1), int(5), "gtfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(int(5), int(1), "gtfield")
+// 	errs = validate.VarWithValue(int(5), int(1), "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
@@ -4189,10 +4178,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "UIntTest.Val2", "Val2", "gtfield")
 
-// 	errs = validate.FieldWithValue(uint(1), uint(5), "gtfield")
+// 	errs = validate.VarWithValue(uint(1), uint(5), "gtfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(uint(5), uint(1), "gtfield")
+// 	errs = validate.VarWithValue(uint(5), uint(1), "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
@@ -4218,22 +4207,22 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "FloatTest.Val2", "Val2", "gtfield")
 
-// 	errs = validate.FieldWithValue(float32(1), float32(5), "gtfield")
+// 	errs = validate.VarWithValue(float32(1), float32(5), "gtfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(float32(5), float32(1), "gtfield")
+// 	errs = validate.VarWithValue(float32(5), float32(1), "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
-// 	errs = validate.FieldWithValue(nil, 1, "gtfield")
+// 	errs = validate.VarWithValue(nil, 1, "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
-// 	errs = validate.FieldWithValue(5, "T", "gtfield")
+// 	errs = validate.VarWithValue(5, "T", "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
-// 	errs = validate.FieldWithValue(5, start, "gtfield")
+// 	errs = validate.VarWithValue(5, start, "gtfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtfield")
 
@@ -4280,18 +4269,18 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "TimeTest.Start", "Start", "ltfield")
 
-// 	errs = validate.FieldWithValue(&end, &start, "ltfield")
+// 	errs = validate.VarWithValue(&end, &start, "ltfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(&start, &end, "ltfield")
+// 	errs = validate.VarWithValue(&start, &end, "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
-// 	errs = validate.FieldWithValue(timeTest, &end, "ltfield")
+// 	errs = validate.VarWithValue(timeTest, &end, "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
-// 	errs = validate.FieldWithValue("test", "tes", "ltfield")
+// 	errs = validate.VarWithValue("test", "tes", "ltfield")
 // 	Equal(t, errs, nil)
 
 // 	type IntTest struct {
@@ -4316,10 +4305,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "IntTest.Val2", "Val2", "ltfield")
 
-// 	errs = validate.FieldWithValue(int(5), int(1), "ltfield")
+// 	errs = validate.VarWithValue(int(5), int(1), "ltfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(int(1), int(5), "ltfield")
+// 	errs = validate.VarWithValue(int(1), int(5), "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
@@ -4345,10 +4334,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "UIntTest.Val2", "Val2", "ltfield")
 
-// 	errs = validate.FieldWithValue(uint(5), uint(1), "ltfield")
+// 	errs = validate.VarWithValue(uint(5), uint(1), "ltfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(uint(1), uint(5), "ltfield")
+// 	errs = validate.VarWithValue(uint(1), uint(5), "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
@@ -4374,22 +4363,22 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "FloatTest.Val2", "Val2", "ltfield")
 
-// 	errs = validate.FieldWithValue(float32(5), float32(1), "ltfield")
+// 	errs = validate.VarWithValue(float32(5), float32(1), "ltfield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(float32(1), float32(5), "ltfield")
+// 	errs = validate.VarWithValue(float32(1), float32(5), "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
-// 	errs = validate.FieldWithValue(nil, 5, "ltfield")
+// 	errs = validate.VarWithValue(nil, 5, "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
-// 	errs = validate.FieldWithValue(1, "T", "ltfield")
+// 	errs = validate.VarWithValue(1, "T", "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
-// 	errs = validate.FieldWithValue(1, end, "ltfield")
+// 	errs = validate.VarWithValue(1, end, "ltfield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltfield")
 
@@ -4436,21 +4425,21 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "TimeTest.Start", "Start", "ltefield")
 
-// 	errs = validate.FieldWithValue(&end, &start, "ltefield")
+// 	errs = validate.VarWithValue(&end, &start, "ltefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(&start, &end, "ltefield")
+// 	errs = validate.VarWithValue(&start, &end, "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
-// 	errs = validate.FieldWithValue(timeTest, &end, "ltefield")
+// 	errs = validate.VarWithValue(timeTest, &end, "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
-// 	errs = validate.FieldWithValue("test", "tes", "ltefield")
+// 	errs = validate.VarWithValue("test", "tes", "ltefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue("test", "test", "ltefield")
+// 	errs = validate.VarWithValue("test", "test", "ltefield")
 // 	Equal(t, errs, nil)
 
 // 	type IntTest struct {
@@ -4475,10 +4464,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "IntTest.Val2", "Val2", "ltefield")
 
-// 	errs = validate.FieldWithValue(int(5), int(1), "ltefield")
+// 	errs = validate.VarWithValue(int(5), int(1), "ltefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(int(1), int(5), "ltefield")
+// 	errs = validate.VarWithValue(int(1), int(5), "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
@@ -4504,10 +4493,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "UIntTest.Val2", "Val2", "ltefield")
 
-// 	errs = validate.FieldWithValue(uint(5), uint(1), "ltefield")
+// 	errs = validate.VarWithValue(uint(5), uint(1), "ltefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(uint(1), uint(5), "ltefield")
+// 	errs = validate.VarWithValue(uint(1), uint(5), "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
@@ -4533,22 +4522,22 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "FloatTest.Val2", "Val2", "ltefield")
 
-// 	errs = validate.FieldWithValue(float32(5), float32(1), "ltefield")
+// 	errs = validate.VarWithValue(float32(5), float32(1), "ltefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(float32(1), float32(5), "ltefield")
+// 	errs = validate.VarWithValue(float32(1), float32(5), "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
-// 	errs = validate.FieldWithValue(nil, 5, "ltefield")
+// 	errs = validate.VarWithValue(nil, 5, "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
-// 	errs = validate.FieldWithValue(1, "T", "ltefield")
+// 	errs = validate.VarWithValue(1, "T", "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
-// 	errs = validate.FieldWithValue(1, end, "ltefield")
+// 	errs = validate.VarWithValue(1, end, "ltefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "ltefield")
 
@@ -4595,21 +4584,21 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "TimeTest.End", "End", "gtefield")
 
-// 	errs = validate.FieldWithValue(&start, &end, "gtefield")
+// 	errs = validate.VarWithValue(&start, &end, "gtefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(&end, &start, "gtefield")
+// 	errs = validate.VarWithValue(&end, &start, "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
-// 	errs = validate.FieldWithValue(timeTest, &start, "gtefield")
+// 	errs = validate.VarWithValue(timeTest, &start, "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
-// 	errs = validate.FieldWithValue("test", "test", "gtefield")
+// 	errs = validate.VarWithValue("test", "test", "gtefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue("test", "test bigger", "gtefield")
+// 	errs = validate.VarWithValue("test", "test bigger", "gtefield")
 // 	Equal(t, errs, nil)
 
 // 	type IntTest struct {
@@ -4634,10 +4623,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "IntTest.Val2", "Val2", "gtefield")
 
-// 	errs = validate.FieldWithValue(int(1), int(5), "gtefield")
+// 	errs = validate.VarWithValue(int(1), int(5), "gtefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(int(5), int(1), "gtefield")
+// 	errs = validate.VarWithValue(int(5), int(1), "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
@@ -4663,10 +4652,10 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "UIntTest.Val2", "Val2", "gtefield")
 
-// 	errs = validate.FieldWithValue(uint(1), uint(5), "gtefield")
+// 	errs = validate.VarWithValue(uint(1), uint(5), "gtefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(uint(5), uint(1), "gtefield")
+// 	errs = validate.VarWithValue(uint(5), uint(1), "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
@@ -4692,22 +4681,22 @@ func TestNameNamespace(t *testing.T) {
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "FloatTest.Val2", "Val2", "gtefield")
 
-// 	errs = validate.FieldWithValue(float32(1), float32(5), "gtefield")
+// 	errs = validate.VarWithValue(float32(1), float32(5), "gtefield")
 // 	Equal(t, errs, nil)
 
-// 	errs = validate.FieldWithValue(float32(5), float32(1), "gtefield")
+// 	errs = validate.VarWithValue(float32(5), float32(1), "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
-// 	errs = validate.FieldWithValue(nil, 1, "gtefield")
+// 	errs = validate.VarWithValue(nil, 1, "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
-// 	errs = validate.FieldWithValue(5, "T", "gtefield")
+// 	errs = validate.VarWithValue(5, "T", "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
-// 	errs = validate.FieldWithValue(5, start, "gtefield")
+// 	errs = validate.VarWithValue(5, start, "gtefield")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gtefield")
 
@@ -4730,7 +4719,7 @@ func TestNameNamespace(t *testing.T) {
 
 // 	val := "test"
 // 	field := "test"
-// 	errs := validate.FieldWithValue(val, field, "required")
+// 	errs := validate.VarWithValue(val, field, "required")
 // 	Equal(t, errs, nil)
 
 // 	fn := func(v *Validate, topStruct reflect.Value, current reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -4740,12 +4729,12 @@ func TestNameNamespace(t *testing.T) {
 
 // 	validate.RegisterValidation("isequaltestfunc", fn)
 
-// 	errs = validate.FieldWithValue(val, field, "isequaltestfunc")
+// 	errs = validate.VarWithValue(val, field, "isequaltestfunc")
 // 	Equal(t, errs, nil)
 
 // 	val = "unequal"
 
-// 	errs = validate.FieldWithValue(val, field, "isequaltestfunc")
+// 	errs = validate.VarWithValue(val, field, "isequaltestfunc")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "isequaltestfunc")
 // }
@@ -4816,53 +4805,53 @@ func TestNameNamespace(t *testing.T) {
 // func TestBadParams(t *testing.T) {
 
 // 	i := 1
-// 	errs := validate.Field(i, "-")
+// 	errs := validate.Var(i, "-")
 // 	Equal(t, errs, nil)
 
-// 	PanicMatches(t, func() { validate.Field(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
-// 	PanicMatches(t, func() { validate.Field(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+// 	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+// 	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
 
 // 	var ui uint = 1
-// 	PanicMatches(t, func() { validate.Field(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
+// 	PanicMatches(t, func() { validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
 
 // 	f := 1.23
-// 	PanicMatches(t, func() { validate.Field(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+// 	PanicMatches(t, func() { validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
 // }
 
 // func TestLength(t *testing.T) {
 
 // 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "len") }, "Bad field type bool")
+// 	PanicMatches(t, func() { validate.Var(i, "len") }, "Bad field type bool")
 // }
 
 // func TestIsGt(t *testing.T) {
 
 // 	myMap := map[string]string{}
-// 	errs := validate.Field(myMap, "gt=0")
+// 	errs := validate.Var(myMap, "gt=0")
 // 	NotEqual(t, errs, nil)
 
 // 	f := 1.23
-// 	errs = validate.Field(f, "gt=5")
+// 	errs = validate.Var(f, "gt=5")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gt")
 
 // 	var ui uint = 5
-// 	errs = validate.Field(ui, "gt=10")
+// 	errs = validate.Var(ui, "gt=10")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gt")
 
 // 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "gt") }, "Bad field type bool")
+// 	PanicMatches(t, func() { validate.Var(i, "gt") }, "Bad field type bool")
 
 // 	tm := time.Now().UTC()
 // 	tm = tm.Add(time.Hour * 24)
 
-// 	errs = validate.Field(tm, "gt")
+// 	errs = validate.Var(tm, "gt")
 // 	Equal(t, errs, nil)
 
 // 	t2 := time.Now().UTC()
 
-// 	errs = validate.Field(t2, "gt")
+// 	errs = validate.Var(t2, "gt")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gt")
 
@@ -4888,17 +4877,17 @@ func TestNameNamespace(t *testing.T) {
 // func TestIsGte(t *testing.T) {
 
 // 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "gte") }, "Bad field type bool")
+// 	PanicMatches(t, func() { validate.Var(i, "gte") }, "Bad field type bool")
 
 // 	t1 := time.Now().UTC()
 // 	t1 = t1.Add(time.Hour * 24)
 
-// 	errs := validate.Field(t1, "gte")
+// 	errs := validate.Var(t1, "gte")
 // 	Equal(t, errs, nil)
 
 // 	t2 := time.Now().UTC()
 
-// 	errs = validate.Field(t2, "gte")
+// 	errs = validate.Var(t2, "gte")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "gte")
 
@@ -4924,32 +4913,32 @@ func TestNameNamespace(t *testing.T) {
 // func TestIsLt(t *testing.T) {
 
 // 	myMap := map[string]string{}
-// 	errs := validate.Field(myMap, "lt=0")
+// 	errs := validate.Var(myMap, "lt=0")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "lt")
 
 // 	f := 1.23
-// 	errs = validate.Field(f, "lt=0")
+// 	errs = validate.Var(f, "lt=0")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "lt")
 
 // 	var ui uint = 5
-// 	errs = validate.Field(ui, "lt=0")
+// 	errs = validate.Var(ui, "lt=0")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "lt")
 
 // 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "lt") }, "Bad field type bool")
+// 	PanicMatches(t, func() { validate.Var(i, "lt") }, "Bad field type bool")
 
 // 	t1 := time.Now().UTC()
 
-// 	errs = validate.Field(t1, "lt")
+// 	errs = validate.Var(t1, "lt")
 // 	Equal(t, errs, nil)
 
 // 	t2 := time.Now().UTC()
 // 	t2 = t2.Add(time.Hour * 24)
 
-// 	errs = validate.Field(t2, "lt")
+// 	errs = validate.Var(t2, "lt")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "lt")
 
@@ -4976,17 +4965,17 @@ func TestNameNamespace(t *testing.T) {
 // func TestIsLte(t *testing.T) {
 
 // 	i := true
-// 	PanicMatches(t, func() { validate.Field(i, "lte") }, "Bad field type bool")
+// 	PanicMatches(t, func() { validate.Var(i, "lte") }, "Bad field type bool")
 
 // 	t1 := time.Now().UTC()
 
-// 	errs := validate.Field(t1, "lte")
+// 	errs := validate.Var(t1, "lte")
 // 	Equal(t, errs, nil)
 
 // 	t2 := time.Now().UTC()
 // 	t2 = t2.Add(time.Hour * 24)
 
-// 	errs = validate.Field(t2, "lte")
+// 	errs = validate.Var(t2, "lte")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "lte")
 
@@ -5052,7 +5041,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "url")
+// 		errs := validate.Var(test.param, "url")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -5071,7 +5060,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "url") }, "Bad field type int")
+// 	PanicMatches(t, func() { validate.Var(i, "url") }, "Bad field type int")
 // }
 
 // func TestUri(t *testing.T) {
@@ -5116,7 +5105,7 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 // 	for i, test := range tests {
 
-// 		errs := validate.Field(test.param, "uri")
+// 		errs := validate.Var(test.param, "uri")
 
 // 		if test.expected {
 // 			if !IsEqual(errs, nil) {
@@ -5135,83 +5124,83 @@ func TestNameNamespace(t *testing.T) {
 // 	}
 
 // 	i := 1
-// 	PanicMatches(t, func() { validate.Field(i, "uri") }, "Bad field type int")
+// 	PanicMatches(t, func() { validate.Var(i, "uri") }, "Bad field type int")
 // }
 
 // func TestOrTag(t *testing.T) {
 // 	s := "rgba(0,31,255,0.5)"
-// 	errs := validate.Field(s, "rgb|rgba")
+// 	errs := validate.Var(s, "rgb|rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgba(0,31,255,0.5)"
-// 	errs = validate.Field(s, "rgb|rgba|len=18")
+// 	errs = validate.Var(s, "rgb|rgba|len=18")
 // 	Equal(t, errs, nil)
 
 // 	s = "this ain't right"
-// 	errs = validate.Field(s, "rgb|rgba")
+// 	errs = validate.Var(s, "rgb|rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb|rgba")
 
 // 	s = "this ain't right"
-// 	errs = validate.Field(s, "rgb|rgba|len=10")
+// 	errs = validate.Var(s, "rgb|rgba|len=10")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb|rgba|len")
 
 // 	s = "this is right"
-// 	errs = validate.Field(s, "rgb|rgba|len=13")
+// 	errs = validate.Var(s, "rgb|rgba|len=13")
 // 	Equal(t, errs, nil)
 
 // 	s = ""
-// 	errs = validate.Field(s, "omitempty,rgb|rgba")
+// 	errs = validate.Var(s, "omitempty,rgb|rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "this is right, but a blank or isn't"
 
-// 	PanicMatches(t, func() { validate.Field(s, "rgb||len=13") }, "Invalid validation tag on field")
-// 	PanicMatches(t, func() { validate.Field(s, "rgb|rgbaa|len=13") }, "Undefined validation function on field")
+// 	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field")
+// 	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function on field")
 // }
 
 // func TestHsla(t *testing.T) {
 
 // 	s := "hsla(360,100%,100%,1)"
-// 	errs := validate.Field(s, "hsla")
+// 	errs := validate.Var(s, "hsla")
 // 	Equal(t, errs, nil)
 
 // 	s = "hsla(360,100%,100%,0.5)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	Equal(t, errs, nil)
 
 // 	s = "hsla(0,0%,0%, 0)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	Equal(t, errs, nil)
 
 // 	s = "hsl(361,100%,50%,1)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 
 // 	s = "hsl(361,100%,50%)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 
 // 	s = "hsla(361,100%,50%)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 
 // 	s = "hsla(360,101%,50%)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 
 // 	s = "hsla(360,100%,101%)"
-// 	errs = validate.Field(s, "hsla")
+// 	errs = validate.Var(s, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 
 // 	i := 1
-// 	validate.Field(i, "hsla")
+// 	validate.Var(i, "hsla")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsla")
 // }
@@ -5219,35 +5208,35 @@ func TestNameNamespace(t *testing.T) {
 // func TestHsl(t *testing.T) {
 
 // 	s := "hsl(360,100%,50%)"
-// 	errs := validate.Field(s, "hsl")
+// 	errs := validate.Var(s, "hsl")
 // 	Equal(t, errs, nil)
 
 // 	s = "hsl(0,0%,0%)"
-// 	errs = validate.Field(s, "hsl")
+// 	errs = validate.Var(s, "hsl")
 // 	Equal(t, errs, nil)
 
 // 	s = "hsl(361,100%,50%)"
-// 	errs = validate.Field(s, "hsl")
+// 	errs = validate.Var(s, "hsl")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsl")
 
 // 	s = "hsl(361,101%,50%)"
-// 	errs = validate.Field(s, "hsl")
+// 	errs = validate.Var(s, "hsl")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsl")
 
 // 	s = "hsl(361,100%,101%)"
-// 	errs = validate.Field(s, "hsl")
+// 	errs = validate.Var(s, "hsl")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsl")
 
 // 	s = "hsl(-10,100%,100%)"
-// 	errs = validate.Field(s, "hsl")
+// 	errs = validate.Var(s, "hsl")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsl")
 
 // 	i := 1
-// 	errs = validate.Field(i, "hsl")
+// 	errs = validate.Var(i, "hsl")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hsl")
 // }
@@ -5255,43 +5244,43 @@ func TestNameNamespace(t *testing.T) {
 // func TestRgba(t *testing.T) {
 
 // 	s := "rgba(0,31,255,0.5)"
-// 	errs := validate.Field(s, "rgba")
+// 	errs := validate.Var(s, "rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgba(0,31,255,0.12)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgba(12%,55%,100%,0.12)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgba( 0,  31, 255, 0.5)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgba(12%,55,100%,0.12)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgba")
 
 // 	s = "rgb(0,  31, 255)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgba")
 
 // 	s = "rgb(1,349,275,0.5)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgba")
 
 // 	s = "rgb(01,31,255,0.5)"
-// 	errs = validate.Field(s, "rgba")
+// 	errs = validate.Var(s, "rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgba")
 
 // 	i := 1
-// 	errs = validate.Field(i, "rgba")
+// 	errs = validate.Var(i, "rgba")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgba")
 // }
@@ -5299,39 +5288,39 @@ func TestNameNamespace(t *testing.T) {
 // func TestRgb(t *testing.T) {
 
 // 	s := "rgb(0,31,255)"
-// 	errs := validate.Field(s, "rgb")
+// 	errs := validate.Var(s, "rgb")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgb(0,  31, 255)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgb(10%,  50%, 100%)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	Equal(t, errs, nil)
 
 // 	s = "rgb(10%,  50%, 55)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb")
 
 // 	s = "rgb(1,349,275)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb")
 
 // 	s = "rgb(01,31,255)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb")
 
 // 	s = "rgba(0,31,255)"
-// 	errs = validate.Field(s, "rgb")
+// 	errs = validate.Var(s, "rgb")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb")
 
 // 	i := 1
-// 	errs = validate.Field(i, "rgb")
+// 	errs = validate.Var(i, "rgb")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "rgb")
 // }
@@ -5339,51 +5328,51 @@ func TestNameNamespace(t *testing.T) {
 // func TestEmail(t *testing.T) {
 
 // 	s := "test@mail.com"
-// 	errs := validate.Field(s, "email")
+// 	errs := validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = "Dörte@Sörensen.example.com"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = "θσερ@εχαμπλε.ψομ"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = "юзер@екзампл.ком"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = "उपयोगकर्ता@उदाहरण.कॉम"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = "用户@例子.广告"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	Equal(t, errs, nil)
 
 // 	s = ""
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "email")
 
 // 	s = "test@email"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "email")
 
 // 	s = "test@email."
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "email")
 
 // 	s = "@email.com"
-// 	errs = validate.Field(s, "email")
+// 	errs = validate.Var(s, "email")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "email")
 
 // 	i := true
-// 	errs = validate.Field(i, "email")
+// 	errs = validate.Var(i, "email")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "email")
 // }
@@ -5391,25 +5380,25 @@ func TestNameNamespace(t *testing.T) {
 // func TestHexColor(t *testing.T) {
 
 // 	s := "#fff"
-// 	errs := validate.Field(s, "hexcolor")
+// 	errs := validate.Var(s, "hexcolor")
 // 	Equal(t, errs, nil)
 
 // 	s = "#c2c2c2"
-// 	errs = validate.Field(s, "hexcolor")
+// 	errs = validate.Var(s, "hexcolor")
 // 	Equal(t, errs, nil)
 
 // 	s = "fff"
-// 	errs = validate.Field(s, "hexcolor")
+// 	errs = validate.Var(s, "hexcolor")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hexcolor")
 
 // 	s = "fffFF"
-// 	errs = validate.Field(s, "hexcolor")
+// 	errs = validate.Var(s, "hexcolor")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hexcolor")
 
 // 	i := true
-// 	errs = validate.Field(i, "hexcolor")
+// 	errs = validate.Var(i, "hexcolor")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hexcolor")
 // }
@@ -5417,16 +5406,16 @@ func TestNameNamespace(t *testing.T) {
 // func TestHexadecimal(t *testing.T) {
 
 // 	s := "ff0044"
-// 	errs := validate.Field(s, "hexadecimal")
+// 	errs := validate.Var(s, "hexadecimal")
 // 	Equal(t, errs, nil)
 
 // 	s = "abcdefg"
-// 	errs = validate.Field(s, "hexadecimal")
+// 	errs = validate.Var(s, "hexadecimal")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hexadecimal")
 
 // 	i := true
-// 	errs = validate.Field(i, "hexadecimal")
+// 	errs = validate.Var(i, "hexadecimal")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "hexadecimal")
 // }
@@ -5434,46 +5423,46 @@ func TestNameNamespace(t *testing.T) {
 // func TestNumber(t *testing.T) {
 
 // 	s := "1"
-// 	errs := validate.Field(s, "number")
+// 	errs := validate.Var(s, "number")
 // 	Equal(t, errs, nil)
 
 // 	s = "+1"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "-1"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "1.12"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "+1.12"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "-1.12"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "1."
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	s = "1.o"
-// 	errs = validate.Field(s, "number")
+// 	errs = validate.Var(s, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 
 // 	i := 1
-// 	errs = validate.Field(i, "number")
+// 	errs = validate.Var(i, "number")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "number")
 // }
@@ -5481,41 +5470,41 @@ func TestNameNamespace(t *testing.T) {
 // func TestNumeric(t *testing.T) {
 
 // 	s := "1"
-// 	errs := validate.Field(s, "numeric")
+// 	errs := validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "+1"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "-1"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "1.12"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "+1.12"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "-1.12"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	Equal(t, errs, nil)
 
 // 	s = "1."
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "numeric")
 
 // 	s = "1.o"
-// 	errs = validate.Field(s, "numeric")
+// 	errs = validate.Var(s, "numeric")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "numeric")
 
 // 	i := 1
-// 	errs = validate.Field(i, "numeric")
+// 	errs = validate.Var(i, "numeric")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "numeric")
 // }
@@ -5523,15 +5512,15 @@ func TestNameNamespace(t *testing.T) {
 // func TestAlphaNumeric(t *testing.T) {
 
 // 	s := "abcd123"
-// 	errs := validate.Field(s, "alphanum")
+// 	errs := validate.Var(s, "alphanum")
 // 	Equal(t, errs, nil)
 
 // 	s = "abc!23"
-// 	errs = validate.Field(s, "alphanum")
+// 	errs = validate.Var(s, "alphanum")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alphanum")
 
-// 	errs = validate.Field(1, "alphanum")
+// 	errs = validate.Var(1, "alphanum")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alphanum")
 // }
@@ -5539,25 +5528,25 @@ func TestNameNamespace(t *testing.T) {
 // func TestAlpha(t *testing.T) {
 
 // 	s := "abcd"
-// 	errs := validate.Field(s, "alpha")
+// 	errs := validate.Var(s, "alpha")
 // 	Equal(t, errs, nil)
 
 // 	s = "abc®"
-// 	errs = validate.Field(s, "alpha")
+// 	errs = validate.Var(s, "alpha")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alpha")
 
 // 	s = "abc÷"
-// 	errs = validate.Field(s, "alpha")
+// 	errs = validate.Var(s, "alpha")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alpha")
 
 // 	s = "abc1"
-// 	errs = validate.Field(s, "alpha")
+// 	errs = validate.Var(s, "alpha")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alpha")
 
-// 	errs = validate.Field(1, "alpha")
+// 	errs = validate.Var(1, "alpha")
 // 	NotEqual(t, errs, nil)
 // 	AssertError(t, errs, "", "", "alpha")
 
@@ -5695,16 +5684,16 @@ func TestStructInt32Validation(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 10)
 
 	// Assert Fields
-	AssertError(t, errs, "TestInt32.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestInt32.Len", "Len", "Len", "len")
-	AssertError(t, errs, "TestInt32.Min", "Min", "Min", "min")
-	AssertError(t, errs, "TestInt32.Max", "Max", "Max", "max")
-	AssertError(t, errs, "TestInt32.MinMax", "MinMax", "MinMax", "min")
-	AssertError(t, errs, "TestInt32.Lt", "Lt", "Lt", "lt")
-	AssertError(t, errs, "TestInt32.Lte", "Lte", "Lte", "lte")
-	AssertError(t, errs, "TestInt32.Gt", "Gt", "Gt", "gt")
-	AssertError(t, errs, "TestInt32.Gte", "Gte", "Gte", "gte")
-	AssertError(t, errs, "TestInt32.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestInt32.Required", "TestInt32.Required", "Required", "Required", "required")
+	AssertError(t, errs, "TestInt32.Len", "TestInt32.Len", "Len", "Len", "len")
+	AssertError(t, errs, "TestInt32.Min", "TestInt32.Min", "Min", "Min", "min")
+	AssertError(t, errs, "TestInt32.Max", "TestInt32.Max", "Max", "Max", "max")
+	AssertError(t, errs, "TestInt32.MinMax", "TestInt32.MinMax", "MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestInt32.Lt", "TestInt32.Lt", "Lt", "Lt", "lt")
+	AssertError(t, errs, "TestInt32.Lte", "TestInt32.Lte", "Lte", "Lte", "lte")
+	AssertError(t, errs, "TestInt32.Gt", "TestInt32.Gt", "Gt", "Gt", "gt")
+	AssertError(t, errs, "TestInt32.Gte", "TestInt32.Gte", "Gte", "Gte", "gte")
+	AssertError(t, errs, "TestInt32.OmitEmpty", "TestInt32.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
 }
 
 // func TestStructUint64Validation(t *testing.T) {
@@ -5832,7 +5821,7 @@ func TestStructInt32Validation(t *testing.T) {
 // 		Test: "1",
 // 	}
 
-// 	PanicMatches(t, func() { validate.Field(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
+// 	PanicMatches(t, func() { validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
 // }
 
 // func TestCustomFieldName(t *testing.T) {

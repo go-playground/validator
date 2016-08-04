@@ -97,16 +97,16 @@ func (v *validate) ExtractType(field reflect.Value) (reflect.Value, reflect.Kind
 }
 
 // ReportError reports an error just by passing the field and tag information
-func (v *validate) ReportError(field interface{}, fieldName, altName, tag string) {
+func (v *validate) ReportError(field interface{}, fieldName, structFieldName, tag string) {
 
 	fv, kind, _ := v.extractTypeInternal(reflect.ValueOf(field), false)
 
-	if len(altName) == 0 {
-		altName = fieldName
+	if len(structFieldName) == 0 {
+		structFieldName = fieldName
 	}
 
 	ns := append(v.slNs, fieldName...)
-	nsActual := append(v.slStructNs, altName...)
+	nsStruct := append(v.slStructNs, structFieldName...)
 
 	switch kind {
 	case reflect.Invalid:
@@ -116,11 +116,11 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 				tag:         tag,
 				actualTag:   tag,
 				ns:          string(ns),
-				structNs:    string(nsActual),
+				structNs:    string(nsStruct),
 				field:       fieldName,
-				structField: altName,
-				param:       "",
-				kind:        kind,
+				structField: structFieldName,
+				// param:       "",
+				kind: kind,
 			},
 		)
 
@@ -131,13 +131,13 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 				tag:         tag,
 				actualTag:   tag,
 				ns:          string(ns),
-				structNs:    string(nsActual),
+				structNs:    string(nsStruct),
 				field:       fieldName,
-				structField: altName,
+				structField: structFieldName,
 				value:       fv.Interface(),
-				param:       "",
-				kind:        kind,
-				typ:         fv.Type(),
+				// param:       "",
+				kind: kind,
+				typ:  fv.Type(),
 			},
 		)
 	}
@@ -146,15 +146,15 @@ func (v *validate) ReportError(field interface{}, fieldName, altName, tag string
 // ReportValidationErrors reports ValidationErrors obtained from running validations within the Struct Level validation.
 //
 // NOTE: this function prepends the current namespace to the relative ones.
-func (v *validate) ReportValidationErrors(relativeNamespace, relativeActualNamespace string, errs ValidationErrors) {
+func (v *validate) ReportValidationErrors(relativeNamespace, relativeStructNamespace string, errs ValidationErrors) {
 
 	var err *fieldError
 
 	for i := 0; i < len(errs); i++ {
 
 		err = errs[i].(*fieldError)
-		err.ns = string(append(append(v.slNs, err.ns...), err.field...))
-		err.structNs = string(append(append(v.slStructNs, err.structNs...), err.structField...))
+		err.ns = string(append(append(v.slNs, relativeNamespace...), err.ns...))
+		err.structNs = string(append(append(v.slStructNs, relativeStructNamespace...), err.structNs...))
 
 		v.errs = append(v.errs, err)
 	}

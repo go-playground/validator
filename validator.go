@@ -57,7 +57,7 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 
 			if v.isPartial {
 
-				_, ok = v.includeExclude[string(append(ns, f.Name...))]
+				_, ok = v.includeExclude[string(append(structNs, f.Name...))]
 
 				if (ok && v.hasExcludes) || (!ok && !v.hasExcludes) {
 					continue
@@ -110,8 +110,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.Name...)),
-						structNs:    string(append(structNs, cf.AltName...)),
+						ns:          string(append(ns, cf.AltName...)),
+						structNs:    string(append(structNs, cf.Name...)),
 						field:       cf.AltName,
 						structField: cf.Name,
 						param:       ct.param,
@@ -126,8 +126,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				&fieldError{
 					tag:         ct.aliasTag,
 					actualTag:   ct.tag,
-					ns:          string(append(ns, cf.Name...)),
-					structNs:    string(append(structNs, cf.AltName...)),
+					ns:          string(append(ns, cf.AltName...)),
+					structNs:    string(append(structNs, cf.Name...)),
 					field:       cf.AltName,
 					structField: cf.Name,
 					value:       current.Interface(),
@@ -154,7 +154,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				return
 			}
 
-			v.validateStruct(current, current, typ, append(append(ns, cf.Name...), '.'), append(append(structNs, cf.AltName...), '.'), ct)
+			v.validateStruct(current, current, typ, append(append(ns, cf.AltName...), '.'), append(append(structNs, cf.Name...), '.'), ct)
 			return
 		}
 	}
@@ -256,8 +256,8 @@ OUTER:
 							&fieldError{
 								tag:         ct.aliasTag,
 								actualTag:   ct.actualAliasTag,
-								ns:          string(append(ns, cf.Name...)),
-								structNs:    string(append(structNs, cf.AltName...)),
+								ns:          string(append(ns, cf.AltName...)),
+								structNs:    string(append(structNs, cf.Name...)),
 								field:       cf.AltName,
 								structField: cf.Name,
 								value:       current.Interface(),
@@ -273,8 +273,8 @@ OUTER:
 							&fieldError{
 								tag:         errTag[1:],
 								actualTag:   errTag[1:],
-								ns:          string(append(ns, cf.Name...)),
-								structNs:    string(append(structNs, cf.AltName...)),
+								ns:          string(append(ns, cf.AltName...)),
+								structNs:    string(append(structNs, cf.Name...)),
 								field:       cf.AltName,
 								structField: cf.Name,
 								value:       current.Interface(),
@@ -304,8 +304,8 @@ OUTER:
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.Name...)),
-						structNs:    string(append(structNs, cf.AltName...)),
+						ns:          string(append(ns, cf.AltName...)),
+						structNs:    string(append(structNs, cf.Name...)),
 						field:       cf.AltName,
 						structField: cf.Name,
 						value:       current.Interface(),
