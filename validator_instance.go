@@ -89,7 +89,8 @@ func New() *Validate {
 	v.pool = &sync.Pool{
 		New: func() interface{} {
 			return &validate{
-				v: v,
+				v:    v,
+				errs: make(ValidationErrors, 0, 4),
 			}
 		},
 	}

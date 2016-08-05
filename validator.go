@@ -226,7 +226,7 @@ OUTER:
 
 		case typeOr:
 
-			errTag := ""
+			errTag := make([]byte, 0, 64)
 
 			for {
 
@@ -252,7 +252,8 @@ OUTER:
 					}
 				}
 
-				errTag += orSeparator + ct.tag
+				errTag = append(errTag, '|')
+				errTag = append(errTag, ct.tag...)
 
 				if ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
@@ -278,8 +279,8 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
-								tag:         errTag[1:],
-								actualTag:   errTag[1:],
+								tag:         string(errTag)[1:],
+								actualTag:   string(errTag)[1:],
 								ns:          string(append(ns, cf.AltName...)),
 								structNs:    string(append(structNs, cf.Name...)),
 								field:       cf.AltName,
