@@ -10,14 +10,11 @@ func BenchmarkFieldSuccess(b *testing.B) {
 
 	validate := New()
 
-	var s *string
-	tmp := "1"
-	s = &tmp
+	s := "1"
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(s, "len=1")
+		validate.Var(&s, "len=1")
 	}
 }
 
@@ -25,14 +22,11 @@ func BenchmarkFieldFailure(b *testing.B) {
 
 	validate := New()
 
-	var s *string
-	tmp := "12"
-	s = &tmp
+	s := "12"
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(s, "len=1")
+		validate.Var(&s, "len=1")
 	}
 }
 
@@ -40,16 +34,9 @@ func BenchmarkFieldDiveSuccess(b *testing.B) {
 
 	validate := New()
 
-	m := make([]*string, 3)
-	t1 := "val1"
-	t2 := "val2"
-	t3 := "val3"
+	m := []string{"val1", "val2", "val3"}
 
-	m[0] = &t1
-	m[1] = &t2
-	m[2] = &t3
-
-	b.ReportAllocs()
+	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
 		validate.Var(m, "required,dive,required")
@@ -60,17 +47,9 @@ func BenchmarkFieldDiveFailure(b *testing.B) {
 
 	validate := New()
 
-	m := make([]*string, 3)
-	t1 := "val1"
-	t2 := ""
-	t3 := "val3"
+	m := []string{"val1", "", "val3"}
 
-	m[0] = &t1
-	m[1] = &t2
-	m[2] = &t3
-
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Var(m, "required,dive,required")
 	}
@@ -85,8 +64,7 @@ func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 		Name: "1",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Var(val, "len=1")
 	}
@@ -99,8 +77,7 @@ func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 
 	val := valuer{}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Var(val, "len=1")
 	}
@@ -110,12 +87,9 @@ func BenchmarkFieldOrTagSuccess(b *testing.B) {
 
 	validate := New()
 
-	var s *string
-	tmp := "rgba(0,0,0,1)"
-	s = &tmp
+	s := "rgba(0,0,0,1)"
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Var(s, "rgb|rgba")
 	}
@@ -125,12 +99,9 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 
 	validate := New()
 
-	var s *string
-	tmp := "#000"
-	s = &tmp
+	s := "#000"
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Var(s, "rgb|rgba")
 	}
@@ -145,8 +116,7 @@ func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 		String: "good value",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tst)
 	}
@@ -161,8 +131,7 @@ func BenchmarkStructLevelValidationFailure(b *testing.B) {
 		String: "good value",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tst)
 	}
@@ -184,8 +153,7 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	validFoo := &Foo{Valuer: val, IntValue: 7}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
 	}
@@ -205,8 +173,7 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 
 	validFoo := &Foo{Valuer: val, IntValue: 3}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
 	}
@@ -225,8 +192,7 @@ func BenchmarkStructPartialSuccess(b *testing.B) {
 		Name: "Joey Bloggs",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Name")
 	}
@@ -245,8 +211,7 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 		Name: "Joey Bloggs",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "NickName")
 	}
@@ -265,8 +230,7 @@ func BenchmarkStructExceptSuccess(b *testing.B) {
 		Name: "Joey Bloggs",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Nickname")
 	}
@@ -285,8 +249,7 @@ func BenchmarkStructExceptFailure(b *testing.B) {
 		Name: "Joey Bloggs",
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.StructPartial(test, "Name")
 	}
@@ -309,8 +272,7 @@ func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 		End:   then,
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(test)
 	}
@@ -333,8 +295,7 @@ func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
 		End:   then,
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(test)
 	}
@@ -364,8 +325,7 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
 		CreatedAt: now,
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(outer)
 	}
@@ -396,8 +356,7 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
 		CreatedAt: now,
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(outer)
 	}
@@ -414,8 +373,7 @@ func BenchmarkStructSimpleSuccess(b *testing.B) {
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(validFoo)
 	}
@@ -432,8 +390,7 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 
 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(invalidFoo)
 	}
@@ -450,8 +407,7 @@ func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(validFoo)
@@ -470,8 +426,7 @@ func BenchmarkStructSimpleFailureParallel(b *testing.B) {
 
 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(invalidFoo)
@@ -510,8 +465,7 @@ func BenchmarkStructComplexSuccess(b *testing.B) {
 		},
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tSuccess)
 	}
@@ -545,8 +499,7 @@ func BenchmarkStructComplexFailure(b *testing.B) {
 		},
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		validate.Struct(tFail)
 	}
@@ -583,8 +536,7 @@ func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 		},
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(tSuccess)
@@ -620,8 +572,7 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 		},
 	}
 
-	b.ReportAllocs()
-
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(tFail)
