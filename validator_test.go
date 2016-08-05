@@ -2625,7 +2625,7 @@ func TestBadKeyValidation(t *testing.T) {
 
 	validate := New()
 
-	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function on field Name")
+	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
 
 	type Test2 struct {
 		Name string `validate:"required,,len=2"`
@@ -2635,7 +2635,7 @@ func TestBadKeyValidation(t *testing.T) {
 		Name: "test",
 	}
 
-	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field Name")
+	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -5413,8 +5413,8 @@ func TestOrTag(t *testing.T) {
 
 	s = "this is right, but a blank or isn't"
 
-	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field")
-	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function on field")
+	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
+	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
 }
 
 func TestHsla(t *testing.T) {
@@ -6116,7 +6116,7 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function on field")
+	PanicMatches(t, func() { validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
 }
 
 func TestCustomFieldName(t *testing.T) {

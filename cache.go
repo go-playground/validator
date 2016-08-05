@@ -21,8 +21,8 @@ const (
 )
 
 const (
-	invalidValidation   = "Invalid validation tag on field %s"
-	undefinedValidation = "Undefined validation function on field %s"
+	invalidValidation   = "Invalid validation tag on field '%s'"
+	undefinedValidation = "Undefined validation function '%s' on field '%s'"
 )
 
 // var (
@@ -267,7 +267,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 
 				if current.fn, ok = v.validations[current.tag]; !ok {
-					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, fieldName)))
+					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}
 
 				if len(orVals) > 1 {
