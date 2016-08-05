@@ -180,10 +180,6 @@ OUTER:
 
 		switch ct.typeof {
 
-		case typeExists:
-			ct = ct.next
-			continue
-
 		case typeOmitEmpty:
 
 			// set Field Level fields

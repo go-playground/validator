@@ -200,10 +200,8 @@ func (v *Validate) Struct(s interface{}) (err error) {
 		val = val.Elem()
 	}
 
-	typ := val.Type()
-
-	if val.Kind() != reflect.Struct || typ == timeType {
-		return &InvalidValidationError{Type: typ}
+	if val.Kind() != reflect.Struct || val.Type() == timeType {
+		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
 	// good to validate
@@ -212,7 +210,7 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	vd.isPartial = false
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
 
-	vd.validateStruct(top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -239,10 +237,8 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 		val = val.Elem()
 	}
 
-	typ := val.Type()
-
-	if val.Kind() != reflect.Struct || typ == timeType {
-		return &InvalidValidationError{Type: typ}
+	if val.Kind() != reflect.Struct || val.Type() == timeType {
+		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
 	// good to validate
@@ -252,6 +248,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 	vd.hasExcludes = false
 	vd.includeExclude = make(map[string]struct{})
 
+	typ := val.Type()
 	name := typ.Name()
 
 	if fields != nil {
@@ -316,10 +313,8 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 		val = val.Elem()
 	}
 
-	typ := val.Type()
-
-	if val.Kind() != reflect.Struct || typ == timeType {
-		return &InvalidValidationError{Type: typ}
+	if val.Kind() != reflect.Struct || val.Type() == timeType {
+		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
 	// good to validate
@@ -329,6 +324,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 	vd.hasExcludes = true
 	vd.includeExclude = make(map[string]struct{})
 
+	typ := val.Type()
 	name := typ.Name()
 
 	for _, key := range fields {
@@ -346,8 +342,6 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 
 	return
 }
-
-// func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns []byte, actualNs []byte, cf *cField, ct *cTag) {
 
 // Var validates a single variable using tag style validation.
 // eg.

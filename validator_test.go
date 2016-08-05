@@ -304,85 +304,43 @@ type TestStructReturnValidationErrors struct {
 	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
 }
 
-// type TestValidatablePtr struct {
-// 	Value string
-// }
+type StructLevelInvalidErr struct {
+	Value string
+}
 
-// func (tv *TestValidatablePtr) Validate(sl StructLevel) {
+func StructLevelInvalidError(sl StructLevel) {
 
-// 	fmt.Printf("HERE *********** %p %#v\n", tv, tv)
-// 	if len(tv.Value) == 0 {
-// 		sl.ReportError(reflect.ValueOf(tv.Value), "Value", "Value", "required")
-// 	}
-// }
+	top := sl.Top().Interface().(StructLevelInvalidErr)
+	s := sl.Current().Interface().(StructLevelInvalidErr)
 
-// type TestValidatableNoPtr struct {
-// 	Value string
-// }
+	if top.Value == s.Value {
+		sl.ReportError(nil, "Value", "Value", "required")
+	}
+}
 
-// func (tv TestValidatableNoPtr) Validate(sl StructLevel) {
+func TestStructLevelInvalidError(t *testing.T) {
 
-// 	fmt.Println("HERE2 ***********")
-// 	if len(tv.Value) == 0 {
-// 		sl.ReportError(reflect.ValueOf(tv.Value), "Value", "Value", "required")
-// 	}
-// }
+	validate := New()
+	validate.RegisterStructValidation(StructLevelInvalidError, StructLevelInvalidErr{})
 
-// var _ Validatable = new(TestValidatablePtr)
+	var test StructLevelInvalidErr
 
-// func TestStructLevelValidatableInterfaceValidations(t *testing.T) {
+	err := validate.Struct(test)
+	NotEqual(t, err, nil)
 
-// 	// validate := New()
+	errs, ok := err.(ValidationErrors)
+	Equal(t, ok, true)
 
-// 	// tv := &TestValidatablePtr{Value: "tst3"}
-
-// 	// fmt.Println("VALIDATING***************")
-// 	// err := validate.Struct(tv)
-// 	// NotEqual(t, err, nil)
-
-// 	// var tv2 TestValidatableNoPtr
-
-// 	// fmt.Println("VALIDATING***************")
-// 	// err = validate.Struct(tv2)
-// 	// NotEqual(t, err, nil)
-
-// 	// tv3 := &TestValidatablePtr{Value: "test"}
-
-// 	// fmt.Println("VALIDATING***************")
-// 	// err = validate.Struct(tv3)
-// 	// Equal(t, err, nil)
-
-// 	// v1 := New()
-// 	// v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
-
-// 	// tst := &TestStruct{
-// 	// 	String: "good value",
-// 	// }
-
-// 	// errs := v1.Struct(tst)
-// 	// NotEqual(t, errs, nil)
-// 	// AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
-
-// 	// v2 := New()
-// 	// v2.RegisterStructValidation(StructValidationNoTestStructCustomName, TestStruct{})
-
-// 	// errs = v2.Struct(tst)
-// 	// NotEqual(t, errs, nil)
-// 	// AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "badvalueteststruct")
-
-// 	// v3 := New()
-// 	// v3.RegisterStructValidation(StructValidationTestStructInvalid, TestStruct{})
-
-// 	// errs = v3.Struct(tst)
-// 	// NotEqual(t, errs, nil)
-// 	// AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
-
-// 	// v4 := New()
-// 	// v4.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
-
-// 	// errs = v4.Struct(tst)
-// 	// Equal(t, errs, nil)
-// }
+	fe := errs[0]
+	Equal(t, fe.Field(), "Value")
+	Equal(t, fe.StructField(), "Value")
+	Equal(t, fe.Namespace(), "StructLevelInvalidErr.Value")
+	Equal(t, fe.StructNamespace(), "StructLevelInvalidErr.Value")
+	Equal(t, fe.Tag(), "required")
+	Equal(t, fe.ActualTag(), "required")
+	Equal(t, fe.Kind(), reflect.Invalid)
+	Equal(t, fe.Type(), reflect.TypeOf(nil))
+}
 
 func TestNameNamespace(t *testing.T) {
 
@@ -1041,6 +999,24 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
+
+	type Other struct {
+		Value string
+	}
+
+	type Test2 struct {
+		Value Other
+		Time  time.Time `validate:"ltecsfield=Value"`
+	}
+
+	tst := Test2{
+		Value: Other{Value: "StringVal"},
+		Time:  then,
+	}
+
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltecsfield")
 }
 
 func TestCrossStructLtFieldValidation(t *testing.T) {
@@ -1119,6 +1095,24 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltcsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltcsfield")
+
+	type Other struct {
+		Value string
+	}
+
+	type Test2 struct {
+		Value Other
+		Time  time.Time `validate:"ltcsfield=Value"`
+	}
+
+	tst := Test2{
+		Value: Other{Value: "StringVal"},
+		Time:  then,
+	}
+
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltcsfield")
 }
 
 func TestCrossStructGteFieldValidation(t *testing.T) {
@@ -1209,6 +1203,24 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtecsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtecsfield")
+
+	type Other struct {
+		Value string
+	}
+
+	type Test2 struct {
+		Value Other
+		Time  time.Time `validate:"gtecsfield=Value"`
+	}
+
+	tst := Test2{
+		Value: Other{Value: "StringVal"},
+		Time:  then,
+	}
+
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtecsfield")
 }
 
 func TestCrossStructGtFieldValidation(t *testing.T) {
@@ -1287,6 +1299,24 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtcsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtcsfield")
+
+	type Other struct {
+		Value string
+	}
+
+	type Test2 struct {
+		Value Other
+		Time  time.Time `validate:"gtcsfield=Value"`
+	}
+
+	tst := Test2{
+		Value: Other{Value: "StringVal"},
+		Time:  then,
+	}
+
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtcsfield")
 }
 
 func TestCrossStructNeFieldValidation(t *testing.T) {
@@ -4028,6 +4058,23 @@ func TestIsNeFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(sv2)
 	Equal(t, errs, nil)
+
+	type Other struct {
+		Value string
+	}
+
+	type Test3 struct {
+		Value Other
+		Time  time.Time `validate:"nefield=Value"`
+	}
+
+	tst := Test3{
+		Value: Other{Value: "StringVal"},
+		Time:  now,
+	}
+
+	errs = validate.Struct(tst)
+	Equal(t, errs, nil)
 }
 
 func TestIsNeValidation(t *testing.T) {
@@ -4465,6 +4512,24 @@ func TestGtField(t *testing.T) {
 	errs = validate.Struct(timeTest2)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeTest2.End", "TimeTest2.End", "End", "End", "gtfield")
+
+	type Other struct {
+		Value string
+	}
+
+	type Test struct {
+		Value Other
+		Time  time.Time `validate:"gtfield=Value"`
+	}
+
+	tst := Test{
+		Value: Other{Value: "StringVal"},
+		Time:  end,
+	}
+
+	errs = validate.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.Time", "Test.Time", "Time", "Time", "gtfield")
 }
 
 func TestLtField(t *testing.T) {
@@ -6093,6 +6158,22 @@ func TestStructSliceValidation(t *testing.T) {
 	AssertError(t, errs, "TestSlice.Max", "TestSlice.Max", "Max", "Max", "max")
 	AssertError(t, errs, "TestSlice.MinMax", "TestSlice.MinMax", "MinMax", "MinMax", "min")
 	AssertError(t, errs, "TestSlice.OmitEmpty", "TestSlice.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+
+	fe := getError(errs, "TestSlice.Len", "TestSlice.Len")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "Len")
+	Equal(t, fe.StructField(), "Len")
+	Equal(t, fe.Namespace(), "TestSlice.Len")
+	Equal(t, fe.StructNamespace(), "TestSlice.Len")
+	Equal(t, fe.Tag(), "len")
+	Equal(t, fe.ActualTag(), "len")
+	Equal(t, fe.Param(), "10")
+	Equal(t, fe.Kind(), reflect.Slice)
+	Equal(t, fe.Type(), reflect.TypeOf([]int{}))
+
+	_, ok := fe.Value().([]int)
+	Equal(t, ok, true)
+
 }
 
 func TestInvalidStruct(t *testing.T) {
@@ -6106,6 +6187,18 @@ func TestInvalidStruct(t *testing.T) {
 	err := validate.Struct(s.Test)
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "validator: (nil string)")
+
+	err = validate.Struct(nil)
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "validator: (nil)")
+
+	err = validate.StructPartial(nil, "SubTest.Test")
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "validator: (nil)")
+
+	err = validate.StructExcept(nil, "SubTest.Test")
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "validator: (nil)")
 }
 
 func TestInvalidValidatorFunction(t *testing.T) {

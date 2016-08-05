@@ -159,10 +159,3 @@ func (v *validate) ReportValidationErrors(relativeNamespace, relativeStructNames
 		v.errs = append(v.errs, err)
 	}
 }
-
-// Validatable is the interface a struct can implement and
-// be validated just like registering a StructLevel validation
-// (they actually have the exact same signature.)
-type Validatable interface {
-	Validate(sl StructLevel)
-}
