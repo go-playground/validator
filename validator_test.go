@@ -304,6 +304,86 @@ type TestStructReturnValidationErrors struct {
 	Inner1 *TestStructReturnValidationErrorsInner1 `json:"Inner1JSON"`
 }
 
+// type TestValidatablePtr struct {
+// 	Value string
+// }
+
+// func (tv *TestValidatablePtr) Validate(sl StructLevel) {
+
+// 	fmt.Printf("HERE *********** %p %#v\n", tv, tv)
+// 	if len(tv.Value) == 0 {
+// 		sl.ReportError(reflect.ValueOf(tv.Value), "Value", "Value", "required")
+// 	}
+// }
+
+// type TestValidatableNoPtr struct {
+// 	Value string
+// }
+
+// func (tv TestValidatableNoPtr) Validate(sl StructLevel) {
+
+// 	fmt.Println("HERE2 ***********")
+// 	if len(tv.Value) == 0 {
+// 		sl.ReportError(reflect.ValueOf(tv.Value), "Value", "Value", "required")
+// 	}
+// }
+
+// var _ Validatable = new(TestValidatablePtr)
+
+// func TestStructLevelValidatableInterfaceValidations(t *testing.T) {
+
+// 	// validate := New()
+
+// 	// tv := &TestValidatablePtr{Value: "tst3"}
+
+// 	// fmt.Println("VALIDATING***************")
+// 	// err := validate.Struct(tv)
+// 	// NotEqual(t, err, nil)
+
+// 	// var tv2 TestValidatableNoPtr
+
+// 	// fmt.Println("VALIDATING***************")
+// 	// err = validate.Struct(tv2)
+// 	// NotEqual(t, err, nil)
+
+// 	// tv3 := &TestValidatablePtr{Value: "test"}
+
+// 	// fmt.Println("VALIDATING***************")
+// 	// err = validate.Struct(tv3)
+// 	// Equal(t, err, nil)
+
+// 	// v1 := New()
+// 	// v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
+
+// 	// tst := &TestStruct{
+// 	// 	String: "good value",
+// 	// }
+
+// 	// errs := v1.Struct(tst)
+// 	// NotEqual(t, errs, nil)
+// 	// AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
+
+// 	// v2 := New()
+// 	// v2.RegisterStructValidation(StructValidationNoTestStructCustomName, TestStruct{})
+
+// 	// errs = v2.Struct(tst)
+// 	// NotEqual(t, errs, nil)
+// 	// AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "badvalueteststruct")
+
+// 	// v3 := New()
+// 	// v3.RegisterStructValidation(StructValidationTestStructInvalid, TestStruct{})
+
+// 	// errs = v3.Struct(tst)
+// 	// NotEqual(t, errs, nil)
+// 	// AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
+
+// 	// v4 := New()
+// 	// v4.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
+
+// 	// errs = v4.Struct(tst)
+// 	// Equal(t, errs, nil)
+// }
+
 func TestNameNamespace(t *testing.T) {
 
 	type Inner2Namespace struct {

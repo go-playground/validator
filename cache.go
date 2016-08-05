@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -27,7 +26,7 @@ const (
 )
 
 // var (
-// 	validatable = reflect.ValueOf((*Validatable)(nil)).Elem()
+// 	validatable = reflect.TypeOf((*Validatable)(nil)).Elem()
 // )
 
 type structCache struct {
@@ -115,14 +114,25 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 	cs = &cStruct{Name: sName, fields: make(map[int]*cField), fn: v.structLevelFuncs[typ]}
 
-	if vable, ok := reflect.PtrTo(typ).(Validatable); ok {
+	// newVal := reflect.New(typ)
 
-		if cs.fn != nil {
-			log.Println("warning: struct level validation overriding 'Validatabe' interface function")
-		} else {
-			cs.fn = vable.Validate
-		}
-	}
+	// // fmt.Println("implements:", reflect.PtrTo(typ).Implements(validatable))
+	// tv1, tv2 := newVal.Interface().(Validatable)
+	// // tv1, tv2 := reflect.PtrTo(typ).Elem().(Validatable)
+	// fmt.Println("implements2:", tv1, tv2)
+	// // fmt.Println("Testing if Validatable", tv1, tv2, reflect.PtrTo(typ), current, current.Type(), typ)
+
+	// if vable, ok := reflect.New(typ).Interface().(Validatable); ok {
+
+	// 	// fmt.Println("Validatable", cs.fn)
+
+	// 	if cs.fn != nil {
+	// 		log.Println("warning: struct level validation overriding 'Validatabe' interface function")
+	// 	} else {
+	// 		cs.fn = vable.Validate
+	// 		// fmt.Println(cs.fn)
+	// 	}
+	// }
 
 	numFields := current.NumField()
 
