@@ -105,9 +105,9 @@ type FieldError interface {
 	// message
 	Value() interface{}
 
-	// returns the param value, already converted into the fields type for
-	// comparison; this will also help with generating an error message
-	Param() interface{}
+	// returns the param value, in string form for comparison; this will also
+	// help with generating an error message
+	Param() string
 
 	// Kind returns the Field's reflect Kind
 	//
@@ -135,7 +135,7 @@ type fieldError struct {
 	field       string
 	structField string
 	value       interface{}
-	param       interface{}
+	param       string
 	kind        reflect.Kind
 	typ         reflect.Type
 }
@@ -180,9 +180,9 @@ func (fe *fieldError) Value() interface{} {
 	return fe.value
 }
 
-// Param returns the param value, already converted into the fields type for
-// comparison; this will also help with generating an error message
-func (fe *fieldError) Param() interface{} {
+// Param returns the param value, in string form for comparison; this will
+// also help with generating an error message
+func (fe *fieldError) Param() string {
 	return fe.param
 }
 
