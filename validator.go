@@ -16,13 +16,17 @@ type validate struct {
 	isPartial      bool
 	hasExcludes    bool
 	includeExclude map[string]struct{} // reset only if StructPartial or StructExcept are called, no need otherwise
-	misc           []byte
 
 	// StructLevel & FieldLevel fields
 	slflParent reflect.Value
 	slCurrent  reflect.Value
 	flField    reflect.Value
 	flParam    string
+
+	// misc reusable values
+	misc []byte
+	str1 string
+	str2 string
 }
 
 // parent and current will be the same the first run of validateStruct
@@ -97,14 +101,22 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 		if ct.hasTag {
 
+			v.str1 = string(append(ns, cf.altName...))
+
+			if v.v.hasTagNameFunc {
+				v.str2 = string(append(structNs, cf.name...))
+			} else {
+				v.str2 = v.str1
+			}
+
 			if kind == reflect.Invalid {
 
 				v.errs = append(v.errs,
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.altName...)),
-						structNs:    string(append(structNs, cf.name...)),
+						ns:          v.str1,
+						structNs:    v.str2,
 						field:       cf.altName,
 						structField: cf.name,
 						param:       ct.param,
@@ -119,8 +131,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				&fieldError{
 					tag:         ct.aliasTag,
 					actualTag:   ct.tag,
-					ns:          string(append(ns, cf.altName...)),
-					structNs:    string(append(structNs, cf.name...)),
+					ns:          v.str1,
+					structNs:    v.str2,
 					field:       cf.altName,
 					structField: cf.name,
 					value:       current.Interface(),
@@ -299,14 +311,22 @@ OUTER:
 				if ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
 
+					v.str1 = string(append(ns, cf.altName...))
+
+					if v.v.hasTagNameFunc {
+						v.str2 = string(append(structNs, cf.name...))
+					} else {
+						v.str2 = v.str1
+					}
+
 					if ct.hasAlias {
 
 						v.errs = append(v.errs,
 							&fieldError{
 								tag:         ct.aliasTag,
 								actualTag:   ct.actualAliasTag,
-								ns:          string(append(ns, cf.altName...)),
-								structNs:    string(append(structNs, cf.name...)),
+								ns:          v.str1,
+								structNs:    v.str2,
 								field:       cf.altName,
 								structField: cf.name,
 								value:       current.Interface(),
@@ -324,8 +344,8 @@ OUTER:
 							&fieldError{
 								tag:         tVal,
 								actualTag:   tVal,
-								ns:          string(append(ns, cf.altName...)),
-								structNs:    string(append(structNs, cf.name...)),
+								ns:          v.str1,
+								structNs:    v.str2,
 								field:       cf.altName,
 								structField: cf.name,
 								value:       current.Interface(),
@@ -351,12 +371,20 @@ OUTER:
 
 			if !ct.fn(v) {
 
+				v.str1 = string(append(ns, cf.altName...))
+
+				if v.v.hasTagNameFunc {
+					v.str2 = string(append(structNs, cf.name...))
+				} else {
+					v.str2 = v.str1
+				}
+
 				v.errs = append(v.errs,
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.altName...)),
-						structNs:    string(append(structNs, cf.name...)),
+						ns:          v.str1,
+						structNs:    v.str2,
 						field:       cf.altName,
 						structField: cf.name,
 						value:       current.Interface(),

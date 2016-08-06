@@ -40,7 +40,7 @@ type StructLevel interface {
 	//
 	// tag can be an existing validation tag or just something you make up
 	// and process on the flip side it's up to you.
-	ReportError(field interface{}, fieldName, altName, tag string)
+	ReportError(field interface{}, fieldName, altName, tag, param string)
 
 	// reports an error just by passing ValidationErrors
 	//
@@ -97,7 +97,7 @@ func (v *validate) ExtractType(field reflect.Value) (reflect.Value, reflect.Kind
 }
 
 // ReportError reports an error just by passing the field and tag information
-func (v *validate) ReportError(field interface{}, fieldName, structFieldName, tag string) {
+func (v *validate) ReportError(field interface{}, fieldName, structFieldName, tag, param string) {
 
 	fv, kind, _ := v.extractTypeInternal(reflect.ValueOf(field), false)
 
@@ -105,11 +105,13 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		structFieldName = fieldName
 	}
 
-	// v.slNs = append(v.slNs, fieldName...)
-	// v.slStructNs = append(v.slStructNs, structFieldName...)
+	v.str1 = string(append(v.ns, fieldName...))
 
-	v.ns = append(v.ns, fieldName...)
-	v.actualNs = append(v.actualNs, structFieldName...)
+	if v.v.hasTagNameFunc || fieldName != structFieldName {
+		v.str2 = string(append(v.actualNs, structFieldName...))
+	} else {
+		v.str2 = v.str1
+	}
 
 	switch kind {
 	case reflect.Invalid:
@@ -118,12 +120,12 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(v.ns),
-				structNs:    string(v.actualNs),
+				ns:          v.str1,
+				structNs:    v.str2,
 				field:       fieldName,
 				structField: structFieldName,
-				// param:       "",
-				kind: kind,
+				param:       param,
+				kind:        kind,
 			},
 		)
 
@@ -133,14 +135,14 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(v.ns),
-				structNs:    string(v.actualNs),
+				ns:          v.str1,
+				structNs:    v.str2,
 				field:       fieldName,
 				structField: structFieldName,
 				value:       fv.Interface(),
-				// param:       "",
-				kind: kind,
-				typ:  fv.Type(),
+				param:       param,
+				kind:        kind,
+				typ:         fv.Type(),
 			},
 		)
 	}

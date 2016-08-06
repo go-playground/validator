@@ -112,7 +112,7 @@ func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
-	tst := &TestStruct{
+	tst := TestStruct{
 		String: "good value",
 	}
 
@@ -127,7 +127,7 @@ func BenchmarkStructLevelValidationFailure(b *testing.B) {
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
-	tst := &TestStruct{
+	tst := TestStruct{
 		String: "good value",
 	}
 

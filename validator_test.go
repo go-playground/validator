@@ -237,7 +237,7 @@ func StructValidationTestStructSuccess(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "good value" {
-		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "good value")
 	}
 }
 
@@ -246,7 +246,7 @@ func StructValidationTestStruct(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "bad value")
 	}
 }
 
@@ -255,7 +255,7 @@ func StructValidationNoTestStructCustomName(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(st.String, "String", "", "badvalueteststruct")
+		sl.ReportError(st.String, "String", "", "badvalueteststruct", "bad value")
 	}
 }
 
@@ -264,7 +264,7 @@ func StructValidationTestStructInvalid(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(nil, "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(nil, "StringVal", "String", "badvalueteststruct", "bad value")
 	}
 }
 
@@ -314,7 +314,7 @@ func StructLevelInvalidError(sl StructLevel) {
 	s := sl.Current().Interface().(StructLevelInvalidErr)
 
 	if top.Value == s.Value {
-		sl.ReportError(nil, "Value", "Value", "required")
+		sl.ReportError(nil, "Value", "Value", "required", "")
 	}
 }
 
@@ -5513,6 +5513,31 @@ func TestOrTag(t *testing.T) {
 
 	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
 	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
+
+	v2 := New()
+	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
+
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Colors struct {
+		Fav string `validate:"rgb|rgba" json:"fc"`
+	}
+
+	c := Colors{Fav: "this ain't right"}
+
+	err := v2.Struct(c)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	fe := getError(errs, "Colors.fc", "Colors.Fav")
+	NotEqual(t, fe, nil)
 }
 
 func TestHsla(t *testing.T) {
@@ -6363,4 +6388,28 @@ func TestPointerAndOmitEmpty(t *testing.T) {
 
 	errs = validate.Struct(ti3)
 	Equal(t, errs, nil)
+}
+
+func TestRequired(t *testing.T) {
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Test struct {
+		Value interface{} `validate:"required"`
+	}
+
+	var test Test
+
+	err := validate.Struct(test)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "required")
 }
