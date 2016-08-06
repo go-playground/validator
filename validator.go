@@ -208,7 +208,6 @@ OUTER:
 				var i64 int64
 				reusableCF := &cField{}
 
-				// TODO: cache pool &cField
 				for i := 0; i < current.Len(); i++ {
 
 					i64 = int64(i)
