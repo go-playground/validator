@@ -113,8 +113,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		v.str2 = v.str1
 	}
 
-	switch kind {
-	case reflect.Invalid:
+	if kind == reflect.Invalid {
 
 		v.errs = append(v.errs,
 			&fieldError{
@@ -128,24 +127,23 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 				kind:        kind,
 			},
 		)
-
-	default:
-
-		v.errs = append(v.errs,
-			&fieldError{
-				tag:         tag,
-				actualTag:   tag,
-				ns:          v.str1,
-				structNs:    v.str2,
-				field:       fieldName,
-				structField: structFieldName,
-				value:       fv.Interface(),
-				param:       param,
-				kind:        kind,
-				typ:         fv.Type(),
-			},
-		)
+		return
 	}
+
+	v.errs = append(v.errs,
+		&fieldError{
+			tag:         tag,
+			actualTag:   tag,
+			ns:          v.str1,
+			structNs:    v.str2,
+			field:       fieldName,
+			structField: structFieldName,
+			value:       fv.Interface(),
+			param:       param,
+			kind:        kind,
+			typ:         fv.Type(),
+		},
+	)
 }
 
 // ReportValidationErrors reports ValidationErrors obtained from running validations within the Struct Level validation.
