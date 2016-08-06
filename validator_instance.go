@@ -211,9 +211,8 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	vd.top = top
 	vd.isPartial = false
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
-	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
-	// fmt.Println(cap(vd.ns))
+	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -260,30 +259,32 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 			flds := strings.Split(k, namespaceSeparator)
 			if len(flds) > 0 {
 
-				key := name + namespaceSeparator
+				vd.misc = append(vd.misc[0:0], name...)
+				vd.misc = append(vd.misc, '.')
+
 				for _, s := range flds {
 
 					idx := strings.Index(s, leftBracket)
 
 					if idx != -1 {
 						for idx != -1 {
-							key += s[:idx]
-							vd.includeExclude[key] = struct{}{}
+							vd.misc = append(vd.misc, s[:idx]...)
+							vd.includeExclude[string(vd.misc)] = struct{}{}
 
 							idx2 := strings.Index(s, rightBracket)
 							idx2++
-							key += s[idx:idx2]
-							vd.includeExclude[key] = struct{}{}
+							vd.misc = append(vd.misc, s[idx:idx2]...)
+							vd.includeExclude[string(vd.misc)] = struct{}{}
 							s = s[idx2:]
 							idx = strings.Index(s, leftBracket)
 						}
 					} else {
 
-						key += s
-						vd.includeExclude[key] = struct{}{}
+						vd.misc = append(vd.misc, s...)
+						vd.includeExclude[string(vd.misc)] = struct{}{}
 					}
 
-					key += namespaceSeparator
+					vd.misc = append(vd.misc, '.')
 				}
 			}
 		}
@@ -331,7 +332,11 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 	name := typ.Name()
 
 	for _, key := range fields {
-		vd.includeExclude[name+namespaceSeparator+key] = struct{}{}
+
+		vd.misc = append(vd.misc[0:0], name...)
+		vd.misc = append(vd.misc, '.')
+		vd.misc = append(vd.misc, key...)
+		vd.includeExclude[string(vd.misc)] = struct{}{}
 	}
 
 	vd.validateStruct(top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
