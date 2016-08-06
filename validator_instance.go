@@ -90,7 +90,6 @@ func New() *Validate {
 		New: func() interface{} {
 			return &validate{
 				v:        v,
-				errs:     make(ValidationErrors, 0, 4),
 				ns:       make([]byte, 0, 64),
 				actualNs: make([]byte, 0, 64),
 				misc:     make([]byte, 32),

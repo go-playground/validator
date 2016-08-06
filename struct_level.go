@@ -105,8 +105,8 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		structFieldName = fieldName
 	}
 
-	ns := append(v.slNs, fieldName...)
-	nsStruct := append(v.slStructNs, structFieldName...)
+	v.slNs = append(v.slNs, fieldName...)
+	v.slStructNs = append(v.slStructNs, structFieldName...)
 
 	switch kind {
 	case reflect.Invalid:
@@ -115,8 +115,8 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(ns),
-				structNs:    string(nsStruct),
+				ns:          string(v.slNs),
+				structNs:    string(v.slStructNs),
 				field:       fieldName,
 				structField: structFieldName,
 				// param:       "",
@@ -130,8 +130,8 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(ns),
-				structNs:    string(nsStruct),
+				ns:          string(v.slNs),
+				structNs:    string(v.slStructNs),
 				field:       fieldName,
 				structField: structFieldName,
 				value:       fv.Interface(),
