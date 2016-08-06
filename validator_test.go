@@ -2933,6 +2933,39 @@ func TestMapDiveValidation(t *testing.T) {
 
 	errs = validate.Struct(msp2)
 	Equal(t, errs, nil)
+
+	v2 := New()
+	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type MapDiveJsonTest struct {
+		Map map[string]string `validate:"required,gte=1,dive,gte=1" json:"MyName"`
+	}
+
+	mdjt := &MapDiveJsonTest{
+		Map: map[string]string{
+			"Key1": "Value1",
+			"Key2": "",
+		},
+	}
+
+	err := v2.Struct(mdjt)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	fe := getError(errs, "MapDiveJsonTest.MyName[Key2]", "MapDiveJsonTest.Map[Key2]")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Tag(), "gte")
+	Equal(t, fe.ActualTag(), "gte")
+	Equal(t, fe.Field(), "MyName[Key2]")
+	Equal(t, fe.StructField(), "Map[Key2]")
 }
 
 func TestArrayDiveValidation(t *testing.T) {
