@@ -318,10 +318,12 @@ OUTER:
 
 					} else {
 
+						tVal := string(v.misc)[1:]
+
 						v.errs = append(v.errs,
 							&fieldError{
-								tag:         string(v.misc)[1:],
-								actualTag:   string(v.misc)[1:],
+								tag:         tVal,
+								actualTag:   tVal,
 								ns:          string(append(ns, cf.altName...)),
 								structNs:    string(append(structNs, cf.name...)),
 								field:       cf.altName,
