@@ -69,16 +69,17 @@ func (tc *tagCache) Set(key string, value *cTag) {
 }
 
 type cStruct struct {
-	Name   string
+	name   string
 	fields map[int]*cField
 	fn     StructLevelFunc
 }
 
 type cField struct {
-	Idx     int
-	Name    string
-	AltName string
-	cTags   *cTag
+	idx        int
+	name       string
+	altName    string
+	namesEqual bool
+	cTags      *cTag
 }
 
 type cTag struct {
@@ -107,7 +108,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		return cs
 	}
 
-	cs = &cStruct{Name: sName, fields: make(map[int]*cField), fn: v.structLevelFuncs[typ]}
+	cs = &cStruct{name: sName, fields: make(map[int]*cField), fn: v.structLevelFuncs[typ]}
 
 	numFields := current.NumField()
 
@@ -152,7 +153,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			ctag = new(cTag)
 		}
 
-		cs.fields[i] = &cField{Idx: i, Name: fld.Name, AltName: customName, cTags: ctag}
+		cs.fields[i] = &cField{idx: i, name: fld.Name, altName: customName, cTags: ctag, namesEqual: fld.Name == customName}
 	}
 
 	v.structCache.Set(typ, cs)

@@ -35,10 +35,10 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 
 	if len(ns) == 0 {
 
-		ns = append(ns, cs.Name...)
+		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
 
-		structNs = append(structNs, cs.Name...)
+		structNs = append(structNs, cs.name...)
 		structNs = append(structNs, '.')
 	}
 
@@ -50,14 +50,14 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 
 			if v.isPartial {
 
-				_, ok = v.includeExclude[string(append(structNs, f.Name...))]
+				_, ok = v.includeExclude[string(append(structNs, f.name...))]
 
 				if (ok && v.hasExcludes) || (!ok && !v.hasExcludes) {
 					continue
 				}
 			}
 
-			v.traverseField(parent, current.Field(f.Idx), ns, structNs, f, f.cTags)
+			v.traverseField(parent, current.Field(f.idx), ns, structNs, f, f.cTags)
 		}
 	}
 
@@ -103,10 +103,10 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.AltName...)),
-						structNs:    string(append(structNs, cf.Name...)),
-						field:       cf.AltName,
-						structField: cf.Name,
+						ns:          string(append(ns, cf.altName...)),
+						structNs:    string(append(structNs, cf.name...)),
+						field:       cf.altName,
+						structField: cf.name,
 						param:       ct.param,
 						kind:        kind,
 					},
@@ -119,10 +119,10 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				&fieldError{
 					tag:         ct.aliasTag,
 					actualTag:   ct.tag,
-					ns:          string(append(ns, cf.AltName...)),
-					structNs:    string(append(structNs, cf.Name...)),
-					field:       cf.AltName,
-					structField: cf.Name,
+					ns:          string(append(ns, cf.altName...)),
+					structNs:    string(append(structNs, cf.name...)),
+					field:       cf.altName,
+					structField: cf.name,
 					value:       current.Interface(),
 					param:       ct.param,
 					kind:        kind,
@@ -152,8 +152,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 			// VarWithField - this allows for validating against each field withing the struct against a specific value
 			//                pretty handly in certain situations
 			if len(ns) > 0 {
-				ns = append(append(ns, cf.AltName...), '.')
-				structNs = append(append(structNs, cf.Name...), '.')
+				ns = append(append(ns, cf.altName...), '.')
+				structNs = append(append(structNs, cf.name...), '.')
 			}
 
 			v.validateStruct(current, current, typ, ns, structNs, ct)
@@ -205,19 +205,24 @@ OUTER:
 
 					i64 = int64(i)
 
-					v.misc = append(v.misc[0:0], cf.Name...)
+					v.misc = append(v.misc[0:0], cf.name...)
 					v.misc = append(v.misc, '[')
 					v.misc = strconv.AppendInt(v.misc, i64, 10)
 					v.misc = append(v.misc, ']')
 
-					reusableCF.Name = string(v.misc)
+					reusableCF.name = string(v.misc)
 
-					v.misc = append(v.misc[0:0], cf.AltName...)
-					v.misc = append(v.misc, '[')
-					v.misc = strconv.AppendInt(v.misc, i64, 10)
-					v.misc = append(v.misc, ']')
+					if cf.namesEqual {
+						reusableCF.altName = reusableCF.name
+					} else {
 
-					reusableCF.AltName = string(v.misc)
+						v.misc = append(v.misc[0:0], cf.altName...)
+						v.misc = append(v.misc, '[')
+						v.misc = strconv.AppendInt(v.misc, i64, 10)
+						v.misc = append(v.misc, ']')
+
+						reusableCF.altName = string(v.misc)
+					}
 
 					v.traverseField(parent, current.Index(i), ns, structNs, reusableCF, ct)
 				}
@@ -231,19 +236,23 @@ OUTER:
 
 					pv = fmt.Sprintf("%v", key.Interface())
 
-					v.misc = append(v.misc[0:0], cf.Name...)
+					v.misc = append(v.misc[0:0], cf.name...)
 					v.misc = append(v.misc, '[')
 					v.misc = append(v.misc, pv...)
 					v.misc = append(v.misc, ']')
 
-					reusableCF.Name = string(v.misc)
+					reusableCF.name = string(v.misc)
 
-					v.misc = append(v.misc[0:0], cf.AltName...)
-					v.misc = append(v.misc, '[')
-					v.misc = append(v.misc, pv...)
-					v.misc = append(v.misc, ']')
+					if cf.namesEqual {
+						reusableCF.altName = reusableCF.name
+					} else {
+						v.misc = append(v.misc[0:0], cf.altName...)
+						v.misc = append(v.misc, '[')
+						v.misc = append(v.misc, pv...)
+						v.misc = append(v.misc, ']')
 
-					reusableCF.AltName = string(v.misc)
+						reusableCF.altName = string(v.misc)
+					}
 
 					v.traverseField(parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
 				}
@@ -296,10 +305,10 @@ OUTER:
 							&fieldError{
 								tag:         ct.aliasTag,
 								actualTag:   ct.actualAliasTag,
-								ns:          string(append(ns, cf.AltName...)),
-								structNs:    string(append(structNs, cf.Name...)),
-								field:       cf.AltName,
-								structField: cf.Name,
+								ns:          string(append(ns, cf.altName...)),
+								structNs:    string(append(structNs, cf.name...)),
+								field:       cf.altName,
+								structField: cf.name,
 								value:       current.Interface(),
 								param:       ct.param,
 								kind:        kind,
@@ -313,10 +322,10 @@ OUTER:
 							&fieldError{
 								tag:         string(v.misc)[1:],
 								actualTag:   string(v.misc)[1:],
-								ns:          string(append(ns, cf.AltName...)),
-								structNs:    string(append(structNs, cf.Name...)),
-								field:       cf.AltName,
-								structField: cf.Name,
+								ns:          string(append(ns, cf.altName...)),
+								structNs:    string(append(structNs, cf.name...)),
+								field:       cf.altName,
+								structField: cf.name,
 								value:       current.Interface(),
 								param:       ct.param,
 								kind:        kind,
@@ -344,10 +353,10 @@ OUTER:
 					&fieldError{
 						tag:         ct.aliasTag,
 						actualTag:   ct.tag,
-						ns:          string(append(ns, cf.AltName...)),
-						structNs:    string(append(structNs, cf.Name...)),
-						field:       cf.AltName,
-						structField: cf.Name,
+						ns:          string(append(ns, cf.altName...)),
+						structNs:    string(append(structNs, cf.name...)),
+						field:       cf.altName,
+						structField: cf.name,
 						value:       current.Interface(),
 						param:       ct.param,
 						kind:        kind,

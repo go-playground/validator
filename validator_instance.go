@@ -31,7 +31,7 @@ const (
 
 var (
 	timeType      = reflect.TypeOf(time.Time{})
-	defaultCField = new(cField)
+	defaultCField = &cField{namesEqual: true}
 )
 
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
