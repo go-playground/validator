@@ -89,8 +89,11 @@ func New() *Validate {
 	v.pool = &sync.Pool{
 		New: func() interface{} {
 			return &validate{
-				v:    v,
-				errs: make(ValidationErrors, 0, 4),
+				v:        v,
+				errs:     make(ValidationErrors, 0, 4),
+				ns:       make([]byte, 0, 64),
+				actualNs: make([]byte, 0, 64),
+				misc:     make([]byte, 32),
 			}
 		},
 	}
@@ -209,8 +212,9 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	vd.top = top
 	vd.isPartial = false
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
-
 	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
+
+	// fmt.Println(cap(vd.ns))
 
 	if len(vd.errs) > 0 {
 		err = vd.errs

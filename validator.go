@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 const (
@@ -20,6 +21,7 @@ type validate struct {
 	isPartial      bool
 	hasExcludes    bool
 	includeExclude map[string]struct{} // reset only if StructPartial or StructExcept are called, no need otherwise
+	misc           []byte
 
 	// StructLevel & FieldLevel fields
 	slflParent reflect.Value
@@ -203,13 +205,48 @@ OUTER:
 			switch kind {
 			case reflect.Slice, reflect.Array:
 
+				var nm string
+
+				// TODO: cache pool &cField
 				for i := 0; i < current.Len(); i++ {
-					v.traverseField(parent, current.Index(i), ns, structNs, &cField{Name: fmt.Sprintf(arrayIndexFieldName, cf.Name, i), AltName: fmt.Sprintf(arrayIndexFieldName, cf.AltName, i)}, ct)
+
+					v.misc = append(v.misc[0:0], cf.Name...)
+					v.misc = append(v.misc, '[')
+					v.misc = strconv.AppendInt(v.misc, int64(i), 10)
+					v.misc = append(v.misc, ']')
+
+					nm = string(v.misc)
+
+					v.misc = append(v.misc[0:0], cf.AltName...)
+					v.misc = append(v.misc, '[')
+					v.misc = strconv.AppendInt(v.misc, int64(i), 10)
+					v.misc = append(v.misc, ']')
+
+					v.traverseField(parent, current.Index(i), ns, structNs, &cField{Name: nm, AltName: string(v.misc)}, ct)
 				}
 
 			case reflect.Map:
+
+				var nm string
+				var pv string
+
 				for _, key := range current.MapKeys() {
-					v.traverseField(parent, current.MapIndex(key), ns, structNs, &cField{Name: fmt.Sprintf(mapIndexFieldName, cf.Name, key.Interface()), AltName: fmt.Sprintf(mapIndexFieldName, cf.AltName, key.Interface())}, ct)
+
+					pv = fmt.Sprintf("%v", key.Interface())
+
+					v.misc = append(v.misc[0:0], cf.Name...)
+					v.misc = append(v.misc, '[')
+					v.misc = append(v.misc, pv...)
+					v.misc = append(v.misc, ']')
+
+					nm = string(v.misc)
+
+					v.misc = append(v.misc[0:0], cf.AltName...)
+					v.misc = append(v.misc, '[')
+					v.misc = append(v.misc, pv...)
+					v.misc = append(v.misc, ']')
+
+					v.traverseField(parent, current.MapIndex(key), ns, structNs, &cField{Name: nm, AltName: string(v.misc)}, ct)
 				}
 
 			default:
@@ -222,7 +259,7 @@ OUTER:
 
 		case typeOr:
 
-			errTag := make([]byte, 0, 64)
+			v.misc = v.misc[0:0]
 
 			for {
 
@@ -248,8 +285,8 @@ OUTER:
 					}
 				}
 
-				errTag = append(errTag, '|')
-				errTag = append(errTag, ct.tag...)
+				v.misc = append(v.misc, '|')
+				v.misc = append(v.misc, ct.tag...)
 
 				if ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
@@ -275,8 +312,8 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
-								tag:         string(errTag)[1:],
-								actualTag:   string(errTag)[1:],
+								tag:         string(v.misc)[1:],
+								actualTag:   string(v.misc)[1:],
 								ns:          string(append(ns, cf.AltName...)),
 								structNs:    string(append(structNs, cf.Name...)),
 								field:       cf.AltName,

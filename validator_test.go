@@ -237,7 +237,7 @@ func StructValidationTestStructSuccess(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "good value" {
-		sl.ReportError(reflect.ValueOf(st.String), "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct")
 	}
 }
 
@@ -246,7 +246,7 @@ func StructValidationTestStruct(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(reflect.ValueOf(st.String), "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct")
 	}
 }
 
@@ -255,7 +255,7 @@ func StructValidationNoTestStructCustomName(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(reflect.ValueOf(st.String), "String", "", "badvalueteststruct")
+		sl.ReportError(st.String, "String", "", "badvalueteststruct")
 	}
 }
 
@@ -264,7 +264,7 @@ func StructValidationTestStructInvalid(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(reflect.ValueOf(nil), "StringVal", "String", "badvalueteststruct")
+		sl.ReportError(nil, "StringVal", "String", "badvalueteststruct")
 	}
 }
 
