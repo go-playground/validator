@@ -105,8 +105,11 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		structFieldName = fieldName
 	}
 
-	v.slNs = append(v.slNs, fieldName...)
-	v.slStructNs = append(v.slStructNs, structFieldName...)
+	// v.slNs = append(v.slNs, fieldName...)
+	// v.slStructNs = append(v.slStructNs, structFieldName...)
+
+	v.ns = append(v.ns, fieldName...)
+	v.actualNs = append(v.actualNs, structFieldName...)
 
 	switch kind {
 	case reflect.Invalid:
@@ -115,8 +118,8 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(v.slNs),
-				structNs:    string(v.slStructNs),
+				ns:          string(v.ns),
+				structNs:    string(v.actualNs),
 				field:       fieldName,
 				structField: structFieldName,
 				// param:       "",
@@ -130,8 +133,8 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			&fieldError{
 				tag:         tag,
 				actualTag:   tag,
-				ns:          string(v.slNs),
-				structNs:    string(v.slStructNs),
+				ns:          string(v.ns),
+				structNs:    string(v.actualNs),
 				field:       fieldName,
 				structField: structFieldName,
 				value:       fv.Interface(),
@@ -153,8 +156,8 @@ func (v *validate) ReportValidationErrors(relativeNamespace, relativeStructNames
 	for i := 0; i < len(errs); i++ {
 
 		err = errs[i].(*fieldError)
-		err.ns = string(append(append(v.slNs, relativeNamespace...), err.ns...))
-		err.structNs = string(append(append(v.slStructNs, relativeStructNamespace...), err.structNs...))
+		err.ns = string(append(append(v.ns, relativeNamespace...), err.ns...))
+		err.structNs = string(append(append(v.actualNs, relativeStructNamespace...), err.structNs...))
 
 		v.errs = append(v.errs, err)
 	}

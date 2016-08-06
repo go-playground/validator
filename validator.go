@@ -6,11 +6,6 @@ import (
 	"strconv"
 )
 
-const (
-	arrayIndexFieldName = "%s" + leftBracket + "%d" + rightBracket
-	mapIndexFieldName   = "%s" + leftBracket + "%v" + rightBracket
-)
-
 // per validate contruct
 type validate struct {
 	v              *Validate
@@ -26,8 +21,6 @@ type validate struct {
 	// StructLevel & FieldLevel fields
 	slflParent reflect.Value
 	slCurrent  reflect.Value
-	slNs       []byte
-	slStructNs []byte
 	flField    reflect.Value
 	flParam    string
 }
@@ -75,8 +68,8 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 
 		v.slflParent = parent
 		v.slCurrent = current
-		v.slNs = ns
-		v.slStructNs = structNs
+		v.ns = ns
+		v.actualNs = structNs
 
 		cs.fn(v)
 	}
