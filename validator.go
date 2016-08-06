@@ -205,30 +205,35 @@ OUTER:
 			switch kind {
 			case reflect.Slice, reflect.Array:
 
-				var nm string
+				var i64 int64
+				reusableCF := &cField{}
 
 				// TODO: cache pool &cField
 				for i := 0; i < current.Len(); i++ {
 
+					i64 = int64(i)
+
 					v.misc = append(v.misc[0:0], cf.Name...)
 					v.misc = append(v.misc, '[')
-					v.misc = strconv.AppendInt(v.misc, int64(i), 10)
+					v.misc = strconv.AppendInt(v.misc, i64, 10)
 					v.misc = append(v.misc, ']')
 
-					nm = string(v.misc)
+					reusableCF.Name = string(v.misc)
 
 					v.misc = append(v.misc[0:0], cf.AltName...)
 					v.misc = append(v.misc, '[')
-					v.misc = strconv.AppendInt(v.misc, int64(i), 10)
+					v.misc = strconv.AppendInt(v.misc, i64, 10)
 					v.misc = append(v.misc, ']')
 
-					v.traverseField(parent, current.Index(i), ns, structNs, &cField{Name: nm, AltName: string(v.misc)}, ct)
+					reusableCF.AltName = string(v.misc)
+
+					v.traverseField(parent, current.Index(i), ns, structNs, reusableCF, ct)
 				}
 
 			case reflect.Map:
 
-				var nm string
 				var pv string
+				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
 
@@ -239,14 +244,16 @@ OUTER:
 					v.misc = append(v.misc, pv...)
 					v.misc = append(v.misc, ']')
 
-					nm = string(v.misc)
+					reusableCF.Name = string(v.misc)
 
 					v.misc = append(v.misc[0:0], cf.AltName...)
 					v.misc = append(v.misc, '[')
 					v.misc = append(v.misc, pv...)
 					v.misc = append(v.misc, ']')
 
-					v.traverseField(parent, current.MapIndex(key), ns, structNs, &cField{Name: nm, AltName: string(v.misc)}, ct)
+					reusableCF.AltName = string(v.misc)
+
+					v.traverseField(parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
 				}
 
 			default:
