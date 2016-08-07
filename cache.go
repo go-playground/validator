@@ -153,7 +153,13 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			ctag = new(cTag)
 		}
 
-		cs.fields[i] = &cField{idx: i, name: fld.Name, altName: customName, cTags: ctag, namesEqual: fld.Name == customName}
+		cs.fields[i] = &cField{
+			idx:        i,
+			name:       fld.Name,
+			altName:    customName,
+			cTags:      ctag,
+			namesEqual: fld.Name == customName,
+		}
 	}
 
 	v.structCache.Set(typ, cs)

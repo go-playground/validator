@@ -132,14 +132,12 @@ type fieldError struct {
 	actualTag      string
 	ns             string
 	structNs       string
-	fieldLen       int
-	structfieldLen int
-	// field       string
-	// structField string
-	value interface{}
-	param string
-	kind  reflect.Kind
-	typ   reflect.Type
+	fieldLen       uint8
+	structfieldLen uint8
+	value          interface{}
+	param          string
+	kind           reflect.Kind
+	typ            reflect.Type
 }
 
 // Tag returns the validation tag that failed.
@@ -169,13 +167,13 @@ func (fe *fieldError) StructNamespace() string {
 // fields actual name.
 func (fe *fieldError) Field() string {
 	// return fe.field
-	return fe.ns[len(fe.ns)-fe.fieldLen:]
+	return fe.ns[len(fe.ns)-int(fe.fieldLen):]
 }
 
 // returns the fields actual name from the struct, when able to determine.
 func (fe *fieldError) StructField() string {
 	// return fe.structField
-	return fe.structNs[len(fe.structNs)-fe.structfieldLen:]
+	return fe.structNs[len(fe.structNs)-int(fe.structfieldLen):]
 }
 
 // Value returns the actual fields value in case needed for creating the error
