@@ -128,16 +128,18 @@ var _ error = new(fieldError)
 // with other properties that may be needed for error message creation
 // it complies with the FieldError interface
 type fieldError struct {
-	tag         string
-	actualTag   string
-	ns          string
-	structNs    string
-	field       string
-	structField string
-	value       interface{}
-	param       string
-	kind        reflect.Kind
-	typ         reflect.Type
+	tag            string
+	actualTag      string
+	ns             string
+	structNs       string
+	fieldLen       int
+	structfieldLen int
+	// field       string
+	// structField string
+	value interface{}
+	param string
+	kind  reflect.Kind
+	typ   reflect.Type
 }
 
 // Tag returns the validation tag that failed.
@@ -166,12 +168,14 @@ func (fe *fieldError) StructNamespace() string {
 // Field returns the fields name with the tag name taking precedence over the
 // fields actual name.
 func (fe *fieldError) Field() string {
-	return fe.field
+	// return fe.field
+	return fe.ns[len(fe.ns)-fe.fieldLen:]
 }
 
 // returns the fields actual name from the struct, when able to determine.
 func (fe *fieldError) StructField() string {
-	return fe.structField
+	// return fe.structField
+	return fe.structNs[len(fe.structNs)-fe.structfieldLen:]
 }
 
 // Value returns the actual fields value in case needed for creating the error
@@ -198,5 +202,5 @@ func (fe *fieldError) Type() reflect.Type {
 
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
-	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.field, fe.tag)
+	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
 }

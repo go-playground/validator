@@ -117,14 +117,14 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 
 		v.errs = append(v.errs,
 			&fieldError{
-				tag:         tag,
-				actualTag:   tag,
-				ns:          v.str1,
-				structNs:    v.str2,
-				field:       fieldName,
-				structField: structFieldName,
-				param:       param,
-				kind:        kind,
+				tag:            tag,
+				actualTag:      tag,
+				ns:             v.str1,
+				structNs:       v.str2,
+				fieldLen:       len(fieldName),
+				structfieldLen: len(structFieldName),
+				param:          param,
+				kind:           kind,
 			},
 		)
 		return
@@ -132,16 +132,16 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 
 	v.errs = append(v.errs,
 		&fieldError{
-			tag:         tag,
-			actualTag:   tag,
-			ns:          v.str1,
-			structNs:    v.str2,
-			field:       fieldName,
-			structField: structFieldName,
-			value:       fv.Interface(),
-			param:       param,
-			kind:        kind,
-			typ:         fv.Type(),
+			tag:            tag,
+			actualTag:      tag,
+			ns:             v.str1,
+			structNs:       v.str2,
+			fieldLen:       len(fieldName),
+			structfieldLen: len(structFieldName),
+			value:          fv.Interface(),
+			param:          param,
+			kind:           kind,
+			typ:            fv.Type(),
 		},
 	)
 }
