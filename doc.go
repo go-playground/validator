@@ -12,8 +12,8 @@ Why should I handle my own errors?
 Many reasons. We built an internationalized application and needed to know the
 field, and what validation failed so we could provide a localized error.
 
-	if fieldErr.Field == "Name" {
-		switch fieldErr.ErrorTag
+	if fieldErr.Field() == "Name" {
+		switch fieldErr.Tag()
 		case "required":
 			return "Translated string based on field + error"
 		default:
@@ -34,18 +34,20 @@ where err is always != nil:
 	http://stackoverflow.com/a/29138676/3158232
 	https://github.com/go-playground/validator/issues/134
 
-Validator only returns nil or ValidationErrors as type error; so, in your code
-all you need to do is check if the error returned is not nil, and if it's not
-type cast it to type ValidationErrors like so err.(validator.ValidationErrors).
+Validator only InvalidValidationError for bad validation input, nil or
+ValidationErrors as type error; so, in your code all you need to do is check
+if the error returned is not nil, and if it's not check if error is
+InvalidValidationError ( if necessary, most of the time it isn't ) type cast
+it to type ValidationErrors like so err.(validator.ValidationErrors).
 
-Custom Functions
+Custom Validation Functions
 
-Custom functions can be added. Example:
+Custom Validation functions can be added. Example:
 
 	// Structure
-	func customFunc(v *Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+	func customFunc(fl FielddLevel) bool {
 
-		if whatever {
+		if fl.Field().String() == "invalid" {
 			return false
 		}
 
