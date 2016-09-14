@@ -113,6 +113,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 				v.errs = append(v.errs,
 					&fieldError{
+						v:              v.v,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
 						ns:             v.str1,
@@ -129,6 +130,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 			v.errs = append(v.errs,
 				&fieldError{
+					v:              v.v,
 					tag:            ct.aliasTag,
 					actualTag:      ct.tag,
 					ns:             v.str1,
@@ -323,6 +325,7 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
+								v:              v.v,
 								tag:            ct.aliasTag,
 								actualTag:      ct.actualAliasTag,
 								ns:             v.str1,
@@ -342,6 +345,7 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
+								v:              v.v,
 								tag:            tVal,
 								actualTag:      tVal,
 								ns:             v.str1,
@@ -381,6 +385,7 @@ OUTER:
 
 				v.errs = append(v.errs,
 					&fieldError{
+						v:              v.v,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
 						ns:             v.str1,

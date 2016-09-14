@@ -11,6 +11,11 @@ import (
 	"time"
 
 	. "gopkg.in/go-playground/assert.v1"
+
+	"github.com/go-playground/locales/en"
+	"github.com/go-playground/locales/fr"
+	"github.com/go-playground/locales/nl"
+	"github.com/go-playground/universal-translator"
 )
 
 // NOTES:
@@ -6412,4 +6417,146 @@ func TestRequired(t *testing.T) {
 	err := validate.Struct(test)
 	NotEqual(t, err, nil)
 	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "required")
+}
+
+func TestTranslations(t *testing.T) {
+	en := en.New()
+	uni := ut.New(en, en, fr.New())
+
+	trans, _ := uni.GetTranslator("en")
+	fr, _ := uni.GetTranslator("fr")
+
+	validate := New()
+	err := validate.RegisterTranslation("required", trans,
+		func(ut ut.Translator) (err error) {
+
+			// using this stype because multiple translation may have to be added for the full translation
+			if err = ut.Add("required", "{0} is a required field", false); err != nil {
+				return
+			}
+
+			return
+
+		}, func(ut ut.Translator, fe FieldError) string {
+
+			t, err := ut.T(fe.Tag(), fe.Field())
+			if err != nil {
+				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
+				return fe.(*fieldError).Error()
+			}
+
+			return t
+		})
+	Equal(t, err, nil)
+
+	err = validate.RegisterTranslation("required", fr,
+		func(ut ut.Translator) (err error) {
+
+			// using this stype because multiple translation may have to be added for the full translation
+			if err = ut.Add("required", "{0} est un champ obligatoire", false); err != nil {
+				return
+			}
+
+			return
+
+		}, func(ut ut.Translator, fe FieldError) string {
+
+			t, err := ut.T(fe.Tag(), fe.Field())
+			if err != nil {
+				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
+				return fe.(*fieldError).Error()
+			}
+
+			return t
+		})
+
+	Equal(t, err, nil)
+
+	type Test struct {
+		Value interface{} `validate:"required"`
+	}
+
+	var test Test
+
+	err = validate.Struct(test)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 1)
+
+	fe := errs[0]
+	Equal(t, fe.Tag(), "required")
+	Equal(t, fe.Namespace(), "Test.Value")
+	Equal(t, fe.Translate(trans), fmt.Sprintf("%s is a required field", fe.Field()))
+	Equal(t, fe.Translate(fr), fmt.Sprintf("%s est un champ obligatoire", fe.Field()))
+
+	nl := nl.New()
+	uni2 := ut.New(nl, nl)
+	trans2, _ := uni2.GetTranslator("nl")
+	Equal(t, fe.Translate(trans2), "Key: 'Test.Value' Error:Field validation for 'Value' failed on the 'required' tag")
+
+	terrs := errs.Translate(trans)
+	Equal(t, len(terrs), 1)
+
+	v, ok := terrs["Test.Value"]
+	Equal(t, ok, true)
+	Equal(t, v, fmt.Sprintf("%s is a required field", fe.Field()))
+
+	terrs = errs.Translate(fr)
+	Equal(t, len(terrs), 1)
+
+	v, ok = terrs["Test.Value"]
+	Equal(t, ok, true)
+	Equal(t, v, fmt.Sprintf("%s est un champ obligatoire", fe.Field()))
+
+	type Test2 struct {
+		Value string `validate:"gt=1"`
+	}
+
+	var t2 Test2
+
+	err = validate.Struct(t2)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 1)
+
+	fe = errs[0]
+	Equal(t, fe.Tag(), "gt")
+	Equal(t, fe.Namespace(), "Test2.Value")
+	Equal(t, fe.Translate(trans), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag")
+}
+
+func TestTranslationErrors(t *testing.T) {
+
+	en := en.New()
+	uni := ut.New(en, en, fr.New())
+
+	trans, _ := uni.GetTranslator("en")
+	trans.Add("required", "{0} is a required field", false) // using translator outside of validator also
+
+	validate := New()
+	err := validate.RegisterTranslation("required", trans,
+		func(ut ut.Translator) (err error) {
+
+			// using this stype because multiple translation may have to be added for the full translation
+			if err = ut.Add("required", "{0} is a required field", false); err != nil {
+				return
+			}
+
+			return
+
+		}, func(ut ut.Translator, fe FieldError) string {
+
+			t, err := ut.T(fe.Tag(), fe.Field())
+			if err != nil {
+				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
+				return fe.(*fieldError).Error()
+			}
+
+			return t
+		})
+
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "error: conflicting key 'required' rule 'Unknown' with text '{0} is a required field', value being ignored")
 }

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-playground/universal-translator"
 )
 
 const (
@@ -53,6 +55,7 @@ type Validate struct {
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
 	validations      map[string]Func
+	transTagFunc     map[string]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
 }
@@ -187,6 +190,27 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	v.hasCustomFuncs = true
+}
+
+func (v *Validate) RegisterTranslation(tag string, ut ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
+
+	if v.transTagFunc == nil {
+		v.transTagFunc = make(map[string]map[string]TranslationFunc)
+	}
+
+	if err = registerFn(ut); err != nil {
+		return
+	}
+
+	m, ok := v.transTagFunc[ut.Locale()]
+	if !ok {
+		m = make(map[string]TranslationFunc)
+		v.transTagFunc[ut.Locale()] = m
+	}
+
+	m[tag] = translationFn
+
+	return
 }
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
