@@ -5,21 +5,7 @@ based on tags.
 It can also handle Cross-Field and Cross-Struct validation for nested structs
 and has the ability to dive into arrays and maps of any type.
 
-Why not a better error message?
-Because this library intends for you to handle your own error messages.
-
-Why should I handle my own errors?
-Many reasons. We built an internationalized application and needed to know the
-field, and what validation failed so we could provide a localized error.
-
-	if fieldErr.Field() == "Name" {
-		switch fieldErr.Tag()
-		case "required":
-			return "Translated string based on field + error"
-		default:
-		return "Translated string based on field"
-	}
-
+see more examples https://github.com/go-playground/validator/tree/v9/examples
 
 Validation Functions Return Type error
 
