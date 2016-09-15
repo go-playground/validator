@@ -6,22 +6,6 @@ import (
 	"strings"
 )
 
-// import (
-// 	"reflect"
-// 	"strconv"
-// 	"strings"
-// )
-
-// const (
-// 	blank              = ""
-// 	namespaceSeparator = "."
-// 	leftBracket        = "["
-// 	rightBracket       = "]"
-// 	restrictedTagChars = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
-// 	restrictedAliasErr = "Alias '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
-// 	restrictedTagErr   = "Tag '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
-// )
-
 // extractTypeInternal gets the actual underlying type of field value.
 // It will dive into pointers, customTypes and return you the
 // underlying value and it's kind.

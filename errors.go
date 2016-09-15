@@ -63,6 +63,14 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 
 	for i := 0; i < len(ve); i++ {
 		fe = ve[i].(*fieldError)
+
+		// // in case an Anonymous struct was used, ensure that the key
+		// // would be 'Username' instead of ".Username"
+		// if len(fe.ns) > 0 && fe.ns[:1] == "." {
+		// 	trans[fe.ns[1:]] = fe.Translate(ut)
+		// 	continue
+		// }
+
 		trans[fe.ns] = fe.Translate(ut)
 	}
 
@@ -192,8 +200,18 @@ func (fe *fieldError) StructNamespace() string {
 // Field returns the fields name with the tag name taking precedence over the
 // fields actual name.
 func (fe *fieldError) Field() string {
-	// return fe.field
+
 	return fe.ns[len(fe.ns)-int(fe.fieldLen):]
+	// // return fe.field
+	// fld := fe.ns[len(fe.ns)-int(fe.fieldLen):]
+
+	// log.Println("FLD:", fld)
+
+	// if len(fld) > 0 && fld[:1] == "." {
+	// 	return fld[1:]
+	// }
+
+	// return fld
 }
 
 // returns the fields actual name from the struct, when able to determine.
@@ -236,7 +254,7 @@ func (fe *fieldError) Error() string {
 // as calling fe.Error()
 func (fe *fieldError) Translate(ut ut.Translator) string {
 
-	m, ok := fe.v.transTagFunc[ut.Locale()]
+	m, ok := fe.v.transTagFunc[ut]
 	if !ok {
 		return fe.Error()
 	}

@@ -37,7 +37,7 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 		cs = v.v.extractStructCache(current, typ.Name())
 	}
 
-	if len(ns) == 0 {
+	if len(ns) == 0 && len(cs.name) != 0 {
 
 		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
@@ -310,7 +310,7 @@ OUTER:
 				v.misc = append(v.misc, '|')
 				v.misc = append(v.misc, ct.tag...)
 
-				if ct.next == nil {
+				if ct.next == nil || ct.next.typeof != typeOr { // ct.typeof != typeOr
 					// if we get here, no valid 'or' value and no more tags
 
 					v.str1 = string(append(ns, cf.altName...))

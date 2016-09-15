@@ -55,7 +55,7 @@ type Validate struct {
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
 	validations      map[string]Func
-	transTagFunc     map[string]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
+	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
 }
@@ -192,20 +192,20 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	v.hasCustomFuncs = true
 }
 
-func (v *Validate) RegisterTranslation(tag string, ut ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
+func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
 
 	if v.transTagFunc == nil {
-		v.transTagFunc = make(map[string]map[string]TranslationFunc)
+		v.transTagFunc = make(map[ut.Translator]map[string]TranslationFunc)
 	}
 
-	if err = registerFn(ut); err != nil {
+	if err = registerFn(trans); err != nil {
 		return
 	}
 
-	m, ok := v.transTagFunc[ut.Locale()]
+	m, ok := v.transTagFunc[trans]
 	if !ok {
 		m = make(map[string]TranslationFunc)
-		v.transTagFunc[ut.Locale()] = m
+		v.transTagFunc[trans] = m
 	}
 
 	m[tag] = translationFn
@@ -357,8 +357,13 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 
 	for _, key := range fields {
 
-		vd.misc = append(vd.misc[0:0], name...)
-		vd.misc = append(vd.misc, '.')
+		vd.misc = vd.misc[0:0]
+
+		if len(name) > 0 {
+			vd.misc = append(vd.misc, name...)
+			vd.misc = append(vd.misc, '.')
+		}
+
 		vd.misc = append(vd.misc, key...)
 		vd.includeExclude[string(vd.misc)] = struct{}{}
 	}
