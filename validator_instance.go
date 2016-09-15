@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-playground/universal-translator"
 )
 
 const (
@@ -53,6 +55,7 @@ type Validate struct {
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
 	validations      map[string]Func
+	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
 }
@@ -187,6 +190,27 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	v.hasCustomFuncs = true
+}
+
+func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
+
+	if v.transTagFunc == nil {
+		v.transTagFunc = make(map[ut.Translator]map[string]TranslationFunc)
+	}
+
+	if err = registerFn(trans); err != nil {
+		return
+	}
+
+	m, ok := v.transTagFunc[trans]
+	if !ok {
+		m = make(map[string]TranslationFunc)
+		v.transTagFunc[trans] = m
+	}
+
+	m[tag] = translationFn
+
+	return
 }
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
@@ -333,8 +357,13 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 
 	for _, key := range fields {
 
-		vd.misc = append(vd.misc[0:0], name...)
-		vd.misc = append(vd.misc, '.')
+		vd.misc = vd.misc[0:0]
+
+		if len(name) > 0 {
+			vd.misc = append(vd.misc, name...)
+			vd.misc = append(vd.misc, '.')
+		}
+
 		vd.misc = append(vd.misc, key...)
 		vd.includeExclude[string(vd.misc)] = struct{}{}
 	}

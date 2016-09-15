@@ -117,6 +117,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 
 		v.errs = append(v.errs,
 			&fieldError{
+				v:              v.v,
 				tag:            tag,
 				actualTag:      tag,
 				ns:             v.str1,
@@ -132,6 +133,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 
 	v.errs = append(v.errs,
 		&fieldError{
+			v:              v.v,
 			tag:            tag,
 			actualTag:      tag,
 			ns:             v.str1,

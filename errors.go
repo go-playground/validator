@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/go-playground/universal-translator"
 )
 
 const (
 	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
 )
+
+type ValidationErrorsTranslations map[string]string
 
 // InvalidValidationError describes an invalid argument passed to
 // `Struct`, `StructExcept`, StructPartial` or `Field`
@@ -39,16 +43,38 @@ func (ve ValidationErrors) Error() string {
 
 	buff := bytes.NewBufferString("")
 
-	var err *fieldError
+	var fe *fieldError
 
 	for i := 0; i < len(ve); i++ {
 
-		err = ve[i].(*fieldError)
-		buff.WriteString(err.Error())
+		fe = ve[i].(*fieldError)
+		buff.WriteString(fe.Error())
 		buff.WriteString("\n")
 	}
 
 	return strings.TrimSpace(buff.String())
+}
+
+func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslations {
+
+	trans := make(ValidationErrorsTranslations)
+
+	var fe *fieldError
+
+	for i := 0; i < len(ve); i++ {
+		fe = ve[i].(*fieldError)
+
+		// // in case an Anonymous struct was used, ensure that the key
+		// // would be 'Username' instead of ".Username"
+		// if len(fe.ns) > 0 && fe.ns[:1] == "." {
+		// 	trans[fe.ns[1:]] = fe.Translate(ut)
+		// 	continue
+		// }
+
+		trans[fe.ns] = fe.Translate(ut)
+	}
+
+	return trans
 }
 
 // FieldError contains all functions to get error details
@@ -118,6 +144,13 @@ type FieldError interface {
 	//
 	// // eg. time.Time's type is time.Time
 	Type() reflect.Type
+
+	// returns the FieldError's translated error
+	// from the provided 'ut.Translator' and registered 'TranslationFunc'
+	//
+	// NOTE: is not registered translation can be found it returns the same
+	// as calling fe.Error()
+	Translate(ut ut.Translator) string
 }
 
 // compile time interface checks
@@ -128,6 +161,7 @@ var _ error = new(fieldError)
 // with other properties that may be needed for error message creation
 // it complies with the FieldError interface
 type fieldError struct {
+	v              *Validate
 	tag            string
 	actualTag      string
 	ns             string
@@ -166,8 +200,18 @@ func (fe *fieldError) StructNamespace() string {
 // Field returns the fields name with the tag name taking precedence over the
 // fields actual name.
 func (fe *fieldError) Field() string {
-	// return fe.field
+
 	return fe.ns[len(fe.ns)-int(fe.fieldLen):]
+	// // return fe.field
+	// fld := fe.ns[len(fe.ns)-int(fe.fieldLen):]
+
+	// log.Println("FLD:", fld)
+
+	// if len(fld) > 0 && fld[:1] == "." {
+	// 	return fld[1:]
+	// }
+
+	// return fld
 }
 
 // returns the fields actual name from the struct, when able to determine.
@@ -201,4 +245,24 @@ func (fe *fieldError) Type() reflect.Type {
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+}
+
+// Translate returns the FieldError's translated error
+// from the provided 'ut.Translator' and registered 'TranslationFunc'
+//
+// NOTE: is not registered translation can be found it returns the same
+// as calling fe.Error()
+func (fe *fieldError) Translate(ut ut.Translator) string {
+
+	m, ok := fe.v.transTagFunc[ut]
+	if !ok {
+		return fe.Error()
+	}
+
+	fn, ok := m[fe.tag]
+	if !ok {
+		return fe.Error()
+	}
+
+	return fn(ut, fe)
 }
