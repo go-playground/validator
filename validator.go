@@ -310,6 +310,11 @@ OUTER:
 				v.misc = append(v.misc, '|')
 				v.misc = append(v.misc, ct.tag...)
 
+				if len(ct.param) > 0 {
+					v.misc = append(v.misc, '=')
+					v.misc = append(v.misc, ct.param...)
+				}
+
 				if ct.next == nil || ct.next.typeof != typeOr { // ct.typeof != typeOr
 					// if we get here, no valid 'or' value and no more tags
 
@@ -372,6 +377,10 @@ OUTER:
 			v.slflParent = parent
 			v.flField = current
 			v.flParam = ct.param
+
+			// // report error interface functions need these
+			// v.ns = ns
+			// v.actualNs = structNs
 
 			if !ct.fn(v) {
 

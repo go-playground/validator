@@ -11,6 +11,7 @@ import (
 // underlying value and it's kind.
 func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (reflect.Value, reflect.Kind, bool) {
 
+BEGIN:
 	switch current.Kind() {
 	case reflect.Ptr:
 
@@ -20,7 +21,8 @@ func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 			return current, reflect.Ptr, nullable
 		}
 
-		return v.extractTypeInternal(current.Elem(), nullable)
+		current = current.Elem()
+		goto BEGIN
 
 	case reflect.Interface:
 
@@ -30,7 +32,8 @@ func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 			return current, reflect.Interface, nullable
 		}
 
-		return v.extractTypeInternal(current.Elem(), nullable)
+		current = current.Elem()
+		goto BEGIN
 
 	case reflect.Invalid:
 		return current, reflect.Invalid, nullable
@@ -40,7 +43,8 @@ func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 		if v.v.hasCustomFuncs {
 
 			if fn, ok := v.v.customFuncs[current.Type()]; ok {
-				return v.extractTypeInternal(reflect.ValueOf(fn(current)), nullable)
+				current = reflect.ValueOf(fn(current))
+				goto BEGIN
 			}
 		}
 
@@ -53,23 +57,24 @@ func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 //
 // NOTE: when not successful ok will be false, this can happen when a nested struct is nil and so the field
 // could not be retrieved because it didn't exist.
-func (v *validate) getStructFieldOKInternal(current reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
+func (v *validate) getStructFieldOKInternal(val reflect.Value, namespace string) (current reflect.Value, kind reflect.Kind, found bool) {
 
-	current, kind, _ := v.ExtractType(current)
+BEGIN:
+	current, kind, _ = v.ExtractType(val)
 
 	if kind == reflect.Invalid {
-		return current, kind, false
+		return
 	}
 
 	if namespace == "" {
-		return current, kind, true
+		found = true
+		return
 	}
 
 	switch kind {
 
 	case reflect.Ptr, reflect.Interface:
-
-		return current, kind, false
+		return
 
 	case reflect.Struct:
 
@@ -95,9 +100,9 @@ func (v *validate) getStructFieldOKInternal(current reflect.Value, namespace str
 				ns = namespace[bracketIdx:]
 			}
 
-			current = current.FieldByName(fld)
-
-			return v.getStructFieldOKInternal(current, ns)
+			val = current.FieldByName(fld)
+			namespace = ns
+			goto BEGIN
 		}
 
 	case reflect.Array, reflect.Slice:
@@ -118,7 +123,9 @@ func (v *validate) getStructFieldOKInternal(current reflect.Value, namespace str
 			}
 		}
 
-		return v.getStructFieldOKInternal(current.Index(arrIdx), namespace[startIdx:])
+		val = current.Index(arrIdx)
+		namespace = namespace[startIdx:]
+		goto BEGIN
 
 	case reflect.Map:
 		idx := strings.Index(namespace, leftBracket) + 1
@@ -137,48 +144,76 @@ func (v *validate) getStructFieldOKInternal(current reflect.Value, namespace str
 		switch current.Type().Key().Kind() {
 		case reflect.Int:
 			i, _ := strconv.Atoi(key)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(i))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Int8:
 			i, _ := strconv.ParseInt(key, 10, 8)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(int8(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(int8(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Int16:
 			i, _ := strconv.ParseInt(key, 10, 16)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(int16(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(int16(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Int32:
 			i, _ := strconv.ParseInt(key, 10, 32)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(int32(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(int32(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Int64:
 			i, _ := strconv.ParseInt(key, 10, 64)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(i))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Uint:
 			i, _ := strconv.ParseUint(key, 10, 0)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(uint(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(uint(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Uint8:
 			i, _ := strconv.ParseUint(key, 10, 8)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(uint8(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(uint8(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Uint16:
 			i, _ := strconv.ParseUint(key, 10, 16)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(uint16(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(uint16(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Uint32:
 			i, _ := strconv.ParseUint(key, 10, 32)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(uint32(i))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(uint32(i)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Uint64:
 			i, _ := strconv.ParseUint(key, 10, 64)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(i)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(i))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Float32:
 			f, _ := strconv.ParseFloat(key, 32)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(float32(f))), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(float32(f)))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Float64:
 			f, _ := strconv.ParseFloat(key, 64)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(f)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(f))
+			namespace = namespace[endIdx+1:]
+
 		case reflect.Bool:
 			b, _ := strconv.ParseBool(key)
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(b)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(b))
+			namespace = namespace[endIdx+1:]
 
 		// reflect.Type = string
 		default:
-			return v.getStructFieldOKInternal(current.MapIndex(reflect.ValueOf(key)), namespace[endIdx+1:])
+			val = current.MapIndex(reflect.ValueOf(key))
+			namespace = namespace[endIdx+1:]
 		}
+
+		goto BEGIN
 	}
 
 	// if got here there was more namespace, cannot go any deeper

@@ -128,6 +128,7 @@ func TestTranslations(t *testing.T) {
 		IPAddrv6          string    `validate:"ip6_addr"`
 		UinxAddr          string    `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
 		MAC               string    `validate:"mac"`
+		IsColor           string    `validate:"iscolor"`
 	}
 
 	var test Test
@@ -180,6 +181,10 @@ func TestTranslations(t *testing.T) {
 		ns       string
 		expected string
 	}{
+		{
+			ns:       "Test.IsColor",
+			expected: "IsColor must be a valid color",
+		},
 		{
 			ns:       "Test.MAC",
 			expected: "MAC must contain a valid MAC address",

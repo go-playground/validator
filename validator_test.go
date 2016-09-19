@@ -5504,7 +5504,7 @@ func TestOrTag(t *testing.T) {
 	s = "this ain't right"
 	errs = validate.Var(s, "rgb|rgba|len=10")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgb|rgba|len")
+	AssertError(t, errs, "", "", "", "", "rgb|rgba|len=10")
 
 	s = "this is right"
 	errs = validate.Var(s, "rgb|rgba|len=13")
