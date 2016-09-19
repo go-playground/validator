@@ -1247,6 +1247,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} must contain a valid MAC address",
 			override:    false,
 		},
+		{
+			tag:         "iscolor",
+			translation: "{0} must be a valid color",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
