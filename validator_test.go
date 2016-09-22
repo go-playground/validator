@@ -15,7 +15,7 @@ import (
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
 	"github.com/go-playground/locales/nl"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 )
 
 // NOTES:

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/locales"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	"gopkg.in/go-playground/validator.v9"
 )
 

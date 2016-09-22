@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 )
 
 const (
