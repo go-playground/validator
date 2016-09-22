@@ -5,7 +5,7 @@ import (
 	"time"
 
 	english "github.com/go-playground/locales/en"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	. "gopkg.in/go-playground/assert.v1"
 	"gopkg.in/go-playground/validator.v9"
 )
