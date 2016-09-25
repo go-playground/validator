@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bytes"
 	sql "database/sql/driver"
 	"testing"
 	"time"
@@ -371,6 +372,110 @@ func BenchmarkStructSimpleCustomTypeFailureParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Struct(validate.Struct(validFoo))
+		}
+	})
+}
+
+func BenchmarkStructFilteredSuccess(b *testing.B) {
+
+	validate := New()
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	byts := []byte("Name")
+
+	fn := func(ns []byte) bool {
+		return !bytes.HasSuffix(ns, byts)
+	}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		validate.StructFiltered(test, fn)
+	}
+}
+
+func BenchmarkStructFilteredSuccessParallel(b *testing.B) {
+
+	validate := New()
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	byts := []byte("Name")
+
+	fn := func(ns []byte) bool {
+		return !bytes.HasSuffix(ns, byts)
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.StructFiltered(test, fn)
+		}
+	})
+}
+
+func BenchmarkStructFilteredFailure(b *testing.B) {
+
+	validate := New()
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	byts := []byte("NickName")
+
+	fn := func(ns []byte) bool {
+		return !bytes.HasSuffix(ns, byts)
+	}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		validate.StructFiltered(test, fn)
+	}
+}
+
+func BenchmarkStructFilteredFailureParallel(b *testing.B) {
+
+	validate := New()
+
+	type Test struct {
+		Name     string `validate:"required"`
+		NickName string `validate:"required"`
+	}
+
+	test := &Test{
+		Name: "Joey Bloggs",
+	}
+
+	byts := []byte("NickName")
+
+	fn := func(ns []byte) bool {
+		return !bytes.HasSuffix(ns, byts)
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.StructFiltered(test, fn)
 		}
 	})
 }

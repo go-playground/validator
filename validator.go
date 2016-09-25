@@ -17,6 +17,8 @@ type validate struct {
 	hasExcludes    bool
 	includeExclude map[string]struct{} // reset only if StructPartial or StructExcept are called, no need otherwise
 
+	ffn FilterFunc
+
 	// StructLevel & FieldLevel fields
 	slflParent reflect.Value
 	slCurrent  reflect.Value
@@ -54,10 +56,19 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 
 			if v.isPartial {
 
-				_, ok = v.includeExclude[string(append(structNs, f.name...))]
+				if v.ffn != nil {
+					// used with StructFiltered
+					if v.ffn(append(structNs, f.name...)) {
+						continue
+					}
 
-				if (ok && v.hasExcludes) || (!ok && !v.hasExcludes) {
-					continue
+				} else {
+					// used with StructPartial & StructExcept
+					_, ok = v.includeExclude[string(append(structNs, f.name...))]
+
+					if (ok && v.hasExcludes) || (!ok && !v.hasExcludes) {
+						continue
+					}
 				}
 			}
 

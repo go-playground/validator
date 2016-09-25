@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bytes"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
@@ -6559,4 +6560,174 @@ func TestTranslationErrors(t *testing.T) {
 
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "error: conflicting key 'required' rule 'Unknown' with text '{0} is a required field', value being ignored")
+}
+
+func TestStructFiltered(t *testing.T) {
+
+	p1 := func(ns []byte) bool {
+		if bytes.HasSuffix(ns, []byte("NoTag")) || bytes.HasSuffix(ns, []byte("Required")) {
+			return false
+		}
+
+		return true
+	}
+
+	p2 := func(ns []byte) bool {
+		if bytes.HasSuffix(ns, []byte("SubSlice[0].Test")) ||
+			bytes.HasSuffix(ns, []byte("SubSlice[0]")) ||
+			bytes.HasSuffix(ns, []byte("SubSlice")) ||
+			bytes.HasSuffix(ns, []byte("Sub")) ||
+			bytes.HasSuffix(ns, []byte("SubIgnore")) ||
+			bytes.HasSuffix(ns, []byte("Anonymous")) ||
+			bytes.HasSuffix(ns, []byte("Anonymous.A")) {
+			return false
+		}
+
+		return true
+	}
+
+	p3 := func(ns []byte) bool {
+		if bytes.HasSuffix(ns, []byte("SubTest.Test")) {
+			return false
+		}
+
+		return true
+	}
+
+	// p4 := []string{
+	// 	"A",
+	// }
+
+	tPartial := &TestPartial{
+		NoTag:    "NoTag",
+		Required: "Required",
+
+		SubSlice: []*SubTest{
+			{
+
+				Test: "Required",
+			},
+			{
+
+				Test: "Required",
+			},
+		},
+
+		Sub: &SubTest{
+			Test: "1",
+		},
+		SubIgnore: &SubTest{
+			Test: "",
+		},
+		Anonymous: struct {
+			A             string     `validate:"required"`
+			ASubSlice     []*SubTest `validate:"required,dive"`
+			SubAnonStruct []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			} `validate:"required,dive"`
+		}{
+			A: "1",
+			ASubSlice: []*SubTest{
+				{
+					Test: "Required",
+				},
+				{
+					Test: "Required",
+				},
+			},
+
+			SubAnonStruct: []struct {
+				Test      string `validate:"required"`
+				OtherTest string `validate:"required"`
+			}{
+				{"Required", "RequiredOther"},
+				{"Required", "RequiredOther"},
+			},
+		},
+	}
+
+	validate := New()
+
+	// the following should all return no errors as everything is valid in
+	// the default state
+	errs := validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	errs = validate.StructFiltered(tPartial, p2)
+	Equal(t, errs, nil)
+
+	// this isn't really a robust test, but is ment to illustrate the ANON CASE below
+	errs = validate.StructFiltered(tPartial.SubSlice[0], p3)
+	Equal(t, errs, nil)
+
+	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	tPartial.Required = ""
+
+	// inversion and retesting Partial to generate failures:
+	errs = validate.StructFiltered(tPartial, p1)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Required", "TestPartial.Required", "Required", "Required", "required")
+
+	// reset Required field, and set nested struct
+	tPartial.Required = "Required"
+	tPartial.Anonymous.A = ""
+
+	// will pass as unset feilds is not going to be tested
+	errs = validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	// will fail as unset feild is tested
+	errs = validate.StructFiltered(tPartial, p2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.Anonymous.A", "TestPartial.Anonymous.A", "A", "A", "required")
+
+	// reset nested struct and unset struct in slice
+	tPartial.Anonymous.A = "Required"
+	tPartial.SubSlice[0].Test = ""
+
+	// these will pass as unset item is NOT tested
+	errs = validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	errs = validate.StructFiltered(tPartial, p2)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "TestPartial.SubSlice[0].Test", "Test", "Test", "required")
+	Equal(t, len(errs.(ValidationErrors)), 1)
+
+	// Unset second slice member concurrently to test dive behavior:
+	tPartial.SubSlice[1].Test = ""
+
+	errs = validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	errs = validate.StructFiltered(tPartial, p2)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "TestPartial.SubSlice[0].Test", "Test", "Test", "required")
+
+	// reset struct in slice, and unset struct in slice in unset posistion
+	tPartial.SubSlice[0].Test = "Required"
+
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	errs = validate.StructFiltered(tPartial, p2)
+	Equal(t, errs, nil)
+
+	tPartial.SubSlice[1].Test = "Required"
+	tPartial.Anonymous.SubAnonStruct[0].Test = ""
+
+	// these will pass as the unset item is NOT tested
+	errs = validate.StructFiltered(tPartial, p1)
+	Equal(t, errs, nil)
+
+	errs = validate.StructFiltered(tPartial, p2)
+	Equal(t, errs, nil)
+
+	dt := time.Now()
+	err := validate.StructFiltered(&dt, func(ns []byte) bool { return true })
+	NotEqual(t, err, nil)
+	Equal(t, err.Error(), "validator: (nil *time.Time)")
 }

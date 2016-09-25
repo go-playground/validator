@@ -13,6 +13,7 @@ const (
 	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
 )
 
+// ValidationErrorsTranslations is the translation return type
 type ValidationErrorsTranslations map[string]string
 
 // InvalidValidationError describes an invalid argument passed to
@@ -55,6 +56,7 @@ func (ve ValidationErrors) Error() string {
 	return strings.TrimSpace(buff.String())
 }
 
+// Translate translates all of the ValidationErrors
 func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslations {
 
 	trans := make(ValidationErrorsTranslations)

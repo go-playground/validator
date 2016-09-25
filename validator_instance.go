@@ -36,6 +36,12 @@ var (
 	defaultCField = &cField{namesEqual: true}
 )
 
+// FilterFunc is the type used to filter fields using
+// StructFiltered(...) function.
+// returning true results in the field being filtered/skiped from
+// validation
+type FilterFunc func(ns []byte) bool
+
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
 // field = field value of the type to return a value to be validated
 // example Valuer from sql drive see https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29
@@ -192,6 +198,7 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	v.hasCustomFuncs = true
 }
 
+// RegisterTranslation registers translations against the provided tag.
 func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
 
 	if v.transTagFunc == nil {
@@ -248,6 +255,43 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	return
 }
 
+// StructFiltered validates a structs exposed fields, that pass the FilterFunc check and automatically validates
+// nested structs, unless otherwise specified.
+//
+// It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
+// You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
+func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) (err error) {
+
+	val := reflect.ValueOf(s)
+	top := val
+
+	if val.Kind() == reflect.Ptr && !val.IsNil() {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct || val.Type() == timeType {
+		return &InvalidValidationError{Type: reflect.TypeOf(s)}
+	}
+
+	// good to validate
+	vd := v.pool.Get().(*validate)
+	vd.top = top
+	vd.isPartial = true
+	vd.ffn = fn
+	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
+
+	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
+
+	if len(vd.errs) > 0 {
+		err = vd.errs
+		vd.errs = nil
+	}
+
+	v.pool.Put(vd)
+
+	return
+}
+
 // StructPartial validates the fields passed in only, ignoring all others.
 // Fields may be provided in a namespaced fashion relative to the  struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
@@ -271,6 +315,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 	vd := v.pool.Get().(*validate)
 	vd.top = top
 	vd.isPartial = true
+	vd.ffn = nil
 	vd.hasExcludes = false
 	vd.includeExclude = make(map[string]struct{})
 
@@ -349,6 +394,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 	vd := v.pool.Get().(*validate)
 	vd.top = top
 	vd.isPartial = true
+	vd.ffn = nil
 	vd.hasExcludes = true
 	vd.includeExclude = make(map[string]struct{})
 
