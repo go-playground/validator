@@ -23,6 +23,7 @@ const (
 	omitempty          = "omitempty"
 	skipValidationTag  = "-"
 	diveTag            = "dive"
+	requiredTag        = "required"
 	namespaceSeparator = "."
 	leftBracket        = "["
 	rightBracket       = "]"
@@ -92,7 +93,7 @@ func New() *Validate {
 	for k, val := range bakedInValidators {
 
 		// no need to error check here, baked in will alwaays be valid
-		v.RegisterValidation(k, val)
+		v.registerValidation(k, val, true)
 	}
 
 	v.pool = &sync.Pool{
@@ -127,6 +128,10 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(tag string, fn Func) error {
+	return v.registerValidation(tag, fn, false)
+}
+
+func (v *Validate) registerValidation(tag string, fn Func, bakedIn bool) error {
 
 	if len(tag) == 0 {
 		return errors.New("Function Key cannot be empty")
@@ -138,7 +143,7 @@ func (v *Validate) RegisterValidation(tag string, fn Func) error {
 
 	_, ok := restrictedTags[tag]
 
-	if ok || strings.ContainsAny(tag, restrictedTagChars) {
+	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
 		panic(fmt.Sprintf(restrictedTagErr, tag))
 	}
 

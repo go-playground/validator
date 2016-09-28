@@ -6731,3 +6731,96 @@ func TestStructFiltered(t *testing.T) {
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "validator: (nil *time.Time)")
 }
+
+func TestRequiredPtr(t *testing.T) {
+
+	type Test struct {
+		Bool *bool `validate:"required"`
+	}
+
+	validate := New()
+
+	f := false
+
+	test := Test{
+		Bool: &f,
+	}
+
+	err := validate.Struct(test)
+	Equal(t, err, nil)
+
+	tr := true
+
+	test.Bool = &tr
+
+	err = validate.Struct(test)
+	Equal(t, err, nil)
+
+	test.Bool = nil
+
+	err = validate.Struct(test)
+	NotEqual(t, err, nil)
+
+	errs, ok := err.(ValidationErrors)
+	Equal(t, ok, true)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.Bool", "Test.Bool", "Bool", "Bool", "required")
+
+	type Test2 struct {
+		Bool bool `validate:"required"`
+	}
+
+	var test2 Test2
+
+	err = validate.Struct(test2)
+	NotEqual(t, err, nil)
+
+	errs, ok = err.(ValidationErrors)
+	Equal(t, ok, true)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test2.Bool", "Test2.Bool", "Bool", "Bool", "required")
+
+	test2.Bool = true
+
+	err = validate.Struct(test2)
+	Equal(t, err, nil)
+
+	type Test3 struct {
+		Arr []string `validate:"required"`
+	}
+
+	var test3 Test3
+
+	err = validate.Struct(test3)
+	NotEqual(t, err, nil)
+
+	errs, ok = err.(ValidationErrors)
+	Equal(t, ok, true)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test3.Arr", "Test3.Arr", "Arr", "Arr", "required")
+
+	test3.Arr = make([]string, 0)
+
+	err = validate.Struct(test3)
+	Equal(t, err, nil)
+
+	type Test4 struct {
+		Arr *[]string `validate:"required"` // I know I know pointer to array, just making sure validation works as expected...
+	}
+
+	var test4 Test4
+
+	err = validate.Struct(test4)
+	NotEqual(t, err, nil)
+
+	errs, ok = err.(ValidationErrors)
+	Equal(t, ok, true)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test4.Arr", "Test4.Arr", "Arr", "Arr", "required")
+
+	arr := make([]string, 0)
+	test4.Arr = &arr
+
+	err = validate.Struct(test4)
+	Equal(t, err, nil)
+}

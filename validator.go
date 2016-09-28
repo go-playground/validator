@@ -20,10 +20,11 @@ type validate struct {
 	ffn FilterFunc
 
 	// StructLevel & FieldLevel fields
-	slflParent reflect.Value
-	slCurrent  reflect.Value
-	flField    reflect.Value
-	flParam    string
+	slflParent   reflect.Value
+	slCurrent    reflect.Value
+	flField      reflect.Value
+	flParam      string
+	fldIsPointer bool
 
 	// misc reusable values
 	misc []byte
@@ -95,9 +96,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 	var typ reflect.Type
 	var kind reflect.Kind
-	var nullable bool
 
-	current, kind, nullable = v.extractTypeInternal(current, nullable)
+	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
@@ -207,7 +207,7 @@ OUTER:
 			v.flField = current
 			v.flParam = ""
 
-			if !nullable && !hasValue(v) {
+			if !v.fldIsPointer && !hasValue(v) {
 				return
 			}
 
