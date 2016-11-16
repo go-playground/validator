@@ -53,7 +53,11 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 	// so if nil or if not nil and the structonly tag isn't present
 	if ct == nil || ct.typeof != typeStructOnly {
 
-		for _, f := range cs.fields {
+		var f *cField
+
+		for i := 0; i < len(cs.fields); i++ {
+
+			f = cs.fields[i]
 
 			if v.isPartial {
 
