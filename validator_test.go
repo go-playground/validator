@@ -5954,6 +5954,11 @@ func TestAlpha(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alpha")
 
+	s = "this is a test string"
+	errs = validate.Var(s, "alpha")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alpha")
+
 	errs = validate.Var(1, "alpha")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alpha")
@@ -6823,4 +6828,88 @@ func TestRequiredPtr(t *testing.T) {
 
 	err = validate.Struct(test4)
 	Equal(t, err, nil)
+}
+
+func TestAlphaUnicodeValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"abc", true},
+		{"this is a test string", false},
+		{"这是一个测试字符串", true},
+		{"123", false},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", false},
+		{"あいうえおfoobar", true},
+		{"test＠example.com", false},
+		{"1234abcDE", false},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "alphaunicode")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Alpha Unicode failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Alpha Unicode failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "alphaunicode" {
+					t.Fatalf("Index: %d Alpha Unicode failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestAlphanumericUnicodeValidation(t *testing.T) {
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"abc", true},
+		{"this is a test string", false},
+		{"这是一个测试字符串", true},
+		{"\u0031\u0032\u0033", true}, // unicode 5
+		{"123", true},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", false},
+		{"あいうえおfoobar", true},
+		{"test＠example.com", false},
+		{"1234abcDE", true},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "alphanumunicode")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Alphanum Unicode failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Alphanum Unicode failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "alphanumunicode" {
+					t.Fatalf("Index: %d Alphanum Unicode failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
 }
