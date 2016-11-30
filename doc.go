@@ -463,15 +463,27 @@ to the top level struct.
 
 Alpha Only
 
-This validates that a string value contains alpha characters only
+This validates that a string value contains ASCII alpha characters only
 
 	Usage: alpha
 
 Alphanumeric
 
-This validates that a string value contains alphanumeric characters only
+This validates that a string value contains ASCII alphanumeric characters only
 
 	Usage: alphanum
+
+Alpha Unicode
+
+This validates that a string value contains unicode alpha characters only
+
+	Usage: alphaunicode
+
+Alphanumeric Unicode
+
+This validates that a string value contains unicode alphanumeric characters only
+
+	Usage: alphanumunicode
 
 Numeric
 
