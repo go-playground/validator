@@ -4391,6 +4391,49 @@ func TestStructOnlyValidation(t *testing.T) {
 
 	errs = validate.Struct(outer)
 	Equal(t, errs, nil)
+
+	// Address houses a users address information
+	type Address struct {
+		Street string `validate:"required"`
+		City   string `validate:"required"`
+		Planet string `validate:"required"`
+		Phone  string `validate:"required"`
+	}
+
+	type User struct {
+		FirstName      string     `json:"fname"`
+		LastName       string     `json:"lname"`
+		Age            uint8      `validate:"gte=0,lte=130"`
+		Email          string     `validate:"required,email"`
+		FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
+		Addresses      []*Address `validate:"required"`   // a person can have a home and cottage...
+		Address        Address    `validate:"structonly"` // a person can have a home and cottage...
+	}
+
+	address := &Address{
+		Street: "Eavesdown Docks",
+		Planet: "Persphone",
+		Phone:  "none",
+		City:   "Unknown",
+	}
+
+	user := &User{
+		FirstName:      "",
+		LastName:       "",
+		Age:            45,
+		Email:          "Badger.Smith@gmail.com",
+		FavouriteColor: "#000",
+		Addresses:      []*Address{address},
+		Address: Address{
+			// Street: "Eavesdown Docks",
+			Planet: "Persphone",
+			Phone:  "none",
+			City:   "Unknown",
+		},
+	}
+
+	errs = validate.Struct(user)
+	Equal(t, errs, nil)
 }
 
 func TestGtField(t *testing.T) {

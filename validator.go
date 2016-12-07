@@ -169,6 +169,11 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 		if typ != timeType {
 
 			if ct != nil {
+
+				if ct.typeof == typeStructOnly {
+					goto CONTINUE
+				}
+
 				ct = ct.next
 			}
 
@@ -176,6 +181,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 				return
 			}
 
+		CONTINUE:
 			// if len == 0 then validating using 'Var' or 'VarWithValue'
 			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
 			// VarWithField - this allows for validating against each field withing the struct against a specific value
