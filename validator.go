@@ -186,7 +186,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
 			// VarWithField - this allows for validating against each field withing the struct against a specific value
 			//                pretty handly in certain situations
-			if len(ns) > 0 {
+			if len(cf.name) > 0 {
 				ns = append(append(ns, cf.altName...), '.')
 				structNs = append(append(structNs, cf.name...), '.')
 			}

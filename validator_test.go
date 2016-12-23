@@ -6635,11 +6635,7 @@ func TestStructFiltered(t *testing.T) {
 	}
 
 	p3 := func(ns []byte) bool {
-		if bytes.HasSuffix(ns, []byte("SubTest.Test")) {
-			return false
-		}
-
-		return true
+		return !bytes.HasSuffix(ns, []byte("SubTest.Test"))
 	}
 
 	// p4 := []string{
@@ -6955,4 +6951,65 @@ func TestAlphanumericUnicodeValidation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestArrayStructNamespace(t *testing.T) {
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type child struct {
+		Name string `json:"name" validate:"required"`
+	}
+	var input struct {
+		Children []child `json:"children" validate:"required,gt=0,dive"`
+	}
+	input.Children = []child{{"ok"}, {""}}
+
+	errs := validate.Struct(input)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "children[1].name", "Children[1].Name", "name", "Name", "required")
+}
+
+func TestMapStructNamespace(t *testing.T) {
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type child struct {
+		Name string `json:"name" validate:"required"`
+	}
+	var input struct {
+		Children map[int]child `json:"children" validate:"required,gt=0,dive"`
+	}
+	input.Children = map[int]child{
+		0: {Name: "ok"},
+		1: {Name: ""},
+	}
+
+	errs := validate.Struct(input)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "children[1].name", "Children[1].Name", "name", "Name", "required")
 }
