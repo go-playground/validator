@@ -654,7 +654,7 @@ Printable ASCII
 This validates that a string value contains only printable ASCII characters.
 NOTE: if the string is blank, this validates as true.
 
-	Usage: asciiprint
+	Usage: printascii
 
 Multi-Byte Characters
 
