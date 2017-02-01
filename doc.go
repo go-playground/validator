@@ -222,7 +222,7 @@ ensures the value is not nil.
 
 Length
 
-For numbers, max will ensure that the value is
+For numbers, length will ensure that the value is
 equal to the parameter given. For strings, it checks that
 the string length is exactly that number of characters. For slices,
 arrays, and maps, validates the number of items.
