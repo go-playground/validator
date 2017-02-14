@@ -6607,7 +6607,7 @@ func TestTranslationErrors(t *testing.T) {
 		})
 
 	NotEqual(t, err, nil)
-	Equal(t, err.Error(), "error: conflicting key 'required' rule 'Unknown' with text '{0} is a required field', value being ignored")
+	Equal(t, err.Error(), "error: conflicting key 'required' rule 'Unknown' with text '{0} is a required field' for locale 'en', value being ignored")
 }
 
 func TestStructFiltered(t *testing.T) {
