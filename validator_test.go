@@ -2951,11 +2951,11 @@ func TestMapDiveValidation(t *testing.T) {
 		return name
 	})
 
-	type MapDiveJsonTest struct {
+	type MapDiveJSONTest struct {
 		Map map[string]string `validate:"required,gte=1,dive,gte=1" json:"MyName"`
 	}
 
-	mdjt := &MapDiveJsonTest{
+	mdjt := &MapDiveJSONTest{
 		Map: map[string]string{
 			"Key1": "Value1",
 			"Key2": "",
@@ -2966,7 +2966,7 @@ func TestMapDiveValidation(t *testing.T) {
 	NotEqual(t, err, nil)
 
 	errs = err.(ValidationErrors)
-	fe := getError(errs, "MapDiveJsonTest.MyName[Key2]", "MapDiveJsonTest.Map[Key2]")
+	fe := getError(errs, "MapDiveJSONTest.MyName[Key2]", "MapDiveJSONTest.Map[Key2]")
 	NotEqual(t, fe, nil)
 	Equal(t, fe.Tag(), "gte")
 	Equal(t, fe.ActualTag(), "gte")
