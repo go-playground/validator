@@ -10,6 +10,9 @@ Package validator
 
 Package validator implements value validations for structs and individual fields based on tags.
 
+### Announcement
+Validator [v9.0.0 RC1](https://github.com/go-playground/validator/releases/tag/v9.0.0RC1) has been released, please let me know what you think [here](https://github.com/go-playground/validator/issues/250)
+
 It has the following **unique** features:
 
 -   Cross Field and Cross Struct validations by using validation tags or custom validators.  
