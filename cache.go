@@ -87,11 +87,6 @@ func (cf *cField) Name() string {
 	return cf.name
 }
 
-// AltName return field altname
-func (cf *cField) AltName() string {
-	return cf.altName
-}
-
 type cTag struct {
 	tag            string
 	aliasTag       string
