@@ -7013,3 +7013,41 @@ func TestMapStructNamespace(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "children[1].name", "Children[1].Name", "name", "Name", "required")
 }
+
+func TestFieldLevel_CField(t *testing.T) {
+
+	validate := New()
+	validate.RegisterValidation("notEqualDesc", func(fl FieldLevel) bool {
+		return fl.CField().Name() != "Desc" // check field name is not Desc"
+	})
+
+	type Foo struct {
+		Desc string `json:"name" validate:"notEqualDesc"` // field name need not equal Desc
+	}
+
+	errs := validate.Struct(&Foo{})
+
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+}
+
+func TestFieldLevel_CTag(t *testing.T) {
+
+	validate := New()
+	validate.RegisterValidation("fieldNameEqualParam", func(fl FieldLevel) bool {
+		return fl.CField().Name() == fl.CTag().Param() // check field name equal tag param"
+	})
+
+	type Foo struct {
+		Desc string `json:"name" validate:"fieldNameEqualParam=Asc"` // field name need equal tag param
+	}
+
+	errs := validate.Struct(&Foo{})
+
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+}

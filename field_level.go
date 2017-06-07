@@ -31,6 +31,10 @@ type FieldLevel interface {
 	// NOTE: when not successful ok will be false, this can happen when a nested struct is nil and so the field
 	// could not be retrieved because it didn't exist.
 	GetStructFieldOK() (reflect.Value, reflect.Kind, bool)
+	// return cache field
+	CField() *cField
+	// return cache tag
+	CTag() *cTag
 }
 
 var _ FieldLevel = new(validate)
@@ -48,4 +52,14 @@ func (v *validate) Param() string {
 // GetStructFieldOK returns Param returns param for validation against current field
 func (v *validate) GetStructFieldOK() (reflect.Value, reflect.Kind, bool) {
 	return v.getStructFieldOKInternal(v.slflParent, v.flParam)
+}
+
+// Param returns cache field
+func (v *validate) CField() *cField {
+	return v.cf
+}
+
+// Param returns cache tag
+func (v *validate) CTag() *cTag {
+	return v.ct
 }
