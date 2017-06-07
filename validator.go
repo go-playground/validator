@@ -25,7 +25,8 @@ type validate struct {
 	flField      reflect.Value
 	flParam      string
 	fldIsPointer bool
-
+	cf           *cField
+	ct           *cTag
 	// misc reusable values
 	misc []byte
 	str1 string
@@ -98,6 +99,8 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
 func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns []byte, structNs []byte, cf *cField, ct *cTag) {
 
+	v.cf = cf
+	v.ct = ct
 	var typ reflect.Type
 	var kind reflect.Kind
 

@@ -82,6 +82,16 @@ type cField struct {
 	cTags      *cTag
 }
 
+// Name return field name
+func (cf *cField) Name() string {
+	return cf.name
+}
+
+// AltName return field altname
+func (cf *cField) AltName() string {
+	return cf.altName
+}
+
 type cTag struct {
 	tag            string
 	aliasTag       string
@@ -92,6 +102,11 @@ type cTag struct {
 	hasTag         bool
 	fn             Func
 	next           *cTag
+}
+
+// Param return tag param
+func (ct *cTag) Param() string {
+	return ct.param
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
