@@ -23,8 +23,9 @@ type validate struct {
 	slflParent   reflect.Value
 	slCurrent    reflect.Value
 	flField      reflect.Value
-	flParam      string
 	fldIsPointer bool
+	cf           *cField
+	ct           *cTag
 
 	// misc reusable values
 	misc []byte
@@ -215,7 +216,8 @@ OUTER:
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
-			v.flParam = ""
+			v.cf = cf
+			v.ct = ct
 
 			if !v.fldIsPointer && !hasValue(v) {
 				return
@@ -309,7 +311,8 @@ OUTER:
 				// set Field Level fields
 				v.slflParent = parent
 				v.flField = current
-				v.flParam = ct.param
+				v.cf = cf
+				v.ct = ct
 
 				if ct.fn(v) {
 
@@ -397,7 +400,8 @@ OUTER:
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
-			v.flParam = ct.param
+			v.cf = cf
+			v.ct = ct
 
 			// // report error interface functions need these
 			// v.ns = ns
