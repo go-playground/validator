@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
@@ -5127,6 +5128,10 @@ func TestAddFunctions(t *testing.T) {
 		return true
 	}
 
+	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
+		return true
+	}
+
 	validate := New()
 
 	errs := validate.RegisterValidation("new", fn)
@@ -5139,6 +5144,9 @@ func TestAddFunctions(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	errs = validate.RegisterValidation("new", fn)
+	Equal(t, errs, nil)
+
+	errs = validate.RegisterValidationCtx("new", fnCtx)
 	Equal(t, errs, nil)
 
 	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")

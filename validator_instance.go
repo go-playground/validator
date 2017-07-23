@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -61,7 +62,7 @@ type Validate struct {
 	structLevelFuncs map[reflect.Type]StructLevelFunc
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
-	validations      map[string]Func
+	validations      map[string]FuncCtx
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
@@ -79,7 +80,7 @@ func New() *Validate {
 	v := &Validate{
 		tagName:     defaultTagName,
 		aliases:     make(map[string]string, len(bakedInAliases)),
-		validations: make(map[string]Func, len(bakedInValidators)),
+		validations: make(map[string]FuncCtx, len(bakedInValidators)),
 		tagCache:    tc,
 		structCache: sc,
 	}
@@ -93,7 +94,7 @@ func New() *Validate {
 	for k, val := range bakedInValidators {
 
 		// no need to error check here, baked in will alwaays be valid
-		v.registerValidation(k, val, true)
+		v.registerValidation(k, wrapFunc(val), true)
 	}
 
 	v.pool = &sync.Pool{
@@ -128,10 +129,15 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(tag string, fn Func) error {
+	return v.registerValidation(tag, wrapFunc(fn), false)
+}
+
+// RegisterValidationCtx adds a validation which supports context.Context
+func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx) error {
 	return v.registerValidation(tag, fn, false)
 }
 
-func (v *Validate) registerValidation(tag string, fn Func, bakedIn bool) error {
+func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool) error {
 
 	if len(tag) == 0 {
 		return errors.New("Function Key cannot be empty")
@@ -225,11 +231,8 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	return
 }
 
-// Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
-//
-// It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
-// You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) Struct(s interface{}) (err error) {
+// StructCtx go1.8 context supports Struct validation
+func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 
 	val := reflect.ValueOf(s)
 	top := val
@@ -248,7 +251,7 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	vd.isPartial = false
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
 
-	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(ctx, top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -260,6 +263,15 @@ func (v *Validate) Struct(s interface{}) (err error) {
 	return
 }
 
+// Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
+//
+// It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
+// You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
+func (v *Validate) Struct(s interface{}) (err error) {
+	ctx := context.Background()
+	return v.StructCtx(ctx, s)
+}
+
 // StructFiltered validates a structs exposed fields, that pass the FilterFunc check and automatically validates
 // nested structs, unless otherwise specified.
 //
@@ -267,6 +279,7 @@ func (v *Validate) Struct(s interface{}) (err error) {
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) (err error) {
 
+	ctx := context.Background()
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -285,7 +298,7 @@ func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) (err error) {
 	vd.ffn = fn
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
 
-	vd.validateStruct(top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(ctx, top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -305,6 +318,7 @@ func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) (err error) {
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 
+	ctx := context.Background()
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -364,7 +378,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 		}
 	}
 
-	vd.validateStruct(top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(ctx, top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -384,6 +398,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) (err error) {
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 
+	ctx := context.Background()
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -419,7 +434,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 		vd.includeExclude[string(vd.misc)] = struct{}{}
 	}
 
-	vd.validateStruct(top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(ctx, top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -445,6 +460,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) (err error) {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) Var(field interface{}, tag string) (err error) {
 
+	ctx := context.Background()
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}
@@ -470,7 +486,7 @@ func (v *Validate) Var(field interface{}, tag string) (err error) {
 	vd.top = val
 	vd.isPartial = false
 
-	vd.traverseField(val, val, vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
+	vd.traverseField(ctx, val, val, vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
@@ -497,6 +513,7 @@ func (v *Validate) Var(field interface{}, tag string) (err error) {
 // validate Array, Slice and maps fields which may contain more than one error
 func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string) (err error) {
 
+	ctx := context.Background()
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}
@@ -522,7 +539,7 @@ func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string
 	vd.top = otherVal
 	vd.isPartial = false
 
-	vd.traverseField(otherVal, reflect.ValueOf(field), vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
+	vd.traverseField(ctx, otherVal, reflect.ValueOf(field), vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs

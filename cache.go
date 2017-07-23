@@ -90,7 +90,7 @@ type cTag struct {
 	hasAlias       bool
 	typeof         tagType
 	hasTag         bool
-	fn             Func
+	fn             FuncCtx
 	next           *cTag
 }
 
