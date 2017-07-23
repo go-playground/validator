@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
@@ -16,6 +17,14 @@ import (
 // fieldType     = fields
 // param         = parameter used in validation i.e. gt=0 param would be 0
 type Func func(fl FieldLevel) bool
+type FuncCtx func(ctx context.Context, fl FieldLevel) bool
+
+// wrapFunc make Func compatible with FuncCtx
+func wrapFunc(fn Func) FuncCtx {
+	return func(ctx context.Context, fl FieldLevel) bool {
+		return fn(fl)
+	}
+}
 
 var (
 	restrictedTags = map[string]struct{}{
