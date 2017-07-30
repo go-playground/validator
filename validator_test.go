@@ -777,7 +777,7 @@ func TestStructPartial(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructPartial(tPartial, p1...)
+	errs := validate.StructPartialCtx(context.Background(), tPartial, p1...)
 	Equal(t, errs, nil)
 
 	errs = validate.StructPartial(tPartial, p2...)
@@ -787,7 +787,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	Equal(t, errs, nil)
 
-	errs = validate.StructExcept(tPartial, p1...)
+	errs = validate.StructExceptCtx(context.Background(), tPartial, p1...)
 	Equal(t, errs, nil)
 
 	errs = validate.StructExcept(tPartial, p2...)
@@ -992,7 +992,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
 
-	errs = validate.VarWithValue(1, "", "ltecsfield")
+	errs = validate.VarWithValueCtx(context.Background(), 1, "", "ltecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
@@ -1828,7 +1828,7 @@ func TestSQLValue2Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "required")
 
 	val.Name = "Valid Name"
-	errs = validate.Var(val, "required")
+	errs = validate.VarCtx(context.Background(), val, "required")
 	Equal(t, errs, nil)
 
 	val.Name = "errorme"
@@ -5246,7 +5246,7 @@ func TestIsGt(t *testing.T) {
 	errs = validate.Var(tm, "gt")
 	Equal(t, errs, nil)
 
-	t2 := time.Now().UTC()
+	t2 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Var(t2, "gt")
 	NotEqual(t, errs, nil)
@@ -5284,7 +5284,7 @@ func TestIsGte(t *testing.T) {
 	errs := validate.Var(t1, "gte")
 	Equal(t, errs, nil)
 
-	t2 := time.Now().UTC()
+	t2 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Var(t2, "gte")
 	NotEqual(t, errs, nil)
@@ -5331,7 +5331,7 @@ func TestIsLt(t *testing.T) {
 	i := true
 	PanicMatches(t, func() { validate.Var(i, "lt") }, "Bad field type bool")
 
-	t1 := time.Now().UTC()
+	t1 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Var(t1, "lt")
 	Equal(t, errs, nil)
@@ -5370,7 +5370,7 @@ func TestIsLte(t *testing.T) {
 	i := true
 	PanicMatches(t, func() { validate.Var(i, "lte") }, "Bad field type bool")
 
-	t1 := time.Now().UTC()
+	t1 := time.Now().UTC().Add(-time.Hour)
 
 	errs := validate.Var(t1, "lte")
 	Equal(t, errs, nil)
@@ -6703,7 +6703,7 @@ func TestStructFiltered(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructFiltered(tPartial, p1)
+	errs := validate.StructFilteredCtx(context.Background(), tPartial, p1)
 	Equal(t, errs, nil)
 
 	errs = validate.StructFiltered(tPartial, p2)
@@ -7086,4 +7086,36 @@ func TestFieldLevelName(t *testing.T) {
 	Equal(t, alt4, "Array2")
 	Equal(t, res5, "json5")
 	Equal(t, alt5, "Map2")
+}
+
+func TestValidateStructRegisterCtx(t *testing.T) {
+
+	var ctxVal string
+
+	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
+		ctxVal = ctx.Value(&ctxVal).(string)
+		return true
+	}
+
+	var ctxSlVal string
+	slFn := func(ctx context.Context, sl StructLevel) {
+		ctxSlVal = ctx.Value(&ctxSlVal).(string)
+	}
+
+	type Test struct {
+		Field string `validate:"val"`
+	}
+
+	var tst Test
+
+	validate := New()
+	validate.RegisterValidationCtx("val", fnCtx)
+	validate.RegisterStructValidationCtx(slFn, Test{})
+
+	ctx := context.WithValue(context.Background(), &ctxVal, "testval")
+	ctx = context.WithValue(ctx, &ctxSlVal, "slVal")
+	errs := validate.StructCtx(ctx, tst)
+	Equal(t, errs, nil)
+	Equal(t, ctxVal, "testval")
+	Equal(t, ctxSlVal, "slVal")
 }

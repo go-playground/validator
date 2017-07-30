@@ -71,7 +71,7 @@ func (tc *tagCache) Set(key string, value *cTag) {
 type cStruct struct {
 	name   string
 	fields []*cField
-	fn     StructLevelFunc
+	fn     StructLevelFuncCtx
 }
 
 type cField struct {

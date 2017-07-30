@@ -1,10 +1,10 @@
 package validator
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
-	"context"
 )
 
 // per validate contruct
@@ -93,7 +93,7 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 		v.ns = ns
 		v.actualNs = structNs
 
-		cs.fn(v)
+		cs.fn(ctx, v)
 	}
 }
 
