@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
@@ -10,12 +11,21 @@ import (
 	"unicode/utf8"
 )
 
-// Func accepts all values needed for file and cross field validation
-// fl            = FieldLevel validation helper
-// field         = field value for validation
-// fieldType     = fields
-// param         = parameter used in validation i.e. gt=0 param would be 0
+// Func accepts a FieldLevel interface for all validation needs
 type Func func(fl FieldLevel) bool
+
+// FuncCtx accepts a context.Context and FieldLevel interface for all validation needs
+type FuncCtx func(ctx context.Context, fl FieldLevel) bool
+
+// wrapFunc wraps noramal Func makes it compatible with FuncCtx
+func wrapFunc(fn Func) FuncCtx {
+	if fn == nil {
+		return nil // be sure not to wrap a bad function.
+	}
+	return func(ctx context.Context, fl FieldLevel) bool {
+		return fn(fl)
+	}
+}
 
 var (
 	restrictedTags = map[string]struct{}{

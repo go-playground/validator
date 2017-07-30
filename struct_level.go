@@ -1,9 +1,23 @@
 package validator
 
-import "reflect"
+import (
+	"context"
+	"reflect"
+)
 
 // StructLevelFunc accepts all values needed for struct level validation
 type StructLevelFunc func(sl StructLevel)
+
+// StructLevelFuncCtx accepts all values needed for struct level validation
+// but also allows passing of contextual validation information vi context.Context.
+type StructLevelFuncCtx func(ctx context.Context, sl StructLevel)
+
+// wrapStructLevelFunc wraps noramal StructLevelFunc makes it compatible with StructLevelFuncCtx
+func wrapStructLevelFunc(fn StructLevelFunc) StructLevelFuncCtx {
+	return func(ctx context.Context, sl StructLevel) {
+		fn(sl)
+	}
+}
 
 // StructLevel contains all the information and helper functions
 // to validate a struct
@@ -21,8 +35,6 @@ type StructLevel interface {
 	Parent() reflect.Value
 
 	// returns the current struct.
-	// this is not needed when implementing 'Validatable' interface,
-	// only when a StructLevel is registered
 	Current() reflect.Value
 
 	// ExtractType gets the actual underlying type of field value.
