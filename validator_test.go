@@ -4839,7 +4839,7 @@ func TestIsGt(t *testing.T) {
 	errs = validate.Field(tm, "gt")
 	Equal(t, errs, nil)
 
-	t2 := time.Now().UTC()
+	t2 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Field(t2, "gt")
 	NotEqual(t, errs, nil)
@@ -4875,7 +4875,7 @@ func TestIsGte(t *testing.T) {
 	errs := validate.Field(t1, "gte")
 	Equal(t, errs, nil)
 
-	t2 := time.Now().UTC()
+	t2 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Field(t2, "gte")
 	NotEqual(t, errs, nil)
@@ -4920,7 +4920,7 @@ func TestIsLt(t *testing.T) {
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "lt") }, "Bad field type bool")
 
-	t1 := time.Now().UTC()
+	t1 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Field(t1, "lt")
 	Equal(t, errs, nil)
@@ -4957,7 +4957,7 @@ func TestIsLte(t *testing.T) {
 	i := true
 	PanicMatches(t, func() { validate.Field(i, "lte") }, "Bad field type bool")
 
-	t1 := time.Now().UTC()
+	t1 := time.Now().UTC().Add(-time.Hour)
 
 	errs := validate.Field(t1, "lte")
 	Equal(t, errs, nil)
