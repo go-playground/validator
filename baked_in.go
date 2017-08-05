@@ -1487,8 +1487,8 @@ func isHostname(fl FieldLevel) bool {
 func isFQDN(fl FieldLevel) bool {
 	val := fl.Field().String()
 
-	if val[len(val)-1] == '.' && val[len(val)-2] != '.' {
-		val = strings.TrimRight(val, ".")
+	if val[len(val)-1] == '.' {
+		val = val[0 : len(val)-1]
 	}
 
 	return hostnameRegex.MatchString(val) &&

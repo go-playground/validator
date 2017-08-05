@@ -7182,6 +7182,7 @@ func TestFQDNValidation(t *testing.T) {
 		{"example24.com.", true},
 		{"test.example24.com.", true},
 		{"test24.example24.com.", true},
+		{"test24.example24.com..", false},
 		{"example", false},
 		{"192.168.0.1", false},
 		{"email@example.com", false},
