@@ -7119,3 +7119,96 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 	Equal(t, ctxVal, "testval")
 	Equal(t, ctxSlVal, "slVal")
 }
+
+func TestHostnameValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"test.example.com", true},
+		{"example.com", true},
+		{"example24.com", true},
+		{"test.example24.com", true},
+		{"test24.example24.com", true},
+		{"example", true},
+		{"test.example.com.", false},
+		{"example.com.", false},
+		{"example24.com.", false},
+		{"test.example24.com.", false},
+		{"test24.example24.com.", false},
+		{"example.", false},
+		{"192.168.0.1", false},
+		{"email@example.com", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
+		{"2001:cdba:0:0:0:0:3257:9652", false},
+		{"2001:cdba::3257:9652", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "hostname")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d hostname failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d hostname failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "hostname" {
+					t.Fatalf("Index: %d hostname failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestFQDNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"test.example.com", true},
+		{"example.com", true},
+		{"example24.com", true},
+		{"test.example24.com", true},
+		{"test24.example24.com", true},
+		{"test.example.com.", true},
+		{"example.com.", true},
+		{"example24.com.", true},
+		{"test.example24.com.", true},
+		{"test24.example24.com.", true},
+		{"example", false},
+		{"192.168.0.1", false},
+		{"email@example.com", false},
+		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
+		{"2001:cdba:0:0:0:0:3257:9652", false},
+		{"2001:cdba::3257:9652", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "fqdn")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d fqdn failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d fqdn failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "fqdn" {
+					t.Fatalf("Index: %d fqdn failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
