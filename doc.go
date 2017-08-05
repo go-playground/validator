@@ -796,7 +796,7 @@ Note: See Go's ParseMAC for accepted formats and types:
 
 Hostname
 
-This validates that a stringa value is a valid Hostname
+This validates that a string value is a valid Hostname
 
 	Usage: hostname
 

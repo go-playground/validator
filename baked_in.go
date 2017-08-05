@@ -1491,6 +1491,6 @@ func isFQDN(fl FieldLevel) bool {
 		val = val[0 : len(val)-1]
 	}
 
-	return hostnameRegex.MatchString(val) &&
-		(strings.IndexAny(val, ".") > -1)
+	return (strings.IndexAny(val, ".") > -1) &&
+		hostnameRegex.MatchString(val)
 }
