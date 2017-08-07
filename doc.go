@@ -794,6 +794,18 @@ Note: See Go's ParseMAC for accepted formats and types:
 
 	http://golang.org/src/net/mac.go?s=866:918#L29
 
+Hostname
+
+This validates that a string value is a valid Hostname
+
+	Usage: hostname
+
+Full Qualified Domain Name (FQDN)
+
+This validates that a string value contains a valid FQDN.
+
+	Usage: fqdn
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be

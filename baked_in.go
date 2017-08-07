@@ -125,6 +125,8 @@ var (
 		"ip_addr":         isIPAddrResolvable,
 		"unix_addr":       isUnixAddrResolvable,
 		"mac":             isMAC,
+		"hostname":        isHostname,
+		"fqdn":            isFQDN,
 	}
 )
 
@@ -1476,4 +1478,19 @@ func isIP6Addr(fl FieldLevel) bool {
 	ip := net.ParseIP(val)
 
 	return ip != nil && ip.To4() == nil
+}
+
+func isHostname(fl FieldLevel) bool {
+	return hostnameRegex.MatchString(fl.Field().String())
+}
+
+func isFQDN(fl FieldLevel) bool {
+	val := fl.Field().String()
+
+	if val[len(val)-1] == '.' {
+		val = val[0 : len(val)-1]
+	}
+
+	return (strings.IndexAny(val, ".") > -1) &&
+		hostnameRegex.MatchString(val)
 }
