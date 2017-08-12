@@ -56,7 +56,7 @@ Cross-Field Validation can be done via the following tags:
 	- eqcsfield
 	- necsfield
 	- gtcsfield
-	- ftecsfield
+	- gtecsfield
 	- ltcsfield
 	- ltecsfield
 
