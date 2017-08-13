@@ -31,7 +31,7 @@ Custom Validation Functions
 Custom Validation functions can be added. Example:
 
 	// Structure
-	func customFunc(fl FielddLevel) bool {
+	func customFunc(fl FieldLevel) bool {
 
 		if fl.Field().String() == "invalid" {
 			return false
