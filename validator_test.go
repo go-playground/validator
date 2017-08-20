@@ -7240,8 +7240,22 @@ func TestIsDefault(t *testing.T) {
 	Equal(t, fe.Namespace(), "Test.Inner")
 	Equal(t, fe.Tag(), "isdefault")
 
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Inner2 struct {
+		String string `validate:"isdefault"`
+	}
+
 	type Test2 struct {
-		Inner Inner `validate:"isdefault"`
+		Inner Inner2 `validate:"isdefault" json:"inner"`
 	}
 
 	var t2 Test2
@@ -7252,4 +7266,8 @@ func TestIsDefault(t *testing.T) {
 	errs = validate.Struct(t2)
 	NotEqual(t, errs, nil)
 
+	fe = errs.(ValidationErrors)[0]
+	Equal(t, fe.Field(), "inner")
+	Equal(t, fe.Namespace(), "Test2.inner")
+	Equal(t, fe.Tag(), "isdefault")
 }
