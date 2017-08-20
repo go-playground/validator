@@ -220,6 +220,13 @@ ensures the value is not nil.
 
 	Usage: required
 
+Is Default
+
+This validates that the value is the default value and is almost the
+opposite of required.
+
+	Usage: isdefault
+
 Length
 
 For numbers, length will ensure that the value is

@@ -7213,3 +7213,43 @@ func TestFQDNValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestIsDefault(t *testing.T) {
+
+	validate := New()
+
+	type Inner struct {
+		String string `validate:"isdefault"`
+	}
+	type Test struct {
+		String string `validate:"isdefault"`
+		Inner  *Inner `validate:"isdefault"`
+	}
+
+	var tt Test
+
+	errs := validate.Struct(tt)
+	Equal(t, errs, nil)
+
+	tt.Inner = &Inner{String: ""}
+	errs = validate.Struct(tt)
+	NotEqual(t, errs, nil)
+
+	fe := errs.(ValidationErrors)[0]
+	Equal(t, fe.Field(), "Inner")
+	Equal(t, fe.Namespace(), "Test.Inner")
+	Equal(t, fe.Tag(), "isdefault")
+
+	type Test2 struct {
+		Inner Inner `validate:"isdefault"`
+	}
+
+	var t2 Test2
+	errs = validate.Struct(t2)
+	Equal(t, errs, nil)
+
+	t2.Inner.String = "Changed"
+	errs = validate.Struct(t2)
+	NotEqual(t, errs, nil)
+
+}

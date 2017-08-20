@@ -37,6 +37,7 @@ var (
 		utf8Pipe:          {},
 		noStructLevelTag:  {},
 		requiredTag:       {},
+		isdefault:         {},
 	}
 
 	// BakedInAliasValidators is a default mapping of a single validation tag that
@@ -51,6 +52,7 @@ var (
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
 		"required":        hasValue,
+		"isdefault":       isDefault,
 		"len":             hasLengthOf,
 		"min":             hasMinOf,
 		"max":             hasMaxOf,
@@ -901,6 +903,11 @@ func isAlphanumUnicode(fl FieldLevel) bool {
 // IsAlphaUnicode is the validation function for validating if the current field's value is a valid alpha unicode value.
 func isAlphaUnicode(fl FieldLevel) bool {
 	return alphaUnicodeRegex.MatchString(fl.Field().String())
+}
+
+// isDefault is the opposite of required aka hasValue
+func isDefault(fl FieldLevel) bool {
+	return !hasValue(fl)
 }
 
 // HasValue is the validation function for validating if the current field's value is not the default static value.
