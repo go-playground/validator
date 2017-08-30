@@ -52,7 +52,7 @@ type StructLevel interface {
 	//
 	// tag can be an existing validation tag or just something you make up
 	// and process on the flip side it's up to you.
-	ReportError(field interface{}, fieldName, altName, tag, param string)
+	ReportError(field interface{}, fieldName, structFieldName string, tag, param string)
 
 	// reports an error just by passing ValidationErrors
 	//
@@ -63,9 +63,6 @@ type StructLevel interface {
 	// eg. pass 'User.FirstName' or 'Users[0].FirstName' depending
 	// on the nesting. most of the time they will be blank, unless you validate
 	// at a level lower the the current field depth
-	//
-	// tag can be an existing validation tag or just something you make up
-	// and process on the flip side it's up to you.
 	ReportValidationErrors(relativeNamespace, relativeActualNamespace string, errs ValidationErrors)
 }
 
