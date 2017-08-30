@@ -3,6 +3,7 @@ package validator
 import (
 	"context"
 	"reflect"
+	"strings"
 )
 
 // StructLevelFunc accepts all values needed for struct level validation
@@ -170,8 +171,33 @@ func (v *validate) ReportValidationErrors(relativeNamespace, relativeStructNames
 	for i := 0; i < len(errs); i++ {
 
 		err = errs[i].(*fieldError)
-		err.ns = string(append(append(v.ns, relativeNamespace...), err.ns...))
-		err.structNs = string(append(append(v.actualNs, relativeStructNamespace...), err.structNs...))
+
+		ns := err.ns
+		prefix := append(v.ns, relativeNamespace...)
+		if len(prefix) > 0 {
+			// Strip out type name
+			idx := strings.Index(ns, ".")
+			if idx == -1 {
+				ns = ""
+			} else {
+				ns = ns[idx+1:]
+			}
+		}
+		err.ns = string(append(prefix, ns...))
+
+		structNs := err.structNs
+		structPrefix := append(v.actualNs, relativeStructNamespace...)
+		if len(structPrefix) > 0 {
+			// Strip out type name
+			idx := strings.Index(structNs, ".")
+			if idx == -1 {
+				structNs = ""
+			} else {
+				structNs = structNs[idx+1:]
+			}
+		}
+
+		err.structNs = string(append(structPrefix, structNs...))
 
 		v.errs = append(v.errs, err)
 	}
