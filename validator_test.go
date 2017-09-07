@@ -7189,6 +7189,7 @@ func TestFQDNValidation(t *testing.T) {
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
 		{"2001:cdba:0:0:0:0:3257:9652", false},
 		{"2001:cdba::3257:9652", false},
+		{"", false},
 	}
 
 	validate := New()
@@ -7212,4 +7213,62 @@ func TestFQDNValidation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestIsDefault(t *testing.T) {
+
+	validate := New()
+
+	type Inner struct {
+		String string `validate:"isdefault"`
+	}
+	type Test struct {
+		String string `validate:"isdefault"`
+		Inner  *Inner `validate:"isdefault"`
+	}
+
+	var tt Test
+
+	errs := validate.Struct(tt)
+	Equal(t, errs, nil)
+
+	tt.Inner = &Inner{String: ""}
+	errs = validate.Struct(tt)
+	NotEqual(t, errs, nil)
+
+	fe := errs.(ValidationErrors)[0]
+	Equal(t, fe.Field(), "Inner")
+	Equal(t, fe.Namespace(), "Test.Inner")
+	Equal(t, fe.Tag(), "isdefault")
+
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type Inner2 struct {
+		String string `validate:"isdefault"`
+	}
+
+	type Test2 struct {
+		Inner Inner2 `validate:"isdefault" json:"inner"`
+	}
+
+	var t2 Test2
+	errs = validate.Struct(t2)
+	Equal(t, errs, nil)
+
+	t2.Inner.String = "Changed"
+	errs = validate.Struct(t2)
+	NotEqual(t, errs, nil)
+
+	fe = errs.(ValidationErrors)[0]
+	Equal(t, fe.Field(), "inner")
+	Equal(t, fe.Namespace(), "Test2.inner")
+	Equal(t, fe.Tag(), "isdefault")
 }
