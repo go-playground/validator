@@ -1494,6 +1494,10 @@ func isHostname(fl FieldLevel) bool {
 func isFQDN(fl FieldLevel) bool {
 	val := fl.Field().String()
 
+	if val == "" {
+		return false
+	}
+
 	if val[len(val)-1] == '.' {
 		val = val[0 : len(val)-1]
 	}
