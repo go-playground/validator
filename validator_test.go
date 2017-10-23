@@ -7272,3 +7272,44 @@ func TestIsDefault(t *testing.T) {
 	Equal(t, fe.Namespace(), "Test2.inner")
 	Equal(t, fe.Tag(), "isdefault")
 }
+
+func TestUniqueValidation(t *testing.T) {
+	tests := []struct {
+		param    interface{}
+		expected bool
+	}{
+		{[]string{"a", "b"}, true},
+		{[]int{1, 2}, true},
+		{[]float64{1, 2}, true},
+		{[]interface{}{"a", "b"}, true},
+		{[]interface{}{"a", 1}, true},
+		{[]float64{1, 1}, false},
+		{[]int{1, 1}, false},
+		{[]string{"a", "a"}, false},
+		{[]interface{}{"a", "a"}, false},
+		{[]interface{}{"a", 1, "b", 1}, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "unique")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "unique" {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+	PanicMatches(t, func() { validate.Var(1.0, "unique") }, "Bad field type float64")
+}

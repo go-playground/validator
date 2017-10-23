@@ -468,6 +468,12 @@ to the top level struct.
 
 	Usage: ltecsfield=InnerStructField.Field
 
+Unique
+
+For arrays & slices, unique will ensure that there are no duplicates.
+
+	Usage: unique
+
 Alpha Only
 
 This validates that a string value contains ASCII alpha characters only

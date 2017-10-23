@@ -131,8 +131,28 @@ var (
 		"mac":             isMAC,
 		"hostname":        isHostname,
 		"fqdn":            isFQDN,
+		"unique":          isUnique,
 	}
 )
+
+// isUnique is the validation function for validating if each array|slice element is unique
+func isUnique(fl FieldLevel) bool {
+
+	field := fl.Field()
+	v := reflect.ValueOf(struct{}{})
+
+	switch field.Kind() {
+	case reflect.Slice, reflect.Array:
+		m := reflect.MakeMap(reflect.MapOf(fl.Field().Type().Elem(), v.Type()))
+
+		for i := 0; i < field.Len(); i++ {
+			m.SetMapIndex(field.Index(i), v)
+		}
+		return field.Len() == m.Len()
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+}
 
 // IsMAC is the validation function for validating if the field's value is a valid MAC address.
 func isMAC(fl FieldLevel) bool {
