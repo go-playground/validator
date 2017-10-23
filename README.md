@@ -128,7 +128,7 @@ Complementary Software
 Here is a list of software that complements using this library either pre or post validation.
 
 * [form](https://github.com/go-playground/form) - Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values. Dual Array and Full map support.
-* [Conform](https://github.com/leebenson/conform) - Trims, sanitizes & scrubs data based on struct tags.
+* [mold](https://github.com/go-playground/mold) - A general library to help modify or set data within data structures and other objects
 
 How to Contribute
 ------
