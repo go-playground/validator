@@ -25,6 +25,8 @@ const (
 	isdefault          = "isdefault"
 	skipValidationTag  = "-"
 	diveTag            = "dive"
+	keysTag            = "keys"
+	endKeysTag         = "endkeys"
 	requiredTag        = "required"
 	namespaceSeparator = "."
 	leftBracket        = "["

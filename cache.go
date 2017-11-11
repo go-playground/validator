@@ -18,11 +18,14 @@ const (
 	typeStructOnly
 	typeDive
 	typeOr
+	typeKeys
+	typeEndKeys
 )
 
 const (
 	invalidValidation   = "Invalid validation tag on field '%s'"
 	undefinedValidation = "Undefined validation function '%s' on field '%s'"
+	keysTagNotDefined   = "'" + endKeysTag + "' tag encountered without a corresponding '" + keysTag + "' tag"
 )
 
 type structCache struct {
@@ -88,11 +91,12 @@ type cTag struct {
 	aliasTag       string
 	actualAliasTag string
 	param          string
-	hasAlias       bool
 	typeof         tagType
-	hasTag         bool
-	fn             FuncCtx
+	keys           *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
 	next           *cTag
+	hasTag         bool
+	hasAlias       bool
+	fn             FuncCtx
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
@@ -185,7 +189,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		// check map for alias and process new tags, otherwise process as usual
 		if tagsVal, found := v.aliases[t]; found {
-
 			if i == 0 {
 				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
 			} else {
@@ -197,10 +200,13 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			continue
 		}
 
+		var prevTag tagType
+
 		if i == 0 {
 			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
 			firstCtag = current
 		} else {
+			prevTag = current.typeof
 			current.next = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
 			current = current.next
 		}
@@ -210,6 +216,44 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		case diveTag:
 			current.typeof = typeDive
 			continue
+
+		case keysTag:
+			current.typeof = typeKeys
+
+			if i == 0 || prevTag != typeDive {
+				panic(fmt.Sprintf("'%s' tag must be immediately preceeded by the '%s' tag", keysTag, diveTag))
+			}
+
+			current.typeof = typeKeys
+
+			// need to pass along only keys tag
+			// need to increment i to skip over the keys tags
+			b := make([]byte, 0, 64)
+
+			i++
+
+			for ; i < len(tags); i++ {
+
+				b = append(b, tags[i]...)
+				b = append(b, ',')
+
+				if tags[i] == endKeysTag {
+					break
+				}
+			}
+
+			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false)
+			continue
+
+		case endKeysTag:
+			current.typeof = typeEndKeys
+
+			// if there are more in tags then there was no keysTag defined
+			// and an error should be thrown
+			if i != len(tags)-1 {
+				panic(keysTagNotDefined)
+			}
+			return
 
 		case omitempty:
 			current.typeof = typeOmitEmpty
