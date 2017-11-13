@@ -32,6 +32,8 @@ func wrapFunc(fn Func) FuncCtx {
 var (
 	restrictedTags = map[string]struct{}{
 		diveTag:           {},
+		keysTag:           {},
+		endKeysTag:        {},
 		structOnlyTag:     {},
 		omitempty:         {},
 		skipValidationTag: {},

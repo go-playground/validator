@@ -59,7 +59,7 @@ func BenchmarkFieldFailureParallel(b *testing.B) {
 	})
 }
 
-func BenchmarkFieldDiveSuccess(b *testing.B) {
+func BenchmarkFieldArrayDiveSuccess(b *testing.B) {
 
 	validate := New()
 
@@ -72,7 +72,7 @@ func BenchmarkFieldDiveSuccess(b *testing.B) {
 	}
 }
 
-func BenchmarkFieldDiveSuccessParallel(b *testing.B) {
+func BenchmarkFieldArrayDiveSuccessParallel(b *testing.B) {
 
 	validate := New()
 
@@ -86,7 +86,7 @@ func BenchmarkFieldDiveSuccessParallel(b *testing.B) {
 	})
 }
 
-func BenchmarkFieldDiveFailure(b *testing.B) {
+func BenchmarkFieldArrayDiveFailure(b *testing.B) {
 
 	validate := New()
 
@@ -98,7 +98,7 @@ func BenchmarkFieldDiveFailure(b *testing.B) {
 	}
 }
 
-func BenchmarkFieldDiveFailureParallel(b *testing.B) {
+func BenchmarkFieldArrayDiveFailureParallel(b *testing.B) {
 
 	validate := New()
 
@@ -108,6 +108,112 @@ func BenchmarkFieldDiveFailureParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			validate.Var(m, "required,dive,required")
+		}
+	})
+}
+
+func BenchmarkFieldMapDiveSuccess(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		validate.Var(m, "required,dive,required")
+	}
+}
+
+func BenchmarkFieldMapDiveSuccessParallel(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.Var(m, "required,dive,required")
+		}
+	})
+}
+
+func BenchmarkFieldMapDiveFailure(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"": "", "val3": "val3"}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		validate.Var(m, "required,dive,required")
+	}
+}
+
+func BenchmarkFieldMapDiveFailureParallel(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"": "", "val3": "val3"}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.Var(m, "required,dive,required")
+		}
+	})
+}
+
+func BenchmarkFieldMapDiveWithKeysSuccess(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		validate.Var(m, "required,dive,keys,required,endkeys,required")
+	}
+}
+
+func BenchmarkFieldMapDiveWithKeysSuccessParallel(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.Var(m, "required,dive,keys,required,endkeys,required")
+		}
+	})
+}
+
+func BenchmarkFieldMapDiveWithKeysFailure(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"": "", "val3": "val3"}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		validate.Var(m, "required,dive,keys,required,endkeys,required")
+	}
+}
+
+func BenchmarkFieldMapDiveWithKeysFailureParallel(b *testing.B) {
+
+	validate := New()
+
+	m := map[string]string{"": "", "val3": "val3"}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			validate.Var(m, "required,dive,keys,required,endkeys,required")
 		}
 	})
 }

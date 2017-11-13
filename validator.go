@@ -260,6 +260,9 @@ OUTER:
 			ct = ct.next
 			continue
 
+		case typeEndKeys:
+			return
+
 		case typeDive:
 
 			ct = ct.next
@@ -294,7 +297,6 @@ OUTER:
 
 						reusableCF.altName = string(v.misc)
 					}
-
 					v.traverseField(ctx, parent, current.Index(i), ns, structNs, reusableCF, ct)
 				}
 
@@ -325,7 +327,15 @@ OUTER:
 						reusableCF.altName = string(v.misc)
 					}
 
-					v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
+					if ct != nil && ct.typeof == typeKeys && ct.keys != nil {
+						v.traverseField(ctx, parent, key, ns, structNs, reusableCF, ct.keys)
+						// can be nil when just keys being validated
+						if ct.next != nil {
+							v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct.next)
+						}
+					} else {
+						v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
+					}
 				}
 
 			default:
