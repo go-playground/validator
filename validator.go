@@ -378,14 +378,13 @@ OUTER:
 				v.misc = append(v.misc, '|')
 				v.misc = append(v.misc, ct.tag...)
 
-				if len(ct.param) > 0 {
+				if ct.hasParam {
 					v.misc = append(v.misc, '=')
 					v.misc = append(v.misc, ct.param...)
 				}
 
-				if ct.next == nil || ct.next.typeof != typeOr { // ct.typeof != typeOr
+				if ct.isBlockEnd || ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
-
 					v.str1 = string(append(ns, cf.altName...))
 
 					if v.v.hasTagNameFunc {
