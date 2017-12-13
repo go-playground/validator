@@ -96,6 +96,8 @@ type cTag struct {
 	next           *cTag
 	hasTag         bool
 	hasAlias       bool
+	hasParam       bool // true if parameter used eg. eq= where the equal sign has been set
+	isBlockEnd     bool // indicates the current tag represents the last validation in the block
 	fn             FuncCtx
 }
 
@@ -291,6 +293,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					current.next = &cTag{aliasTag: alias, actualAliasTag: current.actualAliasTag, hasAlias: hasAlias, hasTag: true}
 					current = current.next
 				}
+				current.hasParam = len(vals) > 1
 
 				current.tag = vals[0]
 				if len(current.tag) == 0 {
@@ -309,6 +312,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					current.param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
 				}
 			}
+			current.isBlockEnd = true
 		}
 	}
 

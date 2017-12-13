@@ -5585,6 +5585,13 @@ func TestOrTag(t *testing.T) {
 	errs = validate.Var(s, "omitempty,rgb|rgba")
 	Equal(t, errs, nil)
 
+	s = "green"
+	errs = validate.Var(s, "eq=|eq=blue,rgb|rgba") //should fail on first validation block
+	NotEqual(t, errs, nil)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	Equal(t, ve[0].Tag(), "eq=|eq=blue")
+
 	s = "this is right, but a blank or isn't"
 
 	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
