@@ -132,7 +132,7 @@ so the above will become excludesall=0x2C.
 		Field `validate:"excludesall=0x2C"` // GOOD! Use the UTF-8 hex representation.
 	}
 
-Pipe ("|") is the default separator of validation tags. If you wish to
+Pipe ("|") is the 'or' validation tags deparator. If you wish to
 have a pipe included within the parameter i.e. excludesall=| you will need to
 use the UTF-8 hex representation 0x7C, which is replaced in the code as a pipe,
 so the above will become excludesall=0x7C
