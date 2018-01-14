@@ -473,9 +473,7 @@ OUTER:
 				)
 
 				return
-
 			}
-
 			ct = ct.next
 		}
 	}
