@@ -520,23 +520,8 @@ func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (e
 		return nil
 	}
 
-	// find cached tag
-	ctag, ok := v.tagCache.Get(tag)
-	if !ok {
-		v.tagCache.lock.Lock()
-
-		// could have been multiple trying to access, but once first is done this ensures tag
-		// isn't parsed again.
-		ctag, ok = v.tagCache.Get(tag)
-		if !ok {
-			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
-			v.tagCache.Set(tag, ctag)
-		}
-		v.tagCache.lock.Unlock()
-	}
-
+	ctag := v.fetchCacheTag(tag)
 	val := reflect.ValueOf(field)
-
 	vd := v.pool.Get().(*validate)
 	vd.top = val
 	vd.isPartial = false
@@ -546,9 +531,7 @@ func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (e
 		err = vd.errs
 		vd.errs = nil
 	}
-
 	v.pool.Put(vd)
-
 	return
 }
 
@@ -589,36 +572,17 @@ func (v *Validate) VarWithValueCtx(ctx context.Context, field interface{}, other
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}
-
-	// find cached tag
-	ctag, ok := v.tagCache.Get(tag)
-	if !ok {
-		v.tagCache.lock.Lock()
-
-		// could have been multiple trying to access, but once first is done this ensures tag
-		// isn't parsed again.
-		ctag, ok = v.tagCache.Get(tag)
-		if !ok {
-			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
-			v.tagCache.Set(tag, ctag)
-		}
-		v.tagCache.lock.Unlock()
-	}
-
+	ctag := v.fetchCacheTag(tag)
 	otherVal := reflect.ValueOf(other)
-
 	vd := v.pool.Get().(*validate)
 	vd.top = otherVal
 	vd.isPartial = false
-
 	vd.traverseField(ctx, otherVal, reflect.ValueOf(field), vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
 		vd.errs = nil
 	}
-
 	v.pool.Put(vd)
-
 	return
 }

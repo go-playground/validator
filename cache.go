@@ -315,6 +315,23 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			current.isBlockEnd = true
 		}
 	}
-
 	return
+}
+
+func (v *Validate) fetchCacheTag(tag string) *cTag {
+	// find cached tag
+	ctag, found := v.tagCache.Get(tag)
+	if !found {
+		v.tagCache.lock.Lock()
+		defer v.tagCache.lock.Unlock()
+
+		// could have been multiple trying to access, but once first is done this ensures tag
+		// isn't parsed again.
+		ctag, found = v.tagCache.Get(tag)
+		if !found {
+			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
+			v.tagCache.Set(tag, ctag)
+		}
+	}
+	return ctag
 }
