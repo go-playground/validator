@@ -129,6 +129,13 @@ func TestTranslations(t *testing.T) {
 		UinxAddr          string    `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
 		MAC               string    `validate:"mac"`
 		IsColor           string    `validate:"iscolor"`
+		StrPtrMinLen      *string   `validate:"min=10"`
+		StrPtrMaxLen      *string   `validate:"max=1"`
+		StrPtrLen         *string   `validate:"len=2"`
+		StrPtrLt          *string   `validate:"lt=1"`
+		StrPtrLte         *string   `validate:"lte=1"`
+		StrPtrGt          *string   `validate:"gt=10"`
+		StrPtrGte         *string   `validate:"gte=10"`
 	}
 
 	var test Test
@@ -170,6 +177,10 @@ func TestTranslations(t *testing.T) {
 	test.PrintableASCII = "ｶﾀｶﾅ"
 
 	test.MultiByte = "1234feerf"
+
+	s := "toolong"
+	test.StrPtrMaxLen = &s
+	test.StrPtrLen = &s
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -564,6 +575,34 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.RequiredMultiple",
 			expected: "RequiredMultiple is a required field",
+		},
+		{
+			ns:       "Test.StrPtrMinLen",
+			expected: "StrPtrMinLen must be at least 10 characters in length",
+		},
+		{
+			ns:       "Test.StrPtrMaxLen",
+			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+		},
+		{
+			ns:       "Test.StrPtrLen",
+			expected: "StrPtrLen must be 2 characters in length",
+		},
+		{
+			ns:       "Test.StrPtrLt",
+			expected: "StrPtrLt must be less than 1 character in length",
+		},
+		{
+			ns:       "Test.StrPtrLte",
+			expected: "StrPtrLte must be at maximum 1 character in length",
+		},
+		{
+			ns:       "Test.StrPtrGt",
+			expected: "StrPtrGt must be greater than 10 characters in length",
+		},
+		{
+			ns:       "Test.StrPtrGte",
+			expected: "StrPtrGte must be at least 10 characters in length",
 		},
 	}
 

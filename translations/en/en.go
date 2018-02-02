@@ -69,6 +69,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 
 				var digits uint64
+				var kind reflect.Kind
 
 				if idx := strings.Index(fe.Param(), "."); idx != -1 {
 					digits = uint64(len(fe.Param()[idx+1:]))
@@ -79,7 +80,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					goto END
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -154,6 +160,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 
 				var digits uint64
+				var kind reflect.Kind
 
 				if idx := strings.Index(fe.Param(), "."); idx != -1 {
 					digits = uint64(len(fe.Param()[idx+1:]))
@@ -164,7 +171,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					goto END
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -239,6 +251,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 
 				var digits uint64
+				var kind reflect.Kind
 
 				if idx := strings.Index(fe.Param(), "."); idx != -1 {
 					digits = uint64(len(fe.Param()[idx+1:]))
@@ -249,7 +262,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					goto END
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -359,6 +377,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var f64 float64
 				var digits uint64
+				var kind reflect.Kind
 
 				fn := func() (err error) {
 
@@ -371,7 +390,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -472,6 +496,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var f64 float64
 				var digits uint64
+				var kind reflect.Kind
 
 				fn := func() (err error) {
 
@@ -484,7 +509,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -585,6 +615,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var f64 float64
 				var digits uint64
+				var kind reflect.Kind
 
 				fn := func() (err error) {
 
@@ -597,7 +628,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
@@ -698,6 +734,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var f64 float64
 				var digits uint64
+				var kind reflect.Kind
 
 				fn := func() (err error) {
 
@@ -710,7 +747,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				switch fe.Kind() {
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
 				case reflect.String:
 
 					var c string
