@@ -94,7 +94,7 @@ used "eqcsfield" it could be multiple levels down. Example:
 
 	// NOTE: when calling validate.Struct(val) topStruct will be the top level struct passed
 	//       into the function
-	//       when calling validate.FieldWithValue(val, field, tag) val will be
+	//       when calling validate.VarWithValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
 	//       when calling validate.Field(field, tag) val will be nil
 
@@ -369,7 +369,7 @@ Example #1:
 Example #2:
 
 	// Validating by field:
-	validate.FieldWithValue(password, confirmpassword, "eqfield")
+	validate.VarWithValue(password, confirmpassword, "eqfield")
 
 Field Equals Another Field (relative)
 
@@ -391,7 +391,7 @@ Examples:
 	Usage: nefield=Color2
 
 	// Validating by field:
-	validate.FieldWithValue(color1, color2, "nefield")
+	validate.VarWithValue(color1, color2, "nefield")
 
 Field Does Not Equal Another Field (relative)
 
@@ -414,7 +414,7 @@ Example #1:
 Example #2:
 
 	// Validating by field:
-	validate.FieldWithValue(start, end, "gtfield")
+	validate.VarWithValue(start, end, "gtfield")
 
 
 Field Greater Than Another Relative Field
@@ -438,7 +438,7 @@ Example #1:
 Example #2:
 
 	// Validating by field:
-	validate.FieldWithValue(start, end, "gtefield")
+	validate.VarWithValue(start, end, "gtefield")
 
 Field Greater Than or Equal To Another Relative Field
 
@@ -461,7 +461,7 @@ Example #1:
 Example #2:
 
 	// Validating by field:
-	validate.FieldWithValue(start, end, "ltfield")
+	validate.VarWithValue(start, end, "ltfield")
 
 Less Than Another Relative Field
 
@@ -484,7 +484,7 @@ Example #1:
 Example #2:
 
 	// Validating by field:
-	validate.FieldWithValue(start, end, "ltefield")
+	validate.VarWithValue(start, end, "ltefield")
 
 Less Than or Equal To Another Relative Field
 
