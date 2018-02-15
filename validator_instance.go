@@ -370,39 +370,37 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 	typ := val.Type()
 	name := typ.Name()
 
-	if fields != nil {
-		for _, k := range fields {
+	for _, k := range fields {
 
-			flds := strings.Split(k, namespaceSeparator)
-			if len(flds) > 0 {
+		flds := strings.Split(k, namespaceSeparator)
+		if len(flds) > 0 {
 
-				vd.misc = append(vd.misc[0:0], name...)
-				vd.misc = append(vd.misc, '.')
+			vd.misc = append(vd.misc[0:0], name...)
+			vd.misc = append(vd.misc, '.')
 
-				for _, s := range flds {
+			for _, s := range flds {
 
-					idx := strings.Index(s, leftBracket)
+				idx := strings.Index(s, leftBracket)
 
-					if idx != -1 {
-						for idx != -1 {
-							vd.misc = append(vd.misc, s[:idx]...)
-							vd.includeExclude[string(vd.misc)] = struct{}{}
-
-							idx2 := strings.Index(s, rightBracket)
-							idx2++
-							vd.misc = append(vd.misc, s[idx:idx2]...)
-							vd.includeExclude[string(vd.misc)] = struct{}{}
-							s = s[idx2:]
-							idx = strings.Index(s, leftBracket)
-						}
-					} else {
-
-						vd.misc = append(vd.misc, s...)
+				if idx != -1 {
+					for idx != -1 {
+						vd.misc = append(vd.misc, s[:idx]...)
 						vd.includeExclude[string(vd.misc)] = struct{}{}
-					}
 
-					vd.misc = append(vd.misc, '.')
+						idx2 := strings.Index(s, rightBracket)
+						idx2++
+						vd.misc = append(vd.misc, s[idx:idx2]...)
+						vd.includeExclude[string(vd.misc)] = struct{}{}
+						s = s[idx2:]
+						idx = strings.Index(s, leftBracket)
+					}
+				} else {
+
+					vd.misc = append(vd.misc, s...)
+					vd.includeExclude[string(vd.misc)] = struct{}{}
 				}
+
+				vd.misc = append(vd.misc, '.')
 			}
 		}
 	}

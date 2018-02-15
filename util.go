@@ -80,7 +80,7 @@ BEGIN:
 
 		typ := current.Type()
 		fld := namespace
-		ns := namespace
+		var ns string
 
 		if typ != timeType {
 
