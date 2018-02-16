@@ -4314,6 +4314,66 @@ func TestIsEqValidation(t *testing.T) {
 	PanicMatches(t, func() { validate.Var(now, "eq=now") }, "Bad field type time.Time")
 }
 
+func TestOneOfValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "red", t: "oneof=red green"},
+		{f: "green", t: "oneof=red green"},
+		{f: 5, t: "oneof=5 6"},
+		{f: 6, t: "oneof=5 6"},
+		{f: int8(6), t: "oneof=5 6"},
+		{f: int16(6), t: "oneof=5 6"},
+		{f: int32(6), t: "oneof=5 6"},
+		{f: int64(6), t: "oneof=5 6"},
+		{f: uint(6), t: "oneof=5 6"},
+		{f: uint8(6), t: "oneof=5 6"},
+		{f: uint16(6), t: "oneof=5 6"},
+		{f: uint32(6), t: "oneof=5 6"},
+		{f: uint64(6), t: "oneof=5 6"},
+	}
+
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "", t: "oneof=red green"},
+		{f: "yellow", t: "oneof=red green"},
+		{f: 5, t: "oneof=red green"},
+		{f: 6, t: "oneof=red green"},
+		{f: 6, t: "oneof=7"},
+		{f: uint(6), t: "oneof=7"},
+		{f: int8(5), t: "oneof=red green"},
+		{f: int16(5), t: "oneof=red green"},
+		{f: int32(5), t: "oneof=red green"},
+		{f: int64(5), t: "oneof=red green"},
+		{f: uint(5), t: "oneof=red green"},
+		{f: uint8(5), t: "oneof=red green"},
+		{f: uint16(5), t: "oneof=red green"},
+		{f: uint32(5), t: "oneof=red green"},
+		{f: uint64(5), t: "oneof=red green"},
+	}
+
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "oneof")
+	}
+
+	PanicMatches(t, func() {
+		validate.Var(3.14, "oneof=red green")
+	}, "Bad field type float64")
+}
+
 func TestBase64Validation(t *testing.T) {
 
 	validate := New()

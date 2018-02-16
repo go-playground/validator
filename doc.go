@@ -295,6 +295,16 @@ validates the number of items.
 
 	Usage: ne=10
 
+One Of
+
+For strings, ints, and uints, oneof will ensure that the value
+is one of the values in the parameter.  The parameter should be
+a list of values separated by whitespace.  Values may be
+strings or numbers.
+
+    Usage: oneof=red green
+           oneof=5 7 9
+
 Greater Than
 
 For numbers, this will ensure that the value is greater than the

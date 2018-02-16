@@ -136,6 +136,8 @@ func TestTranslations(t *testing.T) {
 		StrPtrLte         *string   `validate:"lte=1"`
 		StrPtrGt          *string   `validate:"gt=10"`
 		StrPtrGte         *string   `validate:"gte=10"`
+		OneOfString       string    `validate:"oneof=red green"`
+		OneOfInt          int       `validate:"oneof=5 63"`
 	}
 
 	var test Test
@@ -603,6 +605,14 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.StrPtrGte",
 			expected: "StrPtrGte must be at least 10 characters in length",
+		},
+		{
+			ns:       "Test.OneOfString",
+			expected: "OneOfString must be one of [red green]",
+		},
+		{
+			ns:       "Test.OneOfInt",
+			expected: "OneOfInt must be one of [5 63]",
 		},
 	}
 
