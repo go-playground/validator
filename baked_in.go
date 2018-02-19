@@ -141,18 +141,24 @@ var (
 	}
 )
 
-var oneofValCache = map[string][]string{}
-var oneofValCacheLock = sync.Mutex{}
+var oneofValsCache = map[string][]string{}
+var oneofValsCacheRWLock = sync.RWMutex{}
+
+func parseOneOfParam2(s string) []string {
+	oneofValsCacheRWLock.RLock()
+	vals, ok := oneofValsCache[s]
+	oneofValsCacheRWLock.RUnlock()
+	if !ok {
+		oneofValsCacheRWLock.Lock()
+		vals = strings.Fields(s)
+		oneofValsCache[s] = vals
+		oneofValsCacheRWLock.Unlock()
+	}
+	return vals
+}
 
 func isOneOf(fl FieldLevel) bool {
-	param := fl.Param()
-	oneofValCacheLock.Lock()
-	vals, ok := oneofValCache[param]
-	if !ok {
-		vals = strings.Fields(param)
-		oneofValCache[param] = vals
-	}
-	oneofValCacheLock.Unlock()
+	vals := parseOneOfParam2(fl.Param())
 
 	field := fl.Field()
 
