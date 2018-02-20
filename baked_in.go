@@ -6,7 +6,9 @@ import (
 	"net"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
@@ -135,8 +137,49 @@ var (
 		"hostname_rfc1123": isHostnameRFC1123, // RFC 1123
 		"fqdn":             isFQDN,
 		"unique":           isUnique,
+		"oneof":            isOneOf,
 	}
 )
+
+var oneofValsCache = map[string][]string{}
+var oneofValsCacheRWLock = sync.RWMutex{}
+
+func parseOneOfParam2(s string) []string {
+	oneofValsCacheRWLock.RLock()
+	vals, ok := oneofValsCache[s]
+	oneofValsCacheRWLock.RUnlock()
+	if !ok {
+		oneofValsCacheRWLock.Lock()
+		vals = strings.Fields(s)
+		oneofValsCache[s] = vals
+		oneofValsCacheRWLock.Unlock()
+	}
+	return vals
+}
+
+func isOneOf(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+
+	field := fl.Field()
+
+	var v string
+	switch field.Kind() {
+	case reflect.String:
+		v = field.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v = strconv.FormatInt(field.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v = strconv.FormatUint(field.Uint(), 10)
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	for i := 0; i < len(vals); i++ {
+		if vals[i] == v {
+			return true
+		}
+	}
+	return false
+}
 
 // isUnique is the validation function for validating if each array|slice element is unique
 func isUnique(fl FieldLevel) bool {

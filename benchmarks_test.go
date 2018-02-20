@@ -1184,3 +1184,27 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 		}
 	})
 }
+
+type TestOneof struct {
+	Color string `validate:"oneof=red green"`
+}
+
+func BenchmarkOneof(b *testing.B) {
+	w := &TestOneof{Color: "green"}
+	val := New()
+	for i := 0; i < b.N; i++ {
+		val.Struct(w)
+	}
+}
+
+func BenchmarkOneofParallel(b *testing.B) {
+	w := &TestOneof{Color: "green"}
+	val := New()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			val.Struct(w)
+		}
+	})
+}
