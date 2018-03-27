@@ -96,6 +96,7 @@ var (
 		"url":              isURL,
 		"uri":              isURI,
 		"base64":           isBase64,
+		"base64url":        isBase64URL,
 		"contains":         contains,
 		"containsany":      containsAny,
 		"containsrune":     containsRune,
@@ -843,6 +844,11 @@ func isEq(fl FieldLevel) bool {
 // IsBase64 is the validation function for validating if the current field's value is a valid base 64.
 func isBase64(fl FieldLevel) bool {
 	return base64Regex.MatchString(fl.Field().String())
+}
+
+// IsBase64URL is the validation function for validating if the current field's value is a valid base64 URL safe string.
+func isBase64URL(fl FieldLevel) bool {
+	return base64URLRegex.MatchString(fl.Field().String())
 }
 
 // IsURI is the validation function for validating if the current field's value is a valid URI.
