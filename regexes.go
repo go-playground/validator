@@ -32,6 +32,9 @@ const (
 	sSNRegexString                 = `^\d{3}[- ]?\d{2}[- ]?\d{4}$`
 	hostnameRegexStringRFC952      = `^[a-zA-Z][a-zA-Z0-9\-\.]+[a-z-Az0-9]$`    // https://tools.ietf.org/html/rfc952
 	hostnameRegexStringRFC1123     = `^[a-zA-Z0-9][a-zA-Z0-9\-\.]+[a-z-Az0-9]$` // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	btcAddressRegexString          = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`    // bitcoin address
+	btcAddressRegexStringBech32    = `^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$`   // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
+	ethAddressRegexString          = `^0x[0-9a-fA-F]{40}$`
 )
 
 var (
@@ -64,4 +67,7 @@ var (
 	sSNRegex                 = regexp.MustCompile(sSNRegexString)
 	hostnameRegexRFC952      = regexp.MustCompile(hostnameRegexStringRFC952)
 	hostnameRegexRFC1123     = regexp.MustCompile(hostnameRegexStringRFC1123)
+	btcAddressRegex          = regexp.MustCompile(btcAddressRegexString)
+	btcAddressRegexBech32    = regexp.MustCompile(btcAddressRegexStringBech32)
+	ethAddressRegex          = regexp.MustCompile(ethAddressRegexString)
 )
