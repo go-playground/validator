@@ -52,7 +52,7 @@ func validateStruct() {
 		Addresses:      []*Address{address},
 	}
 
-	// returns nil or ValidationErrors ( map[string]*FieldError )
+	// returns nil or ValidationErrors ( []FieldError )
 	err := validate.Struct(user)
 	if err != nil {
 
