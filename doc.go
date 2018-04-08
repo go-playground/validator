@@ -611,7 +611,8 @@ this with the omitempty tag.
 
 Base64URL String
 
-This validates that a string value contains a valid base64 URL safe value.
+This validates that a string value contains a valid base64 URL safe value 
+according the the RFC4648 spec.
 Although an empty string is a valid base64 URL safe value, this will report
 an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
