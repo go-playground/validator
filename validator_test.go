@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -4396,6 +4397,53 @@ func TestBase64Validation(t *testing.T) {
 	errs = validate.Var(s, "base64")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "base64")
+}
+
+func TestBase64URLValidation(t *testing.T) {
+	validate := New()
+
+	testCases := []struct {
+		decoded, encoded string
+		success          bool
+	}{
+		// empty string, although a valid base64 string, should fail
+		{"", "", false},
+		// invalid length
+		{"", "a", false},
+		// base64 with padding
+		{"f", "Zg==", true},
+		{"fo", "Zm8=", true},
+		// base64 without padding
+		{"foo", "Zm9v", true},
+		{"", "Zg", false},
+		{"", "Zm8", false},
+		// base64 URL safe encoding with invalid, special characters '+' and '/'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
+		// base64 URL safe encoding with valid, special characters '-' and '_'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l-", true},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA_lz", true},
+		// non base64 characters
+		{"", "@mc=", false},
+		{"", "Zm 9", false},
+	}
+	for _, tc := range testCases {
+		err := validate.Var(tc.encoded, "base64url")
+		if tc.success {
+			Equal(t, err, nil)
+			// make sure encoded value is decoded back to the expected value
+			d, err := base64.URLEncoding.DecodeString(tc.encoded)
+			Equal(t, err, nil)
+			Equal(t, tc.decoded, string(d))
+		} else {
+			NotEqual(t, err, nil)
+			if len(tc.encoded) > 0 {
+				// make sure that indeed the encoded value was faulty
+				_, err := base64.URLEncoding.DecodeString(tc.encoded)
+				NotEqual(t, err, nil)
+			}
+		}
+	}
 }
 
 func TestNoStructLevelValidation(t *testing.T) {

@@ -609,6 +609,15 @@ this with the omitempty tag.
 
 	Usage: base64
 
+Base64URL String
+
+This validates that a string value contains a valid base64 URL safe value.
+Although an empty string is a valid base64 URL safe value, this will report
+an empty string as an error, if you wish to accept an empty string as valid
+you can use this with the omitempty tag.
+
+	Usage: base64url
+
 Contains
 
 This validates that a string value contains the substring value.
