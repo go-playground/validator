@@ -4452,11 +4452,7 @@ func TestBitcoinAddressValidation(t *testing.T){
 		{"3P141597f3E4gFr7JterCCQh9QjiTjiZrG", false}, // invalid p2sh address with valid characters
 		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true}, // valid p2pkh address
 		{"3P14159f73E4gFr7JterCCQh9QjiTjiZrG", true}, // valid p2sh address
-		{"bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", true}, // valid bech32 address
-
 	}
-
-
 
 	for i, test := range tests {
 
@@ -4479,6 +4475,49 @@ func TestBitcoinAddressValidation(t *testing.T){
 	}
 }
 
+func TestBitcoinBech32AddressValidation(t *testing.T){
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5", false}, // invalid bech32 address with invalid startingcharacters
+		{"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2", false},
+		{"bc1rw5uspcuh", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du", false},
+		{"bc1gmk9yu", false},
+		{"BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4", true},
+		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx", true},
+		{"BC1SW50QA3JX3S", true},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr_bech32")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr_bech32" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
 
 
 func TestNoStructLevelValidation(t *testing.T) {

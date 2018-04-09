@@ -33,8 +33,10 @@ const (
 	hostnameRegexStringRFC952      = `^[a-zA-Z][a-zA-Z0-9\-\.]+[a-z-Az0-9]$`    // https://tools.ietf.org/html/rfc952
 	hostnameRegexStringRFC1123     = `^[a-zA-Z0-9][a-zA-Z0-9\-\.]+[a-z-Az0-9]$` // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
 	btcAddressRegexString          = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`    // bitcoin address
-	btcAddressRegexStringBech32    = `^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$`   // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
+	btcAddressRegexStringBech32    = `^([bB][cC]1)[02-9ac-hj-np-zAC-HJ-NP-Z]{7,76}$`   // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
 	ethAddressRegexString          = `^0x[0-9a-fA-F]{40}$`
+	ethAddressUpperRegexString     = `^0x[0-9A-F]{40}$`
+	ethAddressLowerRegexString     = `^0x[0-9a-f]{40}$`
 )
 
 var (
@@ -70,4 +72,6 @@ var (
 	btcAddressRegex          = regexp.MustCompile(btcAddressRegexString)
 	btcAddressRegexBech32    = regexp.MustCompile(btcAddressRegexStringBech32)
 	ethAddressRegex          = regexp.MustCompile(ethAddressRegexString)
+	ethaddressRegexUpper     = regexp.MustCompile(ethAddressUpperRegexString)
+	ethAddressRegexLower     = regexp.MustCompile(ethAddressLowerRegexString)
 )

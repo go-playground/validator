@@ -613,14 +613,23 @@ Bitcoin Address
 
 This validates that a string value contains a valid bitcoin address.
 The format of the string is checked to ensure it matches one of the three formats
-P2PKH, P2SH, or Bech32. Currently no further validation is performed.
+P2PKH, P2SH and performs checksum validation.
 
 	Usage: btc_addr
+
+Bitcoin Bech32 Address (segwit)
+
+This validates that a string value contains a valid bitcoin Bech32 address as defined
+by bip-0173 (https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+Special thanks to Pieter Wuille for providng reference implementations.
+
+	Usage: btc_addr_bech32
 
 Ethereum Address
 
 This validates that a string value contains a valid ethereum address.
 The format of the string is checked to ensure it matches the standard Ethereum address format
+Full validation is blocked by https://github.com/golang/crypto/pull/28
 
 	Usage: eth_addr
 
