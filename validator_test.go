@@ -4446,7 +4446,10 @@ func TestBitcoinAddressValidation(t *testing.T){
 	}{
 		{"", false},
 		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
-		{"1A1zP1ePQGefi2DMPTifTL5SLmv7DivfNa", false},
+		{"1A1zP1ePQGefi2DMPTifTL5SLmv7DivfNa", false}, // invalid p2pkh address with invalid characters
+		{"1P9RQEr2XeE3PEb44ZE35sfZRRW1JH8Uqx", false}, // invald p2pkh address with valid characters
+		{"3P14159I73E4gFr7JterCCQh9QjiTjiZrG", false}, // invalid p2sh address with invalid characters
+		{"3P141597f3E4gFr7JterCCQh9QjiTjiZrG", false}, // invalid p2sh address with valid characters
 		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true}, // valid p2pkh address
 		{"3P14159f73E4gFr7JterCCQh9QjiTjiZrG", true}, // valid p2sh address
 		{"bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", true}, // valid bech32 address

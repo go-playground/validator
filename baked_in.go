@@ -423,7 +423,7 @@ func isBitcoinAddress(fl FieldLevel) bool {
 		}
 
 
-		if decode[0] != 0 {
+		if !(decode[0] == 0 || decode[0] == 5) {
 			return false
 		}
 
