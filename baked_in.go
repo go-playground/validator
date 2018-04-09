@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+	"crypto/sha256"
+	"bytes"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -398,9 +400,51 @@ func isEthereumAddress(fl FieldLevel) bool {
 
 // IsBitcoinAddress is the validation function for validating if the field's value is a valid btc address, currently only based on the format
 func isBitcoinAddress(fl FieldLevel) bool {
-	field := fl.Field()
+	address := fl.Field().String()
 
-	return btcAddressRegex.MatchString(field.String()) || btcAddressRegexBech32.MatchString(field.String())
+	if btcAddressRegex.MatchString(address) {
+
+		alphabet := []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+
+		decode := [25]byte{}
+
+		for _, n := range []byte(address) {
+			d := bytes.IndexByte(alphabet, n)
+
+			if(d == -1){
+				return false
+			}
+
+			for i := 24; i >= 0; i-- {
+				d += 58 * int(decode[i])
+				decode[i] = byte(d % 256)
+				d /= 256
+			}
+		}
+
+
+		if decode[0] != 0 {
+			return false
+		}
+
+		h := sha256.New()
+		h.Write(decode[:21])
+		d := h.Sum([]byte{})
+		h = sha256.New()
+		h.Write(d)
+
+		validchecksum := [4]byte{}
+		computedchecksum := [4]byte{}
+
+		copy(computedchecksum[:], h.Sum(d[:0]))
+		copy(validchecksum[:], decode[21:])
+
+		println(address, "::", validchecksum[:], computedchecksum[:])
+
+		return validchecksum == computedchecksum
+	}
+
+	return btcAddressRegexBech32.MatchString(address)
 }
 
 // ExcludesRune is the validation function for validating that the field's value does not contain the rune specified within the param.

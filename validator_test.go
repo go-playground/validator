@@ -4446,10 +4446,11 @@ func TestBitcoinAddressValidation(t *testing.T){
 	}{
 		{"", false},
 		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
-		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
-		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true},
-		{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", true},
-		{"bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", true},
+		{"1A1zP1ePQGefi2DMPTifTL5SLmv7DivfNa", false},
+		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true}, // valid p2pkh address
+		{"3P14159f73E4gFr7JterCCQh9QjiTjiZrG", true}, // valid p2sh address
+		{"bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", true}, // valid bech32 address
+
 	}
 
 
@@ -4460,15 +4461,15 @@ func TestBitcoinAddressValidation(t *testing.T){
 
 		if test.expected {
 			if !IsEqual(errs, nil) {
-				t.Fatalf("Index: %d btc_addr failed Error: %s", i, errs)
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d btc_addr failed Error: %s", i, errs)
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "btc_addr" {
-					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
 				}
 			}
 		}
