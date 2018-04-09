@@ -4488,6 +4488,7 @@ func TestBitcoinBech32AddressValidation(t *testing.T){
 		{"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2", false},
 		{"bc1rw5uspcuh", false},
 		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"BC1QW508d6QEJxTDG4y5R3ZArVARY0C5XW7KV8F3T4", false},
 		{"BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P", false},
 		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
 		{"bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du", false},

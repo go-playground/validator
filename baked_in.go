@@ -455,7 +455,7 @@ func isBitcoinAddress(fl FieldLevel) bool {
 func isBitcoinBech32Address(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	if !btcAddressRegexBech32.MatchString(address){
+	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address){
 		return false
 	}
 
