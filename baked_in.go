@@ -105,6 +105,8 @@ var (
 		"isbn":             isISBN,
 		"isbn10":           isISBN10,
 		"isbn13":           isISBN13,
+		"eth_addr":         isEthereumAddress,
+		"btc_addr":         isBitcoinAddress,
 		"uuid":             isUUID,
 		"uuid3":            isUUID3,
 		"uuid4":            isUUID4,
@@ -385,6 +387,20 @@ func isISBN10(fl FieldLevel) bool {
 	}
 
 	return checksum%11 == 0
+}
+
+// IsEthereumAddress is the validation function for validating if the field's value is a valid ethereum address based currently only on the format
+func isEthereumAddress(fl FieldLevel) bool {
+	field := fl.Field()
+
+	return ethAddressRegex.MatchString(field.String())
+}
+
+// IsBitcoinAddress is the validation function for validating if the field's value is a valid btc address, currently only based on the format
+func isBitcoinAddress(fl FieldLevel) bool {
+	field := fl.Field()
+
+	return btcAddressRegex.MatchString(field.String()) || btcAddressRegexBech32.MatchString(field.String())
 }
 
 // ExcludesRune is the validation function for validating that the field's value does not contain the rune specified within the param.

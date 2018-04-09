@@ -4398,6 +4398,85 @@ func TestBase64Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "base64")
 }
 
+func TestEthereumAddressValidation(t *testing.T){
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bECFacbf130", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", true},
+	}
+
+
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBitcoinAddressValidation(t *testing.T){
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true},
+		{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", true},
+		{"bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", true},
+	}
+
+
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+
+
 func TestNoStructLevelValidation(t *testing.T) {
 
 	type Inner struct {

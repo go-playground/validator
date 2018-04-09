@@ -609,6 +609,21 @@ this with the omitempty tag.
 
 	Usage: base64
 
+Bitcoin Address
+
+This validates that a string value contains a valid bitcoin address.
+The format of the string is checked to ensure it matches one of the three formats
+P2PKH, P2SH, or Bech32. Currently no further validation is performed.
+
+	Usage: btc_addr
+
+Ethereum Address
+
+This validates that a string value contains a valid ethereum address.
+The format of the string is checked to ensure it matches the standard Ethereum address format
+
+	Usage: eth_addr
+
 Contains
 
 This validates that a string value contains the substring value.
@@ -664,7 +679,6 @@ International Standard Book Number 13
 This validates that a string value contains a valid isbn13 value.
 
 	Usage: isbn13
-
 
 Universally Unique Identifier UUID
 
