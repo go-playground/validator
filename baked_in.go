@@ -431,11 +431,6 @@ func isBitcoinAddress(fl FieldLevel) bool {
 		}
 	}
 
-
-	if !(decode[0] == 0 || decode[0] == 5) {
-		return false
-	}
-
 	h := sha256.New()
 	h.Write(decode[:21])
 	d := h.Sum([]byte{})
@@ -451,7 +446,7 @@ func isBitcoinAddress(fl FieldLevel) bool {
 	return validchecksum == computedchecksum
 }
 
-// IsBitcoinAddress is the validation function for validating if the field's value is a valid bech32 btc address
+// IsBitcoinBech32Address is the validation function for validating if the field's value is a valid bech32 btc address
 func isBitcoinBech32Address(fl FieldLevel) bool {
 	address := fl.Field().String()
 
@@ -512,15 +507,9 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 	b := uint(0)
 	acc := 0
 	mv := (1 << 5) - 1
-
 	sw := []int{}
 
-	dp = dp[:len(dp) - 6]
-
-	for _, v := range dp[1:]{
-		if v < 0 || (v >> 5) != 0{
-			return false
-		}
+	for _, v := range dp[1:len(dp) - 6]{
 		acc = (acc << 5) | v
 		b += 5
 		for b >= 8{
@@ -530,10 +519,6 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 	}
 
 	if len(sw) < 2 || len(sw) > 40{
-		return false
-	}
-
-	if ver == 0 && len(sw) != 20 && len(sw) != 32 {
 		return false
 	}
 
