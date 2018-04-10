@@ -4446,6 +4446,203 @@ func TestBase64URLValidation(t *testing.T) {
 	}
 }
 
+func TestEthereumAddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bECFacbf130", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBitcoinAddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"x", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"1A1zP1ePQGefi2DMPTifTL5SLmv7DivfNa", false},
+		{"1P9RQEr2XeE3PEb44ZE35sfZRRW1JH8Uqx", false},
+		{"3P14159I73E4gFr7JterCCQh9QjiTjiZrG", false},
+		{"3P141597f3E4gFr7JterCCQh9QjiTjiZrG", false},
+		{"37qgekLpCCHrQuSjvX3fs496FWTGsHFHizjJAs6NPcR47aefnnCWECAhHV6E3g4YN7u7Yuwod5Y", false},
+		{"dzb7VV1Ui55BARxv7ATxAtCUeJsANKovDGWFVgpTbhq9gvPqP3yv", false},
+		{"MuNu7ZAEDFiHthiunm7dPjwKqrVNCM3mAz6rP9zFveQu14YA8CxExSJTHcVP9DErn6u84E6Ej7S", false},
+		{"rPpQpYknyNQ5AEHuY6H8ijJJrYc2nDKKk9jjmKEXsWzyAQcFGpDLU2Zvsmoi8JLR7hAwoy3RQWf", false},
+		{"4Uc3FmN6NQ6zLBK5QQBXRBUREaaHwCZYsGCueHauuDmJpZKn6jkEskMB2Zi2CNgtb5r6epWEFfUJq", false},
+		{"7aQgR5DFQ25vyXmqZAWmnVCjL3PkBcdVkBUpjrjMTcghHx3E8wb", false},
+		{"17QpPprjeg69fW1DV8DcYYCKvWjYhXvWkov6MJ1iTTvMFj6weAqW7wybZeH57WTNxXVCRH4veVs", false},
+		{"KxuACDviz8Xvpn1xAh9MfopySZNuyajYMZWz16Dv2mHHryznWUp3", false},
+		{"7nK3GSmqdXJQtdohvGfJ7KsSmn3TmGqExug49583bDAL91pVSGq5xS9SHoAYL3Wv3ijKTit65th", false},
+		{"cTivdBmq7bay3RFGEBBuNfMh2P1pDCgRYN2Wbxmgwr4ki3jNUL2va", false},
+		{"gjMV4vjNjyMrna4fsAr8bWxAbwtmMUBXJS3zL4NJt5qjozpbQLmAfK1uA3CquSqsZQMpoD1g2nk", false},
+		{"emXm1naBMoVzPjbk7xpeTVMFy4oDEe25UmoyGgKEB1gGWsK8kRGs", false},
+		{"7VThQnNRj1o3Zyvc7XHPRrjDf8j2oivPTeDXnRPYWeYGE4pXeRJDZgf28ppti5hsHWXS2GSobdqyo", false},
+		{"1G9u6oCVCPh2o8m3t55ACiYvG1y5BHewUkDSdiQarDcYXXhFHYdzMdYfUAhfxn5vNZBwpgUNpso", false},
+		{"31QQ7ZMLkScDiB4VyZjuptr7AEc9j1SjstF7pRoLhHTGkW4Q2y9XELobQmhhWxeRvqcukGd1XCq", false},
+		{"DHqKSnpxa8ZdQyH8keAhvLTrfkyBMQxqngcQA5N8LQ9KVt25kmGN", false},
+		{"2LUHcJPbwLCy9GLH1qXmfmAwvadWw4bp4PCpDfduLqV17s6iDcy1imUwhQJhAoNoN1XNmweiJP4i", false},
+		{"7USRzBXAnmck8fX9HmW7RAb4qt92VFX6soCnts9s74wxm4gguVhtG5of8fZGbNPJA83irHVY6bCos", false},
+		{"1DGezo7BfVebZxAbNT3XGujdeHyNNBF3vnficYoTSp4PfK2QaML9bHzAMxke3wdKdHYWmsMTJVu", false},
+		{"2D12DqDZKwCxxkzs1ZATJWvgJGhQ4cFi3WrizQ5zLAyhN5HxuAJ1yMYaJp8GuYsTLLxTAz6otCfb", false},
+		{"8AFJzuTujXjw1Z6M3fWhQ1ujDW7zsV4ePeVjVo7D1egERqSW9nZ", false},
+		{"163Q17qLbTCue8YY3AvjpUhotuaodLm2uqMhpYirsKjVqnxJRWTEoywMVY3NbBAHuhAJ2cF9GAZ", false},
+		{"2MnmgiRH4eGLyLc9eAqStzk7dFgBjFtUCtu", false},
+		{"461QQ2sYWxU7H2PV4oBwJGNch8XVTYYbZxU", false},
+		{"2UCtv53VttmQYkVU4VMtXB31REvQg4ABzs41AEKZ8UcB7DAfVzdkV9JDErwGwyj5AUHLkmgZeobs", false},
+		{"cSNjAsnhgtiFMi6MtfvgscMB2Cbhn2v1FUYfviJ1CdjfidvmeW6mn", false},
+		{"gmsow2Y6EWAFDFE1CE4Hd3Tpu2BvfmBfG1SXsuRARbnt1WjkZnFh1qGTiptWWbjsq2Q6qvpgJVj", false},
+		{"nksUKSkzS76v8EsSgozXGMoQFiCoCHzCVajFKAXqzK5on9ZJYVHMD5CKwgmX3S3c7M1U3xabUny", false},
+		{"L3favK1UzFGgdzYBF2oBT5tbayCo4vtVBLJhg2iYuMeePxWG8SQc", false},
+		{"7VxLxGGtYT6N99GdEfi6xz56xdQ8nP2dG1CavuXx7Rf2PrvNMTBNevjkfgs9JmkcGm6EXpj8ipyPZ ", false},
+		{"2mbZwFXF6cxShaCo2czTRB62WTx9LxhTtpP", false},
+		{"dB7cwYdcPSgiyAwKWL3JwCVwSk6epU2txw", false},
+		{"HPhFUhUAh8ZQQisH8QQWafAxtQYju3SFTX", false},
+		{"4ctAH6AkHzq5ioiM1m9T3E2hiYEev5mTsB", false},
+		{"31uEbMgunupShBVTewXjtqbBv5MndwfXhb", false},
+		{"175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W", false},
+		{"Hn1uFi4dNexWrqARpjMqgT6cX1UsNPuV3cHdGg9ExyXw8HTKadbktRDtdeVmY3M1BxJStiL4vjJ", false},
+		{"Sq3fDbvutABmnAHHExJDgPLQn44KnNC7UsXuT7KZecpaYDMU9Txs", false},
+		{"6TqWyrqdgUEYDQU1aChMuFMMEimHX44qHFzCUgGfqxGgZNMUVWJ", false},
+		{"giqJo7oWqFxNKWyrgcBxAVHXnjJ1t6cGoEffce5Y1y7u649Noj5wJ4mmiUAKEVVrYAGg2KPB3Y4", false},
+		{"cNzHY5e8vcmM3QVJUcjCyiKMYfeYvyueq5qCMV3kqcySoLyGLYUK", false},
+		{"37uTe568EYc9WLoHEd9jXEvUiWbq5LFLscNyqvAzLU5vBArUJA6eydkLmnMwJDjkL5kXc2VK7ig", false},
+		{"EsYbG4tWWWY45G31nox838qNdzksbPySWc", false},
+		{"nbuzhfwMoNzA3PaFnyLcRxE9bTJPDkjZ6Rf6Y6o2ckXZfzZzXBT", false},
+		{"cQN9PoxZeCWK1x56xnz6QYAsvR11XAce3Ehp3gMUdfSQ53Y2mPzx", false},
+		{"1Gm3N3rkef6iMbx4voBzaxtXcmmiMTqZPhcuAepRzYUJQW4qRpEnHvMojzof42hjFRf8PE2jPde", false},
+		{"2TAq2tuN6x6m233bpT7yqdYQPELdTDJn1eU", false},
+		{"ntEtnnGhqPii4joABvBtSEJG6BxjT2tUZqE8PcVYgk3RHpgxgHDCQxNbLJf7ardf1dDk2oCQ7Cf", false},
+		{"Ky1YjoZNgQ196HJV3HpdkecfhRBmRZdMJk89Hi5KGfpfPwS2bUbfd", false},
+		{"2A1q1YsMZowabbvta7kTy2Fd6qN4r5ZCeG3qLpvZBMzCixMUdkN2Y4dHB1wPsZAeVXUGD83MfRED", false},
+		{"1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62i", true},
+		{"1Ax4gZtb7gAit2TivwejZHYtNNLT18PUXJ", true},
+		{"1C5bSj1iEGUgSTbziymG7Cn18ENQuT36vv", true},
+		{"1Gqk4Tv79P91Cc1STQtU3s1W6277M2CVWu", true},
+		{"1JwMWBVLtiqtscbaRHai4pqHokhFCbtoB4", true},
+		{"19dcawoKcZdQz365WpXWMhX6QCUpR9SY4r", true},
+		{"13p1ijLwsnrcuyqcTvJXkq2ASdXqcnEBLE", true},
+		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true},
+		{"3P14159f73E4gFr7JterCCQh9QjiTjiZrG", true},
+		{"3CMNFxN1oHBc4R1EpboAL5yzHGgE611Xou", true},
+		{"3QjYXhTkvuj8qPaXHTTWb5wjXhdsLAAWVy", true},
+		{"3AnNxabYGoTxYiTEZwFEnerUoeFXK2Zoks", true},
+		{"33vt8ViH5jsr115AGkW6cEmEz9MpvJSwDk", true},
+		{"3QCzvfL4ZRvmJFiWWBVwxfdaNBT8EtxB5y", true},
+		{"37Sp6Rv3y4kVd1nQ1JV5pfqXccHNyZm1x3", true},
+		{"3ALJH9Y951VCGcVZYAdpA3KchoP9McEj1G", true},
+		{"12KYrjTdVGjFMtaxERSk3gphreJ5US8aUP", true},
+		{"12QeMLzSrB8XH8FvEzPMVoRxVAzTr5XM2y", true},
+		{"1oNLrsHnBcR6dpaBpwz3LSwutbUNkNSjs", true},
+		{"1SQHtwR5oJRKLfiWQ2APsAd9miUc4k2ez", true},
+		{"116CGDLddrZhMrTwhCVJXtXQpxygTT1kHd", true},
+		{"3NJZLcZEEYBpxYEUGewU4knsQRn1WM5Fkt", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBitcoinBech32AddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"bc1rw5uspcuh", false},
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5", false},
+		{"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2", false},
+		{"qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty", false},
+		{"bc1rw5uspcuh", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"BC1QW508d6QEJxTDG4y5R3ZArVARY0C5XW7KV8F3T4", false},
+		{"BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P", false},
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"bc1pw508d6qejxtdg4y5r3zarqfsj6c3", false},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du", false},
+		{"bc1gmk9yu", false},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv", false},
+		{"BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4", true},
+		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx", true},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3", true},
+		{"BC1SW50QA3JX3S", true},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr_bech32")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr_bech32" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestNoStructLevelValidation(t *testing.T) {
 
 	type Inner struct {

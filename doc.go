@@ -611,13 +611,37 @@ this with the omitempty tag.
 
 Base64URL String
 
-This validates that a string value contains a valid base64 URL safe value 
+This validates that a string value contains a valid base64 URL safe value
 according the the RFC4648 spec.
 Although an empty string is a valid base64 URL safe value, this will report
 an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
 
 	Usage: base64url
+
+Bitcoin Address
+
+This validates that a string value contains a valid bitcoin address.
+The format of the string is checked to ensure it matches one of the three formats
+P2PKH, P2SH and performs checksum validation.
+
+	Usage: btc_addr
+
+Bitcoin Bech32 Address (segwit)
+
+This validates that a string value contains a valid bitcoin Bech32 address as defined
+by bip-0173 (https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+Special thanks to Pieter Wuille for providng reference implementations.
+
+	Usage: btc_addr_bech32
+
+Ethereum Address
+
+This validates that a string value contains a valid ethereum address.
+The format of the string is checked to ensure it matches the standard Ethereum address format
+Full validation is blocked by https://github.com/golang/crypto/pull/28
+
+	Usage: eth_addr
 
 Contains
 
@@ -674,7 +698,6 @@ International Standard Book Number 13
 This validates that a string value contains a valid isbn13 value.
 
 	Usage: isbn13
-
 
 Universally Unique Identifier UUID
 
