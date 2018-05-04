@@ -506,6 +506,7 @@ to the top level struct.
 Unique
 
 For arrays & slices, unique will ensure that there are no duplicates.
+For maps, unique will ensure that there are no duplicate values.
 
 	Usage: unique
 
