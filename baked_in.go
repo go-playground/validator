@@ -458,13 +458,13 @@ func isBitcoinAddress(fl FieldLevel) bool {
 func isBitcoinBech32Address(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address) {
+	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address){
 		return false
 	}
 
 	am := len(address) % 8
 
-	if am == 0 || am == 3 || am == 5 {
+	if am == 0 || am == 3 || am == 5{
 		return false
 	}
 
@@ -481,7 +481,7 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 
 	ver := dp[0]
 
-	if ver < 0 || ver > 16 {
+	if ver < 0 || ver > 16{
 		return false
 	}
 
@@ -493,16 +493,16 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 
 	values := append(hr, dp...)
 
-	GEN := []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
+	GEN := []int{ 0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3 }
 
 	p := 1
 
 	for _, v := range values {
 		b := p >> 25
-		p = (p&0x1ffffff)<<5 ^ v
+		p = (p & 0x1ffffff) << 5 ^ v
 
 		for i := 0; i < 5; i++ {
-			if (b>>uint(i))&1 == 1 {
+			if (b >> uint(i)) & 1 == 1 {
 				p ^= GEN[i]
 			}
 		}
@@ -517,16 +517,16 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 	mv := (1 << 5) - 1
 	sw := []int{}
 
-	for _, v := range dp[1 : len(dp)-6] {
+	for _, v := range dp[1:len(dp) - 6]{
 		acc = (acc << 5) | v
 		b += 5
-		for b >= 8 {
+		for b >= 8{
 			b -= 8
 			sw = append(sw, (acc>>b)&mv)
 		}
 	}
 
-	if len(sw) < 2 || len(sw) > 40 {
+	if len(sw) < 2 || len(sw) > 40{
 		return false
 	}
 
