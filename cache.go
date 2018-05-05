@@ -223,7 +223,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			current.typeof = typeKeys
 
 			if i == 0 || prevTag != typeDive {
-				panic(fmt.Sprintf("'%s' tag must be immediately preceeded by the '%s' tag", keysTag, diveTag))
+				panic(fmt.Sprintf("'%s' tag must be immediately preceded by the '%s' tag", keysTag, diveTag))
 			}
 
 			current.typeof = typeKeys

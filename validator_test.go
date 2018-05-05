@@ -1016,7 +1016,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltecsfield")
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 6)
@@ -1113,7 +1113,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltcsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltcsfield")
@@ -1221,7 +1221,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtecsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "gtecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtecsfield")
@@ -1317,7 +1317,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtcsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "gtcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtcsfield")
@@ -4432,8 +4432,8 @@ func TestBase64URLValidation(t *testing.T) {
 		if tc.success {
 			Equal(t, err, nil)
 			// make sure encoded value is decoded back to the expected value
-			d, err := base64.URLEncoding.DecodeString(tc.encoded)
-			Equal(t, err, nil)
+			d, innerErr := base64.URLEncoding.DecodeString(tc.encoded)
+			Equal(t, innerErr, nil)
 			Equal(t, tc.decoded, string(d))
 		} else {
 			NotEqual(t, err, nil)
@@ -6838,8 +6838,8 @@ func TestTranslations(t *testing.T) {
 
 		}, func(ut ut.Translator, fe FieldError) string {
 
-			t, err := ut.T(fe.Tag(), fe.Field())
-			if err != nil {
+			t, transErr := ut.T(fe.Tag(), fe.Field())
+			if transErr != nil {
 				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
 				return fe.(*fieldError).Error()
 			}
@@ -7835,7 +7835,7 @@ func TestKeys(t *testing.T) {
 	// test bad tag definitions
 
 	PanicMatches(t, func() { validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
-	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceeded by the 'dive' tag")
+	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
 
 	// test custom tag name
 	validate = New()

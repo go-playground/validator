@@ -97,7 +97,7 @@ func New() *Validate {
 	for k, val := range bakedInValidators {
 
 		// no need to error check here, baked in will always be valid
-		v.registerValidation(k, wrapFunc(val), true)
+		_ = v.registerValidation(k, wrapFunc(val), true)
 	}
 
 	v.pool = &sync.Pool{
@@ -489,7 +489,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ..
 //
 // WARNING: a struct can be passed for validation eg. time.Time is a struct or
 // if you have a custom type and have registered a custom type handler, so must
-// allow it; however unforseen validations will occur if trying to validate a
+// allow it; however unforeseen validations will occur if trying to validate a
 // struct that is meant to be passed to 'validate.Struct'
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -507,7 +507,7 @@ func (v *Validate) Var(field interface{}, tag string) error {
 //
 // WARNING: a struct can be passed for validation eg. time.Time is a struct or
 // if you have a custom type and have registered a custom type handler, so must
-// allow it; however unforseen validations will occur if trying to validate a
+// allow it; however unforeseen validations will occur if trying to validate a
 // struct that is meant to be passed to 'validate.Struct'
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -541,7 +541,7 @@ func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (e
 //
 // WARNING: a struct can be passed for validation eg. time.Time is a struct or
 // if you have a custom type and have registered a custom type handler, so must
-// allow it; however unforseen validations will occur if trying to validate a
+// allow it; however unforeseen validations will occur if trying to validate a
 // struct that is meant to be passed to 'validate.Struct'
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -560,7 +560,7 @@ func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string
 //
 // WARNING: a struct can be passed for validation eg. time.Time is a struct or
 // if you have a custom type and have registered a custom type handler, so must
-// allow it; however unforseen validations will occur if trying to validate a
+// allow it; however unforeseen validations will occur if trying to validate a
 // struct that is meant to be passed to 'validate.Struct'
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.

@@ -168,7 +168,7 @@ StructOnly
 
 When a field that is a nested struct is encountered, and contains this flag
 any validation on the nested struct will be run, but none of the nested
-struct fields will be validated. This is usefull if inside of you program
+struct fields will be validated. This is useful if inside of you program
 you know the struct will be valid, but need to verify it has been assigned.
 NOTE: only "required" and "omitempty" can be used on a struct itself.
 
@@ -772,103 +772,103 @@ This validates that a string value contains a valid U.S. Social Security Number.
 
 Internet Protocol Address IP
 
-This validates that a string value contains a valid IP Adress.
+This validates that a string value contains a valid IP Address.
 
 	Usage: ip
 
 Internet Protocol Address IPv4
 
-This validates that a string value contains a valid v4 IP Adress.
+This validates that a string value contains a valid v4 IP Address.
 
 	Usage: ipv4
 
 Internet Protocol Address IPv6
 
-This validates that a string value contains a valid v6 IP Adress.
+This validates that a string value contains a valid v6 IP Address.
 
 	Usage: ipv6
 
 Classless Inter-Domain Routing CIDR
 
-This validates that a string value contains a valid CIDR Adress.
+This validates that a string value contains a valid CIDR Address.
 
 	Usage: cidr
 
 Classless Inter-Domain Routing CIDRv4
 
-This validates that a string value contains a valid v4 CIDR Adress.
+This validates that a string value contains a valid v4 CIDR Address.
 
 	Usage: cidrv4
 
 Classless Inter-Domain Routing CIDRv6
 
-This validates that a string value contains a valid v6 CIDR Adress.
+This validates that a string value contains a valid v6 CIDR Address.
 
 	Usage: cidrv6
 
 Transmission Control Protocol Address TCP
 
-This validates that a string value contains a valid resolvable TCP Adress.
+This validates that a string value contains a valid resolvable TCP Address.
 
 	Usage: tcp_addr
 
 Transmission Control Protocol Address TCPv4
 
-This validates that a string value contains a valid resolvable v4 TCP Adress.
+This validates that a string value contains a valid resolvable v4 TCP Address.
 
 	Usage: tcp4_addr
 
 Transmission Control Protocol Address TCPv6
 
-This validates that a string value contains a valid resolvable v6 TCP Adress.
+This validates that a string value contains a valid resolvable v6 TCP Address.
 
 	Usage: tcp6_addr
 
 User Datagram Protocol Address UDP
 
-This validates that a string value contains a valid resolvable UDP Adress.
+This validates that a string value contains a valid resolvable UDP Address.
 
 	Usage: udp_addr
 
 User Datagram Protocol Address UDPv4
 
-This validates that a string value contains a valid resolvable v4 UDP Adress.
+This validates that a string value contains a valid resolvable v4 UDP Address.
 
 	Usage: udp4_addr
 
 User Datagram Protocol Address UDPv6
 
-This validates that a string value contains a valid resolvable v6 UDP Adress.
+This validates that a string value contains a valid resolvable v6 UDP Address.
 
 	Usage: udp6_addr
 
 Internet Protocol Address IP
 
-This validates that a string value contains a valid resolvable IP Adress.
+This validates that a string value contains a valid resolvable IP Address.
 
 	Usage: ip_addr
 
 Internet Protocol Address IPv4
 
-This validates that a string value contains a valid resolvable v4 IP Adress.
+This validates that a string value contains a valid resolvable v4 IP Address.
 
 	Usage: ip4_addr
 
 Internet Protocol Address IPv6
 
-This validates that a string value contains a valid resolvable v6 IP Adress.
+This validates that a string value contains a valid resolvable v6 IP Address.
 
 	Usage: ip6_addr
 
 Unix domain socket end point Address
 
-This validates that a string value contains a valid Unix Adress.
+This validates that a string value contains a valid Unix Address.
 
 	Usage: unix_addr
 
 Media Access Control Address MAC
 
-This validates that a string value contains a valid MAC Adress.
+This validates that a string value contains a valid MAC Address.
 
 	Usage: mac
 
@@ -913,7 +913,7 @@ Validator notes:
 		of a regex which conflict with the validation definitions. Although
 		workarounds can be made, they take away from using pure regex's.
 		Furthermore it's quick and dirty but the regex's become harder to
-		maintain and are not reusable, so it's as much a programming philosiphy
+		maintain and are not reusable, so it's as much a programming philosophy
 		as anything.
 
 		In place of this new validator functions should be created; a regex can
