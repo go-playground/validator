@@ -29,6 +29,11 @@ func (v *defaultValidator) ValidateStruct(obj interface{}) error {
 	return nil
 }
 
+func (v *defaultValidator) Engine() interface{} {
+	v.lazyinit()
+	return v.validate
+}
+
 func (v *defaultValidator) lazyinit() {
 	v.once.Do(func() {
 		v.validate = validator.New()
