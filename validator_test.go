@@ -7696,6 +7696,18 @@ func TestUniqueValidation(t *testing.T) {
 		param    interface{}
 		expected bool
 	}{
+		// Arrays
+		{[2]string{"a", "b"}, true},
+		{[2]int{1, 2}, true},
+		{[2]float64{1, 2}, true},
+		{[2]interface{}{"a", "b"}, true},
+		{[2]interface{}{"a", 1}, true},
+		{[2]float64{1, 1}, false},
+		{[2]int{1, 1}, false},
+		{[2]string{"a", "a"}, false},
+		{[2]interface{}{"a", "a"}, false},
+		{[4]interface{}{"a", 1, "b", 1}, false},
+		// Slices
 		{[]string{"a", "b"}, true},
 		{[]int{1, 2}, true},
 		{[]float64{1, 2}, true},
@@ -7706,6 +7718,17 @@ func TestUniqueValidation(t *testing.T) {
 		{[]string{"a", "a"}, false},
 		{[]interface{}{"a", "a"}, false},
 		{[]interface{}{"a", 1, "b", 1}, false},
+		// Maps
+		{map[string]string{"one": "a", "two": "b"}, true},
+		{map[string]int{"one": 1, "two": 2}, true},
+		{map[string]float64{"one": 1, "two": 2}, true},
+		{map[string]interface{}{"one": "a", "two": "b"}, true},
+		{map[string]interface{}{"one": "a", "two": 1}, true},
+		{map[string]float64{"one": 1, "two": 1}, false},
+		{map[string]int{"one": 1, "two": 1}, false},
+		{map[string]string{"one": "a", "two": "a"}, false},
+		{map[string]interface{}{"one": "a", "two": "a"}, false},
+		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
 	}
 
 	validate := New()

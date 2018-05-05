@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"net"
 	"net/url"
@@ -11,8 +13,6 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
-	"crypto/sha256"
-	"bytes"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -187,7 +187,7 @@ func isOneOf(fl FieldLevel) bool {
 	return false
 }
 
-// isUnique is the validation function for validating if each array|slice element is unique
+// isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
 
 	field := fl.Field()
@@ -195,10 +195,17 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
-		m := reflect.MakeMap(reflect.MapOf(fl.Field().Type().Elem(), v.Type()))
+		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
 
 		for i := 0; i < field.Len(); i++ {
 			m.SetMapIndex(field.Index(i), v)
+		}
+		return field.Len() == m.Len()
+	case reflect.Map:
+		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+
+		for _, k := range field.MapKeys() {
+			m.SetMapIndex(field.MapIndex(k), v)
 		}
 		return field.Len() == m.Len()
 	default:
