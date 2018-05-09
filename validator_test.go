@@ -6118,6 +6118,11 @@ func TestEmail(t *testing.T) {
 	errs = validate.Var(s, "email")
 	Equal(t, errs, nil)
 
+	s = "mail@domain_with_underscores.org"
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	s = ""
 	errs = validate.Var(s, "email")
 	NotEqual(t, errs, nil)
