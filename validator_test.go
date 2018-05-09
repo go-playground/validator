@@ -6241,8 +6241,7 @@ func TestNumber(t *testing.T) {
 
 	i := 1
 	errs = validate.Var(i, "number")
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "number")
+	Equal(t, errs, nil)
 }
 
 func TestNumeric(t *testing.T) {
@@ -6285,8 +6284,7 @@ func TestNumeric(t *testing.T) {
 
 	i := 1
 	errs = validate.Var(i, "numeric")
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "numeric")
+	Equal(t, errs, nil)
 }
 
 func TestAlphaNumeric(t *testing.T) {

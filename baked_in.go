@@ -1097,12 +1097,22 @@ func isHexadecimal(fl FieldLevel) bool {
 
 // IsNumber is the validation function for validating if the current field's value is a valid number.
 func isNumber(fl FieldLevel) bool {
-	return numberRegex.MatchString(fl.Field().String())
+	switch fl.Field().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64:
+		return true
+	default:
+		return numberRegex.MatchString(fl.Field().String())
+	}
 }
 
 // IsNumeric is the validation function for validating if the current field's value is a valid numeric value.
 func isNumeric(fl FieldLevel) bool {
-	return numericRegex.MatchString(fl.Field().String())
+	switch fl.Field().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64:
+		return true
+	default:
+		return numericRegex.MatchString(fl.Field().String())
+	}
 }
 
 // IsAlphanum is the validation function for validating if the current field's value is a valid alphanumeric value.

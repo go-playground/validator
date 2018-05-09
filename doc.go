@@ -538,6 +538,7 @@ Numeric
 
 This validates that a string value contains a basic numeric value.
 basic excludes exponents etc...
+for integers or float it returns true.
 
 	Usage: numeric
 
