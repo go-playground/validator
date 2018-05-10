@@ -71,7 +71,7 @@ type Validate struct {
 	structCache      *structCache
 }
 
-// New returns a new instacne of 'validate' with sane defaults.
+// New returns a new instance of 'validate' with sane defaults.
 func New() *Validate {
 
 	tc := new(tagCache)
