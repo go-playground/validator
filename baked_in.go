@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -97,6 +98,7 @@ var (
 		"email":            isEmail,
 		"url":              isURL,
 		"uri":              isURI,
+		"file":             isFile,
 		"base64":           isBase64,
 		"base64url":        isBase64URL,
 		"contains":         contains,
@@ -1055,6 +1057,23 @@ func isURL(fl FieldLevel) bool {
 		}
 
 		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// IsFile is the validation function for validating if the current field's value is a valid file path.
+func isFile(fl FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+		fileInfo, err := os.Stat(field.String())
+		if err != nil {
+			return false
+		}
+
+		return !fileInfo.IsDir()
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
