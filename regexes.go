@@ -39,6 +39,9 @@ const (
 	ethAddressRegexString            = `^0x[0-9a-fA-F]{40}$`
 	ethAddressUpperRegexString       = `^0x[0-9A-F]{40}$`
 	ethAddressLowerRegexString       = `^0x[0-9a-f]{40}$`
+	uRLEncodedRegexString            = `(%[A-Fa-f0-9]{2})`
+	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
+	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
 )
 
 var (
@@ -78,4 +81,7 @@ var (
 	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
 	ethaddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
 	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
+	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
+	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
+	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
 )

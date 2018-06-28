@@ -895,6 +895,27 @@ This validates that a string value contains a valid FQDN.
 
 	Usage: fqdn
 
+HTML Tags
+
+This validates that a string value appears to be an HTML element tag
+including those described at https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+
+	Usage: html
+
+HTML Encoded
+
+This validates that a string value is a proper character reference in decimal
+or hexadecimal format
+
+	Usage: html_encoded
+
+URL Encoded
+
+This validates that a string value is percent-encoded (URL encoded) according
+to https://tools.ietf.org/html/rfc3986#section-2.1
+
+	Usage: url_encoded
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
