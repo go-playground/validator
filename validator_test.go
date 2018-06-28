@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -4444,6 +4445,39 @@ func TestBase64URLValidation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestFileValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty path", "", false},
+		{"regular file", filepath.Join("testdata", "a.go"), true},
+		{"missing file", filepath.Join("testdata", "no.go"), false},
+		{"directory, not a file", "testdata", false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "file")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		validate.Var(6, "file")
+	}, "Bad field type int")
 }
 
 func TestEthereumAddressValidation(t *testing.T) {
