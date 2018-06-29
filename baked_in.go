@@ -146,6 +146,9 @@ var (
 		"fqdn":             isFQDN,
 		"unique":           isUnique,
 		"oneof":            isOneOf,
+		"html":             isHTML,
+		"html_encoded":     isHTMLEncoded,
+		"url_encoded":      isURLEncoded,
 	}
 )
 
@@ -163,6 +166,18 @@ func parseOneOfParam2(s string) []string {
 		oneofValsCacheRWLock.Unlock()
 	}
 	return vals
+}
+
+func isURLEncoded(fl FieldLevel) bool {
+	return uRLEncodedRegex.MatchString(fl.Field().String())
+}
+
+func isHTMLEncoded(fl FieldLevel) bool {
+	return hTMLEncodedRegex.MatchString(fl.Field().String())
+}
+
+func isHTML(fl FieldLevel) bool {
+	return hTMLRegex.MatchString(fl.Field().String())
 }
 
 func isOneOf(fl FieldLevel) bool {
