@@ -308,15 +308,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN必须是一个有效的ISBN号码",
+			expected: "ISBN必须是一个有效的ISBN编号",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10必须是一个有效的ISBN-10号码",
+			expected: "ISBN10必须是一个有效的ISBN-10编号",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13必须是一个有效的ISBN-13号码",
+			expected: "ISBN13必须是一个有效的ISBN-13编号",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -336,7 +336,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains必须包含的文本'purpose'",
+			expected: "Contains必须包含文本'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
@@ -344,7 +344,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email必须是一个有效的邮箱地址",
+			expected: "Email必须是一个有效的邮箱",
 		},
 		{
 			ns:       "Test.URL",
@@ -368,191 +368,191 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString必须是有效的HSLA颜色",
+			expected: "HSLAColorString必须是一个有效的HSLA颜色",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString must be a valid hexadecimal",
+			expected: "HexadecimalString必须是一个有效的十六进制",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString must be a valid HEX color",
+			expected: "HexColorString必须是一个有效的十六进制颜色",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString must be a valid number",
+			expected: "NumberString必须是一个有效的数字",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString must be a valid numeric value",
+			expected: "NumericString必须是一个有效的数值",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString can only contain alphanumeric characters",
+			expected: "AlphanumString只能包含字母和数字",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString can only contain alphabetic characters",
+			expected: "AlphaString只能包含字母",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString must be less than MaxString",
+			expected: "LtFieldString必须小于MaxString",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString must be less than or equal to MaxString",
+			expected: "LteFieldString必须小于或等于MaxString",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString must be greater than MaxString",
+			expected: "GtFieldString必须大于MaxString",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString must be greater than or equal to MaxString",
+			expected: "GteFieldString必须大于或等于MaxString",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString cannot be equal to EqFieldString",
+			expected: "NeFieldString不能等于EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString must be less than Inner.LtCSFieldString",
+			expected: "LtCSFieldString必须小于Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString must be less than or equal to Inner.LteCSFieldString",
+			expected: "LteCSFieldString必须小于或等于Inner.LteCSFieldString",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString must be greater than Inner.GtCSFieldString",
+			expected: "GtCSFieldString必须大于Inner.GtCSFieldString",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString must be greater than or equal to Inner.GteCSFieldString",
+			expected: "GteCSFieldString必须大于或等于Inner.GteCSFieldString",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString cannot be equal to Inner.NeCSFieldString",
+			expected: "NeCSFieldString不能等于Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString must be equal to Inner.EqCSFieldString",
+			expected: "EqCSFieldString必须等于Inner.EqCSFieldString",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString must be equal to MaxString",
+			expected: "EqFieldString必须等于MaxString",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString must be at least 3 characters in length",
+			expected: "GteString长度必须至少为3个字符",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber must be 5.56 or greater",
+			expected: "GteNumber必须大于或等于5.56",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple must contain at least 2 items",
+			expected: "GteMultiple至少要包含2项",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime must be greater than or equal to the current Date & Time",
+			expected: "GteTime必须大于或等于当前日期和时间",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString must be greater than 3 characters in length",
+			expected: "GtString长度必须大于3个字符",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber must be greater than 5.56",
+			expected: "GtNumber必须大于5.56",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple must contain more than 2 items",
+			expected: "GtMultiple必须大于2项",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime must be greater than the current Date & Time",
+			expected: "GtTime必须大于当前日期和时间",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
+			expected: "LteString长度不能超过3个字符",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber must be 5.56 or less",
+			expected: "LteNumber必须小于或等于5.56",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "LteMultiple最多只能包含2项",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "LteTime必须小于或等于当前日期和时间",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString must be less than 3 characters in length",
+			expected: "LtString长度必须小于3个字符",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber must be less than 5.56",
+			expected: "LtNumber必须小于5.56",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple must contain less than 2 items",
+			expected: "LtMultiple只能包含小于2项",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime必须小于当前日期和时间",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString should not be equal to ",
+			expected: "NeString不应该等于 ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber should not be equal to 0.00",
+			expected: "NeNumber不应该等于0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple should not be equal to 0",
+			expected: "NeMultiple不应该等于0",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString is not equal to 3",
+			expected: "EqString不等于3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber is not equal to 2.33",
+			expected: "EqNumber不等于2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple is not equal to 7",
+			expected: "EqMultiple不等于7",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString must be a maximum of 3 characters in length",
+			expected: "MaxString长度不能超过3个字符",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber must be 1,113.00 or less",
+			expected: "MaxNumber必须小于或等于1,113.00",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "MaxMultiple最多只能包含7项",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString must be at least 1 character in length",
+			expected: "MinString长度必须至少为1个字符",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber must be 1,113.00 or greater",
+			expected: "MinNumber最小只能为1,113.00",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple must contain at least 7 items",
+			expected: "MinMultiple至少要包含7项",
 		},
 		{
 			ns:       "Test.LenString",
@@ -560,59 +560,59 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber must be equal to 1,113.00",
+			expected: "LenNumber必须等于1,113.00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 items",
+			expected: "LenMultiple必须包含7项",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString is a required field",
+			expected: "RequiredString是一个必填的字段",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber is a required field",
+			expected: "RequiredNumber是一个必填的字段",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple is a required field",
+			expected: "RequiredMultiple是一个必填的字段",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen must be at least 10 characters in length",
+			expected: "StrPtrMinLen长度必须至少为10个字符",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+			expected: "StrPtrMaxLen长度必须最大为1个字符",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen must be 2 characters in length",
+			expected: "StrPtrLen长度必须是2个字符",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt must be less than 1 character in length",
+			expected: "StrPtrLt长度必须小于1个字符",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "StrPtrLte长度必须最大为1个字符",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt must be greater than 10 characters in length",
+			expected: "StrPtrGt长度必须大于10个字符",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte must be at least 10 characters in length",
+			expected: "StrPtrGte长度必须至少为10个字符",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString must be one of [red green]",
+			expected: "OneOfString必须是[red green]中的一个",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt must be one of [5 63]",
+			expected: "OneOfInt必须是[5 63]中的一个",
 		},
 	}
 

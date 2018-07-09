@@ -41,7 +41,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				//	return
 				//}
 
-				if err = ut.AddCardinal("len-string-character", "{0}字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -136,11 +136,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}必须大于或者等于{1}", false); err != nil {
+				if err = ut.Add("min-number", "{0}必须大于或等于{1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "{0}必须最少包含{1}", false); err != nil {
+				if err = ut.Add("min-items", "{0}必须至少包含{1}", false); err != nil {
 					return
 				}
 				//if err = ut.AddCardinal("min-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
@@ -227,7 +227,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-number", "{0}必须小于或者等于{1}", false); err != nil {
+				if err = ut.Add("max-number", "{0}必须小于或等于{1}", false); err != nil {
 					return
 				}
 
@@ -464,15 +464,15 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				//	return
 				//}
 
-				if err = ut.AddCardinal("lte-string-character", "{0}字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0}必须小于或者等于{1}", false); err != nil {
+				if err = ut.Add("lte-number", "{0}必须小于或等于{1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0}最大数不能超过{1}", false); err != nil {
+				if err = ut.Add("lte-items", "{0}最多只能包含{1}", false); err != nil {
 					return
 				}
 
@@ -480,11 +480,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				//	return
 				//}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0}小于或者等于当前日期和时间", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0}小于或等于当前日期和时间", false); err != nil {
 					return
 				}
 
@@ -591,7 +591,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0}数量必须大于{1}", false); err != nil {
+				if err = ut.Add("gt-items", "{0}必须大于{1}", false); err != nil {
 					return
 				}
 
@@ -694,7 +694,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("gte-string", "{0}长度只能大于或者等于{1}", false); err != nil {
+				if err = ut.Add("gte-string", "{0}长度必须至少为{1}", false); err != nil {
 					return
 				}
 
@@ -706,11 +706,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}必须大于或者等于{1}", false); err != nil {
+				if err = ut.Add("gte-number", "{0}必须大于或等于{1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0}必须大于或者等于{1}", false); err != nil {
+				if err = ut.Add("gte-items", "{0}必须至少包含{1}", false); err != nil {
 					return
 				}
 
@@ -722,7 +722,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0}必须大于或者等于当前日期和时间", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0}必须大于或等于当前日期和时间", false); err != nil {
 					return
 				}
 
@@ -871,7 +871,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0}必须大于或者等于{1}",
+			translation: "{0}必须大于或等于{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -901,7 +901,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "{0}必须小于或者等于{1}",
+			translation: "{0}必须小于或等于{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -946,7 +946,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0} must be greater than or equal to {1}",
+			translation: "{0}必须大于或等于{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -976,7 +976,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "{0}必须小于或者等于{1}",
+			translation: "{0}必须小于或等于{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1026,7 +1026,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "rgba",
-			translation: "{0} 必须是一个有效的RGBA颜色",
+			translation: "{0}必须是一个有效的RGBA颜色",
 			override:    false,
 		},
 		{
@@ -1036,7 +1036,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "hsla",
-			translation: "{0}必须是一个有效的HSLA颜色r",
+			translation: "{0}必须是一个有效的HSLA颜色",
 			override:    false,
 		},
 		{
@@ -1136,37 +1136,37 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0}必须是有效的ISBN编号",
+			translation: "{0}必须是一个有效的ISBN编号",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0}必须是有效的ISBN-10编号",
+			translation: "{0}必须是一个有效的ISBN-10编号",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0}必须是有效的ISBN-13编号",
+			translation: "{0}必须是一个有效的ISBN-13编号",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0}必须是有效的UUID",
+			translation: "{0}必须是一个有效的UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0}必须是有效的版本V3 UUID",
+			translation: "{0}必须是一个有效的V3 UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0}必须是有效的版本V4 UUID",
+			translation: "{0}必须是一个有效的V4 UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0}必须是有效的版本V5 UUID",
+			translation: "{0}必须是一个有效的V5 UUID",
 			override:    false,
 		},
 		{
