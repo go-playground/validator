@@ -17,7 +17,7 @@ type FieldLevel interface {
 	Field() reflect.Value
 
 	// returns the field's name with the tag
-	// name takeing precedence over the fields actual name.
+	// name taking precedence over the fields actual name.
 	FieldName() string
 
 	// returns the struct field's name

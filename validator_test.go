@@ -5,8 +5,10 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -1015,7 +1017,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltecsfield")
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 6)
@@ -1112,7 +1114,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltcsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltcsfield")
@@ -1220,7 +1222,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtecsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "gtecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtecsfield")
@@ -1316,7 +1318,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtcsfield")
 
-	// this test is for the WARNING about unforseen validation issues.
+	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "gtcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtcsfield")
@@ -4398,6 +4400,283 @@ func TestBase64Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "base64")
 }
 
+func TestBase64URLValidation(t *testing.T) {
+	validate := New()
+
+	testCases := []struct {
+		decoded, encoded string
+		success          bool
+	}{
+		// empty string, although a valid base64 string, should fail
+		{"", "", false},
+		// invalid length
+		{"", "a", false},
+		// base64 with padding
+		{"f", "Zg==", true},
+		{"fo", "Zm8=", true},
+		// base64 without padding
+		{"foo", "Zm9v", true},
+		{"", "Zg", false},
+		{"", "Zm8", false},
+		// base64 URL safe encoding with invalid, special characters '+' and '/'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
+		// base64 URL safe encoding with valid, special characters '-' and '_'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l-", true},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA_lz", true},
+		// non base64 characters
+		{"", "@mc=", false},
+		{"", "Zm 9", false},
+	}
+	for _, tc := range testCases {
+		err := validate.Var(tc.encoded, "base64url")
+		if tc.success {
+			Equal(t, err, nil)
+			// make sure encoded value is decoded back to the expected value
+			d, innerErr := base64.URLEncoding.DecodeString(tc.encoded)
+			Equal(t, innerErr, nil)
+			Equal(t, tc.decoded, string(d))
+		} else {
+			NotEqual(t, err, nil)
+			if len(tc.encoded) > 0 {
+				// make sure that indeed the encoded value was faulty
+				_, err := base64.URLEncoding.DecodeString(tc.encoded)
+				NotEqual(t, err, nil)
+			}
+		}
+	}
+}
+
+func TestFileValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty path", "", false},
+		{"regular file", filepath.Join("testdata", "a.go"), true},
+		{"missing file", filepath.Join("testdata", "no.go"), false},
+		{"directory, not a file", "testdata", false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "file")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		validate.Var(6, "file")
+	}, "Bad field type int")
+}
+
+func TestEthereumAddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bECFacbf130", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBitcoinAddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"x", false},
+		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
+		{"1A1zP1ePQGefi2DMPTifTL5SLmv7DivfNa", false},
+		{"1P9RQEr2XeE3PEb44ZE35sfZRRW1JH8Uqx", false},
+		{"3P14159I73E4gFr7JterCCQh9QjiTjiZrG", false},
+		{"3P141597f3E4gFr7JterCCQh9QjiTjiZrG", false},
+		{"37qgekLpCCHrQuSjvX3fs496FWTGsHFHizjJAs6NPcR47aefnnCWECAhHV6E3g4YN7u7Yuwod5Y", false},
+		{"dzb7VV1Ui55BARxv7ATxAtCUeJsANKovDGWFVgpTbhq9gvPqP3yv", false},
+		{"MuNu7ZAEDFiHthiunm7dPjwKqrVNCM3mAz6rP9zFveQu14YA8CxExSJTHcVP9DErn6u84E6Ej7S", false},
+		{"rPpQpYknyNQ5AEHuY6H8ijJJrYc2nDKKk9jjmKEXsWzyAQcFGpDLU2Zvsmoi8JLR7hAwoy3RQWf", false},
+		{"4Uc3FmN6NQ6zLBK5QQBXRBUREaaHwCZYsGCueHauuDmJpZKn6jkEskMB2Zi2CNgtb5r6epWEFfUJq", false},
+		{"7aQgR5DFQ25vyXmqZAWmnVCjL3PkBcdVkBUpjrjMTcghHx3E8wb", false},
+		{"17QpPprjeg69fW1DV8DcYYCKvWjYhXvWkov6MJ1iTTvMFj6weAqW7wybZeH57WTNxXVCRH4veVs", false},
+		{"KxuACDviz8Xvpn1xAh9MfopySZNuyajYMZWz16Dv2mHHryznWUp3", false},
+		{"7nK3GSmqdXJQtdohvGfJ7KsSmn3TmGqExug49583bDAL91pVSGq5xS9SHoAYL3Wv3ijKTit65th", false},
+		{"cTivdBmq7bay3RFGEBBuNfMh2P1pDCgRYN2Wbxmgwr4ki3jNUL2va", false},
+		{"gjMV4vjNjyMrna4fsAr8bWxAbwtmMUBXJS3zL4NJt5qjozpbQLmAfK1uA3CquSqsZQMpoD1g2nk", false},
+		{"emXm1naBMoVzPjbk7xpeTVMFy4oDEe25UmoyGgKEB1gGWsK8kRGs", false},
+		{"7VThQnNRj1o3Zyvc7XHPRrjDf8j2oivPTeDXnRPYWeYGE4pXeRJDZgf28ppti5hsHWXS2GSobdqyo", false},
+		{"1G9u6oCVCPh2o8m3t55ACiYvG1y5BHewUkDSdiQarDcYXXhFHYdzMdYfUAhfxn5vNZBwpgUNpso", false},
+		{"31QQ7ZMLkScDiB4VyZjuptr7AEc9j1SjstF7pRoLhHTGkW4Q2y9XELobQmhhWxeRvqcukGd1XCq", false},
+		{"DHqKSnpxa8ZdQyH8keAhvLTrfkyBMQxqngcQA5N8LQ9KVt25kmGN", false},
+		{"2LUHcJPbwLCy9GLH1qXmfmAwvadWw4bp4PCpDfduLqV17s6iDcy1imUwhQJhAoNoN1XNmweiJP4i", false},
+		{"7USRzBXAnmck8fX9HmW7RAb4qt92VFX6soCnts9s74wxm4gguVhtG5of8fZGbNPJA83irHVY6bCos", false},
+		{"1DGezo7BfVebZxAbNT3XGujdeHyNNBF3vnficYoTSp4PfK2QaML9bHzAMxke3wdKdHYWmsMTJVu", false},
+		{"2D12DqDZKwCxxkzs1ZATJWvgJGhQ4cFi3WrizQ5zLAyhN5HxuAJ1yMYaJp8GuYsTLLxTAz6otCfb", false},
+		{"8AFJzuTujXjw1Z6M3fWhQ1ujDW7zsV4ePeVjVo7D1egERqSW9nZ", false},
+		{"163Q17qLbTCue8YY3AvjpUhotuaodLm2uqMhpYirsKjVqnxJRWTEoywMVY3NbBAHuhAJ2cF9GAZ", false},
+		{"2MnmgiRH4eGLyLc9eAqStzk7dFgBjFtUCtu", false},
+		{"461QQ2sYWxU7H2PV4oBwJGNch8XVTYYbZxU", false},
+		{"2UCtv53VttmQYkVU4VMtXB31REvQg4ABzs41AEKZ8UcB7DAfVzdkV9JDErwGwyj5AUHLkmgZeobs", false},
+		{"cSNjAsnhgtiFMi6MtfvgscMB2Cbhn2v1FUYfviJ1CdjfidvmeW6mn", false},
+		{"gmsow2Y6EWAFDFE1CE4Hd3Tpu2BvfmBfG1SXsuRARbnt1WjkZnFh1qGTiptWWbjsq2Q6qvpgJVj", false},
+		{"nksUKSkzS76v8EsSgozXGMoQFiCoCHzCVajFKAXqzK5on9ZJYVHMD5CKwgmX3S3c7M1U3xabUny", false},
+		{"L3favK1UzFGgdzYBF2oBT5tbayCo4vtVBLJhg2iYuMeePxWG8SQc", false},
+		{"7VxLxGGtYT6N99GdEfi6xz56xdQ8nP2dG1CavuXx7Rf2PrvNMTBNevjkfgs9JmkcGm6EXpj8ipyPZ ", false},
+		{"2mbZwFXF6cxShaCo2czTRB62WTx9LxhTtpP", false},
+		{"dB7cwYdcPSgiyAwKWL3JwCVwSk6epU2txw", false},
+		{"HPhFUhUAh8ZQQisH8QQWafAxtQYju3SFTX", false},
+		{"4ctAH6AkHzq5ioiM1m9T3E2hiYEev5mTsB", false},
+		{"31uEbMgunupShBVTewXjtqbBv5MndwfXhb", false},
+		{"175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W", false},
+		{"Hn1uFi4dNexWrqARpjMqgT6cX1UsNPuV3cHdGg9ExyXw8HTKadbktRDtdeVmY3M1BxJStiL4vjJ", false},
+		{"Sq3fDbvutABmnAHHExJDgPLQn44KnNC7UsXuT7KZecpaYDMU9Txs", false},
+		{"6TqWyrqdgUEYDQU1aChMuFMMEimHX44qHFzCUgGfqxGgZNMUVWJ", false},
+		{"giqJo7oWqFxNKWyrgcBxAVHXnjJ1t6cGoEffce5Y1y7u649Noj5wJ4mmiUAKEVVrYAGg2KPB3Y4", false},
+		{"cNzHY5e8vcmM3QVJUcjCyiKMYfeYvyueq5qCMV3kqcySoLyGLYUK", false},
+		{"37uTe568EYc9WLoHEd9jXEvUiWbq5LFLscNyqvAzLU5vBArUJA6eydkLmnMwJDjkL5kXc2VK7ig", false},
+		{"EsYbG4tWWWY45G31nox838qNdzksbPySWc", false},
+		{"nbuzhfwMoNzA3PaFnyLcRxE9bTJPDkjZ6Rf6Y6o2ckXZfzZzXBT", false},
+		{"cQN9PoxZeCWK1x56xnz6QYAsvR11XAce3Ehp3gMUdfSQ53Y2mPzx", false},
+		{"1Gm3N3rkef6iMbx4voBzaxtXcmmiMTqZPhcuAepRzYUJQW4qRpEnHvMojzof42hjFRf8PE2jPde", false},
+		{"2TAq2tuN6x6m233bpT7yqdYQPELdTDJn1eU", false},
+		{"ntEtnnGhqPii4joABvBtSEJG6BxjT2tUZqE8PcVYgk3RHpgxgHDCQxNbLJf7ardf1dDk2oCQ7Cf", false},
+		{"Ky1YjoZNgQ196HJV3HpdkecfhRBmRZdMJk89Hi5KGfpfPwS2bUbfd", false},
+		{"2A1q1YsMZowabbvta7kTy2Fd6qN4r5ZCeG3qLpvZBMzCixMUdkN2Y4dHB1wPsZAeVXUGD83MfRED", false},
+		{"1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62i", true},
+		{"1Ax4gZtb7gAit2TivwejZHYtNNLT18PUXJ", true},
+		{"1C5bSj1iEGUgSTbziymG7Cn18ENQuT36vv", true},
+		{"1Gqk4Tv79P91Cc1STQtU3s1W6277M2CVWu", true},
+		{"1JwMWBVLtiqtscbaRHai4pqHokhFCbtoB4", true},
+		{"19dcawoKcZdQz365WpXWMhX6QCUpR9SY4r", true},
+		{"13p1ijLwsnrcuyqcTvJXkq2ASdXqcnEBLE", true},
+		{"1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", true},
+		{"3P14159f73E4gFr7JterCCQh9QjiTjiZrG", true},
+		{"3CMNFxN1oHBc4R1EpboAL5yzHGgE611Xou", true},
+		{"3QjYXhTkvuj8qPaXHTTWb5wjXhdsLAAWVy", true},
+		{"3AnNxabYGoTxYiTEZwFEnerUoeFXK2Zoks", true},
+		{"33vt8ViH5jsr115AGkW6cEmEz9MpvJSwDk", true},
+		{"3QCzvfL4ZRvmJFiWWBVwxfdaNBT8EtxB5y", true},
+		{"37Sp6Rv3y4kVd1nQ1JV5pfqXccHNyZm1x3", true},
+		{"3ALJH9Y951VCGcVZYAdpA3KchoP9McEj1G", true},
+		{"12KYrjTdVGjFMtaxERSk3gphreJ5US8aUP", true},
+		{"12QeMLzSrB8XH8FvEzPMVoRxVAzTr5XM2y", true},
+		{"1oNLrsHnBcR6dpaBpwz3LSwutbUNkNSjs", true},
+		{"1SQHtwR5oJRKLfiWQ2APsAd9miUc4k2ez", true},
+		{"116CGDLddrZhMrTwhCVJXtXQpxygTT1kHd", true},
+		{"3NJZLcZEEYBpxYEUGewU4knsQRn1WM5Fkt", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBitcoinBech32AddressValidation(t *testing.T) {
+
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"bc1rw5uspcuh", false},
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5", false},
+		{"BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2", false},
+		{"qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty", false},
+		{"bc1rw5uspcuh", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"BC1QW508d6QEJxTDG4y5R3ZArVARY0C5XW7KV8F3T4", false},
+		{"BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P", false},
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5", false},
+		{"bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90", false},
+		{"bc1pw508d6qejxtdg4y5r3zarqfsj6c3", false},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du", false},
+		{"bc1gmk9yu", false},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv", false},
+		{"BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4", true},
+		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx", true},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3", true},
+		{"BC1SW50QA3JX3S", true},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj", true},
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "btc_addr_bech32")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d btc_addr_bech32 failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "btc_addr_bech32" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestNoStructLevelValidation(t *testing.T) {
 
 	type Inner struct {
@@ -5873,6 +6152,11 @@ func TestEmail(t *testing.T) {
 	errs = validate.Var(s, "email")
 	Equal(t, errs, nil)
 
+	s = "mail@domain_with_underscores.org"
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	s = ""
 	errs = validate.Var(s, "email")
 	NotEqual(t, errs, nil)
@@ -5991,8 +6275,7 @@ func TestNumber(t *testing.T) {
 
 	i := 1
 	errs = validate.Var(i, "number")
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "number")
+	Equal(t, errs, nil)
 }
 
 func TestNumeric(t *testing.T) {
@@ -6035,8 +6318,7 @@ func TestNumeric(t *testing.T) {
 
 	i := 1
 	errs = validate.Var(i, "numeric")
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "numeric")
+	Equal(t, errs, nil)
 }
 
 func TestAlphaNumeric(t *testing.T) {
@@ -6593,8 +6875,8 @@ func TestTranslations(t *testing.T) {
 
 		}, func(ut ut.Translator, fe FieldError) string {
 
-			t, err := ut.T(fe.Tag(), fe.Field())
-			if err != nil {
+			t, transErr := ut.T(fe.Tag(), fe.Field())
+			if transErr != nil {
 				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
 				return fe.(*fieldError).Error()
 			}
@@ -7451,6 +7733,18 @@ func TestUniqueValidation(t *testing.T) {
 		param    interface{}
 		expected bool
 	}{
+		// Arrays
+		{[2]string{"a", "b"}, true},
+		{[2]int{1, 2}, true},
+		{[2]float64{1, 2}, true},
+		{[2]interface{}{"a", "b"}, true},
+		{[2]interface{}{"a", 1}, true},
+		{[2]float64{1, 1}, false},
+		{[2]int{1, 1}, false},
+		{[2]string{"a", "a"}, false},
+		{[2]interface{}{"a", "a"}, false},
+		{[4]interface{}{"a", 1, "b", 1}, false},
+		// Slices
 		{[]string{"a", "b"}, true},
 		{[]int{1, 2}, true},
 		{[]float64{1, 2}, true},
@@ -7461,6 +7755,17 @@ func TestUniqueValidation(t *testing.T) {
 		{[]string{"a", "a"}, false},
 		{[]interface{}{"a", "a"}, false},
 		{[]interface{}{"a", 1, "b", 1}, false},
+		// Maps
+		{map[string]string{"one": "a", "two": "b"}, true},
+		{map[string]int{"one": 1, "two": 2}, true},
+		{map[string]float64{"one": 1, "two": 2}, true},
+		{map[string]interface{}{"one": "a", "two": "b"}, true},
+		{map[string]interface{}{"one": "a", "two": 1}, true},
+		{map[string]float64{"one": 1, "two": 1}, false},
+		{map[string]int{"one": 1, "two": 1}, false},
+		{map[string]string{"one": "a", "two": "a"}, false},
+		{map[string]interface{}{"one": "a", "two": "a"}, false},
+		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
 	}
 
 	validate := New()
@@ -7485,6 +7790,129 @@ func TestUniqueValidation(t *testing.T) {
 		}
 	}
 	PanicMatches(t, func() { validate.Var(1.0, "unique") }, "Bad field type float64")
+}
+
+func TestHTMLValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"<html>", true},
+		{"<script>", true},
+		{"<stillworks>", true},
+		{"</html", false},
+		{"</script>", true},
+		{"<//script>", false},
+		{"<123nonsense>", false},
+		{"test", false},
+		{"&example", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "html")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d html failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d html failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "html" {
+					t.Fatalf("Index: %d html failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestHTMLEncodedValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"&#x3c;", true},
+		{"&#xaf;", true},
+		{"&#x00;", true},
+		{"&#xf0;", true},
+		{"&#x3c", true},
+		{"&#xaf", true},
+		{"&#x00", true},
+		{"&#xf0", true},
+		{"&#ab", true},
+		{"&lt;", true},
+		{"&gt;", true},
+		{"&quot;", true},
+		{"&amp;", true},
+		{"#x0a", false},
+		{"&x00", false},
+		{"&#x1z", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "html_encoded")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d html_encoded failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d html_enocded failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "html_encoded" {
+					t.Fatalf("Index: %d html_encoded failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestURLEncodedValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"%20", true},
+		{"%af", true},
+		{"%ff", true},
+		{"<%az", false},
+		{"%test%", false},
+		{"a%b", false},
+		{"1%2", false},
+		{"%%a%%", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "url_encoded")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d url_encoded failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d url_enocded failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "url_encoded" {
+					t.Fatalf("Index: %d url_encoded failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
 }
 
 func TestKeys(t *testing.T) {
@@ -7567,7 +7995,7 @@ func TestKeys(t *testing.T) {
 	// test bad tag definitions
 
 	PanicMatches(t, func() { validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
-	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceeded by the 'dive' tag")
+	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
 
 	// test custom tag name
 	validate = New()
