@@ -318,7 +318,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 	vd.ffn = fn
 	// vd.hasExcludes = false // only need to reset in StructPartial and StructExcept
 
-	vd.validateStruct(context.Background(), top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
+	vd.validateStruct(ctx, top, val, val.Type(), vd.ns[0:0], vd.actualNs[0:0], nil)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs
