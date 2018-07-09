@@ -452,7 +452,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple至少要包含2项",
+			expected: "GteMultiple必须至少包含2项",
 		},
 		{
 			ns:       "Test.GteTime",
@@ -500,7 +500,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple只能包含小于2项",
+			expected: "LtMultiple必须包含少于2项",
 		},
 		{
 			ns:       "Test.LtTime",
@@ -508,15 +508,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString不应该等于 ",
+			expected: "NeString不能等于",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber不应该等于0.00",
+			expected: "NeNumber不能等于0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple不应该等于0",
+			expected: "NeMultiple不能等于0",
 		},
 		{
 			ns:       "Test.EqString",
@@ -552,7 +552,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple至少要包含7项",
+			expected: "MinMultiple必须至少包含7项",
 		},
 		{
 			ns:       "Test.LenString",
@@ -568,15 +568,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString是一个必填的字段",
+			expected: "RequiredString为必填字段",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber是一个必填的字段",
+			expected: "RequiredNumber为必填字段",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple是一个必填的字段",
+			expected: "RequiredMultiple为必填字段",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
@@ -584,7 +584,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen长度必须最大为1个字符",
+			expected: "StrPtrMaxLen长度不能超过1个字符",
 		},
 		{
 			ns:       "Test.StrPtrLen",
@@ -596,7 +596,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte长度必须最大为1个字符",
+			expected: "StrPtrLte长度不能超过1个字符",
 		},
 		{
 			ns:       "Test.StrPtrGt",

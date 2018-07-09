@@ -33,7 +33,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("len-string", "{0}长度必须为{1}", false); err != nil {
+				if err = ut.Add("len-string", "{0}长度必须是{1}", false); err != nil {
 					return
 				}
 
@@ -124,7 +124,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("min-string", "{0}长度最小只能为{1}", false); err != nil {
+				if err = ut.Add("min-string", "{0}长度必须至少为{1}", false); err != nil {
 					return
 				}
 
@@ -136,7 +136,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}必须大于或等于{1}", false); err != nil {
+				if err = ut.Add("min-number", "{0}最小只能为{1}", false); err != nil {
 					return
 				}
 
@@ -215,7 +215,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("max-string", "{0}长度最大只能为{1}", false); err != nil {
+				if err = ut.Add("max-string", "{0}长度不能超过{1}", false); err != nil {
 					return
 				}
 
@@ -231,7 +231,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-items", "{0}包含最大数量为{1}", false); err != nil {
+				if err = ut.Add("max-items", "{0}最多只能包含{1}", false); err != nil {
 					return
 				}
 				//if err = ut.AddCardinal("max-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
@@ -352,7 +352,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0}包含最小数量为{1}", false); err != nil {
+				if err = ut.Add("lt-items", "{0}必须包含少于{1}", false); err != nil {
 					return
 				}
 
@@ -484,7 +484,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0}小于或等于当前日期和时间", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0}必须小于或等于当前日期和时间", false); err != nil {
 					return
 				}
 
@@ -1296,7 +1296,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "oneof",
-			translation: "{0}必须是[{1}]的其中一个",
+			translation: "{0}必须是[{1}]中的一个",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
