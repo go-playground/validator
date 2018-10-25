@@ -122,7 +122,7 @@ type FieldError interface {
 	// fields actual name.
 	//
 	// eq. JSON name "fname"
-	// see ActualField for comparison
+	// see StructField for comparison
 	Field() string
 
 	// returns the fields actual name from the struct, when able to determine.
