@@ -8149,3 +8149,13 @@ func TestKeyOrs(t *testing.T) {
 	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "okkey", "eq=testkey|eq=testkeyok")
 	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
 }
+
+func TestStructLevelValidationsPointerPassing(t *testing.T) {
+	v1 := New()
+	err1 := v1.RegisterStructValidation(StructValidationTestStruct, &TestStruct{})
+	NotEqual(t, err1, nil)
+
+	v2 := New()
+	err2 := v2.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
+	Equal(t, err2, nil)
+}
