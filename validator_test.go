@@ -8154,6 +8154,8 @@ func TestStructLevelValidationsPointerPassing(t *testing.T) {
 	v1 := New()
 	err1 := v1.RegisterStructValidation(StructValidationTestStruct, &TestStruct{})
 	NotEqual(t, err1, nil)
+	Equal(t, err1.Error(),
+		"Type must be a non-pointer, *validator.TestStruct is a pointer")
 
 	v2 := New()
 	err2 := v2.RegisterStructValidation(StructValidationTestStruct, TestStruct{})

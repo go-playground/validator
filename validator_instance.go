@@ -210,7 +210,9 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 
 	for _, t := range types {
 		if reflect.ValueOf(t).Kind() == reflect.Ptr {
-			return fmt.Errorf("error")
+			return fmt.Errorf(
+				"Type must be a non-pointer, %s is a pointer",
+				reflect.TypeOf(t))
 		}
 	}
 
