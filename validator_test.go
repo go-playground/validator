@@ -8152,12 +8152,13 @@ func TestKeyOrs(t *testing.T) {
 
 func TestStructLevelValidationsPointerPassing(t *testing.T) {
 	v1 := New()
-	err1 := v1.RegisterStructValidation(StructValidationTestStruct, &TestStruct{})
-	NotEqual(t, err1, nil)
-	Equal(t, err1.Error(),
-		"Type must be a non-pointer, *validator.TestStruct is a pointer")
+	v1.RegisterStructValidation(StructValidationTestStruct, &TestStruct{})
 
-	v2 := New()
-	err2 := v2.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
-	Equal(t, err2, nil)
+	tst := &TestStruct{
+		String: "good value",
+	}
+
+	errs := v1.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
 }

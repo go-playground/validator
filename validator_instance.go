@@ -189,38 +189,31 @@ func (v *Validate) RegisterAlias(alias, tags string) {
 
 // RegisterStructValidation registers a StructLevelFunc against a number of types.
 //
-// It returns error when type being passed is a pointer.
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interface{}) error {
-	return v.RegisterStructValidationCtx(wrapStructLevelFunc(fn), types...)
+func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interface{}) {
+	v.RegisterStructValidationCtx(wrapStructLevelFunc(fn), types...)
 }
 
 // RegisterStructValidationCtx registers a StructLevelFuncCtx against a number of types and allows passing
 // of contextual validation information via context.Context.
 //
-// It returns error when type being passed is a pointer.
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...interface{}) error {
+func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...interface{}) {
 
 	if v.structLevelFuncs == nil {
 		v.structLevelFuncs = make(map[reflect.Type]StructLevelFuncCtx)
 	}
 
 	for _, t := range types {
-		if reflect.ValueOf(t).Kind() == reflect.Ptr {
-			return fmt.Errorf(
-				"Type must be a non-pointer, %s is a pointer",
-				reflect.TypeOf(t))
+		tv := reflect.ValueOf(t)
+		if tv.Kind() == reflect.Ptr {
+			t = reflect.Indirect(tv).Interface()
 		}
-	}
 
-	for _, t := range types {
 		v.structLevelFuncs[reflect.TypeOf(t)] = fn
 	}
-
-	return nil
 }
 
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
