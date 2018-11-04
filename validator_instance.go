@@ -207,6 +207,11 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 	}
 
 	for _, t := range types {
+		tv := reflect.ValueOf(t)
+		if tv.Kind() == reflect.Ptr {
+			t = reflect.Indirect(tv).Interface()
+		}
+
 		v.structLevelFuncs[reflect.TypeOf(t)] = fn
 	}
 }
