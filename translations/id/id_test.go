@@ -336,7 +336,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains harus berisi teks 'purpose'",
+			expected: "Contains harus berisi teks 'tujuan'",
 		},
 		{
 			ns:       "Test.Base64",
