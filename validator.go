@@ -551,7 +551,7 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	if first || ct == nil || ct.typeof != typeStructOnly {
 
 		//By hxmhlt @2018.11.9
-		// Modify range map to range sorted mapKey slice for sorting the struct field , promise my custom validation call ordered to make it compatible with some mock library such as gp-sqlmock
+		// Modify range map to range sorted mapKey slice for sorting the struct field , promise my custom validation call ordered to make it compatible with some mock library such as go-sqlmock
 		var keys []int
 		for k := range cs.fields {
 			keys = append(keys, k)
