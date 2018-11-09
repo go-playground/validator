@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -549,7 +550,17 @@ func (v *Validate) tranverseStruct(topStruct reflect.Value, currentStruct reflec
 	// if present
 	if first || ct == nil || ct.typeof != typeStructOnly {
 
-		for _, f := range cs.fields {
+		//By hxmhlt @2018.11.9
+		// Modify range map to range sorted mapKey slice for sorting the struct field , promise my custom validation call ordered to make it compatible with some mock library such as gp-sqlmock
+		var keys []int
+		for k := range cs.fields {
+			keys = append(keys, k)
+		}
+		sort.Ints(keys)
+
+		for _, k := range keys {
+
+			f := cs.fields[k]
 
 			if partial {
 
