@@ -1294,6 +1294,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0} must contain unique values",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0} must be a valid color",
 			override:    false,
