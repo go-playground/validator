@@ -44,11 +44,11 @@ func (ve ValidationErrors) Error() string {
 
 	buff := bytes.NewBufferString("")
 
-	var fe *fieldError
+	var fe FieldError
 
 	for i := 0; i < len(ve); i++ {
 
-		fe = ve[i].(*fieldError)
+		fe = ve[i].(FieldError)
 		buff.WriteString(fe.Error())
 		buff.WriteString("\n")
 	}
@@ -61,10 +61,10 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 
 	trans := make(ValidationErrorsTranslations)
 
-	var fe *fieldError
+	var fe FieldError
 
 	for i := 0; i < len(ve); i++ {
-		fe = ve[i].(*fieldError)
+		fe = ve[i].(FieldError)
 
 		// // in case an Anonymous struct was used, ensure that the key
 		// // would be 'Username' instead of ".Username"
@@ -155,6 +155,9 @@ type FieldError interface {
 	// NOTE: is not registered translation can be found it returns the same
 	// as calling fe.Error()
 	Translate(ut ut.Translator) string
+
+	// Error returns the FieldError's error message
+	Error() string
 }
 
 // compile time interface checks
