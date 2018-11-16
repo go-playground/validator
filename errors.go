@@ -61,10 +61,10 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 
 	trans := make(ValidationErrorsTranslations)
 
-	var fe FieldError
+	var fe *fieldError
 
 	for i := 0; i < len(ve); i++ {
-		fe = ve[i].(FieldError)
+		fe = ve[i].(*fieldError)
 
 		// // in case an Anonymous struct was used, ensure that the key
 		// // would be 'Username' instead of ".Username"
