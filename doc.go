@@ -245,6 +245,14 @@ ensures the value is not nil.
 
 	Usage: required
 
+NotBlank
+
+This validates that the value is not blank or with length zero.
+For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
+ensures they don't have zero length. For others, the "required" validation is used.
+
+	Usage: notblank
+
 Is Default
 
 This validates that the value is the default value and is almost the
