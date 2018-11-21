@@ -583,7 +583,7 @@ E-mail String
 
 This validates that a string value contains a valid email
 This may not conform to all possibilities of any rfc standard, but neither
-does any email provider accept all posibilities.
+does any email provider accept all possibilities.
 
 	Usage: email
 
