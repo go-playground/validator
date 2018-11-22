@@ -5155,6 +5155,18 @@ func TestContainsField(t *testing.T) {
 
 	errs = validate.VarWithValue("foobarfoo", "bar", "containsfield")
 	Equal(t, errs, nil)
+
+	type StringTestMissingField struct {
+		Foo string `validate:"containsfield=Bar"`
+	}
+
+	stringTestMissingField := &StringTestMissingField{
+		Foo: "foo",
+	}
+
+	errs = validate.Struct(stringTestMissingField)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "containsfield")
 }
 
 func TestExcludesField(t *testing.T) {
@@ -5191,6 +5203,17 @@ func TestExcludesField(t *testing.T) {
 	errs = validate.VarWithValue("foobarfoo", "bar", "excludesfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "excludesfield")
+
+	type StringTestMissingField struct {
+		Foo string `validate:"excludesfield=Bar"`
+	}
+
+	stringTestMissingField := &StringTestMissingField{
+		Foo: "foo",
+	}
+
+	errs = validate.Struct(stringTestMissingField)
+	Equal(t, errs, nil)
 }
 
 func TestContainsAndExcludes(t *testing.T) {
