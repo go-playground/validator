@@ -5146,9 +5146,11 @@ func TestContainsField(t *testing.T) {
 	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "containsfield")
 
 	errs = validate.VarWithValue("foo", "bar", "containsfield")
+	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "containsfield")
 
 	errs = validate.VarWithValue("bar", "foobarfoo", "containsfield")
+	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "containsfield")
 
 	errs = validate.VarWithValue("foobarfoo", "bar", "containsfield")
@@ -5187,6 +5189,7 @@ func TestExcludesField(t *testing.T) {
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue("foobarfoo", "bar", "excludesfield")
+	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "excludesfield")
 }
 
