@@ -503,6 +503,22 @@ to the top level struct.
 
 	Usage: ltecsfield=InnerStructField.Field
 
+Field Contains Another Field
+
+This does the same as contains except for struct fields. It should only be used
+with string types. See the behavior of reflect.Value.String() for behavior on
+other types.
+
+	Usage: containsfield=InnerStructField.Field
+
+Field Excludes Another Field
+
+This does the same as excludes except for struct fields. It should only be used
+with string types. See the behavior of reflect.Value.String() for behavior on
+other types.
+
+	Usage: excludesfield=InnerStructField.Field
+
 Unique
 
 For arrays & slices, unique will ensure that there are no duplicates.

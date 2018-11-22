@@ -5120,6 +5120,76 @@ func TestLtField(t *testing.T) {
 	AssertError(t, errs, "TimeTest2.End", "TimeTest2.End", "End", "End", "ltfield")
 }
 
+func TestContainsField(t *testing.T) {
+	validate := New()
+
+	type StringTest struct {
+		Foo string `validate:"containsfield=Bar"`
+		Bar string
+	}
+
+	stringTest := &StringTest{
+		Foo: "foobar",
+		Bar: "bar",
+	}
+
+	errs := validate.Struct(stringTest)
+	Equal(t, errs, nil)
+
+	stringTest = &StringTest{
+		Foo: "foo",
+		Bar: "bar",
+	}
+
+	errs = validate.Struct(stringTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "containsfield")
+
+	errs = validate.VarWithValue("foo", "bar", "containsfield")
+	AssertError(t, errs, "", "", "", "", "containsfield")
+
+	errs = validate.VarWithValue("bar", "foobarfoo", "containsfield")
+	AssertError(t, errs, "", "", "", "", "containsfield")
+
+	errs = validate.VarWithValue("foobarfoo", "bar", "containsfield")
+	Equal(t, errs, nil)
+}
+
+func TestExcludesField(t *testing.T) {
+	validate := New()
+
+	type StringTest struct {
+		Foo string `validate:"excludesfield=Bar"`
+		Bar string
+	}
+
+	stringTest := &StringTest{
+		Foo: "foobar",
+		Bar: "bar",
+	}
+
+	errs := validate.Struct(stringTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "excludesfield")
+
+	stringTest = &StringTest{
+		Foo: "foo",
+		Bar: "bar",
+	}
+
+	errs = validate.Struct(stringTest)
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue("foo", "bar", "excludesfield")
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue("bar", "foobarfoo", "excludesfield")
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue("foobarfoo", "bar", "excludesfield")
+	AssertError(t, errs, "", "", "", "", "excludesfield")
+}
+
 func TestLteField(t *testing.T) {
 
 	validate := New()
