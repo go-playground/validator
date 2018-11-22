@@ -5190,6 +5190,33 @@ func TestExcludesField(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "excludesfield")
 }
 
+func TestContainsAndExcludes(t *testing.T) {
+	validate := New()
+
+	type ImpossibleStringTest struct {
+		Foo string `validate:"containsfield=Bar"`
+		Bar string `validate:"excludesfield=Foo"`
+	}
+
+	impossibleStringTest := &ImpossibleStringTest{
+		Foo: "foo",
+		Bar: "bar",
+	}
+
+	errs := validate.Struct(impossibleStringTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
+
+	impossibleStringTest = &ImpossibleStringTest{
+		Foo: "bar",
+		Bar: "foo",
+	}
+
+	errs = validate.Struct(impossibleStringTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
+}
+
 func TestLteField(t *testing.T) {
 
 	validate := New()
