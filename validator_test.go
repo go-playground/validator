@@ -5748,7 +5748,7 @@ func TestIsLte(t *testing.T) {
 	NotEqual(t, errs, nil)
 }
 
-func TestUrn(t *testing.T) {
+func TestUrnRFC2141(t *testing.T) {
 
 	var tests = []struct {
 		param    string
@@ -5797,11 +5797,13 @@ func TestUrn(t *testing.T) {
 		{"urn:", false},
 	}
 
+	tag := "urn_rfc2141"
+
 	validate := New()
 
 	for i, test := range tests {
 
-		errs := validate.Var(test.param, "urn")
+		errs := validate.Var(test.param, tag)
 
 		if test.expected {
 			if !IsEqual(errs, nil) {
@@ -5812,7 +5814,7 @@ func TestUrn(t *testing.T) {
 				t.Fatalf("Index: %d URN failed Error: %s", i, errs)
 			} else {
 				val := getError(errs, "", "")
-				if val.Tag() != "urn" {
+				if val.Tag() != tag {
 					t.Fatalf("Index: %d URN failed Error: %s", i, errs)
 				}
 			}
@@ -5820,7 +5822,7 @@ func TestUrn(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "urn") }, "Bad field type int")
+	PanicMatches(t, func() { validate.Var(i, tag) }, "Bad field type int")
 }
 
 func TestUrl(t *testing.T) {
