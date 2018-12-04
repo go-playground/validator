@@ -610,10 +610,12 @@ This will accept any uri the golang request uri accepts
 
 	Usage: uri
 
-URN String
+Urn RFC 2141 String
 
-This validataes that a string valud contains a valid URN
+This validataes that a string value contains a valid URN
 according to the RFC 2141 spec.
+
+	Usage: urn_rfc2141
 
 Base64 String
 
