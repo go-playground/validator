@@ -514,10 +514,10 @@ func TestTranslations(t *testing.T) {
 			ns:       "Test.NeNumber",
 			expected: "NeNumberは0.00と異ならなければなりません",
 		},
-		// {
-		// 	ns:       "Test.NeMultiple",
-		// 	expected: "NeMultipleの項目は0と異ならなければなりません",
-		// },
+		{
+			ns:       "Test.NeMultiple",
+			expected: "NeMultipleの項目の数は0個と異ならなければなりません",
+		},
 		{
 			ns:       "Test.EqString",
 			expected: "EqStringは3と等しくありません",

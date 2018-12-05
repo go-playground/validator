@@ -318,14 +318,72 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "ne",
-			translation: "{0}は{1}と異ならなければなりません",
-			override:    false,
+			tag: "ne",
+			customRegisFunc: func(ut ut.Translator) (err error) {
+				if err = ut.Add("ne-items", "{0}の項目の数は{1}と異ならなければなりません", false); err != nil {
+					fmt.Printf("ne customRegisFunc #1 error because of %v\n", err)
+					return
+				}
+				if err = ut.AddCardinal("ne-items-item", "{0}個", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("ne-items-item", "{0}個", locales.PluralRuleOther, false); err != nil {
+					return
+				}
+				if err = ut.Add("ne", "{0}は{1}と異ならなければなりません", false); err != nil {
+					fmt.Printf("ne customRegisFunc #2 error because of %v\n", err)
+					return
+				}
+
+				return
+			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				var err error
+				var t string
+				var f64 float64
+				var digits uint64
+				var kind reflect.Kind
+
+				fn := func() (err error) {
+
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
+
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
+					return
+				}
+
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				switch kind {
+				case reflect.Slice:
+					var c string
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
+					c, err = ut.C("ne-items-item", f64, digits, ut.FmtNumber(f64, digits))
+					if err != nil {
+						goto END
+					}
+
+					t, err = ut.T("ne-items", fe.Field(), c)
+					break
+				default:
+					t, err = ut.T("ne", fe.Field(), fe.Param())
+				}
+
+			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
