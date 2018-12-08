@@ -6,7 +6,7 @@ import (
 
 	brazilian_portuguese "github.com/go-playground/locales/pt_BR"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator"
+	"gopkg.in/go-playground/validator.v9"
 	. "gopkg.in/go-playground/assert.v1"
 )
 
