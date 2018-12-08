@@ -5748,6 +5748,83 @@ func TestIsLte(t *testing.T) {
 	NotEqual(t, errs, nil)
 }
 
+func TestUrnRFC2141(t *testing.T) {
+
+	var tests = []struct {
+		param    string
+		expected bool
+	}{
+		{"urn:a:b", true},
+		{"urn:a::", true},
+		{"urn:a:-", true},
+		{"URN:simple:simple", true},
+		{"urn:urna:simple", true},
+		{"urn:burnout:nss", true},
+		{"urn:burn:nss", true},
+		{"urn:urnurnurn:x", true},
+		{"urn:abcdefghilmnopqrstuvzabcdefghilm:x", true},
+		{"URN:123:x", true},
+		{"URN:abcd-:x", true},
+		{"URN:abcd-abcd:x", true},
+		{"urn:urnx:urn", true},
+		{"urn:ciao:a:b:c", true},
+		{"urn:aaa:x:y:", true},
+		{"urn:ciao:-", true},
+		{"urn:colon:::::nss", true},
+		{"urn:ciao:@!=%2C(xyz)+a,b.*@g=$_'", true},
+		{"URN:hexes:%25", true},
+		{"URN:x:abc%1Dz%2F%3az", true},
+		{"URN:foo:a123,456", true},
+		{"urn:foo:a123,456", true},
+		{"urn:FOO:a123,456", true},
+		{"urn:foo:A123,456", true},
+		{"urn:foo:a123%2C456", true},
+		{"URN:FOO:a123%2c456", true},
+		{"URN:FOO:ABC%FFabc123%2c456", true},
+		{"URN:FOO:ABC%FFabc123%2C456%9A", true},
+		{"urn:ietf:params:scim:schemas:core:2.0:User", true},
+		{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified", true},
+		{"URN:-xxx:x", false},
+		{"urn::colon:nss", false},
+		{"urn:abcdefghilmnopqrstuvzabcdefghilmn:specificstring", false},
+		{"URN:a!?:x", false},
+		{"URN:#,:x", false},
+		{"urn:urn:NSS", false},
+		{"urn:URN:NSS", false},
+		{"urn:white space:NSS", false},
+		{"urn:concat:no spaces", false},
+		{"urn:a:%", false},
+		{"urn:", false},
+	}
+
+	tag := "urn_rfc2141"
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != tag {
+					t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { validate.Var(i, tag) }, "Bad field type int")
+}
+
 func TestUrl(t *testing.T) {
 
 	var tests = []struct {

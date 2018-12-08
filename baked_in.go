@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	urn "github.com/leodido/go-urn"
 	"net"
 	"net/url"
 	"os"
@@ -98,6 +99,7 @@ var (
 		"email":            isEmail,
 		"url":              isURL,
 		"uri":              isURI,
+		"urn_rfc2141":      isUrnRFC2141, // RFC 2141
 		"file":             isFile,
 		"base64":           isBase64,
 		"base64url":        isBase64URL,
@@ -1072,6 +1074,24 @@ func isURL(fl FieldLevel) bool {
 		}
 
 		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isUrnRFC2141 is the validation function for validating if the current field's value is a valid URN as per RFC 2141.
+func isUrnRFC2141(fl FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+
+	case reflect.String:
+
+		str := field.String()
+
+		_, match := urn.Parse([]byte(str))
+
+		return match
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
