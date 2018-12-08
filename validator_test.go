@@ -5120,11 +5120,11 @@ func TestLtField(t *testing.T) {
 	AssertError(t, errs, "TimeTest2.End", "TimeTest2.End", "End", "End", "ltfield")
 }
 
-func TestContainsField(t *testing.T) {
+func TestFieldContains(t *testing.T) {
 	validate := New()
 
 	type StringTest struct {
-		Foo string `validate:"containsfield=Bar"`
+		Foo string `validate:"fieldcontains=Bar"`
 		Bar string
 	}
 
@@ -5143,21 +5143,21 @@ func TestContainsField(t *testing.T) {
 
 	errs = validate.Struct(stringTest)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "containsfield")
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "fieldcontains")
 
-	errs = validate.VarWithValue("foo", "bar", "containsfield")
+	errs = validate.VarWithValue("foo", "bar", "fieldcontains")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "containsfield")
+	AssertError(t, errs, "", "", "", "", "fieldcontains")
 
-	errs = validate.VarWithValue("bar", "foobarfoo", "containsfield")
+	errs = validate.VarWithValue("bar", "foobarfoo", "fieldcontains")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "containsfield")
+	AssertError(t, errs, "", "", "", "", "fieldcontains")
 
-	errs = validate.VarWithValue("foobarfoo", "bar", "containsfield")
+	errs = validate.VarWithValue("foobarfoo", "bar", "fieldcontains")
 	Equal(t, errs, nil)
 
 	type StringTestMissingField struct {
-		Foo string `validate:"containsfield=Bar"`
+		Foo string `validate:"fieldcontains=Bar"`
 	}
 
 	stringTestMissingField := &StringTestMissingField{
@@ -5166,14 +5166,14 @@ func TestContainsField(t *testing.T) {
 
 	errs = validate.Struct(stringTestMissingField)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "containsfield")
+	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "fieldcontains")
 }
 
-func TestExcludesField(t *testing.T) {
+func TestFieldExcludes(t *testing.T) {
 	validate := New()
 
 	type StringTest struct {
-		Foo string `validate:"excludesfield=Bar"`
+		Foo string `validate:"fieldexcludes=Bar"`
 		Bar string
 	}
 
@@ -5184,7 +5184,7 @@ func TestExcludesField(t *testing.T) {
 
 	errs := validate.Struct(stringTest)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "excludesfield")
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "fieldexcludes")
 
 	stringTest = &StringTest{
 		Foo: "foo",
@@ -5194,18 +5194,18 @@ func TestExcludesField(t *testing.T) {
 	errs = validate.Struct(stringTest)
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue("foo", "bar", "excludesfield")
+	errs = validate.VarWithValue("foo", "bar", "fieldexcludes")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue("bar", "foobarfoo", "excludesfield")
+	errs = validate.VarWithValue("bar", "foobarfoo", "fieldexcludes")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue("foobarfoo", "bar", "excludesfield")
+	errs = validate.VarWithValue("foobarfoo", "bar", "fieldexcludes")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "excludesfield")
+	AssertError(t, errs, "", "", "", "", "fieldexcludes")
 
 	type StringTestMissingField struct {
-		Foo string `validate:"excludesfield=Bar"`
+		Foo string `validate:"fieldexcludes=Bar"`
 	}
 
 	stringTestMissingField := &StringTestMissingField{
@@ -5220,8 +5220,8 @@ func TestContainsAndExcludes(t *testing.T) {
 	validate := New()
 
 	type ImpossibleStringTest struct {
-		Foo string `validate:"containsfield=Bar"`
-		Bar string `validate:"excludesfield=Foo"`
+		Foo string `validate:"fieldcontains=Bar"`
+		Bar string `validate:"fieldexcludes=Foo"`
 	}
 
 	impossibleStringTest := &ImpossibleStringTest{
@@ -5231,7 +5231,7 @@ func TestContainsAndExcludes(t *testing.T) {
 
 	errs := validate.Struct(impossibleStringTest)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "fieldcontains")
 
 	impossibleStringTest = &ImpossibleStringTest{
 		Foo: "bar",
@@ -5240,7 +5240,7 @@ func TestContainsAndExcludes(t *testing.T) {
 
 	errs = validate.Struct(impossibleStringTest)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "fieldcontains")
 }
 
 func TestLteField(t *testing.T) {

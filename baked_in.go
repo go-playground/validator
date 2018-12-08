@@ -83,8 +83,8 @@ var (
 		"gtfield":          isGtField,
 		"ltefield":         isLteField,
 		"ltfield":          isLtField,
-		"containsfield":    containsField,
-		"excludesfield":    excludesField,
+		"fieldcontains":    fieldContains,
+		"fieldexcludes":    fieldExcludes,
 		"alpha":            isAlpha,
 		"alphanum":         isAlphanum,
 		"alphaunicode":     isAlphaUnicode,
@@ -586,8 +586,8 @@ func contains(fl FieldLevel) bool {
 	return strings.Contains(fl.Field().String(), fl.Param())
 }
 
-// ContainsField is the validation function for validating if the current field's value contains the field specified by the param's value.
-func containsField(fl FieldLevel) bool {
+// FieldContains is the validation function for validating if the current field's value contains the field specified by the param's value.
+func fieldContains(fl FieldLevel) bool {
 	field := fl.Field()
 
 	currentField, _, ok := fl.GetStructFieldOK()
@@ -599,8 +599,8 @@ func containsField(fl FieldLevel) bool {
 	return strings.Contains(field.String(), currentField.String())
 }
 
-// ExcludesField is the validation function for validating if the current field's value excludes the field specified by the param's value.
-func excludesField(fl FieldLevel) bool {
+// FieldExcludes is the validation function for validating if the current field's value excludes the field specified by the param's value.
+func fieldExcludes(fl FieldLevel) bool {
 	field := fl.Field()
 
 	currentField, _, ok := fl.GetStructFieldOK()
