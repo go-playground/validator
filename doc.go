@@ -245,14 +245,6 @@ ensures the value is not nil.
 
 	Usage: required
 
-NotBlank
-
-This validates that the value is not blank or with length zero.
-For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
-ensures they don't have zero length. For others, the "required" validation is used.
-
-	Usage: notblank
-
 Is Default
 
 This validates that the value is the default value and is almost the
@@ -998,5 +990,25 @@ that should not make it to production.
 	}
 
 	validate.Struct(t) // this will panic
+
+Non standard validators
+
+	type Test struct {
+		TestField string `validate:"yourtag"`
+	}
+
+	t := &Test{
+		TestField: "Test"
+	}
+
+	validate := validator.New()
+	validate.RegisterValidation("yourtag", validations.ValidatorName)
+
+	NotBlank
+		This validates that the value is not blank or with length zero.
+		For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
+		ensures they don't have zero length. For others, a non empty value is required.
+
+		Usage: notblank
 */
 package validator

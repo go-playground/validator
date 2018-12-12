@@ -63,7 +63,6 @@ var (
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
 		"required":         hasValue,
-		"notblank":         notBlank,
 		"isdefault":        isDefault,
 		"len":              hasLengthOf,
 		"min":              hasMinOf,
@@ -1262,20 +1261,6 @@ func hasValue(fl FieldLevel) bool {
 		}
 
 		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-	}
-}
-
-// NotBlank is the validation function for validating if the current field has a value or length greater than zero.
-func notBlank(fl FieldLevel) bool {
-	field := fl.Field()
-
-	switch field.Kind() {
-	case reflect.String:
-		return len(strings.TrimSpace(field.String())) > 0
-	case reflect.Chan, reflect.Map, reflect.Slice, reflect.Array:
-		return field.Len() > 0
-	default:
-		return hasValue(fl)
 	}
 }
 

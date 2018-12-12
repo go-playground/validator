@@ -62,7 +62,6 @@ type TestInterface struct {
 type TestString struct {
 	BlankTag  string `validate:""`
 	Required  string `validate:"required"`
-	NotBlank  string `validate:"notblank"`
 	Len       string `validate:"len=10"`
 	Min       string `validate:"min=1"`
 	Max       string `validate:"max=10"`
@@ -82,7 +81,6 @@ type TestString struct {
 
 type TestUint64 struct {
 	Required  uint64 `validate:"required"`
-	NotBlank  uint64 `validate:"notblank"`
 	Len       uint64 `validate:"len=10"`
 	Min       uint64 `validate:"min=1"`
 	Max       uint64 `validate:"max=10"`
@@ -92,7 +90,6 @@ type TestUint64 struct {
 
 type TestFloat64 struct {
 	Required  float64 `validate:"required"`
-	NotBlank  float64 `validate:"notblank"`
 	Len       float64 `validate:"len=10"`
 	Min       float64 `validate:"min=1"`
 	Max       float64 `validate:"max=10"`
@@ -103,7 +100,6 @@ type TestFloat64 struct {
 
 type TestSlice struct {
 	Required  []int `validate:"required"`
-	NotBlank  []int `validate:"notblank"`
 	Len       []int `validate:"len=10"`
 	Min       []int `validate:"min=1"`
 	Max       []int `validate:"max=10"`
@@ -6729,7 +6725,6 @@ func TestStructStringValidation(t *testing.T) {
 
 	tSuccess := &TestString{
 		Required:  "Required",
-		NotBlank:  "NotBLank",
 		Len:       "length==10",
 		Min:       "min=1",
 		Max:       "1234567890",
@@ -6760,7 +6755,6 @@ func TestStructStringValidation(t *testing.T) {
 
 	tFail := &TestString{
 		Required:  "",
-		NotBlank:  " ",
 		Len:       "",
 		Min:       "",
 		Max:       "12345678901",
@@ -6787,11 +6781,10 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 14)
+	Equal(t, len(errs.(ValidationErrors)), 13)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestString.NotBlank", "TestString.NotBlank", "NotBlank", "NotBlank", "notblank")
 	AssertError(t, errs, "TestString.Len", "TestString.Len", "Len", "Len", "len")
 	AssertError(t, errs, "TestString.Min", "TestString.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestString.Max", "TestString.Max", "Max", "Max", "max")
@@ -6812,7 +6805,6 @@ func TestStructInt32Validation(t *testing.T) {
 
 	type TestInt32 struct {
 		Required  int `validate:"required"`
-		NotBlank  int `validate:"notblank"`
 		Len       int `validate:"len=10"`
 		Min       int `validate:"min=1"`
 		Max       int `validate:"max=10"`
@@ -6826,7 +6818,6 @@ func TestStructInt32Validation(t *testing.T) {
 
 	tSuccess := &TestInt32{
 		Required:  1,
-		NotBlank:  1,
 		Len:       10,
 		Min:       1,
 		Max:       10,
@@ -6844,7 +6835,6 @@ func TestStructInt32Validation(t *testing.T) {
 
 	tFail := &TestInt32{
 		Required:  0,
-		NotBlank:  0,
 		Len:       11,
 		Min:       -1,
 		Max:       11,
@@ -6860,11 +6850,10 @@ func TestStructInt32Validation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 11)
+	Equal(t, len(errs.(ValidationErrors)), 10)
 
 	// Assert Fields
 	AssertError(t, errs, "TestInt32.Required", "TestInt32.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestInt32.NotBlank", "TestInt32.NotBlank", "NotBlank", "NotBlank", "notblank")
 	AssertError(t, errs, "TestInt32.Len", "TestInt32.Len", "Len", "Len", "len")
 	AssertError(t, errs, "TestInt32.Min", "TestInt32.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestInt32.Max", "TestInt32.Max", "Max", "Max", "max")
@@ -6882,7 +6871,6 @@ func TestStructUint64Validation(t *testing.T) {
 
 	tSuccess := &TestUint64{
 		Required:  1,
-		NotBlank:  1,
 		Len:       10,
 		Min:       1,
 		Max:       10,
@@ -6895,7 +6883,6 @@ func TestStructUint64Validation(t *testing.T) {
 
 	tFail := &TestUint64{
 		Required:  0,
-		NotBlank:  0,
 		Len:       11,
 		Min:       0,
 		Max:       11,
@@ -6907,11 +6894,10 @@ func TestStructUint64Validation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 7)
+	Equal(t, len(errs.(ValidationErrors)), 6)
 
 	// Assert Fields
 	AssertError(t, errs, "TestUint64.Required", "TestUint64.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestUint64.NotBlank", "TestUint64.NotBlank", "NotBlank", "NotBlank", "notblank")
 	AssertError(t, errs, "TestUint64.Len", "TestUint64.Len", "Len", "Len", "len")
 	AssertError(t, errs, "TestUint64.Min", "TestUint64.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestUint64.Max", "TestUint64.Max", "Max", "Max", "max")
@@ -6925,7 +6911,6 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	tSuccess := &TestFloat64{
 		Required:  1,
-		NotBlank:  1,
 		Len:       10,
 		Min:       1,
 		Max:       10,
@@ -6938,7 +6923,6 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	tFail := &TestFloat64{
 		Required:  0,
-		NotBlank:  0,
 		Len:       11,
 		Min:       0,
 		Max:       11,
@@ -6950,11 +6934,10 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 7)
+	Equal(t, len(errs.(ValidationErrors)), 6)
 
 	// Assert Fields
 	AssertError(t, errs, "TestFloat64.Required", "TestFloat64.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestFloat64.NotBlank", "TestFloat64.NotBlank", "NotBlank", "NotBlank", "notblank")
 	AssertError(t, errs, "TestFloat64.Len", "TestFloat64.Len", "Len", "Len", "len")
 	AssertError(t, errs, "TestFloat64.Min", "TestFloat64.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestFloat64.Max", "TestFloat64.Max", "Max", "Max", "max")
@@ -6968,7 +6951,6 @@ func TestStructSliceValidation(t *testing.T) {
 
 	tSuccess := &TestSlice{
 		Required:  []int{1},
-		NotBlank:  []int{1},
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
 		Min:       []int{1, 2},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
@@ -6981,7 +6963,6 @@ func TestStructSliceValidation(t *testing.T) {
 
 	tFail := &TestSlice{
 		Required:  nil,
-		NotBlank:  []int{},
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 		Min:       []int{},
 		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
@@ -6991,7 +6972,7 @@ func TestStructSliceValidation(t *testing.T) {
 
 	errs = validate.Struct(tFail)
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 7)
+	Equal(t, len(errs.(ValidationErrors)), 6)
 
 	// Assert Field Errors
 	AssertError(t, errs, "TestSlice.Required", "TestSlice.Required", "Required", "Required", "required")
