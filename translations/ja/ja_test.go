@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	english "github.com/go-playground/locales/en"
+	ja_locale "github.com/go-playground/locales/ja"
 	ut "github.com/go-playground/universal-translator"
 	. "gopkg.in/go-playground/assert.v1"
 	"gopkg.in/go-playground/validator.v9"
@@ -12,9 +12,9 @@ import (
 
 func TestTranslations(t *testing.T) {
 
-	eng := english.New()
-	uni := ut.New(eng, eng)
-	trans, _ := uni.GetTranslator("en")
+	japanese := ja_locale.New()
+	uni := ut.New(japanese, japanese)
+	trans, _ := uni.GetTranslator("ja")
 
 	validate := validator.New()
 
