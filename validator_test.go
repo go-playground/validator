@@ -3335,7 +3335,7 @@ func TestSSNValidation(t *testing.T) {
 
 func TestLongitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", false},
@@ -3344,6 +3344,8 @@ func TestLongitudeValidation(t *testing.T) {
 		{"+73.234", true},
 		{"+382.3811", false},
 		{"23.11111111", true},
+		{-180, true},
+		{180.1, false},
 	}
 
 	validate := New()
@@ -3371,7 +3373,7 @@ func TestLongitudeValidation(t *testing.T) {
 
 func TestLatitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", false},
@@ -3380,6 +3382,8 @@ func TestLatitudeValidation(t *testing.T) {
 		{"47.1231231", true},
 		{"+99.9", false},
 		{"108", false},
+		{-90, true},
+		{90, true},
 	}
 
 	validate := New()

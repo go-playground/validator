@@ -304,12 +304,12 @@ func isSSN(fl FieldLevel) bool {
 
 // IsLongitude is the validation function for validating if the field's value is a valid longitude coordinate.
 func isLongitude(fl FieldLevel) bool {
-	return longitudeRegex.MatchString(fl.Field().String())
+	return longitudeRegex.MatchString(fmt.Sprint(fl.Field().Interface()))
 }
 
 // IsLatitude is the validation function for validating if the field's value is a valid latitude coordinate.
 func isLatitude(fl FieldLevel) bool {
-	return latitudeRegex.MatchString(fl.Field().String())
+	return latitudeRegex.MatchString(fmt.Sprint(fl.Field().Interface()))
 }
 
 // IsDataURI is the validation function for validating if the field's value is a valid data URI.
