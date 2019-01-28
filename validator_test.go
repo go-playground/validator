@@ -3344,6 +3344,8 @@ func TestLongitudeValidation(t *testing.T) {
 		{"+73.234", true},
 		{"+382.3811", false},
 		{"23.11111111", true},
+		{uint(180), true},
+		{float32(-180.0), true},
 		{-180, true},
 		{180.1, false},
 	}
@@ -3369,6 +3371,8 @@ func TestLongitudeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() { validate.Var(true, "longitude") }, "Bad field type bool")
 }
 
 func TestLatitudeValidation(t *testing.T) {
@@ -3382,8 +3386,10 @@ func TestLatitudeValidation(t *testing.T) {
 		{"47.1231231", true},
 		{"+99.9", false},
 		{"108", false},
+		{uint(90), true},
+		{float32(-90.0), true},
 		{-90, true},
-		{90, true},
+		{90.1, false},
 	}
 
 	validate := New()
@@ -3407,6 +3413,8 @@ func TestLatitudeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() { validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
 func TestDataURIValidation(t *testing.T) {
