@@ -3714,6 +3714,152 @@ func TestUUIDValidation(t *testing.T) {
 	}
 }
 
+func TestUUID5RFC4122Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+
+		{"", false},
+		{"xxxa987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"9c858901-8a57-4791-81Fe-4c455b099bc9", false},
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"987Fbc97-4bed-5078-af07-9141ba07c9f3", true},
+		{"987Fbc97-4bed-5078-9f07-9141ba07c9f3", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "uuid5_rfc4122")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID5RFC4122 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID5RFC4122 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid5_rfc4122" {
+					t.Fatalf("Index: %d UUID5RFC4122 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUUID4RFC4122Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9F3", false},
+		{"a987fbc9-4bed-5078-af07-9141ba07c9F3", false},
+		{"934859", false},
+		{"57b73598-8764-4ad0-a76A-679bb6640eb1", true},
+		{"625e63f3-58f5-40b7-83a1-a72ad31acFfb", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "uuid4_rfc4122")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID4RFC4122 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID4RFC4122 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid4_rfc4122" {
+					t.Fatalf("Index: %d UUID4RFC4122 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUUID3RFC4122Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"412452646", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9F3", false},
+		{"a987fbc9-4bed-4078-8f07-9141ba07c9F3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9F3", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "uuid3_rfc4122")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID3RFC4122 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID3RFC4122 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid3_rfc4122" {
+					t.Fatalf("Index: %d UUID3RFC4122 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUUIDRFC4122Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"a987Fbc94bed3078cf079141ba07c9f3", false},
+		{"934859", false},
+		{"987fbc9-4bed-3078-cf07a-9141ba07c9F3", false},
+		{"aaaaaaaa-1111-1111-aaaG-111111111111", false},
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "uuid_rfc4122")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUIDRFC4122 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUIDRFC4122 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid_rfc4122" {
+					t.Fatalf("Index: %d UUIDRFC4122 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestISBNValidation(t *testing.T) {
 	tests := []struct {
 		param    string

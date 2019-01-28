@@ -24,6 +24,10 @@ const (
 	uUID4RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 	uUID5RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 	uUIDRegexString                  = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+	uUID3RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-3[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+	uUID4RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+	uUID5RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-5[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+	uUIDRFC4122RegexString           = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 	aSCIIRegexString                 = "^[\x00-\x7F]*$"
 	printableASCIIRegexString        = "^[\x20-\x7E]*$"
 	multibyteRegexString             = "[^\x00-\x7F]"
@@ -66,6 +70,10 @@ var (
 	uUID4Regex                 = regexp.MustCompile(uUID4RegexString)
 	uUID5Regex                 = regexp.MustCompile(uUID5RegexString)
 	uUIDRegex                  = regexp.MustCompile(uUIDRegexString)
+	uUID3RFC4122Regex          = regexp.MustCompile(uUID3RFC4122RegexString)
+	uUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)
+	uUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)
+	uUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)
 	aSCIIRegex                 = regexp.MustCompile(aSCIIRegexString)
 	printableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)
 	multibyteRegex             = regexp.MustCompile(multibyteRegexString)
