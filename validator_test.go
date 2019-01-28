@@ -3366,7 +3366,7 @@ func TestLongitudeValidation(t *testing.T) {
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "longitude" {
-					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+					t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 				}
 			}
 		}
