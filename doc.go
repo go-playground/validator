@@ -413,10 +413,10 @@ Here is a list of the current built in validators:
 		NOTE: if the string is blank, this validates as true.
 		(Usage: ascii)
 
-	asciiprint
+	printascii
 		This validates that a string value contains only printable ASCII characters.
 		NOTE: if the string is blank, this validates as true.
-		(Usage: asciiprint)
+		(Usage: printascii)
 
 	multibyte
 		This validates that a string value contains one or more multibyte characters.
