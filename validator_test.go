@@ -8508,3 +8508,38 @@ func TestStructLevelValidationsPointerPassing(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
 }
+
+func TestDirValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"existing dir", "testdata", true},
+		{"existing self dir", ".", true},
+		{"existing parent dir", "..", true},
+		{"empty dir", "", false},
+		{"missing dir", "non_existing_testdata", false},
+		{"a file not a directory", filepath.Join("testdata", "a.go"), false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "dir")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		validate.Var(2, "dir")
+	}, "Bad field type int")
+}
