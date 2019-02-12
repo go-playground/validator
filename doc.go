@@ -993,6 +993,11 @@ that should not make it to production.
 
 Non standard validators
 
+A collection of validation rules that are frequently needed but are more
+complex than the ones found in the baked in validators.
+A non standard validator must be registered manually using any tag you like.
+See below examples of registration and use.
+
 	type Test struct {
 		TestField string `validate:"yourtag"`
 	}

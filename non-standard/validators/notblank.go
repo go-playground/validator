@@ -7,7 +7,8 @@ import (
 	"github.com/andreiavrammsd/validator"
 )
 
-// NotBlank is the validation function for validating if the current field has a value or length greater than zero.
+// NotBlank is the validation function for validating if the current field
+// has a value or length greater than zero, or is not a space only string.
 func NotBlank(fl validator.FieldLevel) bool {
 	field := fl.Field()
 
