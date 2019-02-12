@@ -158,6 +158,7 @@ var (
 		"html":             isHTML,
 		"html_encoded":     isHTMLEncoded,
 		"url_encoded":      isURLEncoded,
+		"dir":              isDir,
 	}
 )
 
@@ -1880,4 +1881,20 @@ func isFQDN(fl FieldLevel) bool {
 
 	return strings.ContainsAny(val, ".") &&
 		hostnameRegexRFC952.MatchString(val)
+}
+
+// IsDir is the validation function for validating if the current field's value is a valid directory.
+func isDir(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		fileInfo, err := os.Stat(field.String())
+		if err != nil {
+			return false
+		}
+
+		return fileInfo.IsDir()
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }

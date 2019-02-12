@@ -947,6 +947,14 @@ to https://tools.ietf.org/html/rfc3986#section-2.1
 
 	Usage: url_encoded
 
+Directory
+
+This validates that a string value contains a valid directory and that
+it exists on the machine.
+This is done using os.Stat, which is a platform independent function.
+
+	Usage: dir
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
