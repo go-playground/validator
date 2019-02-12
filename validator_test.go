@@ -3335,7 +3335,7 @@ func TestSSNValidation(t *testing.T) {
 
 func TestLongitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", false},
@@ -3344,6 +3344,10 @@ func TestLongitudeValidation(t *testing.T) {
 		{"+73.234", true},
 		{"+382.3811", false},
 		{"23.11111111", true},
+		{uint(180), true},
+		{float32(-180.0), true},
+		{-180, true},
+		{180.1, false},
 	}
 
 	validate := New()
@@ -3362,16 +3366,18 @@ func TestLongitudeValidation(t *testing.T) {
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "longitude" {
-					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+					t.Fatalf("Index: %d Longitude failed Error: %s", i, errs)
 				}
 			}
 		}
 	}
+
+	PanicMatches(t, func() { validate.Var(true, "longitude") }, "Bad field type bool")
 }
 
 func TestLatitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", false},
@@ -3380,6 +3386,10 @@ func TestLatitudeValidation(t *testing.T) {
 		{"47.1231231", true},
 		{"+99.9", false},
 		{"108", false},
+		{uint(90), true},
+		{float32(-90.0), true},
+		{-90, true},
+		{90.1, false},
 	}
 
 	validate := New()
@@ -3403,6 +3413,8 @@ func TestLatitudeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() { validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
 func TestDataURIValidation(t *testing.T) {
