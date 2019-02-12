@@ -9,10 +9,10 @@ import (
 type StructLevelFunc func(sl StructLevel)
 
 // StructLevelFuncCtx accepts all values needed for struct level validation
-// but also allows passing of contextual validation information vi context.Context.
+// but also allows passing of contextual validation information via context.Context.
 type StructLevelFuncCtx func(ctx context.Context, sl StructLevel)
 
-// wrapStructLevelFunc wraps noramal StructLevelFunc makes it compatible with StructLevelFuncCtx
+// wrapStructLevelFunc wraps normal StructLevelFunc makes it compatible with StructLevelFuncCtx
 func wrapStructLevelFunc(fn StructLevelFunc) StructLevelFuncCtx {
 	return func(ctx context.Context, sl StructLevel) {
 		fn(sl)
@@ -23,8 +23,8 @@ func wrapStructLevelFunc(fn StructLevelFunc) StructLevelFuncCtx {
 // to validate a struct
 type StructLevel interface {
 
-	// returns the main validation object, in case one want to call validations internally.
-	// this is so you don;t have to use anonymous functoins to get access to the validate
+	// returns the main validation object, in case one wants to call validations internally.
+	// this is so you don't have to use anonymous functions to get access to the validate
 	// instance.
 	Validator() *Validate
 
@@ -39,7 +39,7 @@ type StructLevel interface {
 
 	// ExtractType gets the actual underlying type of field value.
 	// It will dive into pointers, customTypes and return you the
-	// underlying value and it's kind.
+	// underlying value and its kind.
 	ExtractType(field reflect.Value) (value reflect.Value, kind reflect.Kind, nullable bool)
 
 	// reports an error just by passing the field and tag information
@@ -47,7 +47,7 @@ type StructLevel interface {
 	// NOTES:
 	//
 	// fieldName and altName get appended to the existing namespace that
-	// validator is on. eg. pass 'FirstName' or 'Names[0]' depending
+	// validator is on. e.g. pass 'FirstName' or 'Names[0]' depending
 	// on the nesting
 	//
 	// tag can be an existing validation tag or just something you make up
@@ -60,7 +60,7 @@ type StructLevel interface {
 	//
 	// relativeNamespace and relativeActualNamespace get appended to the
 	// existing namespace that validator is on.
-	// eg. pass 'User.FirstName' or 'Users[0].FirstName' depending
+	// e.g. pass 'User.FirstName' or 'Users[0].FirstName' depending
 	// on the nesting. most of the time they will be blank, unless you validate
 	// at a level lower the the current field depth
 	ReportValidationErrors(relativeNamespace, relativeActualNamespace string, errs ValidationErrors)
