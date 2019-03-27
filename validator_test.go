@@ -6535,6 +6535,15 @@ func TestEmail(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "email")
 
+	s = `"test test"@email.com`
+	errs = validate.Var(s, "email")
+	Equal(t, errs, nil)
+
+	s = `"@email.com`
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	i := true
 	errs = validate.Var(i, "email")
 	NotEqual(t, errs, nil)
