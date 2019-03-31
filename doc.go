@@ -746,25 +746,25 @@ This validates that a string value contains a valid isbn13 value.
 
 Universally Unique Identifier UUID
 
-This validates that a string value contains a valid UUID.
+This validates that a string value contains a valid UUID. Uppercase UUID values will not pass - use `uuid_rfc4122` instead.
 
 	Usage: uuid
 
 Universally Unique Identifier UUID v3
 
-This validates that a string value contains a valid version 3 UUID.
+This validates that a string value contains a valid version 3 UUID.  Uppercase UUID values will not pass - use `uuid3_rfc4122` instead.
 
 	Usage: uuid3
 
 Universally Unique Identifier UUID v4
 
-This validates that a string value contains a valid version 4 UUID.
+This validates that a string value contains a valid version 4 UUID.  Uppercase UUID values will not pass - use `uuid4_rfc4122` instead.
 
 	Usage: uuid4
 
 Universally Unique Identifier UUID v5
 
-This validates that a string value contains a valid version 5 UUID.
+This validates that a string value contains a valid version 5 UUID.  Uppercase UUID values will not pass - use `uuid5_rfc4122` instead.
 
 	Usage: uuid5
 
