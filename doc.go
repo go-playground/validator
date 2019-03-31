@@ -714,6 +714,18 @@ This validates that a string value does not contain the supplied rune value.
 
 	Usage: excludesrune=@
 
+Starts With
+
+This validates that a string value starts with the supplied string value
+
+	Usage: startswith=hello
+
+Ends With
+
+This validates that a string value ends with the supplied string value
+
+	Usage: endswith=goodbye
+
 International Standard Book Number
 
 This validates that a string value contains a valid isbn10 or isbn13 value.
