@@ -63,6 +63,7 @@ var (
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
 		"required":         hasValue,
+		"required_with":    requiredWith,
 		"isdefault":        isDefault,
 		"len":              hasLengthOf,
 		"min":              hasMinOf,
@@ -1311,6 +1312,39 @@ func hasValue(fl FieldLevel) bool {
 
 		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
 	}
+}
+
+// RequiredWith is the validation function for validating if the current field's if any of the other specified fields are present.
+func requiredWith(fl FieldLevel) bool {
+
+	field := fl.Field()
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		isParamFieldPresent := false
+
+		paramField := fl.Parent().FieldByName(param)
+
+		switch paramField.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+			isParamFieldPresent = !paramField.IsNil()
+		default:
+			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
+		}
+
+		if isParamFieldPresent {
+			switch field.Kind() {
+			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+				return !field.IsNil()
+			default:
+				if fl.(*validate).fldIsPointer && field.Interface() != nil {
+					return true
+				}
+				return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
+			}
+		}
+	}
+
+	return true
 }
 
 // IsGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.

@@ -8572,7 +8572,7 @@ func TestStartsWithValidation(t *testing.T) {
 		ExpectedNil bool
 	}{
 		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
-		{Value: "abcd",  Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+		{Value: "abcd", Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
 	}
 
 	validate := New()
@@ -8619,4 +8619,23 @@ func TestEndsWithValidation(t *testing.T) {
 	}
 }
 
+func TestRequiredWith(t *testing.T) {
 
+	test := struct {
+		Field1 string `validate:"omitempty" json:"field_1"`
+		Field2 string `validate:"omitempty" json:"field_2"`
+		Field3 string `validate:"required_with=Field1 Field2" json:"field_3"`
+	}{
+		Field1: "test_field1",
+		Field2: "test_field2",
+		Field3: "test_field3",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+
+	if errs != nil {
+		t.Fatalf("failed Error: %s", errs)
+	}
+}
