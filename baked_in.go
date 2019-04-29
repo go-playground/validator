@@ -1314,7 +1314,8 @@ func hasValue(fl FieldLevel) bool {
 	}
 }
 
-// RequiredWith is the validation function for validating if the current field's if any of the other specified fields are present.
+// RequiredWith is the validation function
+// the field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
 
 	field := fl.Field()
