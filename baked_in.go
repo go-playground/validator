@@ -65,6 +65,7 @@ var (
 		"required":          hasValue,
 		"required_with":     requiredWith,
 		"required_with_all": requiredWithAll,
+		"required_without":  requiredWithout,
 		"isdefault":         isDefault,
 		"len":               hasLengthOf,
 		"min":               hasMinOf,
@@ -1379,6 +1380,47 @@ func requiredWithAll(fl FieldLevel) bool {
 	}
 
 	if isValidateCurrentField {
+		switch field.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+			return !field.IsNil()
+		default:
+			if fl.(*validate).fldIsPointer && field.Interface() != nil {
+				return true
+			}
+			return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
+		}
+	}
+
+	return true
+}
+
+// RequiredWithout is the validation function
+// The field under validation must be present and not empty only when any of the other specified fields are not present.
+func requiredWithout(fl FieldLevel) bool {
+
+	field := fl.Field()
+	isValidateCurrentField := false
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		isParamFieldPresent := false
+
+		paramField := fl.Parent().FieldByName(param)
+
+		switch paramField.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+			isParamFieldPresent = !paramField.IsNil()
+		default:
+			if fl.(*validate).fldIsPointer && paramField.Interface() != nil {
+				isParamFieldPresent = true
+			}
+			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
+		}
+		if isParamFieldPresent {
+			isValidateCurrentField = isParamFieldPresent
+		}
+	}
+
+	if !isValidateCurrentField {
 		switch field.Kind() {
 		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 			return !field.IsNil()
