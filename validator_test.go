@@ -8678,3 +8678,22 @@ func TestRequiredWithout(t *testing.T) {
 		t.Fatalf("failed Error: %s", errs)
 	}
 }
+
+func TestRequiredWithoutAll(t *testing.T) {
+
+	test := struct {
+		Field1 string `validate:"omitempty" json:"field_1"`
+		Field2 string `validate:"omitempty" json:"field_2"`
+		Field3 string `validate:"required_without_all=Field1 Field2" json:"field_3"`
+	}{
+		Field3: "test_field3",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+
+	if errs != nil {
+		t.Fatalf("failed Error: %s", errs)
+	}
+}
