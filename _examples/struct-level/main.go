@@ -105,5 +105,5 @@ func UserStructLevelValidation(sl validator.StructLevel) {
 		sl.ReportError(user.LastName, "LastName", "lname", "fnameorlname", "")
 	}
 
-	// plus can to more, even with different tag than "fnameorlname"
+	// plus can do more, even with different tag than "fnameorlname"
 }
