@@ -245,6 +245,23 @@ ensures the value is not nil.
 
 	Usage: required
 
+Required With
+
+The field under validation must be present and not empty only if any
+of the other specified fields are present. For strings ensures value is
+not "". For slices, maps, pointers, interfaces, channels and functions
+ensures the value is not nil.
+
+	Usage: required_with
+
+Examples:
+
+	// require the field if the Field1 is not present:
+	Usage: required_with=Field1
+
+	// require the field if the Field1 and Field2 is not present:
+	Usage: required_with=Field1 Field2
+
 Is Default
 
 This validates that the value is the default value and is almost the
