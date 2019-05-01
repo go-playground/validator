@@ -8622,11 +8622,11 @@ func TestEndsWithValidation(t *testing.T) {
 func TestRequiredWith(t *testing.T) {
 
 	test := struct {
-		Field1 string `validate:"omitempty" json:"field_1"`
-		Field2 string `validate:"omitempty" json:"field_2"`
-		Field3 string `validate:"required_with=Field1 Field2" json:"field_3"`
+		Field1 *string  `validate:"omitempty" json:"field_1"`
+		Field2 []string `validate:"omitempty" json:"field_2"`
+		Field3 string   `validate:"required_with=Field1 Field2" json:"field_3"`
 	}{
-		Field1: "test_field1",
+		Field2: []string{"test_field2"},
 		Field3: "test_field3",
 	}
 
@@ -8642,12 +8642,12 @@ func TestRequiredWith(t *testing.T) {
 func TestRequiredWithAll(t *testing.T) {
 
 	test := struct {
-		Field1 string `validate:"omitempty" json:"field_1"`
-		Field2 string `validate:"omitempty" json:"field_2"`
-		Field3 string `validate:"required_with_all=Field1 Field2" json:"field_3"`
+		Field1 string   `validate:"omitempty" json:"field_1"`
+		Field2 []string `validate:"omitempty" json:"field_2"`
+		Field3 string   `validate:"required_with_all=Field1 Field2" json:"field_3"`
 	}{
 		Field1: "test_field1",
-		Field2: "test_field2",
+		Field2: []string{"test_field2"},
 		Field3: "test_field3",
 	}
 
@@ -8663,9 +8663,9 @@ func TestRequiredWithAll(t *testing.T) {
 func TestRequiredWithout(t *testing.T) {
 
 	test := struct {
-		Field1 string `validate:"omitempty" json:"field_1"`
-		Field2 string `validate:"omitempty" json:"field_2"`
-		Field3 string `validate:"required_without=Field1 Field2" json:"field_3"`
+		Field1 *string  `validate:"omitempty" json:"field_1"`
+		Field2 []string `validate:"omitempty" json:"field_2"`
+		Field3 string   `validate:"required_without=Field1 Field2" json:"field_3"`
 	}{
 		Field3: "test_field3",
 	}
@@ -8682,9 +8682,9 @@ func TestRequiredWithout(t *testing.T) {
 func TestRequiredWithoutAll(t *testing.T) {
 
 	test := struct {
-		Field1 string `validate:"omitempty" json:"field_1"`
-		Field2 string `validate:"omitempty" json:"field_2"`
-		Field3 string `validate:"required_without_all=Field1 Field2" json:"field_3"`
+		Field1 *string  `validate:"omitempty" json:"field_1"`
+		Field2 []string `validate:"omitempty" json:"field_2"`
+		Field3 string   `validate:"required_without_all=Field1 Field2" json:"field_3"`
 	}{
 		Field3: "test_field3",
 	}
