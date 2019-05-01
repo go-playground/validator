@@ -1301,18 +1301,22 @@ func isDefault(fl FieldLevel) bool {
 
 // HasValue is the validation function for validating if the current field's value is not the default static value.
 func hasValue(fl FieldLevel) bool {
+	return requireCheckFieldKind(fl, "")
+}
 
+// requireCheckField is a func for check field kind
+func requireCheckFieldKind(fl FieldLevel, param string) bool {
 	field := fl.Field()
-
+	if len(param) > 0 {
+		field = fl.Parent().FieldByName(param)
+	}
 	switch field.Kind() {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
-
 		if fl.(*validate).fldIsPointer && field.Interface() != nil {
 			return true
 		}
-
 		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
 	}
 }
@@ -1321,33 +1325,11 @@ func hasValue(fl FieldLevel) bool {
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
 
-	field := fl.Field()
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		isParamFieldPresent := false
 
-		paramField := fl.Parent().FieldByName(param)
-
-		switch paramField.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			isParamFieldPresent = !paramField.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && paramField.Interface() != nil {
-				isParamFieldPresent = true
-			}
-			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
-		}
-
-		if isParamFieldPresent {
-			switch field.Kind() {
-			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-				return !field.IsNil()
-			default:
-				if fl.(*validate).fldIsPointer && field.Interface() != nil {
-					return true
-				}
-				return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-			}
+		if requireCheckFieldKind(fl, param) {
+			return requireCheckFieldKind(fl, "")
 		}
 	}
 
@@ -1358,38 +1340,17 @@ func requiredWith(fl FieldLevel) bool {
 // The field under validation must be present and not empty only if all of the other specified fields are present.
 func requiredWithAll(fl FieldLevel) bool {
 
-	field := fl.Field()
 	isValidateCurrentField := true
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		isParamFieldPresent := false
 
-		paramField := fl.Parent().FieldByName(param)
-
-		switch paramField.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			isParamFieldPresent = !paramField.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && paramField.Interface() != nil {
-				isParamFieldPresent = true
-			}
-			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
-		}
-		if !isParamFieldPresent {
-			isValidateCurrentField = isParamFieldPresent
+		if !requireCheckFieldKind(fl, param) {
+			isValidateCurrentField = false
 		}
 	}
 
 	if isValidateCurrentField {
-		switch field.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			return !field.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && field.Interface() != nil {
-				return true
-			}
-			return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-		}
+		return requireCheckFieldKind(fl, "")
 	}
 
 	return true
@@ -1399,38 +1360,17 @@ func requiredWithAll(fl FieldLevel) bool {
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
 
-	field := fl.Field()
 	isValidateCurrentField := false
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		isParamFieldPresent := false
 
-		paramField := fl.Parent().FieldByName(param)
-
-		switch paramField.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			isParamFieldPresent = !paramField.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && paramField.Interface() != nil {
-				isParamFieldPresent = true
-			}
-			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
-		}
-		if isParamFieldPresent {
-			isValidateCurrentField = isParamFieldPresent
+		if requireCheckFieldKind(fl, param) {
+			isValidateCurrentField = true
 		}
 	}
 
 	if !isValidateCurrentField {
-		switch field.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			return !field.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && field.Interface() != nil {
-				return true
-			}
-			return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-		}
+		return requireCheckFieldKind(fl, "")
 	}
 
 	return true
@@ -1440,38 +1380,17 @@ func requiredWithout(fl FieldLevel) bool {
 // The field under validation must be present and not empty only when all of the other specified fields are not present.
 func requiredWithoutAll(fl FieldLevel) bool {
 
-	field := fl.Field()
 	isValidateCurrentField := true
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		isParamFieldPresent := false
 
-		paramField := fl.Parent().FieldByName(param)
-
-		switch paramField.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			isParamFieldPresent = !paramField.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && paramField.Interface() != nil {
-				isParamFieldPresent = true
-			}
-			isParamFieldPresent = paramField.IsValid() && paramField.Interface() != reflect.Zero(field.Type()).Interface()
-		}
-		if isParamFieldPresent {
-			isValidateCurrentField = !isParamFieldPresent
+		if requireCheckFieldKind(fl, param) {
+			isValidateCurrentField = false
 		}
 	}
 
 	if isValidateCurrentField {
-		switch field.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-			return !field.IsNil()
-		default:
-			if fl.(*validate).fldIsPointer && field.Interface() != nil {
-				return true
-			}
-			return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-		}
+		return requireCheckFieldKind(fl, "")
 	}
 
 	return true
