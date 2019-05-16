@@ -714,6 +714,18 @@ This validates that a string value does not contain the supplied rune value.
 
 	Usage: excludesrune=@
 
+Starts With
+
+This validates that a string value starts with the supplied string value
+
+	Usage: startswith=hello
+
+Ends With
+
+This validates that a string value ends with the supplied string value
+
+	Usage: endswith=goodbye
+
 International Standard Book Number
 
 This validates that a string value contains a valid isbn10 or isbn13 value.
@@ -734,25 +746,25 @@ This validates that a string value contains a valid isbn13 value.
 
 Universally Unique Identifier UUID
 
-This validates that a string value contains a valid UUID.
+This validates that a string value contains a valid UUID. Uppercase UUID values will not pass - use `uuid_rfc4122` instead.
 
 	Usage: uuid
 
 Universally Unique Identifier UUID v3
 
-This validates that a string value contains a valid version 3 UUID.
+This validates that a string value contains a valid version 3 UUID.  Uppercase UUID values will not pass - use `uuid3_rfc4122` instead.
 
 	Usage: uuid3
 
 Universally Unique Identifier UUID v4
 
-This validates that a string value contains a valid version 4 UUID.
+This validates that a string value contains a valid version 4 UUID.  Uppercase UUID values will not pass - use `uuid4_rfc4122` instead.
 
 	Usage: uuid4
 
 Universally Unique Identifier UUID v5
 
-This validates that a string value contains a valid version 5 UUID.
+This validates that a string value contains a valid version 5 UUID.  Uppercase UUID values will not pass - use `uuid5_rfc4122` instead.
 
 	Usage: uuid5
 
@@ -998,5 +1010,30 @@ that should not make it to production.
 	}
 
 	validate.Struct(t) // this will panic
+
+Non standard validators
+
+A collection of validation rules that are frequently needed but are more
+complex than the ones found in the baked in validators.
+A non standard validator must be registered manually using any tag you like.
+See below examples of registration and use.
+
+	type Test struct {
+		TestField string `validate:"yourtag"`
+	}
+
+	t := &Test{
+		TestField: "Test"
+	}
+
+	validate := validator.New()
+	validate.RegisterValidation("yourtag", validations.ValidatorName)
+
+	NotBlank
+		This validates that the value is not blank or with length zero.
+		For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
+		ensures they don't have zero length. For others, a non empty value is required.
+
+		Usage: notblank
 */
 package validator

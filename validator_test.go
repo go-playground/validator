@@ -6535,6 +6535,15 @@ func TestEmail(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "email")
 
+	s = `"test test"@email.com`
+	errs = validate.Var(s, "email")
+	Equal(t, errs, nil)
+
+	s = `"@email.com`
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	i := true
 	errs = validate.Var(i, "email")
 	NotEqual(t, errs, nil)
@@ -8556,3 +8565,59 @@ func TestDirValidation(t *testing.T) {
 		validate.Var(2, "dir")
 	}, "Bad field type int")
 }
+
+func TestStartsWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"startswith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "abcd",  Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
+func TestEndsWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"endswith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
+
