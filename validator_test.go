@@ -7855,6 +7855,7 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"test.example24.com", true},
 		{"test24.example24.com", true},
 		{"example", true},
+		{"EXAMPLE", true},
 		{"1.foo.com", false},
 		{"test.example.com.", false},
 		{"example.com.", false},
