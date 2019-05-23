@@ -245,6 +245,68 @@ ensures the value is not nil.
 
 	Usage: required
 
+Required With
+
+The field under validation must be present and not empty only if any
+of the other specified fields are present. For strings ensures value is
+not "". For slices, maps, pointers, interfaces, channels and functions
+ensures the value is not nil.
+
+	Usage: required_with
+
+Examples:
+
+	// require the field if the Field1 is present:
+	Usage: required_with=Field1
+
+	// require the field if the Field1 or Field2 is present:
+	Usage: required_with=Field1 Field2
+
+Required With All
+
+The field under validation must be present and not empty only if all
+of the other specified fields are present. For strings ensures value is
+not "". For slices, maps, pointers, interfaces, channels and functions
+ensures the value is not nil.
+
+	Usage: required_with_all
+
+Example:
+
+	// require the field if the Field1 and Field2 is present:
+	Usage: required_with_all=Field1 Field2
+
+Required Without
+
+The field under validation must be present and not empty only when any
+of the other specified fields are not present. For strings ensures value is
+not "". For slices, maps, pointers, interfaces, channels and functions
+ensures the value is not nil.
+
+	Usage: required_without
+
+Examples:
+
+	// require the field if the Field1 is not present:
+	Usage: required_without=Field1
+
+	// require the field if the Field1 or Field2 is not present:
+	Usage: required_without=Field1 Field2
+
+Required Without All
+
+The field under validation must be present and not empty only when all
+of the other specified fields are not present. For strings ensures value is
+not "". For slices, maps, pointers, interfaces, channels and functions
+ensures the value is not nil.
+
+	Usage: required_without_all
+
+Example:
+
+	// require the field if the Field1 and Field2 is not present:
+	Usage: required_without_all=Field1 Field2
+
 Is Default
 
 This validates that the value is the default value and is almost the
