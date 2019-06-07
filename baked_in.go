@@ -1393,7 +1393,7 @@ func requiredWithoutAll(fl FieldLevel) bool {
 		return requireCheckFieldKind(fl, "")
 	}
 
-	return true
+	return isValidateCurrentField
 }
 
 // IsGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
