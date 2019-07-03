@@ -140,6 +140,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			}
 
 			// a require_with parent value can be nil as long as the target field is not set
+			v.ct = ct
 			if ct.tag != "required_with" || !ct.fn(ctx, v) {
 				v.errs = append(v.errs,
 					&fieldError{
