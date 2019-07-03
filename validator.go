@@ -139,21 +139,24 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				return
 			}
 
-			v.errs = append(v.errs,
-				&fieldError{
-					v:              v.v,
-					tag:            ct.aliasTag,
-					actualTag:      ct.tag,
-					ns:             v.str1,
-					structNs:       v.str2,
-					fieldLen:       uint8(len(cf.altName)),
-					structfieldLen: uint8(len(cf.name)),
-					value:          current.Interface(),
-					param:          ct.param,
-					kind:           kind,
-					typ:            current.Type(),
-				},
-			)
+			// a require_with parent value can be nil as long as the target field is not set
+			if ct.tag != "required_with" || !ct.fn(ctx, v) {
+				v.errs = append(v.errs,
+					&fieldError{
+						v:              v.v,
+						tag:            ct.aliasTag,
+						actualTag:      ct.tag,
+						ns:             v.str1,
+						structNs:       v.str2,
+						fieldLen:       uint8(len(cf.altName)),
+						structfieldLen: uint8(len(cf.name)),
+						value:          current.Interface(),
+						param:          ct.param,
+						kind:           kind,
+						typ:            current.Type(),
+					},
+				)
+			}
 
 			return
 		}
