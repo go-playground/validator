@@ -8712,7 +8712,7 @@ func TestRequiredWithout(t *testing.T) {
 		Field5: "test",
 	}
 
-	errs = validate.Struct(test2)
+	errs = validate.Struct(&test2)
 
 	if errs == nil {
 		t.Fatalf("failed Error: %s", errs)

@@ -1308,7 +1308,11 @@ func hasValue(fl FieldLevel) bool {
 func requireCheckFieldKind(fl FieldLevel, param string) bool {
 	field := fl.Field()
 	if len(param) > 0 {
-		field = fl.Parent().FieldByName(param)
+		if fl.Parent().Kind() == reflect.Ptr {
+			field = fl.Parent().Elem().FieldByName(param)
+		} else {
+			field = fl.Parent().FieldByName(param)
+		}
 	}
 	switch field.Kind() {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
