@@ -439,9 +439,6 @@ func TestAnonymous(t *testing.T) {
 		AnonymousB struct {
 			B string `validate:"required" json:"BEE"`
 		}
-		anonymousC struct {
-			c string `validate:"required"`
-		}
 	}
 
 	tst := &Test{
@@ -454,11 +451,6 @@ func TestAnonymous(t *testing.T) {
 			B string `validate:"required" json:"BEE"`
 		}{
 			B: "",
-		},
-		anonymousC: struct {
-			c string `validate:"required"`
-		}{
-			c: "",
 		},
 	}
 
@@ -715,12 +707,12 @@ func TestNilValidator(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { val.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{}) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.Var(ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.VarWithValue("test", ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.Struct(ts) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.StructExcept(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.Var(ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.VarWithValue("test", ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.Struct(ts) }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.StructExcept(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
 }
 
 func TestStructPartial(t *testing.T) {
@@ -1850,7 +1842,7 @@ func TestSQLValue2Validation(t *testing.T) {
 
 	val.Name = "errorme"
 
-	PanicMatches(t, func() { validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
+	PanicMatches(t, func() { _ = validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
 
 	myVal := valuer{
 		Name: "",
@@ -2675,7 +2667,7 @@ func TestBadKeyValidation(t *testing.T) {
 
 	validate := New()
 
-	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
+	PanicMatches(t, func() { _ = validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
 
 	type Test2 struct {
 		Name string `validate:"required,,len=2"`
@@ -2685,7 +2677,7 @@ func TestBadKeyValidation(t *testing.T) {
 		Name: "test",
 	}
 
-	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
+	PanicMatches(t, func() { _ = validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -3009,7 +3001,7 @@ func TestArrayDiveValidation(t *testing.T) {
 		Name: "TEST",
 	}
 
-	PanicMatches(t, func() { validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
+	PanicMatches(t, func() { _ = validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
 
 	type Test struct {
 		Errs []string `validate:"gt=0,dive,required"`
@@ -3372,7 +3364,7 @@ func TestLongitudeValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() { validate.Var(true, "longitude") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(true, "longitude") }, "Bad field type bool")
 }
 
 func TestLatitudeValidation(t *testing.T) {
@@ -3414,7 +3406,7 @@ func TestLatitudeValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() { validate.Var(true, "latitude") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
 func TestDataURIValidation(t *testing.T) {
@@ -4317,7 +4309,7 @@ func TestIsNeValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ne")
 
-	PanicMatches(t, func() { validate.Var(now, "ne=now") }, "Bad field type time.Time")
+	PanicMatches(t, func() { _ = validate.Var(now, "ne=now") }, "Bad field type time.Time")
 }
 
 func TestIsEqFieldValidation(t *testing.T) {
@@ -4471,7 +4463,7 @@ func TestIsEqValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eq")
 
-	PanicMatches(t, func() { validate.Var(now, "eq=now") }, "Bad field type time.Time")
+	PanicMatches(t, func() { _ = validate.Var(now, "eq=now") }, "Bad field type time.Time")
 }
 
 func TestOneOfValidation(t *testing.T) {
@@ -4530,7 +4522,7 @@ func TestOneOfValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(3.14, "oneof=red green")
+		_ = validate.Var(3.14, "oneof=red green")
 	}, "Bad field type float64")
 }
 
@@ -4634,7 +4626,7 @@ func TestFileValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(6, "file")
+		_ = validate.Var(6, "file")
 	}, "Bad field type int")
 }
 
@@ -5737,7 +5729,8 @@ func TestValidateByTagAndValue(t *testing.T) {
 		return fl.Parent().String() == fl.Field().String()
 	}
 
-	validate.RegisterValidation("isequaltestfunc", fn)
+	err := validate.RegisterValidation("isequaltestfunc", fn)
+	Equal(t, err, nil)
 
 	errs = validate.VarWithValue(val, field, "isequaltestfunc")
 	Equal(t, errs, nil)
@@ -5768,7 +5761,7 @@ func TestAddFunctions(t *testing.T) {
 	errs = validate.RegisterValidation("", fn)
 	NotEqual(t, errs, nil)
 
-	validate.RegisterValidation("new", nil)
+	errs = validate.RegisterValidation("new", nil)
 	NotEqual(t, errs, nil)
 
 	errs = validate.RegisterValidation("new", fn)
@@ -5777,7 +5770,7 @@ func TestAddFunctions(t *testing.T) {
 	errs = validate.RegisterValidationCtx("new", fnCtx)
 	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
+	PanicMatches(t, func() { _ = validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestChangeTag(t *testing.T) {
@@ -5819,6 +5812,7 @@ func TestUnexposedStruct(t *testing.T) {
 
 	errs := validate.Struct(s)
 	Equal(t, errs, nil)
+	Equal(t, s.unexposed.A, "")
 }
 
 func TestBadParams(t *testing.T) {
@@ -5829,14 +5823,14 @@ func TestBadParams(t *testing.T) {
 	errs := validate.Var(i, "-")
 	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
-	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
 
 	var ui uint = 1
-	PanicMatches(t, func() { validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
 
 	f := 1.23
-	PanicMatches(t, func() { validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
 }
 
 func TestLength(t *testing.T) {
@@ -5844,7 +5838,7 @@ func TestLength(t *testing.T) {
 	validate := New()
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "len") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "len") }, "Bad field type bool")
 }
 
 func TestIsGt(t *testing.T) {
@@ -5866,7 +5860,7 @@ func TestIsGt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "gt")
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "gt") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "gt") }, "Bad field type bool")
 
 	tm := time.Now().UTC()
 	tm = tm.Add(time.Hour * 24)
@@ -5904,7 +5898,7 @@ func TestIsGte(t *testing.T) {
 	validate := New()
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "gte") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
 
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
@@ -5957,7 +5951,7 @@ func TestIsLt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "lt")
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "lt") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "lt") }, "Bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -5996,7 +5990,7 @@ func TestIsLte(t *testing.T) {
 	validate := New()
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "lte") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "lte") }, "Bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -6103,7 +6097,7 @@ func TestUrnRFC2141(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, tag) }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, tag) }, "Bad field type int")
 }
 
 func TestUrl(t *testing.T) {
@@ -6171,7 +6165,7 @@ func TestUrl(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
 func TestUri(t *testing.T) {
@@ -6238,7 +6232,7 @@ func TestUri(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "uri") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, "uri") }, "Bad field type int")
 }
 
 func TestOrTag(t *testing.T) {
@@ -6280,8 +6274,8 @@ func TestOrTag(t *testing.T) {
 
 	s = "this is right, but a blank or isn't"
 
-	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
-	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
 
 	v2 := New()
 	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -6351,13 +6345,12 @@ func TestHsla(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "hsla")
 
 	i := 1
-	validate.Var(i, "hsla")
+	errs = validate.Var(i, "hsla")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hsla")
 }
 
 func TestHsl(t *testing.T) {
-
 	validate := New()
 
 	s := "hsl(360,100%,50%)"
@@ -7053,7 +7046,7 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
 }
 
 func TestCustomFieldName(t *testing.T) {
@@ -7314,10 +7307,11 @@ func TestTranslationErrors(t *testing.T) {
 	uni := ut.New(en, en, fr.New())
 
 	trans, _ := uni.GetTranslator("en")
-	trans.Add("required", "{0} is a required field", false) // using translator outside of validator also
+	err := trans.Add("required", "{0} is a required field", false) // using translator outside of validator also
+	Equal(t, err, nil)
 
 	validate := New()
-	err := validate.RegisterTranslation("required", trans,
+	err = validate.RegisterTranslation("required", trans,
 		func(ut ut.Translator) (err error) {
 
 			// using this stype because multiple translation may have to be added for the full translation
@@ -7766,31 +7760,36 @@ func TestFieldLevelName(t *testing.T) {
 
 		return name
 	})
-	validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
+	err := validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
 		res1 = fl.FieldName()
 		alt1 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+	err = validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
 		res2 = fl.FieldName()
 		alt2 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+	err = validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
 		res3 = fl.FieldName()
 		alt3 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+	err = validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
 		res4 = fl.FieldName()
 		alt4 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+	err = validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
 		res5 = fl.FieldName()
 		alt5 = fl.StructFieldName()
 		return true
 	})
+	Equal(t, err, nil)
 
 	test := Test{
 		String: "test",
@@ -7813,7 +7812,6 @@ func TestFieldLevelName(t *testing.T) {
 }
 
 func TestValidateStructRegisterCtx(t *testing.T) {
-
 	var ctxVal string
 
 	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
@@ -7833,7 +7831,8 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 	var tst Test
 
 	validate := New()
-	validate.RegisterValidationCtx("val", fnCtx)
+	err := validate.RegisterValidationCtx("val", fnCtx)
+	Equal(t, err, nil)
 	validate.RegisterStructValidationCtx(slFn, Test{})
 
 	ctx := context.WithValue(context.Background(), &ctxVal, "testval")
@@ -8157,7 +8156,7 @@ func TestUniqueValidation(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { validate.Var(1.0, "unique") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
 }
 
 func TestHTMLValidation(t *testing.T) {
@@ -8362,8 +8361,8 @@ func TestKeys(t *testing.T) {
 
 	// test bad tag definitions
 
-	PanicMatches(t, func() { validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
-	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
+	PanicMatches(t, func() { _ = validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
+	PanicMatches(t, func() { _ = validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
 
 	// test custom tag name
 	validate = New()
@@ -8400,7 +8399,7 @@ func TestKeysCustomValidation(t *testing.T) {
 	}
 
 	validate := New()
-	validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
+	err := validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
 		validLangCodes := map[LangCode]struct{}{
 			"en": {},
 			"es": {},
@@ -8410,6 +8409,7 @@ func TestKeysCustomValidation(t *testing.T) {
 		_, ok := validLangCodes[fl.Field().Interface().(LangCode)]
 		return ok
 	})
+	Equal(t, err, nil)
 
 	label := Label{
 		"en":  "Good morning!",
@@ -8419,7 +8419,7 @@ func TestKeysCustomValidation(t *testing.T) {
 		"xxx": "",
 	}
 
-	err := validate.Struct(TestMapStructPtr{label})
+	err = validate.Struct(TestMapStructPtr{label})
 	NotEqual(t, err, nil)
 
 	errs := err.(ValidationErrors)
@@ -8562,7 +8562,7 @@ func TestDirValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(2, "dir")
+		_ = validate.Var(2, "dir")
 	}, "Bad field type int")
 }
 

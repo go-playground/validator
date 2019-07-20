@@ -125,25 +125,20 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	var customName string
 
 	for i := 0; i < numFields; i++ {
-
 		fld = typ.Field(i)
 
 		if !fld.Anonymous && len(fld.PkgPath) > 0 {
 			continue
 		}
-
 		tag = fld.Tag.Get(v.tagName)
 
 		if tag == skipValidationTag {
 			continue
 		}
-
 		customName = fld.Name
 
 		if v.hasTagNameFunc {
-
 			name := v.tagNameFunc(fld)
-
 			if len(name) > 0 {
 				customName = name
 			}
@@ -157,9 +152,8 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		} else {
 			// even if field doesn't have validations need cTag for traversing to potential inner/nested
 			// elements of the field.
-			ctag = new(cTag)
+			ctag = &cTag{typeof: typeDefault}
 		}
-
 		cs.fields = append(cs.fields, &cField{
 			idx:        i,
 			name:       fld.Name,
@@ -168,14 +162,11 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			namesEqual: fld.Name == customName,
 		})
 	}
-
 	v.structCache.Set(typ, cs)
-
 	return cs
 }
 
 func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
-
 	var t string
 	var ok bool
 	noAlias := len(alias) == 0
@@ -214,7 +205,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		}
 
 		switch t {
-
 		case diveTag:
 			current.typeof = typeDive
 			continue

@@ -376,7 +376,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					}
 
 					t, err = ut.T("ne-items", fe.Field(), c)
-					break
 				default:
 					t, err = ut.T("ne", fe.Field(), fe.Param())
 				}

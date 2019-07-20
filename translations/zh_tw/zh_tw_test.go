@@ -5,16 +5,16 @@ import (
 	"time"
 
 	zhongwen "github.com/go-playground/locales/zh_Hant_TW"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	. "gopkg.in/go-playground/assert.v1"
 	"gopkg.in/go-playground/validator.v9"
 )
 
 func TestTranslations(t *testing.T) {
-
 	zh := zhongwen.New()
 	uni := ut.New(zh, zh)
-	trans, ok := uni.GetTranslator("zh")
+	trans, ok := uni.GetTranslator("zh_Hant_TW")
+	Equal(t, ok, true)
 
 	validate := validator.New()
 

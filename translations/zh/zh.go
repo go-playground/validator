@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/locales"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -430,6 +430,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
+						if err != nil {
+							goto END
+						}
 					}
 
 					t, err = ut.T("lt-datetime", fe.Field())
@@ -549,6 +552,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
+						if err != nil {
+							goto END
+						}
 					}
 
 					t, err = ut.T("lte-datetime", fe.Field())
@@ -668,6 +674,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
+						if err != nil {
+							goto END
+						}
 					}
 
 					t, err = ut.T("gt-datetime", fe.Field())
@@ -787,6 +796,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
+						if err != nil {
+							goto END
+						}
 					}
 
 					t, err = ut.T("gte-datetime", fe.Field())
