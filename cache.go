@@ -83,6 +83,7 @@ type cField struct {
 	name       string
 	altName    string
 	namesEqual bool
+	kind       reflect.Kind
 	cTags      *cTag
 }
 
@@ -164,6 +165,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			idx:        i,
 			name:       fld.Name,
 			altName:    customName,
+			kind:       fld.Type.Kind(),
 			cTags:      ctag,
 			namesEqual: fld.Name == customName,
 		})

@@ -8763,3 +8763,384 @@ func TestRequiredWithoutAll(t *testing.T) {
 		t.Fatalf("failed Error: %s", errs)
 	}
 }
+
+func TestCoDependentGroups(t *testing.T) {
+	validate := New()
+
+	var p interface{}
+	p = struct {
+		P int `validate:"group"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "The 'group' validation tag requires a group name")
+
+	p = struct {
+		P int `validate:"at_least"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "The 'at_least' validation tag requires a group name")
+
+	p = struct {
+		P int `validate:"no_more_than"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "The 'no_more_than' validation tag requires a group name")
+
+	p = struct {
+		P int `validate:"mutex"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "The 'mutex' validation tag requires a group name")
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"mutex=Pi"`
+		P3 int `validate:"group=Pi"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "Can't add a new field (P3) to a codependent group 'Pi' after it has been validated")
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"mutex=Pi"`
+		P3 int `validate:"mutex=Pi"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "Can't add a new field (P3) to a codependent group 'Pi' after it has been validated")
+	CoDependentGroups.ClearGroups("NotFound")
+	Equal(t, CoDependentGroups.Count(), 1)
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"mutex=Pi"`
+		P3 int `validate:"at_least=Pi"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "Can't add a new field (P3) to a codependent group 'Pi' after it has been validated")
+	CoDependentGroups.ClearGroups("Pi")
+	Equal(t, CoDependentGroups.Count(), 0)
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"mutex=Pi"`
+		P3 int `validate:"no_more_than=Pi"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "Can't add a new field (P3) to a codependent group 'Pi' after it has been validated")
+	CoDependentGroups.ClearGroups()
+	Equal(t, CoDependentGroups.Count(), 0)
+
+	p = struct {
+		A1 int    `validate:"group=Alpha"`
+		A2 int    `validate:"group=Alpha"`
+		A3 int    `validate:"group=NotAlpha"`
+		A4 int    `validate:"required"`
+		A5 string `validate:"mutex=Alpha"`
+		B  int    `validate:"at_least=Beta"`
+		C1 int    `validate:"group=Gamma"`
+		C  struct {
+			C2 int `validate:"no_more_than=Gamma"`
+			C3 int `validate:"group=gamma"`
+		}
+
+		D1 int `validate:"group=Delta"`
+		D2 struct {
+			D3 int
+			D4 int `validate:"omitempty,gte=5"`
+		} `validate:"group=Delta"`
+	}{}
+
+	// just testing that correct fields are added proper groups; don't care about validation
+	_ = validate.Struct(p)
+
+	// should be six groups: Alpha, NotAlpha, Beta, Gamma, gamma, Delta
+	Equal(t, CoDependentGroups.Count(), 6)
+	alpha, ok := CoDependentGroups.FieldsOk("Alpha")
+	Equal(t, ok, true)
+	notAlpha, ok := CoDependentGroups.FieldsOk("NotAlpha")
+	Equal(t, ok, true)
+	beta, ok := CoDependentGroups.FieldsOk("Beta")
+	Equal(t, ok, true)
+	gamma, ok := CoDependentGroups.FieldsOk("Gamma")
+	Equal(t, ok, true)
+	g, ok := CoDependentGroups.FieldsOk("gamma")
+	Equal(t, ok, true)
+	delta, ok := CoDependentGroups.FieldsOk("Delta")
+	Equal(t, ok, true)
+
+	// Alpha group should have 3 fields: A1, A2, A5
+	Equal(t, len(alpha), 3)
+	for s, f := range alpha {
+		if s == "A1" { // added by group
+			Equal(t, f.StructFieldName(), "A1")
+		} else if s == "A2" { // added by group
+			Equal(t, f.StructFieldName(), "A2")
+		} else if s == "A5" { // added by mutex
+			Equal(t, f.StructFieldName(), "A5")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+
+	// NotAlpha group should have 1 field: A3
+	Equal(t, len(notAlpha), 1)
+	for s, f := range notAlpha {
+		if s == "A3" { // added by group
+			Equal(t, f.StructFieldName(), "A3")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+
+	// Beta group should have 1 field: B
+	Equal(t, len(beta), 1)
+	for s, f := range beta {
+		if s == "B" { // added by at_least
+			Equal(t, f.StructFieldName(), "B")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+
+	// Gamma group should have 2 fields: C1, C2
+	Equal(t, len(gamma), 2)
+	for s, f := range gamma {
+		if s == "C1" { // added by group
+			Equal(t, f.StructFieldName(), "C1")
+		} else if s == "C.C2" { // added by no_more_than
+			Equal(t, f.StructFieldName(), "C2")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+
+	// gamma group should have 1 field: C3
+	Equal(t, len(g), 1)
+	for s, f := range g {
+		if s == "C.C3" { // added by group
+			Equal(t, f.StructFieldName(), "C3")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+
+	// Delta group should have 2 fields: D1, D2
+	Equal(t, len(delta), 2)
+	for s, f := range delta {
+		if s == "D1" {
+			Equal(t, f.StructFieldName(), "D1")
+		} else if s == "D2" {
+			Equal(t, f.StructFieldName(), "D2")
+		} else {
+			t.Error("Unknown field name", s)
+		}
+	}
+}
+
+func TestAtLeast(t *testing.T) {
+	type CS struct {
+		C2 int `validate:"no_more_than=Gamma 2,at_least=Gamma"`
+	}
+	type DS struct {
+		D1 int `validate:"gte=5"`
+	}
+	type ES struct {
+		E1 int `validate:"omitempty,gte=5"`
+	}
+	type FS struct {
+		F1 int `validate:"gte=5"`
+	}
+	type GS struct {
+		G1 int `validate:"gte=5"`
+	}
+	type HS struct {
+		H1 int
+	}
+	validate := New()
+
+	type test struct {
+		A1 int     `validate:"group=Alpha"`
+		A2 string  `validate:"group=Alpha,group=Beta"`                // member of two groups
+		A3 float64 `validate:"no_more_than=Alpha 3,at_least=Alpha 2"` // non-default number
+
+		B1 *int `validate:"no_more_than=Beta 2,at_least=Beta"` // default number, pointer to base type
+
+		C1 int `validate:"group=Gamma"`
+		C  CS  // subfield
+
+		D  DS `validate:"group=Delta"`
+		Dd DS `validate:"no_more_than=Delta 2,at_least=Delta"` // struct with internal validation
+
+		E  ES `validate:"group=Epsilon"`
+		Ee ES `validate:"no_more_than=Epsilon 2,at_least=Epsilon"` // struct with ignored internal validation
+
+		F  FS `validate:"group=Zeta,structonly"`
+		Ff FS `validate:"no_more_than=Zeta 2,at_least=Zeta,structonly"` // struct with ignored validation
+
+		G *GS `validate:"no_more_than=Theta,at_least=Theta"` // struct pointer
+
+		H []HS `validate:"no_more_than=Eta,at_least=Eta"` // slice of structs
+
+		I interface{} `validate:"no_more_than=Iota,at_least=Iota"` // interface validation
+	}
+	s := test{}
+
+	err := validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 10)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2 test.A3] Error:Field validations for [A1 A2 A3] failed on the 'at_least' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Keys: [test.A2 test.B1] Error:Field validations for [A2 B1] failed on the 'at_least' tag")
+	Equal(t, errs[2].(*fieldError).Error(), "Keys: [test.C1 test.C.C2] Error:Field validations for [C1 C2] failed on the 'at_least' tag")
+	Equal(t, errs[3].(*fieldError).Error(), "Key: 'test.D.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[4].(*fieldError).Error(), "Keys: [test.D test.Dd] Error:Field validations for [D Dd] failed on the 'at_least' tag")
+	Equal(t, errs[5].(*fieldError).Error(), "Keys: [test.E test.Ee] Error:Field validations for [E Ee] failed on the 'at_least' tag")
+	Equal(t, errs[6].(*fieldError).Error(), "Keys: [test.F test.Ff] Error:Field validations for [F Ff] failed on the 'at_least' tag")
+	Equal(t, errs[7].(*fieldError).Error(), "Keys: [test.G] Error:Field validations for [G] failed on the 'at_least' tag")
+	Equal(t, errs[8].(*fieldError).Error(), "Keys: [test.H] Error:Field validations for [H] failed on the 'at_least' tag")
+	Equal(t, errs[9].(*fieldError).Error(), "Keys: [test.I] Error:Field validations for [I] failed on the 'at_least' tag")
+
+	iPtr := 0
+	s.A1 = 0
+	s.A2 = ""
+	s.A3 = 0.0
+	s.B1 = &iPtr
+	s.C1 = 0
+	s.C = CS{C2: 0}
+	s.D = DS{D1: 0}
+	s.Dd = DS{D1: 0}
+	s.E = ES{E1: 0}
+	s.Ee = ES{E1: 0}
+	s.F = FS{F1: 0}
+	s.Ff = FS{F1: 0}
+	s.G = &GS{G1: 0}
+	s.H = make([]HS, 0)
+	s.I = ""
+
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 9)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2 test.A3] Error:Field validations for [A1 A2 A3] failed on the 'at_least' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Keys: [test.C1 test.C.C2] Error:Field validations for [C1 C2] failed on the 'at_least' tag")
+	Equal(t, errs[2].(*fieldError).Error(), "Key: 'test.D.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[3].(*fieldError).Error(), "Keys: [test.D test.Dd] Error:Field validations for [D Dd] failed on the 'at_least' tag")
+	Equal(t, errs[4].(*fieldError).Error(), "Keys: [test.E test.Ee] Error:Field validations for [E Ee] failed on the 'at_least' tag")
+	Equal(t, errs[5].(*fieldError).Error(), "Keys: [test.F test.Ff] Error:Field validations for [F Ff] failed on the 'at_least' tag")
+	Equal(t, errs[6].(*fieldError).Error(), "Key: 'test.G.G1' Error:Field validation for 'G1' failed on the 'gte' tag")
+	Equal(t, errs[7].(*fieldError).Error(), "Keys: [test.H] Error:Field validations for [H] failed on the 'at_least' tag")
+	Equal(t, errs[8].(*fieldError).Error(), "Keys: [test.I] Error:Field validations for [I] failed on the 'at_least' tag")
+
+	s.A1 = 0
+	s.A2 = "0"
+	s.A3 = 0.0
+	s.B1 = nil
+	s.C1 = 0
+	s.C.C2 = 1
+	s.D.D1 = 1
+	s.E.E1 = 1
+	s.F.F1 = 1
+	s.G.G1 = 1
+	s.H = make([]HS, 1)
+	s.I = 0
+
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 6)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2 test.A3] Error:Field validations for [A1 A2 A3] failed on the 'at_least' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Key: 'test.D.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[2].(*fieldError).Error(), "Key: 'test.Dd.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[3].(*fieldError).Error(), "Key: 'test.E.E1' Error:Field validation for 'E1' failed on the 'gte' tag")
+	Equal(t, errs[4].(*fieldError).Error(), "Key: 'test.G.G1' Error:Field validation for 'G1' failed on the 'gte' tag")
+	Equal(t, errs[5].(*fieldError).Error(), "Keys: [test.I] Error:Field validations for [I] failed on the 'at_least' tag")
+
+	s.A1 = 1
+	s.A2 = "0"
+	s.A3 = 0.0
+	s.B1 = &iPtr
+	s.C1 = 1
+	s.C.C2 = 0
+	s.Dd.D1 = 1
+	s.Ee.E1 = 1
+	s.Ff.F1 = 1
+	s.G.G1 = 5
+	s.I = 1
+
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 4)
+	Equal(t, errs[0].(*fieldError).Error(), "Key: 'test.D.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Key: 'test.Dd.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[2].(*fieldError).Error(), "Key: 'test.E.E1' Error:Field validation for 'E1' failed on the 'gte' tag")
+	Equal(t, errs[3].(*fieldError).Error(), "Key: 'test.Ee.E1' Error:Field validation for 'E1' failed on the 'gte' tag")
+
+	s.Dd.D1 = 5
+	s.Ee.E1 = 6
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 2)
+	Equal(t, errs[0].(*fieldError).Error(), "Key: 'test.D.D1' Error:Field validation for 'D1' failed on the 'gte' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Key: 'test.E.E1' Error:Field validation for 'E1' failed on the 'gte' tag")
+}
+
+func TestNoMoreThan(t *testing.T) {
+	validate := New()
+	type test struct {
+		A1 int     `validate:"group=Alpha"`
+		A2 string  `validate:"group=Alpha"`
+		A3 float64 `validate:"no_more_than=Alpha 2"` // non-default number
+		B1 int     `validate:"group=Beta"`
+		B2 int     `validate:"no_more_than=Beta"` // default to no more than one
+	}
+
+	s := test{A1: 1}
+	err := validate.Struct(s)
+	Equal(t, err, nil)
+
+	s.A2 = "hi"
+	s.B2 = 1
+
+	err = validate.Struct(s)
+	Equal(t, err, nil)
+
+	s.A3 = 1
+	s.B1 = 1
+
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 2)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2 test.A3] Error:Field validations for [A1 A2 A3] failed on the 'no_more_than' tag")
+	Equal(t, errs[1].(*fieldError).Error(), "Keys: [test.B1 test.B2] Error:Field validations for [B1 B2] failed on the 'no_more_than' tag")
+}
+
+func TestMutex(t *testing.T) {
+	validate := New()
+	type test struct {
+		A1 int     `validate:"group=Alpha"`
+		A2 float64 `validate:"mutex=Alpha"`
+	}
+
+	s := test{}
+	err := validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 1)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2] Error:Field validations for [A1 A2] failed on the 'mutex' tag")
+
+	s.A1 = 1
+
+	err = validate.Struct(s)
+	Equal(t, err, nil)
+
+	s.A2 = 1
+
+	err = validate.Struct(s)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 1)
+	Equal(t, errs[0].(*fieldError).Error(), "Keys: [test.A1 test.A2] Error:Field validations for [A1 A2] failed on the 'mutex' tag")
+}

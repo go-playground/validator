@@ -58,6 +58,17 @@ var (
 		"iscolor": "hexcolor|rgb|rgba|hsl|hsla",
 	}
 
+	// BakedInFlags is a default mapping of validationFlags.
+	// When registering ValidationFunc's you can include validationFlags to specify that the function should be treated differently than normal.
+	// This adds a little bit more flexibility to custom validation functions.
+	// See constants starting with 'VFlag'.
+	bakedInFlags = map[string]validationFlag{
+		"group":        VFlagRunOnNil | VFlagRunOnStruct,
+		"no_more_than": VFlagRunOnNil | VFlagRunOnStruct | VFlagCoDependentErr,
+		"at_least":     VFlagRunOnNil | VFlagRunOnStruct | VFlagCoDependentErr,
+		"mutex":        VFlagRunOnNil | VFlagRunOnStruct | VFlagCoDependentErr,
+	}
+
 	// BakedInValidators is the default map of ValidationFunc
 	// you can add, remove or even replace items to suite your needs,
 	// or even disregard and use your own map if so desired.
@@ -165,11 +176,100 @@ var (
 		"html_encoded":         isHTMLEncoded,
 		"url_encoded":          isURLEncoded,
 		"dir":                  isDir,
+		"group":                groupFields,
+		"no_more_than":         noMoreThanNRequired,
+		"at_least":             atLeastNRequired,
+		"mutex":                mutuallyExclusive,
 	}
 )
 
 var oneofValsCache = map[string][]string{}
 var oneofValsCacheRWLock = sync.RWMutex{}
+
+type coDepFields struct {
+	fields map[string]FieldLevel
+	closed bool
+}
+
+type coDepGroups map[string]*coDepFields
+
+// AddGroupField adds fields to codependent groups.
+// fl can/should be a FieldLevel struct passed into Func validation funcs.
+func (cd coDepGroups) AddGroupField(g string, fl *validate) coDepGroups {
+	if _, ok := cd[g]; !ok {
+		cd[g] = &coDepFields{fields: make(map[string]FieldLevel)}
+	}
+
+	if _, ok := cd[g].fields[string(fl.str1)]; cd[g].closed && !ok {
+		// this group has already been validated and trying to add new field
+		panic(fmt.Sprintf("Can't add a new field (%s) to a codependent group '%s' after it has been validated", string(fl.str1), g))
+	}
+
+	var f = new(validate)
+	f.slflParent = fl.slflParent
+	f.slCurrent = fl.slCurrent
+	f.cf = fl.cf
+	f.ct = fl.ct
+	f.flField = fl.flField
+	if (fl.cf.kind != reflect.Interface) || (fl.flField.Kind() == reflect.Interface) {
+		// for codependent checks interfaces should be treated as the runtime type not as a pointer
+		f.fldIsPointer = fl.fldIsPointer
+	}
+	cd[g].fields[string(fl.str1)] = f
+
+	return cd
+}
+
+// ClearGroups removes groups of fields for codependent validations.
+// If no groups names given, all groups are removed.
+func (cd coDepGroups) ClearGroups(gNames ...string) coDepGroups {
+	if len(gNames) <= 0 {
+		//clear all groups
+		for g := range cd {
+			delete(cd, g)
+		}
+	} else {
+		//clear given groups
+		for _, g := range gNames {
+			delete(cd, g)
+		}
+	}
+
+	return cd
+}
+
+// Count the number of codependent groups.
+func (cd coDepGroups) Count() int {
+	return len(cd)
+}
+
+// Fields retrieves map of FieldLevel structs representing the fields in the group.
+func (cd coDepGroups) Fields(g string) map[string]FieldLevel {
+	if _, ok := cd[g]; !ok {
+		return nil
+	}
+	return cd[g].fields
+}
+
+// FieldsOk retrieves map of FieldLevel structs representing the fields in the group.
+// ok is false if group name not found
+func (cd coDepGroups) FieldsOk(g string) (map[string]FieldLevel, bool) {
+	if _, ok := cd[g]; !ok {
+		return nil, false
+	}
+	return cd[g].fields, true
+}
+
+// CloseGroup closes a group so that no new fields can be added to it.
+// Codependent validation functions should call this to avoid errors.
+func (cd coDepGroups) CloseGroup(g string) coDepGroups {
+	cd[g].closed = true
+
+	return cd
+}
+
+// CoDependentGroups holds fields that have been group by some identifier in order to run validations that depend on all members of the group. e.g. mutex.
+var CoDependentGroups = make(coDepGroups)
 
 func parseOneOfParam2(s string) []string {
 	oneofValsCacheRWLock.RLock()
@@ -182,6 +282,98 @@ func parseOneOfParam2(s string) []string {
 		oneofValsCacheRWLock.Unlock()
 	}
 	return vals
+}
+
+// groupFields adds the field to the named (param) validation group.
+// This function always returns true as it is preparing for a validation check instead of actually doing a check.
+// If the param is missing function panics.
+func groupFields(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	if len(vals) <= 0 {
+		panic("The 'group' validation tag requires a group name")
+	}
+	CoDependentGroups.AddGroupField(vals[0], fl.(*validate))
+	return true
+}
+
+func countNonEmptyFields(fls map[string]FieldLevel) int {
+	cntExists := 0
+	for _, f := range fls {
+		if requireCheckFieldKind(f, "") {
+			cntExists++
+			field := f.Field()
+			if (field.Kind() == reflect.Slice || field.Kind() == reflect.Map || field.Kind() == reflect.Array) && field.Len() <= 0 {
+				// decrement count if map/slice/array is empty
+				cntExists--
+			}
+		}
+	}
+	return cntExists
+}
+
+// NoMoreThanN checks all fields in the named group (first param) to make sure no more than n (second param) are non-blank.
+// This validation should be added to the last field in the group. It will add that field to the group and then run the validation.
+// Any fields added to the group after this validation is run will not be included in the check.
+// If the first param is missing function panics.
+// If the second param is missing function defaults to using 1.
+func noMoreThanNRequired(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	l := len(vals)
+	if l < 2 {
+		if l <= 0 {
+			panic("The 'no_more_than' validation tag requires a group name")
+		} else {
+			vals = append(vals, "1")
+		}
+	}
+	CoDependentGroups.AddGroupField(vals[0], fl.(*validate)).CloseGroup(vals[0])
+
+	cntExists := countNonEmptyFields(CoDependentGroups.Fields(vals[0]))
+	if i, err := strconv.Atoi(vals[1]); err != nil {
+		panic(err.Error())
+	} else {
+		return cntExists <= i
+	}
+}
+
+// AtLeastN checks all fields in the named group (first param) to make sure no fewer than n (second param) are non-blank.
+// This validation should be added to the last field in the group. It will add that field to the group and then run the validation.
+// Any fields added to the group after this validation is run will not be included in the check.
+// If the first param is missing function panics.
+// If the second param is missing function defaults to using 1.
+func atLeastNRequired(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	l := len(vals)
+	if l < 2 {
+		if l <= 0 {
+			panic("The 'at_least' validation tag requires a group name")
+		} else {
+			vals = append(vals, "1")
+		}
+	}
+	CoDependentGroups.AddGroupField(vals[0], fl.(*validate)).CloseGroup(vals[0])
+
+	cntExists := countNonEmptyFields(CoDependentGroups.Fields(vals[0]))
+	if i, err := strconv.Atoi(vals[1]); err != nil {
+		panic(err.Error())
+	} else {
+		return cntExists >= i
+	}
+}
+
+// MutuallyExclusive checks all fields in the named group (param) to make sure one and only on is non-blank.
+// This validation should be added to the last field in the group. It will add that field to the group and then run the validation.
+// Any fields added to the group after this validation is run will not be included in the check.
+// If the param is missing function panics.
+func mutuallyExclusive(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	if len(vals) <= 0 {
+		panic("The 'mutex' validation tag requires a group name")
+	}
+	CoDependentGroups.AddGroupField(vals[0], fl.(*validate)).CloseGroup(vals[0])
+
+	cntExists := countNonEmptyFields(CoDependentGroups.Fields(vals[0]))
+	return cntExists == 1
 }
 
 func isURLEncoded(fl FieldLevel) bool {

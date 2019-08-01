@@ -12,6 +12,17 @@ import (
 	ut "github.com/go-playground/universal-translator"
 )
 
+type validationFlag int32
+
+const (
+	// VFlagRunOnNil signifies that the validation function should run even if the field has a nil value.
+	VFlagRunOnNil validationFlag = iota + 1
+	// VFlagRunOnStruct signifies that the validation function should run even if the field is a struct.
+	VFlagRunOnStruct
+	// VFlagCoDependentErr signifies that the validation function returns a different error by default.
+	VFlagCoDependentErr
+)
+
 const (
 	defaultTagName     = "validate"
 	utf8HexComma       = "0x2C"
@@ -66,6 +77,7 @@ type Validate struct {
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
 	validations      map[string]FuncCtx
+	validationFlags  map[string]validationFlag
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
@@ -81,11 +93,12 @@ func New() *Validate {
 	sc.m.Store(make(map[reflect.Type]*cStruct))
 
 	v := &Validate{
-		tagName:     defaultTagName,
-		aliases:     make(map[string]string, len(bakedInAliases)),
-		validations: make(map[string]FuncCtx, len(bakedInValidators)),
-		tagCache:    tc,
-		structCache: sc,
+		tagName:         defaultTagName,
+		aliases:         make(map[string]string, len(bakedInAliases)),
+		validations:     make(map[string]FuncCtx, len(bakedInValidators)),
+		validationFlags: make(map[string]validationFlag, len(bakedInFlags)),
+		tagCache:        tc,
+		structCache:     sc,
 	}
 
 	// must copy alias validators for separate validations to be used in each validator instance
@@ -100,6 +113,11 @@ func New() *Validate {
 		_ = v.registerValidation(k, wrapFunc(val), true)
 	}
 
+	// must copy flags for separate validations to be used in each instance
+	for k, val := range bakedInFlags {
+		v.registerValidationFlags(k, val)
+	}
+
 	v.pool = &sync.Pool{
 		New: func() interface{} {
 			return &validate{
@@ -110,6 +128,8 @@ func New() *Validate {
 			}
 		},
 	}
+
+	CoDependentGroups.ClearGroups()
 
 	return v
 }
@@ -140,14 +160,22 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // NOTES:
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterValidation(tag string, fn Func) error {
-	return v.RegisterValidationCtx(tag, wrapFunc(fn))
+func (v *Validate) RegisterValidation(tag string, fn Func, flags ...validationFlag) error {
+	err := v.RegisterValidationCtx(tag, wrapFunc(fn))
+	if err == nil {
+		v.registerValidationFlags(tag, flags...)
+	}
+	return err
 }
 
 // RegisterValidationCtx does the same as RegisterValidation on accepts a FuncCtx validation
 // allowing context.Context validation support.
-func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx) error {
-	return v.registerValidation(tag, fn, false)
+func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, flags ...validationFlag) error {
+	err := v.registerValidation(tag, fn, false)
+	if err == nil {
+		v.registerValidationFlags(tag, flags...)
+	}
+	return err
 }
 
 func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool) error {
@@ -169,6 +197,23 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool) erro
 	v.validations[tag] = fn
 
 	return nil
+}
+
+func (v *Validate) registerValidationFlags(tag string, flags ...validationFlag) {
+	if len(flags) <= 0 {
+		return
+	}
+
+	var flag validationFlag
+	for _, f := range flags {
+		flag |= f
+	}
+
+	if flag > 0 {
+		v.validationFlags[tag] = flag
+	} else {
+		delete(v.validationFlags, tag)
+	}
 }
 
 // RegisterAlias registers a mapping of a single validation tag that

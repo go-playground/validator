@@ -98,6 +98,48 @@ used "eqcsfield" it could be multiple levels down. Example:
 	//       whatever you pass, struct, field...
 	//       when calling validate.Field(field, tag) val will be nil
 
+CoDependent Field Validation
+
+Codependent field validation can be done via the following tags:
+	- group
+	- at_least
+	- no_more_than
+	- mutex
+
+Codependent fields are grouped into named codependency groups using the 'group' tag.
+This tag always returns true as it just adds the field to a group. A field can be added to more than
+one group by using the 'group' tag more than once. The last field added to the group should be done using
+a test tag (at_least, no_more_than, or mutex) instead of 'group'. These tags will add the field to the
+group and then runs the test.
+
+The test tags all check for non-empty fields. The tests use the 'required'
+function to find non-empty fields except that (a) for interface{} fields the value must not be the zero
+value for the dynamic type at runtime and (b) slices, maps, and arrays must have a length greater than zero.
+
+The default error string for these tags are different than other tags in that the all fields in the group
+are listed. The exported variable 'CoDependentGroups' can be used to find defined groups and their component
+fields.
+
+It is possible to create custom codependent validation functions to use in conjunction with the 'group' tag
+and CoDependentGroups
+
+Simple mutex example:
+	type UserRequest struct {
+		Id int `json:"id" validate:"group=SearchField,omitempty,uuid"`
+		Email string `validate:"mutex=SearchField,omitempty,email"`
+	}
+
+	request := &UserRequest{
+		Email: "bubba@bubba.com"
+	}
+
+	errs := validate.Struct(request)
+
+	// NOTE: This will verify that exactly one of the fields Id and Email is non-empty.
+	//       It does not verify that exactly one field passes validation.
+	//	     The additional checks such as verifying a valid email happen after the mutex check passes.
+
+
 Multiple Validators
 
 Multiple validators on a field will process in the order defined. Example:
@@ -306,6 +348,49 @@ Example:
 
 	// require the field if the Field1 and Field2 is not present:
 	Usage: required_without_all=Field1 Field2
+
+Group
+
+This adds a field to a codependency group such as for testing that multiple fields
+are mutually exclusive. No fields may be added to a group after the codependency test(s) have run.
+In other words, this tag is added to all fields except the LAST one in the group.
+Doing otherwise will cause a panic. If reusing the a validate object the codependency groups
+can be reset by calling CoDependentGroups.ClearGroups(). This validation always returns true
+if it doesn't panic.
+
+	Usage: group=GroupName
+
+At Least N Fields Non-Empty
+
+No fewer than N fields in the codependency group must have non-empty values. This validation
+must be specified on the LAST field in a group. It defaults to requiring one non-empty field
+but you may specify a greater number. Fields are considered non-empty if they pass required
+validation except as noted above in the CoDependent Field Validation section. Use in conjunction
+with 'group'.
+
+	Usage: at_least=GroupName
+		   at_least=GroupName N
+
+No More Than N Fields Non-Empty
+
+No more than N fields in the codependency group must have non-empty values. This validation
+must be specified on the LAST field in a group. It defaults to requiring one or fewer non-empty fields
+but you may specify a greater number. Fields are considered non-empty if they pass required
+validation except as noted above in the CoDependent Field Validation section. Use in conjunction
+with 'group'.
+
+	Usage: no_more_than=GroupName
+		   no_more_than=GroupName N
+
+Mutually Exclusive Fields
+
+Exactly one field in the codependency group, no more no less, must have non-empty values. This the
+same as specifying 'at_least=GroupName,no_more_than=GroupName'. This validation
+must be specified on the LAST field in a group. Fields are considered non-empty if they pass required
+validation except as noted above in the CoDependent Field Validation section. Use in conjunction
+with 'group'.
+
+	Usage: mutex=GroupName
 
 Is Default
 
