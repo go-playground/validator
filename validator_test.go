@@ -8767,6 +8767,20 @@ func TestRequiredWithoutAll(t *testing.T) {
 func TestCoDependentGroups(t *testing.T) {
 	validate := New()
 
+	// test removal of registered flags
+	validate.registerValidationFlags("fake-validation", VFlagRunOnNil)
+	Equal(t, validate.validationFlags["fake-validation"], VFlagRunOnNil)
+	validate.registerValidationFlags("fake-validation", 0)
+	_, ok := validate.validationFlags["fake-validation"]
+	Equal(t, ok, false)
+
+	// test request of missing codependent fields group
+	flds := CoDependentGroups.Fields("Bogus")
+	Equal(t, true, flds == nil)
+	flds, ok = CoDependentGroups.FieldsOk("Bogus")
+	Equal(t, true, flds == nil)
+	Equal(t, false, ok)
+
 	var p interface{}
 	p = struct {
 		P int `validate:"group"`
@@ -8821,6 +8835,20 @@ func TestCoDependentGroups(t *testing.T) {
 	PanicMatches(t, func() { validate.Struct(p) }, "Can't add a new field (P3) to a codependent group 'Pi' after it has been validated")
 	CoDependentGroups.ClearGroups()
 	Equal(t, CoDependentGroups.Count(), 0)
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"at_least=Pi alpha"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "strconv.Atoi: parsing \"alpha\": invalid syntax")
+	CoDependentGroups.ClearGroups()
+
+	p = struct {
+		P1 int `validate:"group=Pi"`
+		P2 int `validate:"no_more_than=Pi 1ab2"`
+	}{}
+	PanicMatches(t, func() { validate.Struct(p) }, "strconv.Atoi: parsing \"1ab2\": invalid syntax")
+	CoDependentGroups.ClearGroups()
 
 	p = struct {
 		A1 int    `validate:"group=Alpha"`
