@@ -194,8 +194,11 @@ type coDepFields struct {
 type coDepGroups map[string]*coDepFields
 
 // AddGroupField adds fields to codependent groups.
-// fl can/should be a FieldLevel struct passed into Func validation funcs.
-func (cd coDepGroups) AddGroupField(g string, fl *validate) coDepGroups {
+// fieldLevel should be the FieldLevel struct passed into Func validation funcs.
+// The func uses internal properties of that struct which aren't exported hence the
+// interface{} to allow external functions to be able to call this function.
+func (cd coDepGroups) AddGroupField(g string, fieldLevel interface{}) coDepGroups {
+	fl := fieldLevel.(*validate)
 	if _, ok := cd[g]; !ok {
 		cd[g] = &coDepFields{fields: make(map[string]FieldLevel)}
 	}
