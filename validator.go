@@ -175,15 +175,15 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 					v.cf = cf
 					v.ct = ct
 
+					v.str1 = string(append(ns, cf.altName...))
+
+					if v.v.hasTagNameFunc {
+						v.str2 = string(append(structNs, cf.name...))
+					} else {
+						v.str2 = v.str1
+					}
+
 					if !ct.fn(ctx, v) {
-						v.str1 = string(append(ns, cf.altName...))
-
-						if v.v.hasTagNameFunc {
-							v.str2 = string(append(structNs, cf.name...))
-						} else {
-							v.str2 = v.str1
-						}
-
 						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
@@ -440,16 +440,14 @@ OUTER:
 			v.cf = cf
 			v.ct = ct
 
+			v.str1 = string(append(ns, cf.altName...))
+
+			if v.v.hasTagNameFunc {
+				v.str2 = string(append(structNs, cf.name...))
+			} else {
+				v.str2 = v.str1
+			}
 			if !ct.fn(ctx, v) {
-
-				v.str1 = string(append(ns, cf.altName...))
-
-				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
-				} else {
-					v.str2 = v.str1
-				}
-
 				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
