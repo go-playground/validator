@@ -723,6 +723,31 @@ func TestNilValidator(t *testing.T) {
 	PanicMatches(t, func() { val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
 }
 
+func TestAbilityToValidateNils(t *testing.T) {
+
+	type TestStruct struct {
+		Test *string `validate:"nil"`
+	}
+
+	ts := TestStruct{}
+
+	val := New()
+
+	fn := func(fl FieldLevel) bool {
+		return fl.Field().Kind() == reflect.Ptr && fl.Field().IsNil()
+	}
+
+	val.RegisterValidation("nil", fn)
+	errs := val.Struct(ts)
+	Equal(t, errs, nil)
+
+	str := "string"
+	ts.Test = &str
+	val.RegisterValidation("nil", fn)
+	errs = val.Struct(ts)
+	NotEqual(t, errs, nil)
+}
+
 func TestStructPartial(t *testing.T) {
 
 	p1 := []string{
@@ -947,6 +972,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Uint      uint
 		Float     float64
 		Array     []string
+		PtrString *string
 	}
 
 	type Test struct {
@@ -957,6 +983,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Uint      uint       `validate:"ltecsfield=Inner.Uint"`
 		Float     float64    `validate:"ltecsfield=Inner.Float"`
 		Array     []string   `validate:"ltecsfield=Inner.Array"`
+		PtrString *string    `validate:"ltecsfield=Inner.PtrString"`
 	}
 
 	now := time.Now().UTC()
@@ -969,6 +996,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Uint:      13,
 		Float:     1.13,
 		Array:     []string{"val1", "val2"},
+		PtrString: nil,
 	}
 
 	test := &Test{
@@ -979,6 +1007,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Uint:      12,
 		Float:     1.12,
 		Array:     []string{"val1"},
+		PtrString: nil,
 	}
 
 	validate := New()
@@ -1114,6 +1143,9 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltcsfield")
 
+	errs = validate.VarWithValue((*string)(nil), (*string)(nil), "ltcsfield")
+	NotEqual(t, errs, nil)
+
 	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltcsfield")
 	NotEqual(t, errs, nil)
@@ -1152,6 +1184,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Uint      uint
 		Float     float64
 		Array     []string
+		PtrString *string
 	}
 
 	type Test struct {
@@ -1162,6 +1195,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Uint      uint       `validate:"gtecsfield=Inner.Uint"`
 		Float     float64    `validate:"gtecsfield=Inner.Float"`
 		Array     []string   `validate:"gtecsfield=Inner.Array"`
+		PtrString *string    `validate:"gtecsfield=Inner.PtrString"`
 	}
 
 	now := time.Now().UTC()
@@ -1174,6 +1208,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Uint:      13,
 		Float:     1.13,
 		Array:     []string{"val1", "val2"},
+		PtrString: nil,
 	}
 
 	test := &Test{
@@ -1184,6 +1219,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Uint:      14,
 		Float:     1.14,
 		Array:     []string{"val1", "val2", "val3"},
+		PtrString: nil,
 	}
 
 	validate := New()
@@ -1317,6 +1353,9 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(1, "", "gtcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtcsfield")
+
+	errs = validate.VarWithValue((*string)(nil), (*string)(nil), "gtcsfield")
+	NotEqual(t, errs, nil)
 
 	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "gtcsfield")
@@ -1453,6 +1492,9 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(nil, 1, "necsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "necsfield")
+
+	errs = validate.VarWithValue((*string)(nil), (*string)(nil), "necsfield")
+	NotEqual(t, errs, nil)
 }
 
 func TestCrossStructEqFieldValidation(t *testing.T) {
@@ -1558,6 +1600,9 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(nil, 1, "eqcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqcsfield")
+
+	errs = validate.VarWithValue((*string)(nil), (*string)(nil), "eqcsfield")
+	Equal(t, errs, nil)
 }
 
 func TestCrossNamespaceFieldValidation(t *testing.T) {
@@ -1966,6 +2011,8 @@ func TestMACValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "mac"), nil)
 }
 
 func TestIPValidation(t *testing.T) {
@@ -2007,6 +2054,8 @@ func TestIPValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ip"), nil)
 }
 
 func TestIPv6Validation(t *testing.T) {
@@ -2047,6 +2096,8 @@ func TestIPv6Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ipv6"), nil)
 }
 
 func TestIPv4Validation(t *testing.T) {
@@ -2087,6 +2138,8 @@ func TestIPv4Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ipv4"), nil)
 }
 
 func TestCIDRValidation(t *testing.T) {
@@ -2130,6 +2183,8 @@ func TestCIDRValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "cidr"), nil)
 }
 
 func TestCIDRv6Validation(t *testing.T) {
@@ -2173,6 +2228,8 @@ func TestCIDRv6Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "cidrv6"), nil)
 }
 
 func TestCIDRv4Validation(t *testing.T) {
@@ -2216,6 +2273,8 @@ func TestCIDRv4Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "cidrv4"), nil)
 }
 
 func TestTCPAddrValidation(t *testing.T) {
@@ -2250,6 +2309,8 @@ func TestTCPAddrValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "tcp_addr"), nil)
 }
 
 func TestTCP6AddrValidation(t *testing.T) {
@@ -2284,6 +2345,8 @@ func TestTCP6AddrValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "tcp6_addr"), nil)
 }
 
 func TestTCP4AddrValidation(t *testing.T) {
@@ -2490,6 +2553,8 @@ func TestIP6AddrValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ip6_addr"), nil)
 }
 
 func TestIP4AddrValidation(t *testing.T) {
@@ -2525,6 +2590,8 @@ func TestIP4AddrValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ip4_addr"), nil)
 }
 
 func TestUnixAddrValidation(t *testing.T) {
@@ -2556,6 +2623,8 @@ func TestUnixAddrValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "unix_addr"), nil)
 }
 
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
@@ -3331,6 +3400,8 @@ func TestSSNValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ssn"), nil)
 }
 
 func TestLongitudeValidation(t *testing.T) {
@@ -3372,6 +3443,7 @@ func TestLongitudeValidation(t *testing.T) {
 		}
 	}
 
+	NotEqual(t, validate.Var((*string)(nil), "longitude"), nil)
 	PanicMatches(t, func() { validate.Var(true, "longitude") }, "Bad field type bool")
 }
 
@@ -3414,6 +3486,7 @@ func TestLatitudeValidation(t *testing.T) {
 		}
 	}
 
+	NotEqual(t, validate.Var((*string)(nil), "latitude"), nil)
 	PanicMatches(t, func() { validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
@@ -3457,6 +3530,8 @@ func TestDataURIValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "datauri"), nil)
 }
 
 func TestMultibyteValidation(t *testing.T) {
@@ -3497,6 +3572,7 @@ func TestMultibyteValidation(t *testing.T) {
 			}
 		}
 	}
+	NotEqual(t, validate.Var(3, "multibyte"), nil)
 }
 
 func TestPrintableASCIIValidation(t *testing.T) {
@@ -3538,6 +3614,8 @@ func TestPrintableASCIIValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "printascii"), nil)
 }
 
 func TestASCIIValidation(t *testing.T) {
@@ -3578,6 +3656,8 @@ func TestASCIIValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "ascii"), nil)
 }
 
 func TestUUID5Validation(t *testing.T) {
@@ -3615,6 +3695,8 @@ func TestUUID5Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "uuid5"), nil)
 }
 
 func TestUUID4Validation(t *testing.T) {
@@ -3651,6 +3733,8 @@ func TestUUID4Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid4"), nil)
 }
 
 func TestUUID3Validation(t *testing.T) {
@@ -3686,6 +3770,8 @@ func TestUUID3Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid3"), nil)
 }
 
 func TestUUIDValidation(t *testing.T) {
@@ -3724,6 +3810,8 @@ func TestUUIDValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid"), nil)
 }
 
 func TestUUID5RFC4122Validation(t *testing.T) {
@@ -3761,6 +3849,8 @@ func TestUUID5RFC4122Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid5_rfc4122"), nil)
 }
 
 func TestUUID4RFC4122Validation(t *testing.T) {
@@ -3797,6 +3887,8 @@ func TestUUID4RFC4122Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid4_rfc4122"), nil)
 }
 
 func TestUUID3RFC4122Validation(t *testing.T) {
@@ -3832,6 +3924,8 @@ func TestUUID3RFC4122Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid3_rfc4122"), nil)
 }
 
 func TestUUIDRFC4122Validation(t *testing.T) {
@@ -3870,6 +3964,8 @@ func TestUUIDRFC4122Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "uuid_rfc4122"), nil)
 }
 
 func TestISBNValidation(t *testing.T) {
@@ -3949,6 +4045,8 @@ func TestISBN13Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "isbn13"), nil)
 }
 
 func TestISBN10Validation(t *testing.T) {
@@ -3989,6 +4087,8 @@ func TestISBN10Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "isbn10"), nil)
 }
 
 func TestExcludesRuneValidation(t *testing.T) {
@@ -4119,6 +4219,8 @@ func TestContainsRuneValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "containsrune=☻"), nil)
 }
 
 func TestContainsAnyValidation(t *testing.T) {
@@ -4147,6 +4249,8 @@ func TestContainsAnyValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "containsany=423"), nil)
 }
 
 func TestContainsValidation(t *testing.T) {
@@ -4175,6 +4279,8 @@ func TestContainsValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "contains=4"), nil)
 }
 
 func TestIsNeFieldValidation(t *testing.T) {
@@ -4250,6 +4356,9 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(nil, 1, "nefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "nefield")
+
+	errs = validate.VarWithValue((*int)(nil), (*int)(nil), "nefield")
+	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(sv, now, "nefield")
 	Equal(t, errs, nil)
@@ -4393,6 +4502,9 @@ func TestIsEqFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqfield")
 
+	errs = validate.VarWithValue((*string)(nil), (*string)(nil), "eqfield")
+	Equal(t, errs, nil)
+
 	channel := make(chan string)
 	errs = validate.VarWithValue(5, channel, "eqfield")
 	NotEqual(t, errs, nil)
@@ -4471,6 +4583,9 @@ func TestIsEqValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eq")
 
+	errs = validate.Var((*int)(nil), "eq=2")
+	NotEqual(t, errs, nil)
+
 	PanicMatches(t, func() { validate.Var(now, "eq=now") }, "Bad field type time.Time")
 }
 
@@ -4521,6 +4636,7 @@ func TestOneOfValidation(t *testing.T) {
 		{f: uint16(5), t: "oneof=red green"},
 		{f: uint32(5), t: "oneof=red green"},
 		{f: uint64(5), t: "oneof=red green"},
+		{f: (*string)(nil), t: "oneof=red green"},
 	}
 
 	for _, spec := range failSpecs {
@@ -4556,6 +4672,8 @@ func TestBase64Validation(t *testing.T) {
 	errs = validate.Var(s, "base64")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "base64")
+
+	NotEqual(t, validate.Var(3, "base64"), nil)
 }
 
 func TestBase64URLValidation(t *testing.T) {
@@ -4603,6 +4721,8 @@ func TestBase64URLValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "base64url"), nil)
 }
 
 func TestFileValidation(t *testing.T) {
@@ -4633,9 +4753,7 @@ func TestFileValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() {
-		validate.Var(6, "file")
-	}, "Bad field type int")
+	NotEqual(t, validate.Var(6, "file"), nil)
 }
 
 func TestEthereumAddressValidation(t *testing.T) {
@@ -4672,6 +4790,8 @@ func TestEthereumAddressValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "eth_addr"), nil)
 }
 
 func TestBitcoinAddressValidation(t *testing.T) {
@@ -4782,6 +4902,8 @@ func TestBitcoinAddressValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "btc_addr"), nil)
 }
 
 func TestBitcoinBech32AddressValidation(t *testing.T) {
@@ -4833,6 +4955,8 @@ func TestBitcoinBech32AddressValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "btc_addr_bech32"), nil)
 }
 
 func TestNoStructLevelValidation(t *testing.T) {
@@ -5079,6 +5203,10 @@ func TestGtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtfield")
 
+	errs = validate.VarWithValue((*int)(nil), (*int)(nil), "gtfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gtfield")
+
 	errs = validate.VarWithValue(5, "T", "gtfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtfield")
@@ -5255,6 +5383,10 @@ func TestLtField(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltfield")
 
+	errs = validate.VarWithValue((*int)(nil), (*int)(nil), "ltfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "ltfield")
+
 	errs = validate.VarWithValue(1, "T", "ltfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltfield")
@@ -5325,6 +5457,20 @@ func TestFieldContains(t *testing.T) {
 	errs = validate.Struct(stringTestMissingField)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "fieldcontains")
+
+	type FooIntTest struct {
+		Foo int `validate:"fieldcontains=Bar"`
+		Bar string
+	}
+	errs = validate.Struct(&FooIntTest{Foo:10, Bar:"1"})
+	NotEqual(t, errs, nil)
+
+	type BarIntTest struct {
+		Foo string `validate:"fieldcontains=Bar"`
+		Bar int
+	}
+	errs = validate.Struct(&BarIntTest{Foo:"10", Bar:1})
+	NotEqual(t, errs, nil)
 }
 
 func TestFieldExcludes(t *testing.T) {
@@ -5372,6 +5518,20 @@ func TestFieldExcludes(t *testing.T) {
 
 	errs = validate.Struct(stringTestMissingField)
 	Equal(t, errs, nil)
+
+	type FooIntTest struct {
+		Foo int `validate:"fieldexcludes=Bar"`
+		Bar string
+	}
+	errs = validate.Struct(&FooIntTest{Foo:10, Bar:"2"})
+	NotEqual(t, errs, nil)
+
+	type BarIntTest struct {
+		Foo string `validate:"fieldexcludes=Bar"`
+		Bar int
+	}
+	errs = validate.Struct(&BarIntTest{Foo:"10", Bar:1})
+	Equal(t, errs, nil) // since a string cannot contain non-string elements
 }
 
 func TestContainsAndExcludes(t *testing.T) {
@@ -5538,6 +5698,9 @@ func TestLteField(t *testing.T) {
 	errs = validate.VarWithValue(nil, 5, "ltefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltefield")
+
+	errs = validate.VarWithValue((*int)(nil), (*int)(nil), "ltefield")
+	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(1, "T", "ltefield")
 	NotEqual(t, errs, nil)
@@ -5721,6 +5884,9 @@ func TestGteField(t *testing.T) {
 	errs = validate.Struct(timeTest2)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeTest2.End", "TimeTest2.End", "End", "End", "gtefield")
+
+	errs = validate.VarWithValue((*int)(nil), (*int)(nil), "gtefield")
+	Equal(t, errs, nil)
 }
 
 func TestValidateByTagAndValue(t *testing.T) {
@@ -5845,6 +6011,8 @@ func TestLength(t *testing.T) {
 
 	i := true
 	PanicMatches(t, func() { validate.Var(i, "len") }, "Bad field type bool")
+
+	NotEqual(t, validate.Var((*string)(nil), "len=0"), nil)
 }
 
 func TestIsGt(t *testing.T) {
@@ -5897,6 +6065,9 @@ func TestIsGt(t *testing.T) {
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Now", "Test.Now", "Now", "Now", "gt")
+
+	errs = validate.Var((*int)(nil), "gt=-1")
+	NotEqual(t, errs, nil)
 }
 
 func TestIsGte(t *testing.T) {
@@ -5935,6 +6106,9 @@ func TestIsGte(t *testing.T) {
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Now", "Test.Now", "Now", "Now", "gte")
+
+	errs = validate.Var((*int)(nil), "gte=0")
+	NotEqual(t, errs, nil)
 }
 
 func TestIsLt(t *testing.T) {
@@ -5989,6 +6163,9 @@ func TestIsLt(t *testing.T) {
 	errs = validate.Struct(s)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Now", "Test.Now", "Now", "Now", "lt")
+
+	errs = validate.Var((*int)(nil), "lt=1")
+	NotEqual(t, errs, nil)
 }
 
 func TestIsLte(t *testing.T) {
@@ -6026,6 +6203,9 @@ func TestIsLte(t *testing.T) {
 	}
 
 	errs = validate.Struct(s)
+	NotEqual(t, errs, nil)
+
+	errs = validate.Var((*int)(nil), "lte=0")
 	NotEqual(t, errs, nil)
 }
 
@@ -6103,7 +6283,7 @@ func TestUrnRFC2141(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, tag) }, "Bad field type int")
+	NotEqual(t, validate.Var(i, tag), nil)
 }
 
 func TestUrl(t *testing.T) {
@@ -6171,7 +6351,7 @@ func TestUrl(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "url") }, "Bad field type int")
+	NotEqual(t, validate.Var(i, "url"), nil)
 }
 
 func TestUri(t *testing.T) {
@@ -6238,7 +6418,7 @@ func TestUri(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "uri") }, "Bad field type int")
+	NotEqual(t, validate.Var(i, "uri"), nil)
 }
 
 func TestOrTag(t *testing.T) {
@@ -6643,6 +6823,8 @@ func TestNumber(t *testing.T) {
 	i := 1
 	errs = validate.Var(i, "number")
 	Equal(t, errs, nil)
+
+	NotEqual(t, validate.Var((*int)(nil), "number"), nil)
 }
 
 func TestNumeric(t *testing.T) {
@@ -6686,6 +6868,8 @@ func TestNumeric(t *testing.T) {
 	i := 1
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
+
+	NotEqual(t, validate.Var((*int)(nil), "numeric"), nil)
 }
 
 func TestAlphaNumeric(t *testing.T) {
@@ -7640,6 +7824,8 @@ func TestAlphaUnicodeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "alphaunicode"), nil)
 }
 
 func TestAlphanumericUnicodeValidation(t *testing.T) {
@@ -7683,6 +7869,8 @@ func TestAlphanumericUnicodeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "alphanumunicode"), nil)
 }
 
 func TestArrayStructNamespace(t *testing.T) {
@@ -7891,6 +8079,8 @@ func TestHostnameRFC952Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "hostname"), nil)
 }
 
 func TestHostnameRFC1123Validation(t *testing.T) {
@@ -7939,6 +8129,8 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "hostname_rfc1123"), nil)
 }
 
 func TestHostnameRFC1123AliasValidation(t *testing.T) {
@@ -8036,6 +8228,8 @@ func TestFQDNValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "fqdn"), nil)
 }
 
 func TestIsDefault(t *testing.T) {
@@ -8134,6 +8328,8 @@ func TestUniqueValidation(t *testing.T) {
 		{map[string]string{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
+		// Nil
+		{(*[]string)(nil), true},
 	}
 
 	validate := New()
@@ -8197,6 +8393,8 @@ func TestHTMLValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "html"), nil)
 }
 
 func TestHTMLEncodedValidation(t *testing.T) {
@@ -8243,6 +8441,8 @@ func TestHTMLEncodedValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "html_encoded"), nil)
 }
 
 func TestURLEncodedValidation(t *testing.T) {
@@ -8281,6 +8481,8 @@ func TestURLEncodedValidation(t *testing.T) {
 			}
 		}
 	}
+
+	NotEqual(t, validate.Var(3, "url_encoded"), nil)
 }
 
 func TestKeys(t *testing.T) {
@@ -8561,9 +8763,7 @@ func TestDirValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() {
-		validate.Var(2, "dir")
-	}, "Bad field type int")
+	NotEqual(t, validate.Var(2, "dir"), nil) // not a string
 }
 
 func TestStartsWithValidation(t *testing.T) {
@@ -8591,6 +8791,8 @@ func TestStartsWithValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "startswith=4"), nil)
 }
 
 func TestEndsWithValidation(t *testing.T) {
@@ -8618,6 +8820,8 @@ func TestEndsWithValidation(t *testing.T) {
 			t.Fatalf("Index: %d failed Error: %s", i, errs)
 		}
 	}
+
+	NotEqual(t, validate.Var(4, "endswith=4"), nil)
 }
 
 func TestRequiredWith(t *testing.T) {

@@ -1,8 +1,8 @@
 package validator
 
 import (
-	"context"
 	"fmt"
+	"context"
 	"reflect"
 	"strconv"
 )
@@ -139,23 +139,24 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				return
 			}
 
-			v.errs = append(v.errs,
-				&fieldError{
-					v:              v.v,
-					tag:            ct.aliasTag,
-					actualTag:      ct.tag,
-					ns:             v.str1,
-					structNs:       v.str2,
-					fieldLen:       uint8(len(cf.altName)),
-					structfieldLen: uint8(len(cf.name)),
-					value:          current.Interface(),
-					param:          ct.param,
-					kind:           kind,
-					typ:            current.Type(),
-				},
-			)
-
-			return
+			if kind == reflect.Interface {
+				v.errs = append(v.errs,
+					&fieldError{
+						v:              v.v,
+						tag:            ct.aliasTag,
+						actualTag:      ct.tag,
+						ns:             v.str1,
+						structNs:       v.str2,
+						fieldLen:       uint8(len(cf.altName)),
+						structfieldLen: uint8(len(cf.name)),
+						value:          current.Interface(),
+						param:          ct.param,
+						kind:           kind,
+						typ:            current.Type(),
+					},
+				)
+				return
+			}
 		}
 
 	case reflect.Struct:
