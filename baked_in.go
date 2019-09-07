@@ -1350,9 +1350,11 @@ func requiredWithAll(fl FieldLevel) bool {
 
 		if !requireCheckFieldKind(fl, param) {
 			isValidateCurrentField = false
+			goto NEXT
 		}
 	}
 
+NEXT:
 	if isValidateCurrentField {
 		return requireCheckFieldKind(fl, "")
 	}
