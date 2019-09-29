@@ -8677,14 +8677,20 @@ func TestRequiredWithAll(t *testing.T) {
 
 func TestRequiredWithout(t *testing.T) {
 
+	type Inner struct {
+		Field *string
+	}
+
 	fieldVal := "test"
 	test := struct {
+		Inner  *Inner
 		Field1 string            `validate:"omitempty" json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 	}{
+		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8694,29 +8700,35 @@ func TestRequiredWithout(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
-
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	Equal(t, errs, nil)
 
 	test2 := struct {
-		Field1 string            `validate:"omitempty" json:"field_1"`
+		Inner  *Inner
+		Inner2 *Inner
+		Field1 string            `json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without=Field1" json:"field_6"`
+		Field7 string            `validate:"required_without=Inner.Field" json:"field_7"`
+		Field8 string            `validate:"required_without=Inner.Field" json:"field_8"`
 	}{
+		Inner:  &Inner{},
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
 	}
 
 	errs = validate.Struct(&test2)
+	NotEqual(t, errs, nil)
 
-	if errs == nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 4)
+	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without")
+	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_without")
+	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
@@ -8739,10 +8751,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
-
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	Equal(t, errs, nil)
 
 	test2 := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -8750,7 +8759,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
-		Field6 string            `validate:"required_without_all=Field1" json:"field_6"`
+		Field6 string            `validate:"required_without_all=Field1 Field3" json:"field_6"`
 	}{
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8758,8 +8767,23 @@ func TestRequiredWithoutAll(t *testing.T) {
 	}
 
 	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
 
-	if errs == nil {
-		t.Fatalf("failed Error: %s", errs)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
+}
+
+func TestLookup(t *testing.T) {
+	type Lookup struct {
+		FieldA *string `json:"fieldA,omitempty" validate:"required_without=FieldB"`
+		FieldB *string `json:"fieldB,omitempty" validate:"required_without=FieldA"`
 	}
+
+	fieldAValue := "1232"
+	lookup := Lookup{
+		FieldA: &fieldAValue,
+		FieldB: nil,
+	}
+	Equal(t, New().Struct(lookup), nil)
 }

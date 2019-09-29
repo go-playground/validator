@@ -87,18 +87,19 @@ type cField struct {
 }
 
 type cTag struct {
-	tag            string
-	aliasTag       string
-	actualAliasTag string
-	param          string
-	keys           *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
-	next           *cTag
-	fn             FuncCtx
-	typeof         tagType
-	hasTag         bool
-	hasAlias       bool
-	hasParam       bool // true if parameter used eg. eq= where the equal sign has been set
-	isBlockEnd     bool // indicates the current tag represents the last validation in the block
+	tag                  string
+	aliasTag             string
+	actualAliasTag       string
+	param                string
+	keys                 *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
+	next                 *cTag
+	fn                   FuncCtx
+	typeof               tagType
+	hasTag               bool
+	hasAlias             bool
+	hasParam             bool // true if parameter used eg. eq= where the equal sign has been set
+	isBlockEnd           bool // indicates the current tag represents the last validation in the block
+	runValidationWhenNil bool
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
@@ -141,9 +142,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		customName = fld.Name
 
 		if v.hasTagNameFunc {
-
 			name := v.tagNameFunc(fld)
-
 			if len(name) > 0 {
 				customName = name
 			}
@@ -168,16 +167,13 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			namesEqual: fld.Name == customName,
 		})
 	}
-
 	v.structCache.Set(typ, cs)
-
 	return cs
 }
 
 func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
 
 	var t string
-	var ok bool
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
 
@@ -270,11 +266,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			continue
 
 		default:
-
 			if t == isdefault {
 				current.typeof = typeIsDefault
 			}
-
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 			orVals := strings.Split(t, orSeparator)
 
@@ -300,7 +294,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 				}
 
-				if current.fn, ok = v.validations[current.tag]; !ok {
+				if wrapper, ok := v.validations[current.tag]; ok {
+					current.fn = wrapper.fn
+					current.runValidationWhenNil = wrapper.runValidatinOnNil
+				} else {
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}
 

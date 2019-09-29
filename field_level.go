@@ -38,6 +38,10 @@ type FieldLevel interface {
 	// NOTE: when not successful ok will be false, this can happen when a nested struct is nil and so the field
 	// could not be retrieved because it didn't exist.
 	GetStructFieldOK() (reflect.Value, reflect.Kind, bool)
+
+	// GetStructFieldOKAdvanced is the same as GetStructFieldOK except that it accepts the parent struct to start looking for
+	// the field and namespace allowing more extensibility for validators.
+	GetStructFieldOKAdvanced(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool)
 }
 
 var _ FieldLevel = new(validate)
@@ -66,4 +70,10 @@ func (v *validate) Param() string {
 // GetStructFieldOK returns Param returns param for validation against current field
 func (v *validate) GetStructFieldOK() (reflect.Value, reflect.Kind, bool) {
 	return v.getStructFieldOKInternal(v.slflParent, v.ct.param)
+}
+
+// GetStructFieldOKAdvanced is the same as GetStructFieldOK except that it accepts the parent struct to start looking for
+// the field and namespace allowing more extensibility for validators.
+func (v *validate) GetStructFieldOKAdvanced(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
+	return v.getStructFieldOKInternal(val, namespace)
 }

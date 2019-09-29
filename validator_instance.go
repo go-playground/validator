@@ -13,27 +13,31 @@ import (
 )
 
 const (
-	defaultTagName     = "validate"
-	utf8HexComma       = "0x2C"
-	utf8Pipe           = "0x7C"
-	tagSeparator       = ","
-	orSeparator        = "|"
-	tagKeySeparator    = "="
-	structOnlyTag      = "structonly"
-	noStructLevelTag   = "nostructlevel"
-	omitempty          = "omitempty"
-	isdefault          = "isdefault"
-	skipValidationTag  = "-"
-	diveTag            = "dive"
-	keysTag            = "keys"
-	endKeysTag         = "endkeys"
-	requiredTag        = "required"
-	namespaceSeparator = "."
-	leftBracket        = "["
-	rightBracket       = "]"
-	restrictedTagChars = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
-	restrictedAliasErr = "Alias '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
-	restrictedTagErr   = "Tag '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
+	defaultTagName        = "validate"
+	utf8HexComma          = "0x2C"
+	utf8Pipe              = "0x7C"
+	tagSeparator          = ","
+	orSeparator           = "|"
+	tagKeySeparator       = "="
+	structOnlyTag         = "structonly"
+	noStructLevelTag      = "nostructlevel"
+	omitempty             = "omitempty"
+	isdefault             = "isdefault"
+	requiredWithoutAllTag = "required_without_all"
+	requiredWithoutTag    = "required_without"
+	requiredWithTag       = "required_with"
+	requiredWithAllTag    = "required_with_all"
+	skipValidationTag     = "-"
+	diveTag               = "dive"
+	keysTag               = "keys"
+	endKeysTag            = "endkeys"
+	requiredTag           = "required"
+	namespaceSeparator    = "."
+	leftBracket           = "["
+	rightBracket          = "]"
+	restrictedTagChars    = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
+	restrictedAliasErr    = "Alias '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
+	restrictedTagErr      = "Tag '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
 )
 
 var (
@@ -55,6 +59,11 @@ type CustomTypeFunc func(field reflect.Value) interface{}
 // TagNameFunc allows for adding of a custom tag name parser
 type TagNameFunc func(field reflect.StructField) string
 
+type internalValidationFuncWrapper struct {
+	fn                FuncCtx
+	runValidatinOnNil bool
+}
+
 // Validate contains the validator settings and cache
 type Validate struct {
 	tagName          string
@@ -65,7 +74,7 @@ type Validate struct {
 	structLevelFuncs map[reflect.Type]StructLevelFuncCtx
 	customFuncs      map[reflect.Type]CustomTypeFunc
 	aliases          map[string]string
-	validations      map[string]FuncCtx
+	validations      map[string]internalValidationFuncWrapper
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
@@ -83,7 +92,7 @@ func New() *Validate {
 	v := &Validate{
 		tagName:     defaultTagName,
 		aliases:     make(map[string]string, len(bakedInAliases)),
-		validations: make(map[string]FuncCtx, len(bakedInValidators)),
+		validations: make(map[string]internalValidationFuncWrapper, len(bakedInValidators)),
 		tagCache:    tc,
 		structCache: sc,
 	}
@@ -96,8 +105,14 @@ func New() *Validate {
 	// must copy validators for separate validations to be used in each instance
 	for k, val := range bakedInValidators {
 
-		// no need to error check here, baked in will always be valid
-		_ = v.registerValidation(k, wrapFunc(val), true)
+		switch k {
+		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
+		case requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag:
+			_ = v.registerValidation(k, wrapFunc(val), true, true)
+		default:
+			// no need to error check here, baked in will always be valid
+			_ = v.registerValidation(k, wrapFunc(val), true, false)
+		}
 	}
 
 	v.pool = &sync.Pool{
@@ -140,18 +155,21 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // NOTES:
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterValidation(tag string, fn Func) error {
-	return v.RegisterValidationCtx(tag, wrapFunc(fn))
+func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfNull ...bool) error {
+	return v.RegisterValidationCtx(tag, wrapFunc(fn), callValidationEvenIfNull...)
 }
 
 // RegisterValidationCtx does the same as RegisterValidation on accepts a FuncCtx validation
 // allowing context.Context validation support.
-func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx) error {
-	return v.registerValidation(tag, fn, false)
+func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationEvenIfNull ...bool) error {
+	var nilCheckable bool
+	if len(callValidationEvenIfNull) > 0 {
+		nilCheckable = callValidationEvenIfNull[0]
+	}
+	return v.registerValidation(tag, fn, false, nilCheckable)
 }
 
-func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool) error {
-
+func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
 	if len(tag) == 0 {
 		return errors.New("Function Key cannot be empty")
 	}
@@ -161,13 +179,10 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool) erro
 	}
 
 	_, ok := restrictedTags[tag]
-
 	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
 		panic(fmt.Sprintf(restrictedTagErr, tag))
 	}
-
-	v.validations[tag] = fn
-
+	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidatinOnNil: nilCheckable}
 	return nil
 }
 
