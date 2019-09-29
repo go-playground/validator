@@ -8621,17 +8621,22 @@ func TestEndsWithValidation(t *testing.T) {
 }
 
 func TestRequiredWith(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
+
 	fieldVal := "test"
 	test := struct {
+		Inner   *Inner
 		FieldE  string            `validate:"omitempty" json:"field_e"`
 		FieldER string            `validate:"required_with=FieldE" json:"field_er"`
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with=Field3" json:"field_5"`
+		Field5  string            `validate:"required_with=Inner.Field" json:"field_5"`
 	}{
-		Field1: "test_field1",
+		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8641,24 +8646,52 @@ func TestRequiredWith(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
+	Equal(t, errs, nil)
 
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"required_with=FieldE" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
+		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
+		Field4  interface{}       `validate:"required_with=Field2" json:"field_4"`
+		Field5  string            `validate:"required_with=Field3" json:"field_5"`
+		Field6  string            `validate:"required_with=Inner.Field" json:"field_6"`
+		Field7  string            `validate:"required_with=Inner2.Field" json:"field_7"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field2: &fieldVal,
 	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 3)
+	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with")
+	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_with")
+	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_with")
 }
 
 func TestRequiredWithAll(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
 
 	fieldVal := "test"
 	test := struct {
+		Inner   *Inner
 		FieldE  string            `validate:"omitempty" json:"field_e"`
 		FieldER string            `validate:"required_with_all=FieldE" json:"field_er"`
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with_all=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with_all=Field3" json:"field_5"`
+		Field5  string            `validate:"required_with_all=Inner.Field" json:"field_5"`
 	}{
+		Inner:  &Inner{Field: &fieldVal},
 		Field1: "test_field1",
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
@@ -8669,10 +8702,31 @@ func TestRequiredWithAll(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
+	Equal(t, errs, nil)
 
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"required_with_all=FieldE" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
+		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
+		Field4  interface{}       `validate:"required_with_all=Field1 FieldE" json:"field_4"`
+		Field5  string            `validate:"required_with_all=Inner.Field Field2" json:"field_5"`
+		Field6  string            `validate:"required_with_all=Inner2.Field Field2" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field2: &fieldVal,
 	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 2)
+	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with_all")
+	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "required_with_all")
 }
 
 func TestRequiredWithout(t *testing.T) {
