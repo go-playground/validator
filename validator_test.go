@@ -8839,3 +8839,28 @@ func TestLookup(t *testing.T) {
 	}
 	Equal(t, New().Struct(lookup), nil)
 }
+
+func TestAbilityToValidateNils(t *testing.T) {
+
+	type TestStruct struct {
+		Test *string `validate:"nil"`
+	}
+
+	ts := TestStruct{}
+	val := New()
+	fn := func(fl FieldLevel) bool {
+		return fl.Field().Kind() == reflect.Ptr && fl.Field().IsNil()
+	}
+
+	err := val.RegisterValidation("nil", fn, true)
+	Equal(t, err, nil)
+
+	errs := val.Struct(ts)
+	Equal(t, errs, nil)
+
+	str := "string"
+	ts.Test = &str
+
+	errs = val.Struct(ts)
+	NotEqual(t, errs, nil)
+}
