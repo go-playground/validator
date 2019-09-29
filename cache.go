@@ -39,9 +39,7 @@ func (sc *structCache) Get(key reflect.Type) (c *cStruct, found bool) {
 }
 
 func (sc *structCache) Set(key reflect.Type, value *cStruct) {
-
 	m := sc.m.Load().(map[reflect.Type]*cStruct)
-
 	nm := make(map[reflect.Type]*cStruct, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
@@ -61,9 +59,7 @@ func (tc *tagCache) Get(key string) (c *cTag, found bool) {
 }
 
 func (tc *tagCache) Set(key string, value *cTag) {
-
 	m := tc.m.Load().(map[string]*cTag)
-
 	nm := make(map[string]*cTag, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
@@ -103,7 +99,6 @@ type cTag struct {
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
-
 	v.structCache.lock.Lock()
 	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
 
@@ -172,15 +167,12 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 }
 
 func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
-
 	var t string
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
 
 	for i := 0; i < len(tags); i++ {
-
 		t = tags[i]
-
 		if noAlias {
 			alias = t
 		}
@@ -194,14 +186,13 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				current.next, current = next, curr
 
 			}
-
 			continue
 		}
 
 		var prevTag tagType
 
 		if i == 0 {
-			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
+			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, typeof: typeDefault}
 			firstCtag = current
 		} else {
 			prevTag = current.typeof
@@ -210,7 +201,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		}
 
 		switch t {
-
 		case diveTag:
 			current.typeof = typeDive
 			continue
@@ -273,9 +263,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			orVals := strings.Split(t, orSeparator)
 
 			for j := 0; j < len(orVals); j++ {
-
 				vals := strings.SplitN(orVals[j], tagKeySeparator, 2)
-
 				if noAlias {
 					alias = vals[0]
 					current.aliasTag = alias

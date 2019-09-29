@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/locales"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -430,9 +430,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用於struct類型.", fe.Tag())
+					} else {
+						t, err = ut.T("lt-datetime", fe.Field())
 					}
-
-					t, err = ut.T("lt-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -549,9 +549,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用於struct類型.", fe.Tag())
+					} else {
+						t, err = ut.T("lte-datetime", fe.Field())
 					}
-
-					t, err = ut.T("lte-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -618,13 +618,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
-
 					f64, err = strconv.ParseFloat(fe.Param(), 64)
-
 					return
 				}
 
@@ -668,9 +665,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用於struct類型.", fe.Tag())
+					} else {
+						t, err = ut.T("gt-datetime", fe.Field())
 					}
-
-					t, err = ut.T("gt-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -787,9 +784,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用於struct類型.", fe.Tag())
+					} else {
+						t, err = ut.T("gte-datetime", fe.Field())
 					}
-
-					t, err = ut.T("gte-datetime", fe.Field())
 
 				default:
 					err = fn()
