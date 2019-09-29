@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	ut "github.com/go-playground/universal-translator"
 )
 
 const (
-	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
+	fieldErrMsg       = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
+	coDependentErrMsg = "Keys: %v Error:Field validations for %v failed on the '%s' tag"
 )
 
 // ValidationErrorsTranslations is the translation return type
@@ -248,6 +250,19 @@ func (fe *fieldError) Type() reflect.Type {
 
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
+	if f, ok := fe.v.validationFlags[fe.tag]; ok && (f&VFlagCoDependentErr) != 0 {
+		// use coDependentErrMsg for this error
+		names := &fieldNames{
+			Nss:   make([]string, 0),
+			Names: make([]string, 0),
+		}
+		params := parseOneOfParam2(fe.Param())
+		for n, f := range CoDependentGroups.Fields(params[0]) {
+			names.Append(n, f.FieldName())
+		}
+		sort.Sort(names)
+		return fmt.Sprintf(coDependentErrMsg, names.Nss, names.Names, fe.tag)
+	}
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
 }
 
@@ -269,4 +284,20 @@ func (fe *fieldError) Translate(ut ut.Translator) string {
 	}
 
 	return fn(ut, fe)
+}
+
+type fieldNames struct {
+	Nss   []string
+	Names []string
+}
+
+func (f *fieldNames) Len() int { return len(f.Names) }
+func (f *fieldNames) Swap(i, j int) {
+	f.Nss[i], f.Nss[j] = f.Nss[j], f.Nss[i]
+	f.Names[i], f.Names[j] = f.Names[j], f.Names[i]
+}
+func (f *fieldNames) Less(i, j int) bool { return f.Names[i] < f.Names[j] }
+func (f *fieldNames) Append(ns, name string) {
+	f.Nss = append(f.Nss, ns)
+	f.Names = append(f.Names, name)
 }

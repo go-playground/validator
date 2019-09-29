@@ -112,7 +112,12 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 
 		if ct.hasTag {
-
+			// set values potentially needed by run on nil tags
+			// set Field Level fields
+			v.slflParent = parent
+			v.flField = current
+			v.cf = cf
+			// set namespace
 			v.str1 = string(append(ns, cf.altName...))
 
 			if v.v.hasTagNameFunc {
@@ -121,6 +126,42 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				v.str2 = v.str1
 			}
 
+			f, ok := v.v.validationFlags[ct.tag]
+			for ok && (f&VFlagRunOnNil) != 0 {
+				// as long as there are tags that should run on nil and pass continue to check them
+				// set Field Level field ct
+				v.ct = ct
+
+				if !ct.fn(ctx, v) {
+					err := &fieldError{
+						v:              v.v,
+						tag:            ct.aliasTag,
+						actualTag:      ct.tag,
+						ns:             v.str1,
+						structNs:       v.str2,
+						fieldLen:       uint8(len(cf.altName)),
+						structfieldLen: uint8(len(cf.name)),
+						param:          ct.param,
+						kind:           kind,
+					}
+					if kind != reflect.Invalid {
+						err.value = current.Interface()
+						err.typ = current.Type()
+					}
+					v.errs = append(v.errs, err)
+
+					return
+				}
+				// get next tag
+				ct = ct.next
+				if ct == nil {
+					// no more tags
+					return
+				}
+				f, ok = v.v.validationFlags[ct.tag]
+			}
+
+			// no more run on nil tags
 			if kind == reflect.Invalid {
 				v.errs = append(v.errs,
 					&fieldError{
@@ -165,25 +206,27 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		if typ != timeType {
 
 			if ct != nil {
+				// set values potentially needed by run on nil tags
+				// set Field Level fields
+				v.slflParent = parent
+				v.flField = current
+				v.cf = cf
+				// set namespace
+				v.str1 = string(append(ns, cf.altName...))
 
-				if ct.typeof == typeStructOnly {
-					goto CONTINUE
-				} else if ct.typeof == typeIsDefault {
-					// set Field Level fields
-					v.slflParent = parent
-					v.flField = current
-					v.cf = cf
+				if v.v.hasTagNameFunc {
+					v.str2 = string(append(structNs, cf.name...))
+				} else {
+					v.str2 = v.str1
+				}
+
+				f, ok := v.v.validationFlags[ct.tag]
+				for ok && (f&VFlagRunOnNil) != 0 {
+					// as long as there are tags that should run on nil and pass continue to check them
+					// set Field Level field ct
 					v.ct = ct
 
 					if !ct.fn(ctx, v) {
-						v.str1 = string(append(ns, cf.altName...))
-
-						if v.v.hasTagNameFunc {
-							v.str2 = string(append(structNs, cf.name...))
-						} else {
-							v.str2 = v.str1
-						}
-
 						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
@@ -201,9 +244,55 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						)
 						return
 					}
+					// get next tag
+					ct = ct.next
+					if ct != nil {
+						f, ok = v.v.validationFlags[ct.tag]
+					} else {
+						f, ok = 0, false
+					}
 				}
 
-				ct = ct.next
+				if ct != nil {
+					if ct.typeof == typeStructOnly {
+						goto CONTINUE
+					} else if ct.typeof == typeIsDefault {
+						// set Field Level fields
+						v.slflParent = parent
+						v.flField = current
+						v.cf = cf
+						v.ct = ct
+
+						if !ct.fn(ctx, v) {
+							v.str1 = string(append(ns, cf.altName...))
+
+							if v.v.hasTagNameFunc {
+								v.str2 = string(append(structNs, cf.name...))
+							} else {
+								v.str2 = v.str1
+							}
+
+							v.errs = append(v.errs,
+								&fieldError{
+									v:              v.v,
+									tag:            ct.aliasTag,
+									actualTag:      ct.tag,
+									ns:             v.str1,
+									structNs:       v.str2,
+									fieldLen:       uint8(len(cf.altName)),
+									structfieldLen: uint8(len(cf.name)),
+									value:          current.Interface(),
+									param:          ct.param,
+									kind:           kind,
+									typ:            typ,
+								},
+							)
+							return
+						}
+					}
+
+					ct = ct.next
+				}
 			}
 
 			if ct != nil && ct.typeof == typeNoStructLevel {
@@ -439,17 +528,16 @@ OUTER:
 			v.flField = current
 			v.cf = cf
 			v.ct = ct
+			// codependent group validations will need this info if they run
+			v.str1 = string(append(ns, cf.altName...))
+
+			if v.v.hasTagNameFunc {
+				v.str2 = string(append(structNs, cf.name...))
+			} else {
+				v.str2 = v.str1
+			}
 
 			if !ct.fn(ctx, v) {
-
-				v.str1 = string(append(ns, cf.altName...))
-
-				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
-				} else {
-					v.str2 = v.str1
-				}
-
 				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
