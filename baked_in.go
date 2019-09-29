@@ -1301,19 +1301,7 @@ func isDefault(fl FieldLevel) bool {
 
 // HasValue is the validation function for validating if the current field's value is not the default static value.
 func hasValue(fl FieldLevel) bool {
-	return requireCheckFieldKind(fl, "")
-}
-
-// requireCheckField is a func for check field kind
-func requireCheckFieldKind(fl FieldLevel, param string) bool {
 	field := fl.Field()
-	if len(param) > 0 {
-		if fl.Parent().Kind() == reflect.Ptr {
-			field = fl.Parent().Elem().FieldByName(param)
-		} else {
-			field = fl.Parent().FieldByName(param)
-		}
-	}
 	switch field.Kind() {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
@@ -1325,79 +1313,73 @@ func requireCheckFieldKind(fl FieldLevel, param string) bool {
 	}
 }
 
+// requireCheckField is a func for check field kind
+func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
+	field := fl.Field()
+	var ok bool
+	kind := field.Kind()
+	if len(param) > 0 {
+		field, kind, ok = fl.GetStructFieldOKAdvanced(fl.Parent(), param)
+		if !ok {
+			return defaultNotFoundValue
+		}
+	}
+	switch kind {
+	case reflect.Invalid:
+		return defaultNotFoundValue
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
+	default:
+		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
+	}
+}
+
 // RequiredWith is the validation function
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
-
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-
-		if requireCheckFieldKind(fl, param) {
-			return requireCheckFieldKind(fl, "")
+		if requireCheckFieldKind(fl, param, false) {
+			return hasValue(fl)
 		}
 	}
-
 	return true
 }
 
 // RequiredWithAll is the validation function
 // The field under validation must be present and not empty only if all of the other specified fields are present.
 func requiredWithAll(fl FieldLevel) bool {
-
-	isValidateCurrentField := true
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-
-		if !requireCheckFieldKind(fl, param) {
-			isValidateCurrentField = false
+		if !requireCheckFieldKind(fl, param, false) {
+			return true
 		}
 	}
-
-	if isValidateCurrentField {
-		return requireCheckFieldKind(fl, "")
-	}
-
-	return true
+	return hasValue(fl)
 }
 
 // RequiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
-
-	isValidateCurrentField := false
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-
-		if requireCheckFieldKind(fl, param) {
-			isValidateCurrentField = true
+		if !requireCheckFieldKind(fl, param, true) {
+			return hasValue(fl)
 		}
 	}
-
-	if !isValidateCurrentField {
-		return requireCheckFieldKind(fl, "")
-	}
-
 	return true
 }
 
 // RequiredWithoutAll is the validation function
 // The field under validation must be present and not empty only when all of the other specified fields are not present.
 func requiredWithoutAll(fl FieldLevel) bool {
-
-	isValidateCurrentField := true
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-
-		if requireCheckFieldKind(fl, param) {
-			isValidateCurrentField = false
+		if requireCheckFieldKind(fl, param, true) {
+			return true
 		}
 	}
-
-	if isValidateCurrentField {
-		return requireCheckFieldKind(fl, "")
-	}
-
-	return true
+	return hasValue(fl)
 }
 
 // IsGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.

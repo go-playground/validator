@@ -462,6 +462,8 @@ func TestAnonymous(t *testing.T) {
 		},
 	}
 
+	Equal(t, tst.anonymousC.c, "")
+
 	err := validate.Struct(tst)
 	NotEqual(t, err, nil)
 
@@ -715,16 +717,15 @@ func TestNilValidator(t *testing.T) {
 	}
 
 	PanicMatches(t, func() { val.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{}) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.Var(ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.VarWithValue("test", ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.Struct(ts) }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.StructExcept(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
-	PanicMatches(t, func() { val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.Var(ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.VarWithValue("test", ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.Struct(ts) }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.StructExcept(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
+	PanicMatches(t, func() { _ = val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
 }
 
 func TestStructPartial(t *testing.T) {
-
 	p1 := []string{
 		"NoTag",
 		"Required",
@@ -1850,7 +1851,7 @@ func TestSQLValue2Validation(t *testing.T) {
 
 	val.Name = "errorme"
 
-	PanicMatches(t, func() { validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
+	PanicMatches(t, func() { _ = validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
 
 	myVal := valuer{
 		Name: "",
@@ -2675,7 +2676,7 @@ func TestBadKeyValidation(t *testing.T) {
 
 	validate := New()
 
-	PanicMatches(t, func() { validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
+	PanicMatches(t, func() { _ = validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
 
 	type Test2 struct {
 		Name string `validate:"required,,len=2"`
@@ -2685,7 +2686,7 @@ func TestBadKeyValidation(t *testing.T) {
 		Name: "test",
 	}
 
-	PanicMatches(t, func() { validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
+	PanicMatches(t, func() { _ = validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -3009,7 +3010,7 @@ func TestArrayDiveValidation(t *testing.T) {
 		Name: "TEST",
 	}
 
-	PanicMatches(t, func() { validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
+	PanicMatches(t, func() { _ = validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
 
 	type Test struct {
 		Errs []string `validate:"gt=0,dive,required"`
@@ -3372,7 +3373,7 @@ func TestLongitudeValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() { validate.Var(true, "longitude") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(true, "longitude") }, "Bad field type bool")
 }
 
 func TestLatitudeValidation(t *testing.T) {
@@ -3414,7 +3415,7 @@ func TestLatitudeValidation(t *testing.T) {
 		}
 	}
 
-	PanicMatches(t, func() { validate.Var(true, "latitude") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
 func TestDataURIValidation(t *testing.T) {
@@ -4317,7 +4318,7 @@ func TestIsNeValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ne")
 
-	PanicMatches(t, func() { validate.Var(now, "ne=now") }, "Bad field type time.Time")
+	PanicMatches(t, func() { _ = validate.Var(now, "ne=now") }, "Bad field type time.Time")
 }
 
 func TestIsEqFieldValidation(t *testing.T) {
@@ -4471,7 +4472,7 @@ func TestIsEqValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eq")
 
-	PanicMatches(t, func() { validate.Var(now, "eq=now") }, "Bad field type time.Time")
+	PanicMatches(t, func() { _ = validate.Var(now, "eq=now") }, "Bad field type time.Time")
 }
 
 func TestOneOfValidation(t *testing.T) {
@@ -4530,7 +4531,7 @@ func TestOneOfValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(3.14, "oneof=red green")
+		_ = validate.Var(3.14, "oneof=red green")
 	}, "Bad field type float64")
 }
 
@@ -4634,7 +4635,7 @@ func TestFileValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(6, "file")
+		_ = validate.Var(6, "file")
 	}, "Bad field type int")
 }
 
@@ -5724,7 +5725,6 @@ func TestGteField(t *testing.T) {
 }
 
 func TestValidateByTagAndValue(t *testing.T) {
-
 	validate := New()
 
 	val := "test"
@@ -5737,7 +5737,8 @@ func TestValidateByTagAndValue(t *testing.T) {
 		return fl.Parent().String() == fl.Field().String()
 	}
 
-	validate.RegisterValidation("isequaltestfunc", fn)
+	errs = validate.RegisterValidation("isequaltestfunc", fn)
+	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(val, field, "isequaltestfunc")
 	Equal(t, errs, nil)
@@ -5768,7 +5769,7 @@ func TestAddFunctions(t *testing.T) {
 	errs = validate.RegisterValidation("", fn)
 	NotEqual(t, errs, nil)
 
-	validate.RegisterValidation("new", nil)
+	errs = validate.RegisterValidation("new", nil)
 	NotEqual(t, errs, nil)
 
 	errs = validate.RegisterValidation("new", fn)
@@ -5777,7 +5778,7 @@ func TestAddFunctions(t *testing.T) {
 	errs = validate.RegisterValidationCtx("new", fnCtx)
 	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
+	PanicMatches(t, func() { _ = validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestChangeTag(t *testing.T) {
@@ -5803,7 +5804,6 @@ func TestChangeTag(t *testing.T) {
 }
 
 func TestUnexposedStruct(t *testing.T) {
-
 	validate := New()
 
 	type Test struct {
@@ -5816,41 +5816,36 @@ func TestUnexposedStruct(t *testing.T) {
 	s := &Test{
 		Name: "TEST",
 	}
+	Equal(t, s.unexposed.A, "")
 
 	errs := validate.Struct(s)
 	Equal(t, errs, nil)
 }
 
 func TestBadParams(t *testing.T) {
-
 	validate := New()
-
 	i := 1
 	errs := validate.Var(i, "-")
 	Equal(t, errs, nil)
 
-	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
-	PanicMatches(t, func() { validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
 
 	var ui uint = 1
-	PanicMatches(t, func() { validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
 
 	f := 1.23
-	PanicMatches(t, func() { validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+	PanicMatches(t, func() { _ = validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
 }
 
 func TestLength(t *testing.T) {
-
 	validate := New()
-
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "len") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "len") }, "Bad field type bool")
 }
 
 func TestIsGt(t *testing.T) {
-
 	validate := New()
-
 	myMap := map[string]string{}
 	errs := validate.Var(myMap, "gt=0")
 	NotEqual(t, errs, nil)
@@ -5866,7 +5861,7 @@ func TestIsGt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "gt")
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "gt") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "gt") }, "Bad field type bool")
 
 	tm := time.Now().UTC()
 	tm = tm.Add(time.Hour * 24)
@@ -5900,11 +5895,9 @@ func TestIsGt(t *testing.T) {
 }
 
 func TestIsGte(t *testing.T) {
-
 	validate := New()
-
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "gte") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
 
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
@@ -5938,9 +5931,7 @@ func TestIsGte(t *testing.T) {
 }
 
 func TestIsLt(t *testing.T) {
-
 	validate := New()
-
 	myMap := map[string]string{}
 	errs := validate.Var(myMap, "lt=0")
 	NotEqual(t, errs, nil)
@@ -5957,7 +5948,7 @@ func TestIsLt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "lt")
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "lt") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "lt") }, "Bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -5996,7 +5987,7 @@ func TestIsLte(t *testing.T) {
 	validate := New()
 
 	i := true
-	PanicMatches(t, func() { validate.Var(i, "lte") }, "Bad field type bool")
+	PanicMatches(t, func() { _ = validate.Var(i, "lte") }, "Bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -6103,7 +6094,7 @@ func TestUrnRFC2141(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, tag) }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, tag) }, "Bad field type int")
 }
 
 func TestUrl(t *testing.T) {
@@ -6171,7 +6162,7 @@ func TestUrl(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
 func TestUri(t *testing.T) {
@@ -6238,7 +6229,7 @@ func TestUri(t *testing.T) {
 	}
 
 	i := 1
-	PanicMatches(t, func() { validate.Var(i, "uri") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(i, "uri") }, "Bad field type int")
 }
 
 func TestOrTag(t *testing.T) {
@@ -6280,8 +6271,8 @@ func TestOrTag(t *testing.T) {
 
 	s = "this is right, but a blank or isn't"
 
-	PanicMatches(t, func() { validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
-	PanicMatches(t, func() { validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
 
 	v2 := New()
 	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -6351,7 +6342,7 @@ func TestHsla(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "hsla")
 
 	i := 1
-	validate.Var(i, "hsla")
+	errs = validate.Var(i, "hsla")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hsla")
 }
@@ -7053,7 +7044,7 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	PanicMatches(t, func() { validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
+	PanicMatches(t, func() { _ = validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
 }
 
 func TestCustomFieldName(t *testing.T) {
@@ -7309,15 +7300,15 @@ func TestTranslations(t *testing.T) {
 }
 
 func TestTranslationErrors(t *testing.T) {
-
 	en := en.New()
 	uni := ut.New(en, en, fr.New())
 
 	trans, _ := uni.GetTranslator("en")
-	trans.Add("required", "{0} is a required field", false) // using translator outside of validator also
+	err := trans.Add("required", "{0} is a required field", false) // using translator outside of validator also
+	Equal(t, err, nil)
 
 	validate := New()
-	err := validate.RegisterTranslation("required", trans,
+	err = validate.RegisterTranslation("required", trans,
 		func(ut ut.Translator) (err error) {
 
 			// using this stype because multiple translation may have to be added for the full translation
@@ -7766,31 +7757,40 @@ func TestFieldLevelName(t *testing.T) {
 
 		return name
 	})
-	validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
+	err := validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
 		res1 = fl.FieldName()
 		alt1 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
 		res2 = fl.FieldName()
 		alt2 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
 		res3 = fl.FieldName()
 		alt3 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
 		res4 = fl.FieldName()
 		alt4 = fl.StructFieldName()
 		return true
 	})
-	validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
 		res5 = fl.FieldName()
 		alt5 = fl.StructFieldName()
 		return true
 	})
+	Equal(t, err, nil)
 
 	test := Test{
 		String: "test",
@@ -7813,7 +7813,6 @@ func TestFieldLevelName(t *testing.T) {
 }
 
 func TestValidateStructRegisterCtx(t *testing.T) {
-
 	var ctxVal string
 
 	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
@@ -7833,7 +7832,9 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 	var tst Test
 
 	validate := New()
-	validate.RegisterValidationCtx("val", fnCtx)
+	err := validate.RegisterValidationCtx("val", fnCtx)
+	Equal(t, err, nil)
+
 	validate.RegisterStructValidationCtx(slFn, Test{})
 
 	ctx := context.WithValue(context.Background(), &ctxVal, "testval")
@@ -8039,7 +8040,6 @@ func TestFQDNValidation(t *testing.T) {
 }
 
 func TestIsDefault(t *testing.T) {
-
 	validate := New()
 
 	type Inner struct {
@@ -8066,11 +8066,9 @@ func TestIsDefault(t *testing.T) {
 
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-
 		if name == "-" {
 			return ""
 		}
-
 		return name
 	})
 
@@ -8157,7 +8155,7 @@ func TestUniqueValidation(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { validate.Var(1.0, "unique") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
 }
 
 func TestHTMLValidation(t *testing.T) {
@@ -8362,8 +8360,8 @@ func TestKeys(t *testing.T) {
 
 	// test bad tag definitions
 
-	PanicMatches(t, func() { validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
-	PanicMatches(t, func() { validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
+	PanicMatches(t, func() { _ = validate.Var(map[string]string{"key": "val"}, "endkeys,dive,eq=val") }, "'endkeys' tag encountered without a corresponding 'keys' tag")
+	PanicMatches(t, func() { _ = validate.Var(1, "keys,eq=1,endkeys") }, "'keys' tag must be immediately preceded by the 'dive' tag")
 
 	// test custom tag name
 	validate = New()
@@ -8391,7 +8389,6 @@ func TestKeys(t *testing.T) {
 
 // Thanks @adrian-sgn specific test for your specific scenario
 func TestKeysCustomValidation(t *testing.T) {
-
 	type LangCode string
 	type Label map[LangCode]string
 
@@ -8400,7 +8397,7 @@ func TestKeysCustomValidation(t *testing.T) {
 	}
 
 	validate := New()
-	validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
+	err := validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
 		validLangCodes := map[LangCode]struct{}{
 			"en": {},
 			"es": {},
@@ -8410,6 +8407,7 @@ func TestKeysCustomValidation(t *testing.T) {
 		_, ok := validLangCodes[fl.Field().Interface().(LangCode)]
 		return ok
 	})
+	Equal(t, err, nil)
 
 	label := Label{
 		"en":  "Good morning!",
@@ -8419,7 +8417,7 @@ func TestKeysCustomValidation(t *testing.T) {
 		"xxx": "",
 	}
 
-	err := validate.Struct(TestMapStructPtr{label})
+	err = validate.Struct(TestMapStructPtr{label})
 	NotEqual(t, err, nil)
 
 	errs := err.(ValidationErrors)
@@ -8562,7 +8560,7 @@ func TestDirValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		validate.Var(2, "dir")
+		_ = validate.Var(2, "dir")
 	}, "Bad field type int")
 }
 
@@ -8621,17 +8619,22 @@ func TestEndsWithValidation(t *testing.T) {
 }
 
 func TestRequiredWith(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
+
 	fieldVal := "test"
 	test := struct {
+		Inner   *Inner
 		FieldE  string            `validate:"omitempty" json:"field_e"`
 		FieldER string            `validate:"required_with=FieldE" json:"field_er"`
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with=Field3" json:"field_5"`
+		Field5  string            `validate:"required_with=Inner.Field" json:"field_5"`
 	}{
-		Field1: "test_field1",
+		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8641,24 +8644,52 @@ func TestRequiredWith(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
+	Equal(t, errs, nil)
 
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"required_with=FieldE" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
+		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
+		Field4  interface{}       `validate:"required_with=Field2" json:"field_4"`
+		Field5  string            `validate:"required_with=Field3" json:"field_5"`
+		Field6  string            `validate:"required_with=Inner.Field" json:"field_6"`
+		Field7  string            `validate:"required_with=Inner2.Field" json:"field_7"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field2: &fieldVal,
 	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 3)
+	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with")
+	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_with")
+	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_with")
 }
 
 func TestRequiredWithAll(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
 
 	fieldVal := "test"
 	test := struct {
+		Inner   *Inner
 		FieldE  string            `validate:"omitempty" json:"field_e"`
 		FieldER string            `validate:"required_with_all=FieldE" json:"field_er"`
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with_all=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with_all=Field3" json:"field_5"`
+		Field5  string            `validate:"required_with_all=Inner.Field" json:"field_5"`
 	}{
+		Inner:  &Inner{Field: &fieldVal},
 		Field1: "test_field1",
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
@@ -8669,22 +8700,49 @@ func TestRequiredWithAll(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
+	Equal(t, errs, nil)
 
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"required_with_all=FieldE" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
+		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
+		Field4  interface{}       `validate:"required_with_all=Field1 FieldE" json:"field_4"`
+		Field5  string            `validate:"required_with_all=Inner.Field Field2" json:"field_5"`
+		Field6  string            `validate:"required_with_all=Inner2.Field Field2" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field2: &fieldVal,
 	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 2)
+	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with_all")
+	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "required_with_all")
 }
 
 func TestRequiredWithout(t *testing.T) {
 
+	type Inner struct {
+		Field *string
+	}
+
 	fieldVal := "test"
 	test := struct {
+		Inner  *Inner
 		Field1 string            `validate:"omitempty" json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 	}{
+		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8694,29 +8752,35 @@ func TestRequiredWithout(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
-
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	Equal(t, errs, nil)
 
 	test2 := struct {
-		Field1 string            `validate:"omitempty" json:"field_1"`
+		Inner  *Inner
+		Inner2 *Inner
+		Field1 string            `json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without=Field1" json:"field_6"`
+		Field7 string            `validate:"required_without=Inner.Field" json:"field_7"`
+		Field8 string            `validate:"required_without=Inner.Field" json:"field_8"`
 	}{
+		Inner:  &Inner{},
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
 	}
 
 	errs = validate.Struct(&test2)
+	NotEqual(t, errs, nil)
 
-	if errs == nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 4)
+	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without")
+	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_without")
+	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
@@ -8739,10 +8803,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 	validate := New()
 
 	errs := validate.Struct(test)
-
-	if errs != nil {
-		t.Fatalf("failed Error: %s", errs)
-	}
+	Equal(t, errs, nil)
 
 	test2 := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -8750,7 +8811,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
-		Field6 string            `validate:"required_without_all=Field1" json:"field_6"`
+		Field6 string            `validate:"required_without_all=Field1 Field3" json:"field_6"`
 	}{
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -8758,8 +8819,48 @@ func TestRequiredWithoutAll(t *testing.T) {
 	}
 
 	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
 
-	if errs == nil {
-		t.Fatalf("failed Error: %s", errs)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
+}
+
+func TestLookup(t *testing.T) {
+	type Lookup struct {
+		FieldA *string `json:"fieldA,omitempty" validate:"required_without=FieldB"`
+		FieldB *string `json:"fieldB,omitempty" validate:"required_without=FieldA"`
 	}
+
+	fieldAValue := "1232"
+	lookup := Lookup{
+		FieldA: &fieldAValue,
+		FieldB: nil,
+	}
+	Equal(t, New().Struct(lookup), nil)
+}
+
+func TestAbilityToValidateNils(t *testing.T) {
+
+	type TestStruct struct {
+		Test *string `validate:"nil"`
+	}
+
+	ts := TestStruct{}
+	val := New()
+	fn := func(fl FieldLevel) bool {
+		return fl.Field().Kind() == reflect.Ptr && fl.Field().IsNil()
+	}
+
+	err := val.RegisterValidation("nil", fn, true)
+	Equal(t, err, nil)
+
+	errs := val.Struct(ts)
+	Equal(t, errs, nil)
+
+	str := "string"
+	ts.Test = &str
+
+	errs = val.Struct(ts)
+	NotEqual(t, errs, nil)
 }

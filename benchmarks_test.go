@@ -8,236 +8,200 @@ import (
 )
 
 func BenchmarkFieldSuccess(b *testing.B) {
-
 	validate := New()
-
 	s := "1"
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(&s, "len=1")
+		_ = validate.Var(&s, "len=1")
 	}
 }
 
 func BenchmarkFieldSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	s := "1"
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(&s, "len=1")
+			_ = validate.Var(&s, "len=1")
 		}
 	})
 }
 
 func BenchmarkFieldFailure(b *testing.B) {
-
 	validate := New()
-
 	s := "12"
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(&s, "len=1")
+		_ = validate.Var(&s, "len=1")
 	}
 }
 
 func BenchmarkFieldFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	s := "12"
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(&s, "len=1")
+			_ = validate.Var(&s, "len=1")
 		}
 	})
 }
 
 func BenchmarkFieldArrayDiveSuccess(b *testing.B) {
-
 	validate := New()
-
 	m := []string{"val1", "val2", "val3"}
 
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,required")
+		_ = validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldArrayDiveSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	m := []string{"val1", "val2", "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,required")
+			_ = validate.Var(m, "required,dive,required")
 		}
 	})
 }
 
 func BenchmarkFieldArrayDiveFailure(b *testing.B) {
-
 	validate := New()
-
 	m := []string{"val1", "", "val3"}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,required")
+		_ = validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldArrayDiveFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	m := []string{"val1", "", "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,required")
+			_ = validate.Var(m, "required,dive,required")
 		}
 	})
 }
 
 func BenchmarkFieldMapDiveSuccess(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
 
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,required")
+		_ = validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldMapDiveSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,required")
+			_ = validate.Var(m, "required,dive,required")
 		}
 	})
 }
 
 func BenchmarkFieldMapDiveFailure(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,required")
+		_ = validate.Var(m, "required,dive,required")
 	}
 }
 
 func BenchmarkFieldMapDiveFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,required")
+			_ = validate.Var(m, "required,dive,required")
 		}
 	})
 }
 
 func BenchmarkFieldMapDiveWithKeysSuccess(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
 
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,keys,required,endkeys,required")
+		_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 	}
 }
 
 func BenchmarkFieldMapDiveWithKeysSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"val1": "val1", "val2": "val2", "val3": "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,keys,required,endkeys,required")
+			_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 		}
 	})
 }
 
 func BenchmarkFieldMapDiveWithKeysFailure(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(m, "required,dive,keys,required,endkeys,required")
+		_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 	}
 }
 
 func BenchmarkFieldMapDiveWithKeysFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(m, "required,dive,keys,required,endkeys,required")
+			_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 		}
 	})
 }
 
 func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
-
 	val := valuer{
 		Name: "1",
 	}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(val, "len=1")
+		_ = validate.Var(val, "len=1")
 	}
 }
 
 func BenchmarkFieldCustomTypeSuccessParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
-
 	val := valuer{
 		Name: "1",
 	}
@@ -245,93 +209,80 @@ func BenchmarkFieldCustomTypeSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(val, "len=1")
+			_ = validate.Var(val, "len=1")
 		}
 	})
 }
 
 func BenchmarkFieldCustomTypeFailure(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
-
 	val := valuer{}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(val, "len=1")
+		_ = validate.Var(val, "len=1")
 	}
 }
 
 func BenchmarkFieldCustomTypeFailureParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
-
 	val := valuer{}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(val, "len=1")
+			_ = validate.Var(val, "len=1")
 		}
 	})
 }
 
 func BenchmarkFieldOrTagSuccess(b *testing.B) {
-
 	validate := New()
-
 	s := "rgba(0,0,0,1)"
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(s, "rgb|rgba")
+		_ = validate.Var(s, "rgb|rgba")
 	}
 }
 
 func BenchmarkFieldOrTagSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	s := "rgba(0,0,0,1)"
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(s, "rgb|rgba")
+			_ = validate.Var(s, "rgb|rgba")
 		}
 	})
 }
 
 func BenchmarkFieldOrTagFailure(b *testing.B) {
-
 	validate := New()
-
 	s := "#000"
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Var(s, "rgb|rgba")
+		_ = validate.Var(s, "rgb|rgba")
 	}
 }
 
 func BenchmarkFieldOrTagFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	s := "#000"
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Var(s, "rgb|rgba")
+			_ = validate.Var(s, "rgb|rgba")
 		}
 	})
 }
 
 func BenchmarkStructLevelValidationSuccess(b *testing.B) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
@@ -341,12 +292,11 @@ func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(tst)
+		_ = validate.Struct(tst)
 	}
 }
 
 func BenchmarkStructLevelValidationSuccessParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
@@ -357,13 +307,12 @@ func BenchmarkStructLevelValidationSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(tst)
+			_ = validate.Struct(tst)
 		}
 	})
 }
 
 func BenchmarkStructLevelValidationFailure(b *testing.B) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
@@ -373,12 +322,11 @@ func BenchmarkStructLevelValidationFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(tst)
+		_ = validate.Struct(tst)
 	}
 }
 
 func BenchmarkStructLevelValidationFailureParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
@@ -389,13 +337,12 @@ func BenchmarkStructLevelValidationFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(tst)
+			_ = validate.Struct(tst)
 		}
 	})
 }
 
 func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
@@ -412,15 +359,13 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
+		_ = validate.Struct(validFoo)
 	}
 }
 
 func BenchmarkStructSimpleCustomTypeSuccessParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
-
 	val := valuer{
 		Name: "1",
 	}
@@ -429,19 +374,17 @@ func BenchmarkStructSimpleCustomTypeSuccessParallel(b *testing.B) {
 		Valuer   valuer `validate:"len=1"`
 		IntValue int    `validate:"min=5,max=10"`
 	}
-
 	validFoo := &Foo{Valuer: val, IntValue: 7}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(validFoo)
+			_ = validate.Struct(validFoo)
 		}
 	})
 }
 
 func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
@@ -451,17 +394,15 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 		Valuer   valuer `validate:"len=1"`
 		IntValue int    `validate:"min=5,max=10"`
 	}
-
 	validFoo := &Foo{Valuer: val, IntValue: 3}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
+		_ = validate.Struct(validFoo)
 	}
 }
 
 func BenchmarkStructSimpleCustomTypeFailureParallel(b *testing.B) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*sql.Valuer)(nil), valuer{})
 
@@ -471,19 +412,17 @@ func BenchmarkStructSimpleCustomTypeFailureParallel(b *testing.B) {
 		Valuer   valuer `validate:"len=1"`
 		IntValue int    `validate:"min=5,max=10"`
 	}
-
 	validFoo := &Foo{Valuer: val, IntValue: 3}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(validate.Struct(validFoo))
+			_ = validate.Struct(validate.Struct(validFoo))
 		}
 	})
 }
 
 func BenchmarkStructFilteredSuccess(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -494,21 +433,18 @@ func BenchmarkStructFilteredSuccess(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
-
 	byts := []byte("Name")
-
 	fn := func(ns []byte) bool {
 		return !bytes.HasSuffix(ns, byts)
 	}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructFiltered(test, fn)
+		_ = validate.StructFiltered(test, fn)
 	}
 }
 
 func BenchmarkStructFilteredSuccessParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -519,9 +455,7 @@ func BenchmarkStructFilteredSuccessParallel(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
-
 	byts := []byte("Name")
-
 	fn := func(ns []byte) bool {
 		return !bytes.HasSuffix(ns, byts)
 	}
@@ -529,13 +463,12 @@ func BenchmarkStructFilteredSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructFiltered(test, fn)
+			_ = validate.StructFiltered(test, fn)
 		}
 	})
 }
 
 func BenchmarkStructFilteredFailure(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -555,12 +488,11 @@ func BenchmarkStructFilteredFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructFiltered(test, fn)
+		_ = validate.StructFiltered(test, fn)
 	}
 }
 
 func BenchmarkStructFilteredFailureParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -571,9 +503,7 @@ func BenchmarkStructFilteredFailureParallel(b *testing.B) {
 	test := &Test{
 		Name: "Joey Bloggs",
 	}
-
 	byts := []byte("NickName")
-
 	fn := func(ns []byte) bool {
 		return !bytes.HasSuffix(ns, byts)
 	}
@@ -581,13 +511,12 @@ func BenchmarkStructFilteredFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructFiltered(test, fn)
+			_ = validate.StructFiltered(test, fn)
 		}
 	})
 }
 
 func BenchmarkStructPartialSuccess(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -601,12 +530,11 @@ func BenchmarkStructPartialSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructPartial(test, "Name")
+		_ = validate.StructPartial(test, "Name")
 	}
 }
 
 func BenchmarkStructPartialSuccessParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -621,13 +549,12 @@ func BenchmarkStructPartialSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructPartial(test, "Name")
+			_ = validate.StructPartial(test, "Name")
 		}
 	})
 }
 
 func BenchmarkStructPartialFailure(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -641,12 +568,11 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructPartial(test, "NickName")
+		_ = validate.StructPartial(test, "NickName")
 	}
 }
 
 func BenchmarkStructPartialFailureParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -661,13 +587,12 @@ func BenchmarkStructPartialFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructPartial(test, "NickName")
+			_ = validate.StructPartial(test, "NickName")
 		}
 	})
 }
 
 func BenchmarkStructExceptSuccess(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -681,12 +606,11 @@ func BenchmarkStructExceptSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructExcept(test, "Nickname")
+		_ = validate.StructExcept(test, "Nickname")
 	}
 }
 
 func BenchmarkStructExceptSuccessParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -701,13 +625,12 @@ func BenchmarkStructExceptSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructExcept(test, "NickName")
+			_ = validate.StructExcept(test, "NickName")
 		}
 	})
 }
 
 func BenchmarkStructExceptFailure(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -721,12 +644,11 @@ func BenchmarkStructExceptFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.StructExcept(test, "Name")
+		_ = validate.StructExcept(test, "Name")
 	}
 }
 
 func BenchmarkStructExceptFailureParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -741,13 +663,12 @@ func BenchmarkStructExceptFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.StructExcept(test, "Name")
+			_ = validate.StructExcept(test, "Name")
 		}
 	})
 }
 
 func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -757,7 +678,6 @@ func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 
 	now := time.Now().UTC()
 	then := now.Add(time.Hour * 5)
-
 	test := &Test{
 		Start: now,
 		End:   then,
@@ -765,12 +685,11 @@ func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(test)
+		_ = validate.Struct(test)
 	}
 }
 
 func BenchmarkStructSimpleCrossFieldSuccessParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -780,7 +699,6 @@ func BenchmarkStructSimpleCrossFieldSuccessParallel(b *testing.B) {
 
 	now := time.Now().UTC()
 	then := now.Add(time.Hour * 5)
-
 	test := &Test{
 		Start: now,
 		End:   then,
@@ -789,13 +707,12 @@ func BenchmarkStructSimpleCrossFieldSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(test)
+			_ = validate.Struct(test)
 		}
 	})
 }
 
 func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -813,12 +730,11 @@ func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(test)
+		_ = validate.Struct(test)
 	}
 }
 
 func BenchmarkStructSimpleCrossFieldFailureParallel(b *testing.B) {
-
 	validate := New()
 
 	type Test struct {
@@ -828,7 +744,6 @@ func BenchmarkStructSimpleCrossFieldFailureParallel(b *testing.B) {
 
 	now := time.Now().UTC()
 	then := now.Add(time.Hour * -5)
-
 	test := &Test{
 		Start: now,
 		End:   then,
@@ -836,13 +751,12 @@ func BenchmarkStructSimpleCrossFieldFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(test)
+			_ = validate.Struct(test)
 		}
 	})
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
-
 	validate := New()
 
 	type Inner struct {
@@ -855,11 +769,9 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
 	}
 
 	now := time.Now().UTC()
-
 	inner := &Inner{
 		Start: now,
 	}
-
 	outer := &Outer{
 		Inner:     inner,
 		CreatedAt: now,
@@ -867,12 +779,11 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(outer)
+		_ = validate.Struct(outer)
 	}
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldSuccessParallel(b *testing.B) {
-
 	validate := New()
 
 	type Inner struct {
@@ -885,11 +796,9 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccessParallel(b *testing.B) {
 	}
 
 	now := time.Now().UTC()
-
 	inner := &Inner{
 		Start: now,
 	}
-
 	outer := &Outer{
 		Inner:     inner,
 		CreatedAt: now,
@@ -898,15 +807,13 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(outer)
+			_ = validate.Struct(outer)
 		}
 	})
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
-
 	validate := New()
-
 	type Inner struct {
 		Start time.Time
 	}
@@ -930,12 +837,11 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(outer)
+		_ = validate.Struct(outer)
 	}
 }
 
 func BenchmarkStructSimpleCrossStructCrossFieldFailureParallel(b *testing.B) {
-
 	validate := New()
 
 	type Inner struct {
@@ -962,15 +868,13 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(outer)
+			_ = validate.Struct(outer)
 		}
 	})
 }
 
 func BenchmarkStructSimpleSuccess(b *testing.B) {
-
 	validate := New()
-
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
@@ -980,33 +884,28 @@ func BenchmarkStructSimpleSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(validFoo)
+		_ = validate.Struct(validFoo)
 	}
 }
 
 func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
-
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(validFoo)
+			_ = validate.Struct(validFoo)
 		}
 	})
 }
 
 func BenchmarkStructSimpleFailure(b *testing.B) {
-
 	validate := New()
-
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
@@ -1016,14 +915,12 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(invalidFoo)
+		_ = validate.Struct(invalidFoo)
 	}
 }
 
 func BenchmarkStructSimpleFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	type Foo struct {
 		StringValue string `validate:"min=5,max=10"`
 		IntValue    int    `validate:"min=5,max=10"`
@@ -1034,15 +931,13 @@ func BenchmarkStructSimpleFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(invalidFoo)
+			_ = validate.Struct(invalidFoo)
 		}
 	})
 }
 
 func BenchmarkStructComplexSuccess(b *testing.B) {
-
 	validate := New()
-
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
@@ -1072,14 +967,12 @@ func BenchmarkStructComplexSuccess(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(tSuccess)
+		_ = validate.Struct(tSuccess)
 	}
 }
 
 func BenchmarkStructComplexSuccessParallel(b *testing.B) {
-
 	validate := New()
-
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
@@ -1110,15 +1003,13 @@ func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(tSuccess)
+			_ = validate.Struct(tSuccess)
 		}
 	})
 }
 
 func BenchmarkStructComplexFailure(b *testing.B) {
-
 	validate := New()
-
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
@@ -1145,14 +1036,12 @@ func BenchmarkStructComplexFailure(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		validate.Struct(tFail)
+		_ = validate.Struct(tFail)
 	}
 }
 
 func BenchmarkStructComplexFailureParallel(b *testing.B) {
-
 	validate := New()
-
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
@@ -1180,7 +1069,7 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			validate.Struct(tFail)
+			_ = validate.Struct(tFail)
 		}
 	})
 }
@@ -1193,7 +1082,7 @@ func BenchmarkOneof(b *testing.B) {
 	w := &TestOneof{Color: "green"}
 	val := New()
 	for i := 0; i < b.N; i++ {
-		val.Struct(w)
+		_ = val.Struct(w)
 	}
 }
 
@@ -1204,7 +1093,7 @@ func BenchmarkOneofParallel(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			val.Struct(w)
+			_ = val.Struct(w)
 		}
 	})
 }

@@ -39,9 +39,7 @@ func (sc *structCache) Get(key reflect.Type) (c *cStruct, found bool) {
 }
 
 func (sc *structCache) Set(key reflect.Type, value *cStruct) {
-
 	m := sc.m.Load().(map[reflect.Type]*cStruct)
-
 	nm := make(map[reflect.Type]*cStruct, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
@@ -61,9 +59,7 @@ func (tc *tagCache) Get(key string) (c *cTag, found bool) {
 }
 
 func (tc *tagCache) Set(key string, value *cTag) {
-
 	m := tc.m.Load().(map[string]*cTag)
-
 	nm := make(map[string]*cTag, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
@@ -87,22 +83,22 @@ type cField struct {
 }
 
 type cTag struct {
-	tag            string
-	aliasTag       string
-	actualAliasTag string
-	param          string
-	keys           *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
-	next           *cTag
-	fn             FuncCtx
-	typeof         tagType
-	hasTag         bool
-	hasAlias       bool
-	hasParam       bool // true if parameter used eg. eq= where the equal sign has been set
-	isBlockEnd     bool // indicates the current tag represents the last validation in the block
+	tag                  string
+	aliasTag             string
+	actualAliasTag       string
+	param                string
+	keys                 *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
+	next                 *cTag
+	fn                   FuncCtx
+	typeof               tagType
+	hasTag               bool
+	hasAlias             bool
+	hasParam             bool // true if parameter used eg. eq= where the equal sign has been set
+	isBlockEnd           bool // indicates the current tag represents the last validation in the block
+	runValidationWhenNil bool
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
-
 	v.structCache.lock.Lock()
 	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
 
@@ -141,9 +137,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		customName = fld.Name
 
 		if v.hasTagNameFunc {
-
 			name := v.tagNameFunc(fld)
-
 			if len(name) > 0 {
 				customName = name
 			}
@@ -168,23 +162,17 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			namesEqual: fld.Name == customName,
 		})
 	}
-
 	v.structCache.Set(typ, cs)
-
 	return cs
 }
 
 func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
-
 	var t string
-	var ok bool
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
 
 	for i := 0; i < len(tags); i++ {
-
 		t = tags[i]
-
 		if noAlias {
 			alias = t
 		}
@@ -198,14 +186,13 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				current.next, current = next, curr
 
 			}
-
 			continue
 		}
 
 		var prevTag tagType
 
 		if i == 0 {
-			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
+			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, typeof: typeDefault}
 			firstCtag = current
 		} else {
 			prevTag = current.typeof
@@ -214,7 +201,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		}
 
 		switch t {
-
 		case diveTag:
 			current.typeof = typeDive
 			continue
@@ -270,18 +256,14 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			continue
 
 		default:
-
 			if t == isdefault {
 				current.typeof = typeIsDefault
 			}
-
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 			orVals := strings.Split(t, orSeparator)
 
 			for j := 0; j < len(orVals); j++ {
-
 				vals := strings.SplitN(orVals[j], tagKeySeparator, 2)
-
 				if noAlias {
 					alias = vals[0]
 					current.aliasTag = alias
@@ -300,7 +282,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 				}
 
-				if current.fn, ok = v.validations[current.tag]; !ok {
+				if wrapper, ok := v.validations[current.tag]; ok {
+					current.fn = wrapper.fn
+					current.runValidationWhenNil = wrapper.runValidatinOnNil
+				} else {
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}
 
