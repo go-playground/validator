@@ -68,8 +68,8 @@ func validateStruct() {
 
 			fmt.Println(err.Namespace())
 			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace()) // can differ when a custom TagNameFunc is registered or
-			fmt.Println(err.StructField())     // by passing alt name to ReportError like below
+			fmt.Println(err.StructNamespace())
+			fmt.Println(err.StructField())
 			fmt.Println(err.Tag())
 			fmt.Println(err.ActualTag())
 			fmt.Println(err.Kind())
