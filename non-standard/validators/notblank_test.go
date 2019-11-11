@@ -3,8 +3,8 @@ package validators
 import (
 	"testing"
 
-	"gopkg.in/go-playground/validator.v9"
-	"gopkg.in/go-playground/assert.v1"
+	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/assert/v2"
 )
 
 type test struct {

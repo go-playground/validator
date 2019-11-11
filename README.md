@@ -1,11 +1,11 @@
 Package validator
 ================
 <img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v9/logo.png">[![Join the chat at https://gitter.im/go-playground/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![Project status](https://img.shields.io/badge/version-9.30.0-green.svg)
-[![Build Status](https://semaphoreci.com/api/v1/joeybloggs/validator/branches/v9/badge.svg)](https://semaphoreci.com/joeybloggs/validator)
-[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=v9&service=github)](https://coveralls.io/github/go-playground/validator?branch=v9)
+![Project status](https://img.shields.io/badge/version-10.0.0-green.svg)
+[![Build Status](https://travis-ci.org/go-playground/validator.svg?branch=master)](https://travis-ci.org/go-playground/validator)
+[![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/go-playground/validator?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/validator)](https://goreportcard.com/report/github.com/go-playground/validator)
-[![GoDoc](https://godoc.org/gopkg.in/go-playground/validator.v9?status.svg)](https://godoc.org/gopkg.in/go-playground/validator.v9)
+[![GoDoc](https://godoc.org/github.com/go-playground/validator?status.svg)](https://godoc.org/github.com/go-playground/validator)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 Package validator implements value validations for structs and individual fields based on tags.
@@ -20,18 +20,18 @@ It has the following **unique** features:
 -   Alias validation tags, which allows for mapping of several validations to a single tag for easier defining of validations on structs
 -   Extraction of custom defined Field Name e.g. can specify to extract the JSON name while validating and have it available in the resulting FieldError
 -   Customizable i18n aware error messages.
--   Default validator for the [gin](https://github.com/gin-gonic/gin) web framework; upgrading from v8 to v9 in gin see [here](https://github.com/go-playground/validator/tree/v9/_examples/gin-upgrading-overriding)
+-   Default validator for the [gin](https://github.com/gin-gonic/gin) web framework; upgrading from v8 to v9 in gin see [here](https://github.com/go-playground/validator/tree/master/_examples/gin-upgrading-overriding)
 
 Installation
 ------------
 
 Use go get.
 
-	go get gopkg.in/go-playground/validator.v9
+	go get github.com/go-playground/validator/v10
 
 Then import the validator package into your own code.
 
-	import "gopkg.in/go-playground/validator.v9"
+	import "github.com/go-playground/validator/v10"
 
 Error Return Value
 -------
@@ -53,14 +53,14 @@ validationErrors := err.(validator.ValidationErrors)
 Usage and documentation
 ------
 
-Please see http://godoc.org/gopkg.in/go-playground/validator.v9 for detailed usage docs.
+Please see http://godoc.org/github.com/go-playground/validator/v10 for detailed usage docs.
 
 ##### Examples:
 
-- [Simple](https://github.com/go-playground/validator/blob/v9/_examples/simple/main.go)
-- [Custom Field Types](https://github.com/go-playground/validator/blob/v9/_examples/custom/main.go)
-- [Struct Level](https://github.com/go-playground/validator/blob/v9/_examples/struct-level/main.go)
-- [Translations & Custom Errors](https://github.com/go-playground/validator/blob/v9/_examples/translations/main.go)
+- [Simple](https://github.com/go-playground/validator/blob/master/_examples/simple/main.go)
+- [Custom Field Types](https://github.com/go-playground/validator/blob/master/_examples/custom/main.go)
+- [Struct Level](https://github.com/go-playground/validator/blob/master/_examples/struct-level/main.go)
+- [Translations & Custom Errors](https://github.com/go-playground/validator/blob/master/_examples/translations/main.go)
 - [Gin upgrade and/or override validator](https://github.com/go-playground/validator/tree/v9/_examples/gin-upgrading-overriding)
 - [wash - an example application putting it all together](https://github.com/bluesuncorp/wash)
 

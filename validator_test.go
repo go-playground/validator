@@ -18,7 +18,7 @@ import (
 	"github.com/go-playground/locales/fr"
 	"github.com/go-playground/locales/nl"
 	ut "github.com/go-playground/universal-translator"
-	. "gopkg.in/go-playground/assert.v1"
+	. "github.com/go-playground/assert/v2"
 )
 
 // NOTES:
