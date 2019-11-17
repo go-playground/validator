@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -177,7 +178,8 @@ func parseOneOfParam2(s string) []string {
 	oneofValsCacheRWLock.RUnlock()
 	if !ok {
 		oneofValsCacheRWLock.Lock()
-		vals = strings.Fields(s)
+		re := regexp.MustCompile(`'[^']*'|\S+`)
+		vals = re.FindAllString(s, -1)
 		oneofValsCache[s] = vals
 		oneofValsCacheRWLock.Unlock()
 	}
@@ -213,7 +215,8 @@ func isOneOf(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 	for i := 0; i < len(vals); i++ {
-		if vals[i] == v {
+		val := strings.Replace(vals[i], "'", "", -1)
+		if val == v {
 			return true
 		}
 	}
