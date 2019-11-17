@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-// per validate contruct
+// per validate construct
 type validate struct {
 	v              *Validate
 	top            reflect.Value
