@@ -68,7 +68,7 @@ func (v *validate) Field() reflect.Value {
 }
 
 // FieldName returns the field's name with the tag
-// name takeing precedence over the fields actual name.
+// name taking precedence over the fields actual name.
 func (v *validate) FieldName() string {
 	return v.cf.altName
 }
@@ -87,8 +87,8 @@ func (v *validate) Param() string {
 //
 // Deprecated: Use GetStructFieldOK2() instead which also return if the value is nullable.
 func (v *validate) GetStructFieldOK() (reflect.Value, reflect.Kind, bool) {
-	current,kind,_,found:= v.getStructFieldOKInternal(v.slflParent, v.ct.param)
-	return current,kind,found
+	current, kind, _, found := v.getStructFieldOKInternal(v.slflParent, v.ct.param)
+	return current, kind, found
 }
 
 // GetStructFieldOKAdvanced is the same as GetStructFieldOK except that it accepts the parent struct to start looking for
@@ -96,17 +96,17 @@ func (v *validate) GetStructFieldOK() (reflect.Value, reflect.Kind, bool) {
 //
 // Deprecated: Use GetStructFieldOKAdvanced2() instead which also return if the value is nullable.
 func (v *validate) GetStructFieldOKAdvanced(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool) {
-	current,kind,_,found:= v.GetStructFieldOKAdvanced2(val, namespace)
-	return current,kind,found
+	current, kind, _, found := v.GetStructFieldOKAdvanced2(val, namespace)
+	return current, kind, found
 }
 
 // GetStructFieldOK returns Param returns param for validation against current field
-func (v *validate) GetStructFieldOK2() (reflect.Value, reflect.Kind,bool, bool) {
+func (v *validate) GetStructFieldOK2() (reflect.Value, reflect.Kind, bool, bool) {
 	return v.getStructFieldOKInternal(v.slflParent, v.ct.param)
 }
 
 // GetStructFieldOKAdvanced is the same as GetStructFieldOK except that it accepts the parent struct to start looking for
 // the field and namespace allowing more extensibility for validators.
-func (v *validate) GetStructFieldOKAdvanced2(val reflect.Value, namespace string) (reflect.Value, reflect.Kind,bool, bool) {
+func (v *validate) GetStructFieldOKAdvanced2(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool, bool) {
 	return v.getStructFieldOKInternal(val, namespace)
 }
