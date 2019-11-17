@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
 	"github.com/go-playground/locales/nl"
 	ut "github.com/go-playground/universal-translator"
-	. "github.com/go-playground/assert/v2"
 )
 
 // NOTES:
@@ -1640,125 +1640,125 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 		v: vd,
 	}
 
-	current, kind, ok := v.getStructFieldOKInternal(val, "Inner.CreatedAt")
+	current, kind, _, ok := v.getStructFieldOKInternal(val, "Inner.CreatedAt")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.Struct)
 	tm, ok := current.Interface().(time.Time)
 	Equal(t, ok, true)
 	Equal(t, tm, now)
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.Slice[1]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[1]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
+	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
 	Equal(t, ok, false)
 
-	current, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
+	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.Map[key3]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.Map[key3]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapMap[key2][key2-1]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapMap[key2][key2-1]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapStructs[key2].Name")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapStructs[key2].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapMapStruct[key3][key3-1].Name")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapMapStruct[key3][key3-1].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name3")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.SliceSlice[2][0]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.SliceSlice[2][0]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "7")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.SliceSliceStruct[2][1].Name")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.SliceSliceStruct[2][1].Name")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "name8")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.SliceMap[1][key5]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.SliceMap[1][key5]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val5")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapSlice[key3][2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapSlice[key3][2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "9")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapInt[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapInt[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapInt8[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapInt8[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapInt16[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapInt16[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapInt32[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapInt32[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapInt64[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapInt64[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapUint[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapUint[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapUint8[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapUint8[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapUint16[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapUint16[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapUint32[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapUint32[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapUint64[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapUint64[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapFloat32[3.03]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapFloat32[3.03]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val3")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapFloat64[2.02]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapFloat64[2.02]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.MapBool[true]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.MapBool[true]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val1")
@@ -1784,13 +1784,13 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 
 	val = reflect.ValueOf(test)
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.SliceStructs[2]")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.SliceStructs[2]")
 	Equal(t, ok, true)
 	Equal(t, kind, reflect.Ptr)
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
 	Equal(t, current.IsNil(), true)
 
-	current, kind, ok = v.getStructFieldOKInternal(val, "Inner.SliceStructs[2].Name")
+	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.SliceStructs[2].Name")
 	Equal(t, ok, false)
 	Equal(t, kind, reflect.Ptr)
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
@@ -8863,4 +8863,54 @@ func TestAbilityToValidateNils(t *testing.T) {
 
 	errs = val.Struct(ts)
 	NotEqual(t, errs, nil)
+}
+
+func TestRequiredWithoutPointers(t *testing.T) {
+	type Lookup struct {
+		FieldA *bool `json:"fieldA,omitempty" validate:"required_without=FieldB"`
+		FieldB *bool `json:"fieldB,omitempty" validate:"required_without=FieldA"`
+	}
+
+	b := true
+	lookup := Lookup{
+		FieldA: &b,
+		FieldB: nil,
+	}
+
+	val := New()
+	errs := val.Struct(lookup)
+	Equal(t, errs, nil)
+
+	b = false
+	lookup = Lookup{
+		FieldA: &b,
+		FieldB: nil,
+	}
+	errs = val.Struct(lookup)
+	Equal(t, errs, nil)
+}
+
+func TestRequiredWithoutAllPointers(t *testing.T) {
+	type Lookup struct {
+		FieldA *bool `json:"fieldA,omitempty" validate:"required_without_all=FieldB"`
+		FieldB *bool `json:"fieldB,omitempty" validate:"required_without_all=FieldA"`
+	}
+
+	b := true
+	lookup := Lookup{
+		FieldA: &b,
+		FieldB: nil,
+	}
+
+	val := New()
+	errs := val.Struct(lookup)
+	Equal(t, errs, nil)
+
+	b = false
+	lookup = Lookup{
+		FieldA: &b,
+		FieldB: nil,
+	}
+	errs = val.Struct(lookup)
+	Equal(t, errs, nil)
 }
