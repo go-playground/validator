@@ -1106,6 +1106,11 @@ func isEq(fl FieldLevel) bool {
 		p := asFloat(param)
 
 		return field.Float() == p
+
+	case reflect.Bool:
+		p := asBool(param)
+
+		return field.Bool() == p
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
