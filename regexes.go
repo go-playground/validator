@@ -46,6 +46,7 @@ const (
 	uRLEncodedRegexString            = `(%[A-Fa-f0-9]{2})`
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
+	splitParamsRegexString           = `'[^']*'|\S+`
 )
 
 var (
@@ -92,4 +93,5 @@ var (
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
+	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 )
