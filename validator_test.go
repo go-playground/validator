@@ -3435,12 +3435,15 @@ func TestDataURIValidation(t *testing.T) {
 		{"data:image/png;base64,12345", false},
 		{"", false},
 		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
+		{"data:image/jpeg;key=value;base64,UEsDBBQAAAAI", true},
+		{"data:image/jpeg;key=value,UEsDBBQAAAAI", true},
+		{"data:;base64;sdfgsdfgsdfasdfa=s,UEsDBBQAAAAI", true},
+		{"data:,UEsDBBQAAAAI", true},
 	}
 
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "datauri")
 
 		if test.expected {

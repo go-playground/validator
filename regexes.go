@@ -31,7 +31,7 @@ const (
 	aSCIIRegexString                 = "^[\x00-\x7F]*$"
 	printableASCIIRegexString        = "^[\x20-\x7E]*$"
 	multibyteRegexString             = "[^\x00-\x7F]"
-	dataURIRegexString               = "^data:.+\\/(.+);base64$"
+	dataURIRegexString               = `^data:((?:\w+\/(?:([^;]|;[^;]).)+)?)`
 	latitudeRegexString              = "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?)$"
 	longitudeRegexString             = "^[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$"
 	sSNRegexString                   = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
