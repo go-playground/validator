@@ -1178,7 +1178,7 @@ func isURL(fl FieldLevel) bool {
 			return false
 		}
 
-		return err == nil
+		return true
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
