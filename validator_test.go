@@ -4487,6 +4487,8 @@ func TestOneOfValidation(t *testing.T) {
 	}{
 		{f: "red", t: "oneof=red green"},
 		{f: "green", t: "oneof=red green"},
+		{f: "red green", t: "oneof='red green' blue"},
+		{f: "blue", t: "oneof='red green' blue"},
 		{f: 5, t: "oneof=5 6"},
 		{f: 6, t: "oneof=5 6"},
 		{f: int8(6), t: "oneof=5 6"},
@@ -4512,6 +4514,7 @@ func TestOneOfValidation(t *testing.T) {
 	}{
 		{f: "", t: "oneof=red green"},
 		{f: "yellow", t: "oneof=red green"},
+		{f: "green", t: "oneof='red green' blue"},
 		{f: 5, t: "oneof=red green"},
 		{f: 6, t: "oneof=red green"},
 		{f: 6, t: "oneof=7"},

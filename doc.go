@@ -361,10 +361,12 @@ One Of
 
 For strings, ints, and uints, oneof will ensure that the value
 is one of the values in the parameter.  The parameter should be
-a list of values separated by whitespace.  Values may be
-strings or numbers.
+a list of values separated by whitespace. Values may be
+strings or numbers. To match strings with spaces in them, include
+the target string between single quotes.
 
     Usage: oneof=red green
+           oneof='red green' 'blue yellow'
            oneof=5 7 9
 
 Greater Than
