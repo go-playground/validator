@@ -249,6 +249,16 @@ func asFloat(param string) float64 {
 	return i
 }
 
+// asBool returns the parameter as a bool
+// or panics if it can't convert
+func asBool(param string) bool {
+
+	i, err := strconv.ParseBool(param)
+	panicIf(err)
+
+	return i
+}
+
 func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())

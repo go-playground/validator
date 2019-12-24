@@ -7194,6 +7194,25 @@ func TestRequired(t *testing.T) {
 	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "required")
 }
 
+func TestBoolEqual(t *testing.T) {
+
+	validate := New()
+
+	type Test struct {
+		Value bool `validate:"eq=true"`
+	}
+
+	var test Test
+
+	err := validate.Struct(test)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "eq")
+
+	test.Value = true
+	err = validate.Struct(test)
+	Equal(t, err, nil)
+}
+
 func TestTranslations(t *testing.T) {
 	en := en.New()
 	uni := ut.New(en, en, fr.New())
