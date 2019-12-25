@@ -8984,3 +8984,22 @@ func TestRequiredWithoutAllPointers(t *testing.T) {
 	errs = val.Struct(lookup)
 	Equal(t, errs, nil)
 }
+
+func TestGetTag(t *testing.T) {
+	var tag string
+
+	type Test struct {
+		String string `validate:"mytag"`
+	}
+
+	val := New()
+	val.RegisterValidation("mytag", func(fl FieldLevel) bool {
+		tag = fl.GetTag()
+		return true
+	})
+
+	var test Test
+	errs := val.Struct(test)
+	Equal(t, errs, nil)
+	Equal(t, tag, "mytag")
+}

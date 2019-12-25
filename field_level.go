@@ -25,6 +25,7 @@ type FieldLevel interface {
 	// returns param for validation against current field
 	Param() string
 
+	// GetTag returns the current validations tag name
 	GetTag() string
 
 	// ExtractType gets the actual underlying type of field value.
@@ -74,7 +75,7 @@ func (v *validate) FieldName() string {
 	return v.cf.altName
 }
 
-// GetTag returns the tag name of field
+// GetTag returns the current validations tag name
 func (v *validate) GetTag() string {
 	return v.ct.tag
 }
