@@ -22,6 +22,13 @@ type FieldLevel interface {
 	// returns the struct field's name
 	StructFieldName() string
 
+	// returns the field's path with tag names
+	// taking precedence over fields actual names
+	Path() string
+
+	// returns the struct field's path
+	StructPath() string
+
 	// returns param for validation against current field
 	Param() string
 
@@ -83,6 +90,17 @@ func (v *validate) GetTag() string {
 // StructFieldName returns the struct field's name
 func (v *validate) StructFieldName() string {
 	return v.cf.name
+}
+
+// Path returns the field's path with tag names
+// taking precedence over fields actual names.
+func (v *validate) Path() string {
+	return v.str1
+}
+
+// StructPath returns the struct field's path
+func (v *validate) StructPath() string {
+	return v.str2
 }
 
 // Param returns param for validation against current field

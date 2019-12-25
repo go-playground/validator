@@ -8978,3 +8978,35 @@ func TestGetTag(t *testing.T) {
 	Equal(t, errs, nil)
 	Equal(t, tag, "mytag")
 }
+
+func TestPaths(t *testing.T) {
+	paths := make([]string, 0, 3)
+	structPaths := make([]string, 0, 3)
+
+	val := New()
+	val.RegisterValidation("my", func(fl FieldLevel) bool {
+		paths = append(paths, fl.Path())
+		structPaths = append(structPaths, fl.StructPath())
+		return true
+	})
+	val.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+	type SInner struct {
+		Name string `json:"name" validate:"my"`
+	}
+
+	type TStruct struct {
+		Inner     SInner    `json:"inner" validate:"my"`
+		CreatedAt time.Time `json:"created_at" validate:"my"`
+	}
+
+	val.Struct(&TStruct{Inner: SInner{}})
+
+	Equal(t, []string{"TStruct.inner.name", "TStruct.created_at"}, paths)
+	Equal(t, []string{"TStruct.Inner.Name", "TStruct.CreatedAt"}, structPaths)
+}
