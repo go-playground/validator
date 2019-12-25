@@ -103,6 +103,7 @@ var (
 		"rgba":                 isRGBA,
 		"hsl":                  isHSL,
 		"hsla":                 isHSLA,
+		"e164":                 isE164,
 		"email":                isEmail,
 		"url":                  isURL,
 		"uri":                  isURI,
@@ -1217,6 +1218,11 @@ func isFile(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// IsE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
+func isE164(fl FieldLevel) bool {
+	return e164Regex.MatchString(fl.Field().String())
 }
 
 // IsEmail is the validation function for validating if the current field's value is a valid email address.
