@@ -1044,6 +1044,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "e164",
+			translation: "{0} must be a valid E.164 formatted phone number",
+			override:    false,
+		},
+		{
 			tag:         "email",
 			translation: "{0} must be a valid email address",
 			override:    false,

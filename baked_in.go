@@ -103,6 +103,7 @@ var (
 		"rgba":                 isRGBA,
 		"hsl":                  isHSL,
 		"hsla":                 isHSLA,
+		"e164":                 isE164,
 		"email":                isEmail,
 		"url":                  isURL,
 		"uri":                  isURI,
@@ -227,14 +228,28 @@ func isOneOf(fl FieldLevel) bool {
 func isUnique(fl FieldLevel) bool {
 
 	field := fl.Field()
+	param := fl.Param()
 	v := reflect.ValueOf(struct{}{})
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
-		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+		if param == "" {
+			m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
 
+			for i := 0; i < field.Len(); i++ {
+				m.SetMapIndex(field.Index(i), v)
+			}
+			return field.Len() == m.Len()
+		}
+
+		sf, ok := field.Type().Elem().FieldByName(param)
+		if !ok {
+			panic(fmt.Sprintf("Bad field name %s", param))
+		}
+
+		m := reflect.MakeMap(reflect.MapOf(sf.Type, v.Type()))
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(field.Index(i), v)
+			m.SetMapIndex(field.Index(i).FieldByName(param), v)
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
@@ -1225,6 +1240,11 @@ func isFile(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// IsE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
+func isE164(fl FieldLevel) bool {
+	return e164Regex.MatchString(fl.Field().String())
 }
 
 // IsEmail is the validation function for validating if the current field's value is a valid email address.

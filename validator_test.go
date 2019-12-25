@@ -4917,6 +4917,7 @@ func TestStructOnlyValidation(t *testing.T) {
 		FirstName      string     `json:"fname"`
 		LastName       string     `json:"lname"`
 		Age            uint8      `validate:"gte=0,lte=130"`
+		Number         string     `validate:"required,e164"`
 		Email          string     `validate:"required,email"`
 		FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
 		Addresses      []*Address `validate:"required"`   // a person can have a home and cottage...
@@ -4934,6 +4935,7 @@ func TestStructOnlyValidation(t *testing.T) {
 		FirstName:      "",
 		LastName:       "",
 		Age:            45,
+		Number:         "+1123456789",
 		Email:          "Badger.Smith@gmail.com",
 		FavouriteColor: "#000",
 		Addresses:      []*Address{address},
@@ -8183,6 +8185,49 @@ func TestUniqueValidation(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
 }
 
+func TestUniqueValidationStructSlice(t *testing.T) {
+	testStructs := []struct {
+		A string
+		B string
+	}{
+		{A: "one", B: "two"},
+		{A: "one", B: "three"},
+	}
+
+	tests := []struct {
+		target   interface{}
+		param    string
+		expected bool
+	}{
+		{testStructs, "unique", true},
+		{testStructs, "unique=A", false},
+		{testStructs, "unique=B", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.target, test.param)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "unique" {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+	PanicMatches(t, func() { validate.Var(testStructs, "unique=C") }, "Bad field name C")
+}
+
 func TestHTMLValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -8938,4 +8983,23 @@ func TestRequiredWithoutAllPointers(t *testing.T) {
 	}
 	errs = val.Struct(lookup)
 	Equal(t, errs, nil)
+}
+
+func TestGetTag(t *testing.T) {
+	var tag string
+
+	type Test struct {
+		String string `validate:"mytag"`
+	}
+
+	val := New()
+	val.RegisterValidation("mytag", func(fl FieldLevel) bool {
+		tag = fl.GetTag()
+		return true
+	})
+
+	var test Test
+	errs := val.Struct(test)
+	Equal(t, errs, nil)
+	Equal(t, tag, "mytag")
 }

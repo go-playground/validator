@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -11,7 +13,7 @@ type User struct {
 	FirstName      string     `json:"fname"`
 	LastName       string     `json:"lname"`
 	Age            uint8      `validate:"gte=0,lte=130"`
-	Email          string     `validate:"required,email"`
+	Email          string     `json:"e-mail" validate:"required,email"`
 	FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 }
@@ -31,6 +33,15 @@ func main() {
 
 	validate = validator.New()
 
+	// register function to get tag name from json tags.
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
 	// register validation for 'User'
 	// NOTE: only have to register a non-pointer type for 'User', validator
 	// interanlly dereferences during it's type checks.
@@ -48,7 +59,7 @@ func main() {
 		FirstName:      "",
 		LastName:       "",
 		Age:            45,
-		Email:          "Badger.Smith@gmail.com",
+		Email:          "Badger.Smith@gmail",
 		FavouriteColor: "#000",
 		Addresses:      []*Address{address},
 	}
@@ -67,10 +78,10 @@ func main() {
 
 		for _, err := range err.(validator.ValidationErrors) {
 
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace()) // can differ when a custom TagNameFunc is registered or
-			fmt.Println(err.StructField())     // by passing alt name to ReportError like below
+			fmt.Println(err.Namespace()) // can differ when a custom TagNameFunc is registered or
+			fmt.Println(err.Field())     // by passing alt name to ReportError like below
+			fmt.Println(err.StructNamespace())
+			fmt.Println(err.StructField())
 			fmt.Println(err.Tag())
 			fmt.Println(err.ActualTag())
 			fmt.Println(err.Kind())
@@ -101,8 +112,8 @@ func UserStructLevelValidation(sl validator.StructLevel) {
 	user := sl.Current().Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
-		sl.ReportError(user.FirstName, "FirstName", "fname", "fnameorlname", "")
-		sl.ReportError(user.LastName, "LastName", "lname", "fnameorlname", "")
+		sl.ReportError(user.FirstName, "fname", "FirstName", "fnameorlname", "")
+		sl.ReportError(user.LastName, "lname", "LastName", "fnameorlname", "")
 	}
 
 	// plus can do more, even with different tag than "fnameorlname"

@@ -587,8 +587,14 @@ Unique
 
 For arrays & slices, unique will ensure that there are no duplicates.
 For maps, unique will ensure that there are no duplicate values.
+For slices of struct, unique will ensure that there are no duplicate values
+in a field of the struct specified via a parameter.
 
+	// For arrays, slices, and maps:
 	Usage: unique
+
+	// For slices of struct:
+	Usage: unique=field
 
 Alpha Only
 
@@ -1060,6 +1066,35 @@ Validator notes:
 		And the best reason, you can submit a pull request and we can keep on
 		adding to the validation library of this package!
 
+Non standard validators
+
+A collection of validation rules that are frequently needed but are more
+complex than the ones found in the baked in validators.
+A non standard validator must be registered manually like you would
+with your own custom validation functions.
+
+Example of registration and use:
+
+	type Test struct {
+		TestField string `validate:"yourtag"`
+	}
+
+	t := &Test{
+		TestField: "Test"
+	}
+
+	validate := validator.New()
+	validate.RegisterValidation("yourtag", validators.NotBlank)
+
+Here is a list of the current non standard validators:
+
+	NotBlank
+		This validates that the value is not blank or with length zero.
+		For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
+		ensures they don't have zero length. For others, a non empty value is required.
+
+		Usage: notblank
+
 Panics
 
 This package panics when bad input is provided, this is by design, bad code like
@@ -1074,30 +1109,5 @@ that should not make it to production.
 	}
 
 	validate.Struct(t) // this will panic
-
-Non standard validators
-
-A collection of validation rules that are frequently needed but are more
-complex than the ones found in the baked in validators.
-A non standard validator must be registered manually using any tag you like.
-See below examples of registration and use.
-
-	type Test struct {
-		TestField string `validate:"yourtag"`
-	}
-
-	t := &Test{
-		TestField: "Test"
-	}
-
-	validate := validator.New()
-	validate.RegisterValidation("yourtag", validations.ValidatorName)
-
-	NotBlank
-		This validates that the value is not blank or with length zero.
-		For strings ensures they do not contain only spaces. For channels, maps, slices and arrays
-		ensures they don't have zero length. For others, a non empty value is required.
-
-		Usage: notblank
 */
 package validator
