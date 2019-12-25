@@ -585,8 +585,14 @@ Unique
 
 For arrays & slices, unique will ensure that there are no duplicates.
 For maps, unique will ensure that there are no duplicate values.
+For slices of struct, unique will ensure that there are no duplicate values
+in a field of the struct specified via a parameter.
 
+	// For arrays, slices, and maps:
 	Usage: unique
+
+	// For slices of struct:
+	Usage: unique=field
 
 Alpha Only
 
