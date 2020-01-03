@@ -166,6 +166,7 @@ var (
 		"html_encoded":         isHTMLEncoded,
 		"url_encoded":          isURLEncoded,
 		"dir":                  isDir,
+		"hostname_port":        isHostnamePort,
 	}
 )
 
@@ -2006,4 +2007,23 @@ func isDir(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
+func isHostnamePort(fl FieldLevel) bool {
+	val := fl.Field().String()
+	host, port, err := net.SplitHostPort(val)
+	if err != nil {
+		return false
+	}
+	// Port must be a iny <= 65535.
+	if portNum, err := strconv.ParseInt(port, 10, 32); err != nil || portNum > 65535 || portNum < 1 {
+		return false
+	}
+
+	// If host is specified, it should match a DNS name
+	if host != "" {
+		return hostnameRegexRFC1123.MatchString(host)
+	}
+	return true
 }
