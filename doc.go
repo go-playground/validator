@@ -673,6 +673,12 @@ does any email provider accept all possibilities.
 
 	Usage: email
 
+JSON String
+
+This validates that a string value is valid JSON
+
+	Usage: json
+
 File path
 
 This validates that a string value contains a valid file path and that

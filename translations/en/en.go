@@ -1321,6 +1321,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "json",
+			translation: "{0} must be a valid json string",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
