@@ -1321,6 +1321,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "lowercase",
+			translation: "{0} must be a lowercase string",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0} must be an uppercase string",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

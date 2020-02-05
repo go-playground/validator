@@ -166,6 +166,8 @@ var (
 		"html_encoded":         isHTMLEncoded,
 		"url_encoded":          isURLEncoded,
 		"dir":                  isDir,
+		"lowercase":            isLowercase,
+		"uppercase":            isUppercase,
 	}
 )
 
@@ -2003,6 +2005,28 @@ func isDir(fl FieldLevel) bool {
 		}
 
 		return fileInfo.IsDir()
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isLowercase is the validation function for validating if the current field's value is a lowercase string.
+func isLowercase(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		return field.String() == strings.ToLower(field.String())
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isUppercase is the validation function for validating if the current field's value is an uppercase string.
+func isUppercase(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		return field.String() == strings.ToUpper(field.String())
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
