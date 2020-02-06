@@ -141,9 +141,13 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
+<<<<<<< HEAD
 		JSONString        string            `validate:"json"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
+=======
+		Datetime          string            `validate:"datetime=2006-01-02"`
+>>>>>>> Add datetime validation
 	}
 
 	var test Test
@@ -195,6 +199,7 @@ func TestTranslations(t *testing.T) {
 
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
+	test.Datetime = "2008-Feb-01"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -649,6 +654,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UppercaseString",
 			expected: "UppercaseString must be an uppercase string",
+		},
+		{
+			ns:       "Test.Datetime",
+			expected: "Datetime does not match the 2006-01-02 format",
 		},
 	}
 

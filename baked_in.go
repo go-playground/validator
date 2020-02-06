@@ -171,6 +171,7 @@ var (
 		"hostname_port":        isHostnamePort,
 		"lowercase":            isLowercase,
 		"uppercase":            isUppercase,
+		"datetime":             isDatetime,
 	}
 )
 
@@ -2020,8 +2021,9 @@ func isJSON(fl FieldLevel) bool {
 	if field.Kind() == reflect.String {
 		val := field.String()
 		return json.Valid([]byte(val))
-  }
-  panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
@@ -2066,6 +2068,23 @@ func isUppercase(fl FieldLevel) bool {
 			return false
 		}
 		return field.String() == strings.ToUpper(field.String())
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isDatetime is the validation function for validating if the current field's value is a valid datetime string.
+func isDatetime(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	if field.Kind() == reflect.String {
+		_, err := time.Parse(param, field.String())
+		if err != nil {
+			return false
+		}
+
+		return true
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))

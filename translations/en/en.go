@@ -1324,7 +1324,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "json",
 			translation: "{0} must be a valid json string",
-      override:    false,
+			override:    false,
     },
     {
 			tag:         "lowercase",
@@ -1335,6 +1335,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag:         "uppercase",
 			translation: "{0} must be an uppercase string",
 			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0} does not match the {1} format",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
 		},
 	}
 

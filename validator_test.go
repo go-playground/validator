@@ -9155,4 +9155,42 @@ func TestUppercaseValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "uppercase")
 	}, "Bad field type int")
+
+}
+
+func TestDatetimeValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"datetime=2006-01-02"`
+		tag      string
+		expected bool
+	}{
+		{"2008-02-01", `datetime=2006-01-02`, true},
+		{"2008-Feb-01", `datetime=2006-01-02`, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d datetime failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d datetime failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "datetime" {
+					t.Fatalf("Index: %d datetime failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "datetime")
+	}, "Bad field type int")
 }
