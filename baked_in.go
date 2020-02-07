@@ -2015,6 +2015,9 @@ func isLowercase(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() == reflect.String {
+		if field.String() == "" {
+			return false
+		}
 		return field.String() == strings.ToLower(field.String())
 	}
 
@@ -2026,6 +2029,9 @@ func isUppercase(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() == reflect.String {
+		if field.String() == "" {
+			return false
+		}
 		return field.String() == strings.ToUpper(field.String())
 	}
 

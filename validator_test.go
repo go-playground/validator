@@ -9011,7 +9011,7 @@ func TestLowercaseValidation(t *testing.T) {
 	}{
 		{`abcdefg`, true},
 		{`Abcdefg`, false},
-		{"", true},
+		{"", false},
 	}
 
 	validate := New()
@@ -9048,7 +9048,7 @@ func TestUppercaseValidation(t *testing.T) {
 	}{
 		{`ABCDEFG`, true},
 		{`aBCDEFG`, false},
-		{"", true},
+		{"", false},
 	}
 
 	validate := New()
