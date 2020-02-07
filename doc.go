@@ -643,13 +643,13 @@ hashtag (#)
 
 Lowercase String
 
-This validates that a string value contains only lowercase characters. An empty string is considered a valid lowercase string.
+This validates that a string value contains only lowercase characters. An empty string is not a valid lowercase string.
 
 	Usage: lowercase
 
 Uppercase String
 
-This validates that a string value contains only uppercase characters. An empty string is considered a valid uppercase string.
+This validates that a string value contains only uppercase characters. An empty string is not a valid uppercase string.
 
 	Usage: uppercase
 
