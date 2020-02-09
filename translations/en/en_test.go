@@ -141,13 +141,10 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
-<<<<<<< HEAD
 		JSONString        string            `validate:"json"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
-=======
 		Datetime          string            `validate:"datetime=2006-01-02"`
->>>>>>> Add datetime validation
 	}
 
 	var test Test
