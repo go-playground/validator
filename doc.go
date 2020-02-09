@@ -158,7 +158,7 @@ handy in ignoring embedded structs from being validated. (Usage: -)
 Or Operator
 
 This is the 'or' operator allowing multiple validators to be used and
-accepted. (Usage: rbg|rgba) <-- this would allow either rgb or rgba
+accepted. (Usage: rgb|rgba) <-- this would allow either rgb or rgba
 colors to be accepted. This can also be combined with 'and' for example
 ( Usage: omitempty,rgb|rgba)
 
