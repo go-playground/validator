@@ -1,4 +1,4 @@
-package en
+package ru
 
 import (
 	"fmt"
@@ -26,37 +26,37 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0} is a required field",
+			translation: "{0} обязательное поле",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("len-string", "{0} must be {1} in length", false); err != nil {
+				if err = ut.Add("len-string", "{0} должен быть длиной в {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-number", "{0} must be equal to {1}", false); err != nil {
+				if err = ut.Add("len-number", "{0} должен быть равен {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-items", "{0} must contain {1}", false); err != nil {
+				if err = ut.Add("len-items", "{0} должен содержать {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("len-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -124,30 +124,30 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("min-string", "{0} must be at least {1} in length", false); err != nil {
+				if err = ut.Add("min-string", "{0} должен содержать минимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-number", "{0} must be {1} or greater", false); err != nil {
+				if err = ut.Add("min-number", "{0} должен быть больше или равно {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "{0} must contain at least {1}", false); err != nil {
+				if err = ut.Add("min-items", "{0} должен содержать минимум {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("min-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -215,30 +215,30 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("max-string", "{0} must be a maximum of {1} in length", false); err != nil {
+				if err = ut.Add("max-string", "{0} должен содержать максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-number", "{0} must be {1} or less", false); err != nil {
+				if err = ut.Add("max-number", "{0} должен быть меньше или равно {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("max-items", "{0} должен содержать максимум {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -304,7 +304,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0} is not equal to {1}",
+			translation: "{0} не равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -319,7 +319,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ne",
-			translation: "{0} should not be equal to {1}",
+			translation: "{0} должен быть не равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -336,31 +336,31 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("lt-string", "{0} must be less than {1} in length", false); err != nil {
+				if err = ut.Add("lt-string", "{0} должен иметь менее {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-number", "{0} must be less than {1}", false); err != nil {
+				if err = ut.Add("lt-number", "{0} должен быть менее {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0} must contain less than {1}", false); err != nil {
+				if err = ut.Add("lt-items", "{0} должен содержать менее {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -457,31 +457,31 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("lte-string", "{0} must be at maximum {1} in length", false); err != nil {
+				if err = ut.Add("lte-string", "{0} должен содержать максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0} must be {1} or less", false); err != nil {
+				if err = ut.Add("lte-number", "{0} должен быть менее или равен {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("lte-items", "{0} должен содержать максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -577,35 +577,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("gt-string", "{0} must be greater than {1} in length", false); err != nil {
+				if err = ut.Add("gt-string", "{0} должен быть длиннее {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-number", "{0} must be greater than {1}", false); err != nil {
+				if err = ut.Add("gt-number", "{0} должен быть больше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0} must contain more than {1}", false); err != nil {
+				if err = ut.Add("gt-items", "{0} должен содержать более {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0} must be greater than the current Date & Time", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} должна быть позже текущего момента", false); err != nil {
 					return
 				}
 
@@ -697,35 +697,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
-				if err = ut.Add("gte-string", "{0} must be at least {1} in length", false); err != nil {
+				if err = ut.Add("gte-string", "{0} должен содержать минимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0} must be {1} or greater", false); err != nil {
+				if err = ut.Add("gte-number", "{0} должен быть больше или равно {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0} must contain at least {1}", false); err != nil {
+				if err = ut.Add("gte-items", "{0} должен содержать минимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} items", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0} must be greater than or equal to the current Date & Time", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} должна быть позже или равна текущему моменту", false); err != nil {
 					return
 				}
 
@@ -815,7 +815,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "{0} must be equal to {1}",
+			translation: "{0} должен быть равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -830,7 +830,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "{0} must be equal to {1}",
+			translation: "{0} должен быть равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -845,7 +845,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0} cannot be equal to {1}",
+			translation: "{0} не должен быть равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -860,7 +860,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtcsfield",
-			translation: "{0} must be greater than {1}",
+			translation: "{0} должен быть больше {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -875,7 +875,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0} must be greater than or equal to {1}",
+			translation: "{0} должен быть больше или равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -890,7 +890,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltcsfield",
-			translation: "{0} must be less than {1}",
+			translation: "{0} должен быть менее {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -905,7 +905,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "{0} must be less than or equal to {1}",
+			translation: "{0} должен быть менее или равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -920,7 +920,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0} cannot be equal to {1}",
+			translation: "{0} не должен быть равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -935,7 +935,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtfield",
-			translation: "{0} must be greater than {1}",
+			translation: "{0} должен быть больше {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -950,7 +950,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0} must be greater than or equal to {1}",
+			translation: "{0} должен быть больше или равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -965,7 +965,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltfield",
-			translation: "{0} must be less than {1}",
+			translation: "{0} должен быть менее {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -980,7 +980,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "{0} must be less than or equal to {1}",
+			translation: "{0} должен быть менее или равен {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -995,82 +995,82 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "{0} can only contain alphabetic characters",
+			translation: "{0} должен содержать только буквы",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0} can only contain alphanumeric characters",
+			translation: "{0} должен содержать только буквы и цифры",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "{0} must be a valid numeric value",
+			translation: "{0} должен быть цифровым значением",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0} must be a valid number",
+			translation: "{0} должен быть цифрой",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0} must be a valid hexadecimal",
+			translation: "{0} должен быть шестнадцатеричной строкой",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "{0} must be a valid HEX color",
+			translation: "{0} должен быть HEX цветом",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "{0} must be a valid RGB color",
+			translation: "{0} должен быть RGB цветом",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "{0} must be a valid RGBA color",
+			translation: "{0} должен быть RGBA цветом",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "{0} must be a valid HSL color",
+			translation: "{0} должен быть HSL цветом",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "{0} must be a valid HSLA color",
+			translation: "{0} должен быть HSLA цветом",
 			override:    false,
 		},
 		{
 			tag:         "e164",
-			translation: "{0} must be a valid E.164 formatted phone number",
+			translation: "{0} должен быть E.164 formatted phone number",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "{0} must be a valid email address",
+			translation: "{0} должен быть email адресом",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "{0} must be a valid URL",
+			translation: "{0} должен быть URL",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0} must be a valid URI",
+			translation: "{0} должен быть URI",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0} must be a valid Base64 string",
+			translation: "{0} должен быть Base64 строкой",
 			override:    false,
 		},
 		{
 			tag:         "contains",
-			translation: "{0} must contain the text '{1}'",
+			translation: "{0} должен содержать текст '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1085,7 +1085,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0} must contain at least one of the following characters '{1}'",
+			translation: "{0} должен содержать минимум один из символов '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1100,7 +1100,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludes",
-			translation: "{0} cannot contain the text '{1}'",
+			translation: "{0} не должен содержать текст '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1115,7 +1115,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesall",
-			translation: "{0} cannot contain any of the following characters '{1}'",
+			translation: "{0} не должен содержать символы '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1130,7 +1130,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesrune",
-			translation: "{0} cannot contain the following '{1}'",
+			translation: "{0} не должен содержать '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1145,172 +1145,172 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0} must be a valid ISBN number",
+			translation: "{0} должен быть ISBN номером",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0} must be a valid ISBN-10 number",
+			translation: "{0} должен быть ISBN-10 номером",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0} must be a valid ISBN-13 number",
+			translation: "{0} должен быть ISBN-13 номером",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0} must be a valid UUID",
+			translation: "{0} должен быть UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0} must be a valid version 3 UUID",
+			translation: "{0} должен быть UUID 3 версии",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0} must be a valid version 4 UUID",
+			translation: "{0} должен быть UUID 4 версии",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0} must be a valid version 5 UUID",
+			translation: "{0} должен быть UUID 5 версии",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "{0} must contain only ascii characters",
+			translation: "{0} должен содержать только ascii символы",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0} must contain only printable ascii characters",
+			translation: "{0} должен содержать только доступные для печати ascii символы",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0} must contain multibyte characters",
+			translation: "{0} должен содержать мультибайтные символы",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "{0} must contain a valid Data URI",
+			translation: "{0} должен содержать Data URI",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0} must contain valid latitude coordinates",
+			translation: "{0} должен содержать координаты широты",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0} must contain a valid longitude coordinates",
+			translation: "{0} должен содержать координаты долготы",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "{0} must be a valid SSN number",
+			translation: "{0} должен быть SSN номером",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "{0} must be a valid IPv4 address",
+			translation: "{0} должен быть IPv4 адресом",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "{0} must be a valid IPv6 address",
+			translation: "{0} должен быть IPv6 адресом",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "{0} must be a valid IP address",
+			translation: "{0} должен быть IP адресом",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "{0} must contain a valid CIDR notation",
+			translation: "{0} должен содержать CIDR обозначения",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "{0} must contain a valid CIDR notation for an IPv4 address",
+			translation: "{0} должен содержать CIDR обозначения для IPv4 адреса",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "{0} must contain a valid CIDR notation for an IPv6 address",
+			translation: "{0} должен содержать CIDR обозначения для IPv6 адреса",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "{0} must be a valid TCP address",
+			translation: "{0} должен быть TCP адресом",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "{0} must be a valid IPv4 TCP address",
+			translation: "{0} должен быть IPv4 TCP адресом",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "{0} must be a valid IPv6 TCP address",
+			translation: "{0} должен быть IPv6 TCP адресом",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "{0} must be a valid UDP address",
+			translation: "{0} должен быть UDP адресом",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "{0} must be a valid IPv4 UDP address",
+			translation: "{0} должен быть IPv4 UDP адресом",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "{0} must be a valid IPv6 UDP address",
+			translation: "{0} должен быть IPv6 UDP адресом",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "{0} must be a resolvable IP address",
+			translation: "{0} должен быть распознаваемым IP адресом",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0} must be a resolvable IPv4 address",
+			translation: "{0} должен быть распознаваемым IPv4 адресом",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0} must be a resolvable IPv6 address",
+			translation: "{0} должен быть распознаваемым IPv6 адресом",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0} must be a resolvable UNIX address",
+			translation: "{0} должен быть распознаваемым UNIX адресом",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "{0} must contain a valid MAC address",
+			translation: "{0} должен содержать MAC адрес",
 			override:    false,
 		},
 		{
 			tag:         "unique",
-			translation: "{0} must contain unique values",
+			translation: "{0} должен содержать уникальные значения",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0} must be a valid color",
+			translation: "{0} должен быть цветом",
 			override:    false,
 		},
 		{
 			tag:         "oneof",
-			translation: "{0} must be one of [{1}]",
+			translation: "{0} должен быть одним из [{1}]",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1320,21 +1320,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 				return s
 			},
-		},
-		{
-			tag:         "json",
-			translation: "{0} must be a valid json string",
-      override:    false,
-    },
-    {
-			tag:         "lowercase",
-			translation: "{0} must be a lowercase string",
-			override:    false,
-		},
-		{
-			tag:         "uppercase",
-			translation: "{0} must be an uppercase string",
-			override:    false,
 		},
 	}
 
