@@ -167,6 +167,8 @@ var (
 		"url_encoded":          isURLEncoded,
 		"dir":                  isDir,
 		"hostname_port":        isHostnamePort,
+		"lowercase":            isLowercase,
+		"uppercase":            isUppercase,
 	}
 )
 
@@ -2026,4 +2028,32 @@ func isHostnamePort(fl FieldLevel) bool {
 		return hostnameRegexRFC1123.MatchString(host)
 	}
 	return true
+}
+
+// isLowercase is the validation function for validating if the current field's value is a lowercase string.
+func isLowercase(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		if field.String() == "" {
+			return false
+		}
+		return field.String() == strings.ToLower(field.String())
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isUppercase is the validation function for validating if the current field's value is an uppercase string.
+func isUppercase(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		if field.String() == "" {
+			return false
+		}
+		return field.String() == strings.ToUpper(field.String())
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }

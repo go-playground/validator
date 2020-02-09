@@ -9034,3 +9034,77 @@ func Test_hostnameport_validator(t *testing.T) {
 		}
 	}
 }
+
+func TestLowercaseValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{`abcdefg`, true},
+		{`Abcdefg`, false},
+		{"", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "lowercase")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d lowercase failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d lowercase failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "lowercase" {
+					t.Fatalf("Index: %d lowercase failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "lowercase")
+	}, "Bad field type int")
+}
+
+func TestUppercaseValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{`ABCDEFG`, true},
+		{`aBCDEFG`, false},
+		{"", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "uppercase")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d uppercase failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d uppercase failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uppercase" {
+					t.Fatalf("Index: %d uppercase failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "uppercase")
+	}, "Bad field type int")
+}

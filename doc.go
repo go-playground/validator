@@ -158,7 +158,7 @@ handy in ignoring embedded structs from being validated. (Usage: -)
 Or Operator
 
 This is the 'or' operator allowing multiple validators to be used and
-accepted. (Usage: rbg|rgba) <-- this would allow either rgb or rgba
+accepted. (Usage: rgb|rgba) <-- this would allow either rgb or rgba
 colors to be accepted. This can also be combined with 'and' for example
 ( Usage: omitempty,rgb|rgba)
 
@@ -640,6 +640,18 @@ This validates that a string value contains a valid hex color including
 hashtag (#)
 
 		Usage: hexcolor
+
+Lowercase String
+
+This validates that a string value contains only lowercase characters. An empty string is not a valid lowercase string.
+
+	Usage: lowercase
+
+Uppercase String
+
+This validates that a string value contains only uppercase characters. An empty string is not a valid uppercase string.
+
+	Usage: uppercase
 
 RGB String
 
