@@ -7954,15 +7954,15 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 
 		if test.expected {
 			if !IsEqual(errs, nil) {
-				t.Fatalf("Index: %d hostname failed Error: %v", i, errs)
+				t.Fatalf("Hostname: %v failed Error: %v", test, errs)
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d hostname failed Error: %v", i, errs)
+				t.Fatalf("Hostname: %v failed Error: %v", test, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "hostname_rfc1123" {
-					t.Fatalf("Index: %d hostname failed Error: %v", i, errs)
+					t.Fatalf("Hostname: %v failed Error: %v", i, errs)
 				}
 			}
 		}
@@ -9002,6 +9002,37 @@ func TestGetTag(t *testing.T) {
 	errs := val.Struct(test)
 	Equal(t, errs, nil)
 	Equal(t, tag, "mytag")
+}
+
+func Test_hostnameport_validator(t *testing.T) {
+
+	type Host struct {
+		Addr string `validate:"hostname_port"`
+	}
+
+	type testInput struct {
+		data     string
+		expected bool
+	}
+	testData := []testInput{
+		{"bad..domain.name:234", false},
+		{"extra.dot.com.", false},
+		{"localhost:1234", true},
+		{"192.168.1.1:1234", true},
+		{":1234", true},
+		{"domain.com:1334", true},
+		{"this.domain.com:234", true},
+		{"domain:75000", false},
+		{"missing.port", false},
+	}
+	for _, td := range testData {
+		h := Host{Addr: td.data}
+		v := New()
+		err := v.Struct(h)
+		if td.expected != (err == nil) {
+			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
+		}
+	}
 }
 
 func TestLowercaseValidation(t *testing.T) {

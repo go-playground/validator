@@ -1049,6 +1049,13 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: dir
 
+HostPort
+
+This validates that a string value contains a valid DNS hostname and port that
+can be used to valiate fields typically passed to sockets and connections.
+
+	Usage: hostname_port
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
