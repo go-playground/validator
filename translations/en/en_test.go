@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	english "github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -141,6 +141,8 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
+		LowercaseString   string            `validate:"lowercase"`
+		UppercaseString   string            `validate:"uppercase"`
 	}
 
 	var test Test
@@ -182,6 +184,9 @@ func TestTranslations(t *testing.T) {
 	test.PrintableASCII = "ｶﾀｶﾅ"
 
 	test.MultiByte = "1234feerf"
+
+	test.LowercaseString = "ABCDEFG"
+	test.UppercaseString = "abcdefg"
 
 	s := "toolong"
 	test.StrPtrMaxLen = &s
@@ -631,6 +636,14 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UniqueMap",
 			expected: "UniqueMap must contain unique values",
+		},
+		{
+			ns:       "Test.LowercaseString",
+			expected: "LowercaseString must be a lowercase string",
+		},
+		{
+			ns:       "Test.UppercaseString",
+			expected: "UppercaseString must be an uppercase string",
 		},
 	}
 
