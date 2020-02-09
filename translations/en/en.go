@@ -1322,6 +1322,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "json",
+			translation: "{0} must be a valid json string",
+      override:    false,
+    },
+    {
 			tag:         "lowercase",
 			translation: "{0} must be a lowercase string",
 			override:    false,

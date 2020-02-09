@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -166,6 +167,7 @@ var (
 		"html_encoded":         isHTMLEncoded,
 		"url_encoded":          isURLEncoded,
 		"dir":                  isDir,
+		"json":                 isJSON,
 		"hostname_port":        isHostnamePort,
 		"lowercase":            isLowercase,
 		"uppercase":            isUppercase,
@@ -2009,6 +2011,17 @@ func isDir(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isJSON is the validation function for validating if the current field's value is a valid json string.
+func isJSON(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		val := field.String()
+		return json.Valid([]byte(val))
+  }
+  panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.

@@ -9004,6 +9004,54 @@ func TestGetTag(t *testing.T) {
 	Equal(t, tag, "mytag")
 }
 
+func TestJSONValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{`foo`, false},
+		{`}{`, false},
+		{`{]`, false},
+		{`{}`, true},
+		{`{"foo":"bar"}`, true},
+		{`{"foo":"bar","bar":{"baz":["qux"]}}`, true},
+		{`{"foo": 3 "bar": 4}`, false},
+		{`{"foo": 3 ,"bar": 4`, false},
+		{`{foo": 3, "bar": 4}`, false},
+		{`foo`, false},
+		{`1`, true},
+		{`true`, true},
+		{`null`, true},
+		{`"null"`, true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "json")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d json failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d json failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "json" {
+					t.Fatalf("Index: %d json failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "json")
+	}, "Bad field type int")
+}
+
 func Test_hostnameport_validator(t *testing.T) {
 
 	type Host struct {

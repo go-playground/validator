@@ -141,6 +141,7 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
+		JSONString        string            `validate:"json"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 	}
@@ -636,6 +637,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UniqueMap",
 			expected: "UniqueMap must contain unique values",
+		},
+		{
+			ns:       "Test.JSONString",
+			expected: "JSONString must be a valid json string",
 		},
 		{
 			ns:       "Test.LowercaseString",
