@@ -1062,6 +1062,13 @@ can be used to valiate fields typically passed to sockets and connections.
 
 	Usage: hostname_port
 
+Datetime
+
+This validates that a string value is a valid datetime based on the supplied datetime format.
+Supplied format must match the official Go time format layout as documented in https://golang.org/pkg/time/
+
+	Usage: datetime=2006-01-02
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
