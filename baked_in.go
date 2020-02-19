@@ -1340,7 +1340,7 @@ func hasValue(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
-		if fl.(*validate).fldIsPointer && field.Interface() != nil {
+		if fl.(*validate).fldIsNullable && field.Interface() != nil {
 			return true
 		}
 		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()

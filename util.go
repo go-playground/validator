@@ -44,6 +44,7 @@ BEGIN:
 
 			if fn, ok := v.v.customFuncs[current.Type()]; ok {
 				current = reflect.ValueOf(fn(current))
+				nullable = v.v.customNullable[current.Type()]
 				goto BEGIN
 			}
 		}

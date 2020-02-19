@@ -24,7 +24,7 @@ type validate struct {
 	misc           []byte        // misc reusable
 	str1           string        // misc reusable
 	str2           string        // misc reusable
-	fldIsPointer   bool          // StructLevel & FieldLevel
+	fldIsNullable  bool          // StructLevel & FieldLevel
 	isPartial      bool
 	hasExcludes    bool
 }
@@ -97,7 +97,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 	var typ reflect.Type
 	var kind reflect.Kind
 
-	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
+	current, kind, v.fldIsNullable = v.extractTypeInternal(current, false)
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
@@ -249,7 +249,7 @@ OUTER:
 			v.cf = cf
 			v.ct = ct
 
-			if !v.fldIsPointer && !hasValue(v) {
+			if !v.fldIsNullable && !hasValue(v) {
 				return
 			}
 

@@ -73,6 +73,7 @@ type Validate struct {
 	tagNameFunc      TagNameFunc
 	structLevelFuncs map[reflect.Type]StructLevelFuncCtx
 	customFuncs      map[reflect.Type]CustomTypeFunc
+	customNullable   map[reflect.Type]bool
 	aliases          map[string]string
 	validations      map[string]internalValidationFuncWrapper
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
@@ -245,6 +246,18 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	v.hasCustomFuncs = true
+}
+
+func (v *Validate) RegisterNullableCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+	if v.customNullable == nil {
+		v.customNullable = make(map[reflect.Type]bool)
+	}
+
+	for _, t := range types {
+		v.customNullable[reflect.TypeOf(t)] = true
+	}
+
+	v.RegisterCustomTypeFunc(fn, types...)
 }
 
 // RegisterTranslation registers translations against the provided tag.
