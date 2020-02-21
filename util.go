@@ -41,10 +41,10 @@ BEGIN:
 	default:
 
 		if v.v.hasCustomFuncs {
-
-			if fn, ok := v.v.customFuncs[current.Type()]; ok {
+			ct := current.Type()
+			if fn, ok := v.v.customFuncs[ct]; ok {
 				current = reflect.ValueOf(fn(current))
-				nullable = v.v.customNullable[current.Type()]
+				nullable = v.v.customNullable[ct]
 				goto BEGIN
 			}
 		}

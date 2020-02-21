@@ -9194,3 +9194,18 @@ func TestDatetimeValidation(t *testing.T) {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
 }
+
+func TestNullableSQLValueValidation(t *testing.T) {
+	validate := New()
+	validate.RegisterNullableCustomTypeFunc(ValidateValuerType, valuer{}, sql.NullString{})
+
+	val := sql.NullString{String: "", Valid: false}
+
+	errs := validate.Var(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "required")
+
+	val = sql.NullString{String: "", Valid: true}
+	errs = validate.Var(val, "required")
+	Equal(t, errs, nil)
+}
