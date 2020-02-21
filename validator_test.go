@@ -9200,7 +9200,6 @@ func TestNullableSQLValueValidation(t *testing.T) {
 	validate.RegisterNullableCustomTypeFunc(ValidateValuerType, valuer{}, sql.NullString{})
 
 	val := sql.NullString{String: "", Valid: false}
-
 	errs := validate.Var(val, "required")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "required")
