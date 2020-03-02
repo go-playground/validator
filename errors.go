@@ -99,7 +99,7 @@ type FieldError interface {
 	ActualTag() string
 
 	// returns the namespace for the field error, with the tag
-	// name taking precedence over the fields actual name.
+	// name taking precedence over the field's actual name.
 	//
 	// eg. JSON name "User.fname"
 	//
@@ -109,29 +109,29 @@ type FieldError interface {
 	// using validate.Field(...) as there is no way to extract it's name
 	Namespace() string
 
-	// returns the namespace for the field error, with the fields
+	// returns the namespace for the field error, with the field's
 	// actual name.
 	//
 	// eq. "User.FirstName" see Namespace for comparison
 	//
 	// NOTE: this field can be blank when validating a single primitive field
-	// using validate.Field(...) as there is no way to extract it's name
+	// using validate.Field(...) as there is no way to extract its name
 	StructNamespace() string
 
 	// returns the fields name with the tag name taking precedence over the
-	// fields actual name.
+	// field's actual name.
 	//
 	// eq. JSON name "fname"
 	// see StructField for comparison
 	Field() string
 
-	// returns the fields actual name from the struct, when able to determine.
+	// returns the field's actual name from the struct, when able to determine.
 	//
 	// eq.  "FirstName"
 	// see Field for comparison
 	StructField() string
 
-	// returns the actual fields value in case needed for creating the error
+	// returns the actual field's value in case needed for creating the error
 	// message
 	Value() interface{}
 
@@ -190,19 +190,19 @@ func (fe *fieldError) ActualTag() string {
 }
 
 // Namespace returns the namespace for the field error, with the tag
-// name taking precedence over the fields actual name.
+// name taking precedence over the field's actual name.
 func (fe *fieldError) Namespace() string {
 	return fe.ns
 }
 
-// StructNamespace returns the namespace for the field error, with the fields
+// StructNamespace returns the namespace for the field error, with the field's
 // actual name.
 func (fe *fieldError) StructNamespace() string {
 	return fe.structNs
 }
 
-// Field returns the fields name with the tag name taking precedence over the
-// fields actual name.
+// Field returns the field's name with the tag name taking precedence over the
+// field's actual name.
 func (fe *fieldError) Field() string {
 
 	return fe.ns[len(fe.ns)-int(fe.fieldLen):]
@@ -218,13 +218,13 @@ func (fe *fieldError) Field() string {
 	// return fld
 }
 
-// returns the fields actual name from the struct, when able to determine.
+// returns the field's actual name from the struct, when able to determine.
 func (fe *fieldError) StructField() string {
 	// return fe.structField
 	return fe.structNs[len(fe.structNs)-int(fe.structfieldLen):]
 }
 
-// Value returns the actual fields value in case needed for creating the error
+// Value returns the actual field's value in case needed for creating the error
 // message
 func (fe *fieldError) Value() interface{} {
 	return fe.value
