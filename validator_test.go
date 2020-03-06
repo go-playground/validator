@@ -725,6 +725,36 @@ func TestNilValidator(t *testing.T) {
 	PanicMatches(t, func() { _ = val.StructPartial(ts, "Test") }, "runtime error: invalid memory address or nil pointer dereference")
 }
 
+func TestStructValidation(t *testing.T) {
+	type inner struct {
+		Test string `validate:"required"`
+	}
+	type TestStruct struct {
+		Test struct {
+			Test string `validate:"required"`
+		} `validate:"one,two,dive"`
+		Test2 inner `validate:"one,two,dive"`
+	}
+
+	ts := TestStruct{Test2: inner{Test: "some value"}}
+	val := New()
+
+	fn1 := func(fl FieldLevel) bool {
+		return fl.Field().FieldByName("Test").String() == "some value"
+	}
+	fn2 := func(fl FieldLevel) bool {
+		return fl.Field().FieldByName("Test").String() == "another value"
+	}
+
+	val.RegisterValidation("one", fn1)
+	val.RegisterValidation("two", fn2)
+	errs := val.Struct(ts)
+	Equal(t, len(errs.(ValidationErrors)), 3)
+	AssertError(t, errs, "TestStruct.Test.Test", "TestStruct.Test.Test", "Test", "Test", "required")
+	AssertError(t, errs, "TestStruct.Test", "TestStruct.Test", "Test", "Test", "one")
+	AssertError(t, errs, "TestStruct.Test2", "TestStruct.Test2", "Test2", "Test2", "two")
+}
+
 func TestStructPartial(t *testing.T) {
 	p1 := []string{
 		"NoTag",
@@ -1021,7 +1051,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltecsfield")
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 6)
+	Equal(t, len(errs.(ValidationErrors)), 7)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltecsfield")
 	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltecsfield")
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
@@ -2766,7 +2796,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
+		Errs map[int]interface{} `validate:"gt=0,dive,required"`
 	}
 
 	mip := map[int]interface{}{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
@@ -2778,7 +2808,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "required")
 
 	type TestMultiDimensionalStructs struct {
 		Errs [][]interface{} `validate:"gt=0,dive,dive"`
@@ -5334,6 +5364,20 @@ func TestFieldContains(t *testing.T) {
 	errs = validate.Struct(stringTestMissingField)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "fieldcontains")
+
+	type FooIntTest struct {
+		Foo int `validate:"fieldcontains=Bar"`
+		Bar string
+	}
+	errs = validate.Struct(&FooIntTest{Foo: 10, Bar: "1"})
+	NotEqual(t, errs, nil)
+
+	type BarIntTest struct {
+		Foo string `validate:"fieldcontains=Bar"`
+		Bar int
+	}
+	errs = validate.Struct(&BarIntTest{Foo: "10", Bar: 1})
+	NotEqual(t, errs, nil)
 }
 
 func TestFieldExcludes(t *testing.T) {
@@ -8116,6 +8160,10 @@ func TestIsDefault(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	fe = errs.(ValidationErrors)[0]
+	Equal(t, fe.Field(), "String")
+	Equal(t, fe.Namespace(), "Test2.inner.String")
+	Equal(t, fe.Tag(), "isdefault")
+	fe = errs.(ValidationErrors)[1]
 	Equal(t, fe.Field(), "inner")
 	Equal(t, fe.Namespace(), "Test2.inner")
 	Equal(t, fe.Tag(), "isdefault")
