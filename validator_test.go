@@ -7899,6 +7899,8 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"example..........com", false},
 		{"1234", false},
 		{"abc1234", true},
+		{"example. com", false},
+		{"ex ample.com", false},
 	}
 
 	validate := New()
