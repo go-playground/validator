@@ -1308,6 +1308,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "json",
+			translation: "{0}必须是一个JSON字符串",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0}必须是小写字母",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0}必须是大写字母",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0}的格式必须是{1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻译字段错误: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
 	}
 
 	for _, t := range translations {
