@@ -625,9 +625,9 @@ Number
 This validates that a string value contains number values only.
 For integers or float it returns true.
 
-	Usage: numeric
+	Usage: number
 
-	Numeric
+Numeric
 
 This validates that a string value contains a basic numeric value.
 basic excludes exponents etc...
