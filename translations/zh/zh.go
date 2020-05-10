@@ -1308,6 +1308,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "datetime",
+			translation: "{0}与{1}格式不匹配",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻译字段错误: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
 	}
 
 	for _, t := range translations {
