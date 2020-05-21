@@ -814,6 +814,18 @@ This validates that a string value ends with the supplied string value
 
 	Usage: endswith=goodbye
 
+Does Not Start With
+
+This validates that a string value does not start with the supplied string value
+
+	Usage: startsnotwith=hello
+
+Does Not End With
+
+This validates that a string value does not end with the supplied string value
+
+	Usage: endsnotwith=goodbye
+
 International Standard Book Number
 
 This validates that a string value contains a valid isbn10 or isbn13 value.
