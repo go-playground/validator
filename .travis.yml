@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.13.4
+  - 1.13.7
   - tip
 matrix:
   allow_failures:
@@ -25,5 +25,5 @@ script:
   - go test -v -race -covermode=atomic -coverprofile=coverage.coverprofile ./...
 
 after_success: |
-  [ $TRAVIS_GO_VERSION = 1.13.4 ] &&
+  [ $TRAVIS_GO_VERSION = 1.13.7 ] &&
   goveralls -coverprofile=coverage.coverprofile -service travis-ci -repotoken $COVERALLS_TOKEN
