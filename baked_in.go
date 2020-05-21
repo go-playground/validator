@@ -2002,12 +2002,7 @@ func isFQDN(fl FieldLevel) bool {
 		return false
 	}
 
-	if val[len(val)-1] == '.' {
-		val = val[0 : len(val)-1]
-	}
-
-	return strings.ContainsAny(val, ".") &&
-		hostnameRegexRFC952.MatchString(val)
+	return fqdnRegexRFC1123.MatchString(val)
 }
 
 // IsDir is the validation function for validating if the current field's value is a valid directory.
