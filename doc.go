@@ -620,6 +620,13 @@ This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
+Number
+
+This validates that a string value contains number values only.
+For integers or float it returns true.
+
+	Usage: number
+
 Numeric
 
 This validates that a string value contains a basic numeric value.
