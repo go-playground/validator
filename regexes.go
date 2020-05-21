@@ -38,6 +38,7 @@ const (
 	sSNRegexString                   = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
 	hostnameRegexStringRFC952        = `^[a-zA-Z][a-zA-Z0-9\-\.]+[a-zA-Z0-9]$`                                            // https://tools.ietf.org/html/rfc952
 	hostnameRegexStringRFC1123       = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?$` // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62})(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9]{0,62})\.?$` // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
 	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                // bitcoin address
 	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
 	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
@@ -86,6 +87,7 @@ var (
 	sSNRegex                   = regexp.MustCompile(sSNRegexString)
 	hostnameRegexRFC952        = regexp.MustCompile(hostnameRegexStringRFC952)
 	hostnameRegexRFC1123       = regexp.MustCompile(hostnameRegexStringRFC1123)
+	fqdnRegexRFC1123           = regexp.MustCompile(fqdnRegexStringRFC1123)
 	btcAddressRegex            = regexp.MustCompile(btcAddressRegexString)
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
