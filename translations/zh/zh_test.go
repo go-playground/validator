@@ -138,6 +138,9 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		JsonString        string    `validate:"json"`
+		LowercaseString   string    `validate:"lowercase"`
+		UppercaseString   string    `validate:"uppercase"`
 		Datetime          string    `validate:"datetime=2006-01-02"`
 	}
 
@@ -185,7 +188,12 @@ func TestTranslations(t *testing.T) {
 	test.StrPtrMaxLen = &s
 	test.StrPtrLen = &s
 
-	test.Datetime = "2008-Feb-01"
+	test.JsonString = "{\"foo\":\"bar\",}"
+
+	test.LowercaseString = "ABCDEFG"
+	test.UppercaseString = "abcdefg"
+
+	test.Datetime = "20060102"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -618,8 +626,20 @@ func TestTranslations(t *testing.T) {
 			expected: "OneOfInt必须是[5 63]中的一个",
 		},
 		{
+			ns:       "Test.JsonString",
+			expected: "JsonString必须是一个JSON字符串",
+		},
+		{
+			ns:       "Test.LowercaseString",
+			expected: "LowercaseString必须是小写字母",
+		},
+		{
+			ns:       "Test.UppercaseString",
+			expected: "UppercaseString必须是大写字母",
+		},
+		{
 			ns:       "Test.Datetime",
-			expected: "Datetime与2006-01-02格式不匹配",
+			expected: "Datetime的格式必须是2006-01-02",
 		},
 	}
 
