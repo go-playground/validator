@@ -113,7 +113,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("Atenção: erro ao traduzir o FieldError: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -204,7 +204,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("Atenção: erro ao traduzir o FieldError: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -295,7 +295,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("Atenção: erro ao traduzir o FieldError: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
