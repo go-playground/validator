@@ -7896,6 +7896,11 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
 		{"2001:cdba:0:0:0:0:3257:9652", false},
 		{"2001:cdba::3257:9652", false},
+		{"example..........com", false},
+		{"1234", false},
+		{"abc1234", true},
+		{"example. com", false},
+		{"ex ample.com", false},
 	}
 
 	validate := New()
