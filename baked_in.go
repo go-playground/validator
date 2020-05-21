@@ -120,6 +120,8 @@ var (
 		"excludesrune":         excludesRune,
 		"startswith":           startsWith,
 		"endswith":             endsWith,
+		"startsnotwith":        startsNotWith,
+		"endsnotwith":          endsNotWith,
 		"isbn":                 isISBN,
 		"isbn10":               isISBN10,
 		"isbn13":               isISBN13,
@@ -688,6 +690,16 @@ func startsWith(fl FieldLevel) bool {
 // EndsWith is the validation function for validating that the field's value ends with the text specified within the param.
 func endsWith(fl FieldLevel) bool {
 	return strings.HasSuffix(fl.Field().String(), fl.Param())
+}
+
+// StartsNotWith is the validation function for validating that the field's value does not start with the text specified within the param.
+func startsNotWith(fl FieldLevel) bool {
+	return !startsWith(fl)
+}
+
+// EndsNotWith is the validation function for validating that the field's value does not end with the text specified within the param.
+func endsNotWith(fl FieldLevel) bool {
+	return !endsWith(fl)
 }
 
 // FieldContains is the validation function for validating if the current field's value contains the field specified by the param's value.

@@ -620,6 +620,13 @@ This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
+Number
+
+This validates that a string value contains number values only.
+For integers or float it returns true.
+
+	Usage: number
+
 Numeric
 
 This validates that a string value contains a basic numeric value.
@@ -813,6 +820,18 @@ Ends With
 This validates that a string value ends with the supplied string value
 
 	Usage: endswith=goodbye
+
+Does Not Start With
+
+This validates that a string value does not start with the supplied string value
+
+	Usage: startsnotwith=hello
+
+Does Not End With
+
+This validates that a string value does not end with the supplied string value
+
+	Usage: endsnotwith=goodbye
 
 International Standard Book Number
 
