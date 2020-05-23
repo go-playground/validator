@@ -812,7 +812,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -827,7 +827,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -842,7 +842,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -857,7 +857,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -872,7 +872,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -887,7 +887,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -902,7 +902,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -917,7 +917,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -932,7 +932,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -947,7 +947,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -962,7 +962,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
@@ -977,7 +977,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.ParamField())
 				if err != nil {
 					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 					return fe.(error).Error()
