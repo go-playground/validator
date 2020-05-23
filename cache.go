@@ -87,6 +87,7 @@ type cTag struct {
 	aliasTag             string
 	actualAliasTag       string
 	param                string
+	paramField           string
 	keys                 *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
 	next                 *cTag
 	fn                   FuncCtx

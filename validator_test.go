@@ -9201,3 +9201,77 @@ func TestDatetimeValidation(t *testing.T) {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
 }
+
+func TestParamField(t *testing.T) {
+	type Inner struct {
+		Time *time.Time `json:"time of inner"`
+		Int  int        `json:"int of inner"`
+	}
+
+	type Test struct {
+		Inner   *Inner
+		Time    *time.Time `validate:"eqcsfield=Inner.Time" json:"time"`
+		Int     int        `validate:"gtcsfield=Inner.Int" json:"int"`
+		String1 string     `json:"string1"`
+		String2 string     `validate:"gtfield=String1"`
+		String3 string     `validate:"eqfield=String2"`
+	}
+
+	now := time.Now().UTC()
+	then := now.Add(time.Hour * 1)
+
+	in := &Inner{
+		Time: &now,
+		Int:  1,
+	}
+
+	ts := &Test{
+		Inner:   in,
+		Time:    &now,
+		Int:     2,
+		String1: "a",
+		String2: "ab",
+		String3: "ab",
+	}
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	errs := validate.Struct(ts)
+	Equal(t, errs, nil)
+
+	ts.Time = &then
+	ts.Int = 1
+	ts.String2 = "a"
+	ts.String3 = "ab"
+
+	errs = validate.Struct(ts)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 4)
+
+	for _, e := range ve {
+		switch e.StructField() {
+		case "Time":
+			Equal(t, e.ParamField(), "time of inner")
+
+		case "Int":
+			Equal(t, e.ParamField(), "int of inner")
+
+		case "String2":
+			Equal(t, e.ParamField(), "string1")
+
+		case "String3":
+			Equal(t, e.ParamField(), "String2")
+		}
+	}
+}

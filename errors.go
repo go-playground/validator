@@ -139,6 +139,11 @@ type FieldError interface {
 	// help with generating an error message
 	Param() string
 
+	// returns the param field name with the tag name taking precedence over the
+	// field actual name and this will also help with generating an error message.
+	// If the field doesn't set the tag, it returns the field name from struct.
+	ParamField() string
+
 	// Kind returns the Field's reflect Kind
 	//
 	// eg. time.Time's kind is a struct
@@ -174,6 +179,7 @@ type fieldError struct {
 	structfieldLen uint8
 	value          interface{}
 	param          string
+	paramField     string
 	kind           reflect.Kind
 	typ            reflect.Type
 }
@@ -234,6 +240,16 @@ func (fe *fieldError) Value() interface{} {
 // also help with generating an error message
 func (fe *fieldError) Param() string {
 	return fe.param
+}
+
+// ParamField returns the param field name with the tag name taking precedence over the
+// field actual name and this will also help with generating an error message. If the
+// field doesn't set the tag, it returns the field name from struct.
+func (fe *fieldError) ParamField() string {
+	if fe.paramField == "" {
+		return fe.param
+	}
+	return fe.paramField
 }
 
 // Kind returns the Field's reflect Kind
