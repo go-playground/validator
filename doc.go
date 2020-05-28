@@ -98,6 +98,56 @@ used "eqcsfield" it could be multiple levels down. Example:
 	//       whatever you pass, struct, field...
 	//       when calling validate.Field(field, tag) val will be nil
 
+Cross-Field Validation for slices
+
+Cross-Field Validation for slices can be done via the following tags:
+	- inarr
+	- notinarr
+
+Example #1 (validate single value)
+
+	type Inner struct {
+		Values []string
+	}
+
+	type Outer struct {
+		InnerStructField *Inner
+		V string `validate:"inarr=InnerStructField.Values"`
+	}
+
+	inner := &Inner{
+		Values: []string{"v"},
+	}
+
+	outer := &Outer{
+		InnerStructField: inner,
+		V: "v",
+	}
+
+	errs := validate.Struct(outer)
+
+Example #2 (validate all values in slice)
+
+	type Inner struct {
+		Values []string
+	}
+
+	type Outer struct {
+		InnerStructField *Inner
+		V []string `validate:"dive,notinarr=InnerStructField.Values"`
+	}
+
+	inner := &Inner{
+		Values: []string{"v"},
+	}
+
+	outer := &Outer{
+		InnerStructField: inner,
+		V: "v",
+	}
+
+	errs := validate.Struct(outer)
+
 Multiple Validators
 
 Multiple validators on a field will process in the order defined. Example:
