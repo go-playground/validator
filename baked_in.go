@@ -174,6 +174,8 @@ var (
 		"lowercase":            isLowercase,
 		"uppercase":            isUppercase,
 		"datetime":             isDatetime,
+		"inarr":                isInArr,
+		"notinarr":             isNotInArr,
 	}
 )
 
@@ -2095,4 +2097,40 @@ func isDatetime(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isInArr is the validation function for validating if the current field's value occurs to the field, within a separate struct, specified by the param's value.
+func isInArr(fl FieldLevel) bool {
+	field := fl.Field()
+	arrv, _, _, ok := fl.GetStructFieldOK2()
+
+	if !ok {
+		return false
+	}
+
+	for i := 0; i < arrv.Len(); i++ {
+		if arrv.Index(i).Interface() == field.Interface() {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isNotInArr is the validation function for validating if the current field's value dosen't occur to the field, within a separate struct, specified by the param's value.
+func isNotInArr(fl FieldLevel) bool {
+	field := fl.Field()
+	arrv, _, _, ok := fl.GetStructFieldOK2()
+
+	if !ok {
+		return false
+	}
+
+	for i := 0; i < arrv.Len(); i++ {
+		if arrv.Index(i).Interface() == field.Interface() {
+			return false
+		}
+	}
+
+	return true
 }

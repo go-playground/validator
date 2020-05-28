@@ -9201,3 +9201,65 @@ func TestDatetimeValidation(t *testing.T) {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
 }
+
+func TestIsInArrValidation(t *testing.T) {
+
+	type Inner struct {
+		V []string
+	}
+
+	type Test struct {
+		Inner *Inner
+		V     string `validate:"inarr=Inner.V"`
+	}
+
+	inner := &Inner{
+		V: []string{"v"},
+	}
+
+	test := &Test{
+		Inner: inner,
+		V:     "v",
+	}
+
+	validate := New()
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.V = "_"
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.V", "Test.V", "V", "V", "inarr")
+}
+
+func TestIsNotInArrValidation(t *testing.T) {
+
+	type Inner struct {
+		V []string
+	}
+
+	type Test struct {
+		Inner *Inner
+		V     string `validate:"notinarr=Inner.V"`
+	}
+
+	inner := &Inner{
+		V: []string{"v"},
+	}
+
+	test := &Test{
+		Inner: inner,
+		V:     "_",
+	}
+
+	validate := New()
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test.V = "v"
+
+	errs = validate.Struct(test)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.V", "Test.V", "V", "V", "notinarr")
+}
