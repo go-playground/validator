@@ -6585,6 +6585,14 @@ func TestHexadecimal(t *testing.T) {
 	errs := validate.Var(s, "hexadecimal")
 	Equal(t, errs, nil)
 
+	s = "0xff0044"
+	errs = validate.Var(s, "hexadecimal")
+	Equal(t, errs, nil)
+
+	s = "0Xff0044"
+	errs = validate.Var(s, "hexadecimal")
+	Equal(t, errs, nil)
+
 	s = "abcdefg"
 	errs = validate.Var(s, "hexadecimal")
 	NotEqual(t, errs, nil)
