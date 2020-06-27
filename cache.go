@@ -278,6 +278,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				current.hasParam = len(vals) > 1
 
 				current.tag = vals[0]
+				if trimmedTag := strings.TrimSpace(current.tag); len(trimmedTag) > 0 {
+					current.tag = trimmedTag
+				}
+
 				if len(current.tag) == 0 {
 					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 				}

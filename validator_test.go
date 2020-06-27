@@ -9201,3 +9201,20 @@ func TestDatetimeValidation(t *testing.T) {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
 }
+
+func TestValidationWithSpacedTagName(t *testing.T) {
+	// See issue https://github.com/go-playground/validator/issues/453
+	type Person struct {
+		Name   string `validate:" min=3"`   // field with preceding space(" ")
+		Age    int32  `validate:"max =100"` // field with trailing space(" ")
+		Number int32  `validate:" min=0, max =5"`
+	}
+
+	v := New()
+
+	person := Person{"FirstName", 10, 4}
+
+	errs := v.Struct(person)
+	Equal(t, errs, nil)
+
+}
