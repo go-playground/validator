@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -15,6 +16,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	"golang.org/x/crypto/sha3"
 
 	urn "github.com/leodido/go-urn"
 )
@@ -515,7 +518,7 @@ func isISBN10(fl FieldLevel) bool {
 	return checksum%11 == 0
 }
 
-// IsEthereumAddress is the validation function for validating if the field's value is a valid ethereum address based currently only on the format
+// IsEthereumAddress is the validation function for validating if the field's value is a valid Ethereum address.
 func isEthereumAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
@@ -527,7 +530,28 @@ func isEthereumAddress(fl FieldLevel) bool {
 		return true
 	}
 
-	// checksum validation is blocked by https://github.com/golang/crypto/pull/28
+	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
+	digitValue := map[byte]int{
+		'0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
+		'5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+		'a': 10, 'b': 11, 'c': 12,
+		'd': 13, 'e': 14, 'f': 15,
+	}
+	address = address[2:]
+	h := sha3.NewLegacyKeccak256()
+	h.Write([]byte(strings.ToLower(address)))
+	hash := hex.EncodeToString(h.Sum(nil))
+
+	for i := 0; i < len(address); i++ {
+		if address[i] <= '9' {
+			continue
+		}
+		nibble := digitValue[hash[i]]
+
+		if nibble > 7 && address[i] >= 'a' || nibble <= 7 && address[i] < 'a' {
+			return false
+		}
+	}
 
 	return true
 }

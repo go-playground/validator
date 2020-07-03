@@ -766,8 +766,7 @@ Special thanks to Pieter Wuille for providng reference implementations.
 Ethereum Address
 
 This validates that a string value contains a valid ethereum address.
-The format of the string is checked to ensure it matches the standard Ethereum address format
-Full validation is blocked by https://github.com/golang/crypto/pull/28
+The format of the string is checked to ensure it matches the standard Ethereum address format.
 
 	Usage: eth_addr
 
