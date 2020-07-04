@@ -531,12 +531,6 @@ func isEthereumAddress(fl FieldLevel) bool {
 	}
 
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
-	digitValue := map[byte]int{
-		'0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
-		'5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-		'a': 10, 'b': 11, 'c': 12,
-		'd': 13, 'e': 14, 'f': 15,
-	}
 	address = address[2:]
 	h := sha3.NewLegacyKeccak256()
 	h.Write([]byte(strings.ToLower(address)))
@@ -546,9 +540,8 @@ func isEthereumAddress(fl FieldLevel) bool {
 		if address[i] <= '9' {
 			continue
 		}
-		nibble := digitValue[hash[i]]
 
-		if nibble > 7 && address[i] >= 'a' || nibble <= 7 && address[i] < 'a' {
+		if hash[i] > '7' && address[i] >= 'a' || hash[i] <= '7' && address[i] < 'a' {
 			return false
 		}
 	}
