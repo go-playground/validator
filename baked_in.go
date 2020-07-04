@@ -531,17 +531,16 @@ func isEthereumAddress(fl FieldLevel) bool {
 	}
 
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
-	address = address[2:]
+	address = address[2:] // Skip "0x" prefix.
 	h := sha3.NewLegacyKeccak256()
 	h.Write([]byte(strings.ToLower(address)))
 	hash := hex.EncodeToString(h.Sum(nil))
 
 	for i := 0; i < len(address); i++ {
-		if address[i] <= '9' {
+		if address[i] <= '9' { // Skip 0-9 digits: they don't have upper/lower-case.
 			continue
 		}
-
-		if hash[i] > '7' && address[i] >= 'a' || hash[i] <= '7' && address[i] < 'a' {
+		if hash[i] > '7' && address[i] >= 'a' || hash[i] <= '7' && address[i] <= 'F' {
 			return false
 		}
 	}
