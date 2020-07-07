@@ -325,7 +325,7 @@ arrays, and maps, validates the number of items.
 
 Maximum
 
-For numbers, max will ensure that the value is
+For numbers and encoding/json.Number, max will ensure that the value is
 less than or equal to the parameter given. For strings, it checks
 that the string length is at most that number of characters. For
 slices, arrays, and maps, validates the number of items.
@@ -334,7 +334,7 @@ slices, arrays, and maps, validates the number of items.
 
 Minimum
 
-For numbers, min will ensure that the value is
+For numbers and encoding/json.Number, min will ensure that the value is
 greater or equal to the parameter given. For strings, it checks that
 the string length is at least that number of characters. For slices,
 arrays, and maps, validates the number of items.
@@ -343,7 +343,7 @@ arrays, and maps, validates the number of items.
 
 Equals
 
-For strings & numbers, eq will ensure that the value is
+For strings, numbers and encoding/json.Number, eq will ensure that the value is
 equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
@@ -351,8 +351,8 @@ validates the number of items.
 
 Not Equal
 
-For strings & numbers, ne will ensure that the value is not
-equal to the parameter given. For slices, arrays, and maps,
+For strings, numbers and encoding/json.Number, ne will ensure that the value is
+not equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
 	Usage: ne=10
@@ -371,8 +371,8 @@ the target string between single quotes.
 
 Greater Than
 
-For numbers, this will ensure that the value is greater than the
-parameter given. For strings, it checks that the string length
+For numbers and encoding/json.Number, this will ensure that the value is greater
+than the parameter given. For strings, it checks that the string length
 is greater than that number of characters. For slices, arrays
 and maps it validates the number of items.
 
@@ -403,9 +403,10 @@ For time.Time ensures the time value is greater than or equal to time.Now.UTC().
 
 Less Than
 
-For numbers, this will ensure that the value is less than the parameter given.
-For strings, it checks that the string length is less than that number of
-characters. For slices, arrays, and maps it validates the number of items.
+For numbers and encoding/json.Number, this will ensure that the value is less
+than the parameter given. For strings, it checks that the string length is less
+than that number of characters. For slices, arrays, and maps it validates the
+number of items.
 
 Example #1
 
