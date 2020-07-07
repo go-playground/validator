@@ -175,6 +175,9 @@ var (
 		"uppercase":            isUppercase,
 		"datetime":             isDatetime,
 	}
+
+	// jsonNumberType holds the reflect.Type for encoding/json.Number.
+	jsonNumberType = reflect.TypeOf((json.Number)(""))
 )
 
 var oneofValsCache = map[string][]string{}
@@ -1121,7 +1124,19 @@ func isEq(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		return field.String() == param
+		switch field.Type() {
+		case jsonNumberType:
+			v, err := field.Interface().(json.Number).Float64()
+			if err != nil {
+				return false
+			}
+
+			p := asFloat(param)
+
+			return v == p
+		default:
+			return field.String() == param
+		}
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -1531,9 +1546,21 @@ func isGte(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		p := asInt(param)
+		switch field.Type() {
+		case jsonNumberType:
+			v, err := field.Interface().(json.Number).Float64()
+			if err != nil {
+				return false
+			}
 
-		return int64(utf8.RuneCountInString(field.String())) >= p
+			p := asFloat(param)
+
+			return v >= p
+		default:
+			p := asInt(param)
+
+			return int64(utf8.RuneCountInString(field.String())) >= p
+		}
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -1578,9 +1605,21 @@ func isGt(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		p := asInt(param)
+		switch field.Type() {
+		case jsonNumberType:
+			v, err := field.Interface().(json.Number).Float64()
+			if err != nil {
+				return false
+			}
 
-		return int64(utf8.RuneCountInString(field.String())) > p
+			p := asFloat(param)
+
+			return v > p
+		default:
+			p := asInt(param)
+
+			return int64(utf8.RuneCountInString(field.String())) > p
+		}
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -1757,9 +1796,21 @@ func isLte(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		p := asInt(param)
+		switch field.Type() {
+		case jsonNumberType:
+			v, err := field.Interface().(json.Number).Float64()
+			if err != nil {
+				return false
+			}
 
-		return int64(utf8.RuneCountInString(field.String())) <= p
+			p := asFloat(param)
+
+			return v <= p
+		default:
+			p := asInt(param)
+
+			return int64(utf8.RuneCountInString(field.String())) <= p
+		}
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -1804,9 +1855,21 @@ func isLt(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		p := asInt(param)
+		switch field.Type() {
+		case jsonNumberType:
+			v, err := field.Interface().(json.Number).Float64()
+			if err != nil {
+				return false
+			}
 
-		return int64(utf8.RuneCountInString(field.String())) < p
+			p := asFloat(param)
+
+			return v < p
+		default:
+			p := asInt(param)
+
+			return int64(utf8.RuneCountInString(field.String())) < p
+		}
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)

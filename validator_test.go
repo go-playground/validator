@@ -71,6 +71,18 @@ type TestString struct {
 	Gt        string `validate:"gt=10"`
 	Gte       string `validate:"gte=10"`
 	OmitEmpty string `validate:"omitempty,min=1,max=10"`
+
+	// Test cases for encoding/json.Number which is implemented as string.
+	JSONNumberEq     json.Number `validate:"eq=2"`
+	JSONNumberNe     json.Number `validate:"ne=2"`
+	JSONNumberMin    json.Number `validate:"min=1"`
+	JSONNumberMax    json.Number `validate:"max=10"`
+	JSONNumberMinMax json.Number `validate:"min=1,max=10"`
+	JSONNumberLt     json.Number `validate:"lt=10"`
+	JSONNumberLte    json.Number `validate:"lte=10"`
+	JSONNumberGt     json.Number `validate:"gt=10"`
+	JSONNumberGte    json.Number `validate:"gte=10"`
+
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
 	Anonymous struct {
@@ -6754,6 +6766,17 @@ func TestStructStringValidation(t *testing.T) {
 		Gt:        "01234567890",
 		Gte:       "0123456789",
 		OmitEmpty: "",
+
+		JSONNumberEq:     "2",
+		JSONNumberNe:     "3",
+		JSONNumberMin:    "1.5",
+		JSONNumberMax:    "9.999",
+		JSONNumberMinMax: "5",
+		JSONNumberLt:     "9",
+		JSONNumberLte:    "10",
+		JSONNumberGt:     "10.1",
+		JSONNumberGte:    "10",
+
 		Sub: &SubTest{
 			Test: "1",
 		},
@@ -6784,6 +6807,17 @@ func TestStructStringValidation(t *testing.T) {
 		Gt:        "1",
 		Gte:       "1",
 		OmitEmpty: "12345678901",
+
+		JSONNumberEq:     "3",
+		JSONNumberNe:     "2",
+		JSONNumberMin:    "0.5",
+		JSONNumberMax:    "11",
+		JSONNumberMinMax: "0",
+		JSONNumberLt:     "19",
+		JSONNumberLte:    "11",
+		JSONNumberGt:     "9.9",
+		JSONNumberGte:    "9",
+
 		Sub: &SubTest{
 			Test: "",
 		},
@@ -6801,7 +6835,7 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 13)
+	Equal(t, len(errs.(ValidationErrors)), 22)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
@@ -6814,6 +6848,16 @@ func TestStructStringValidation(t *testing.T) {
 	AssertError(t, errs, "TestString.Gt", "TestString.Gt", "Gt", "Gt", "gt")
 	AssertError(t, errs, "TestString.Gte", "TestString.Gte", "Gte", "Gte", "gte")
 	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+
+	AssertError(t, errs, "TestString.JSONNumberEq", "TestString.JSONNumberEq", "JSONNumberEq", "JSONNumberEq", "eq")
+	AssertError(t, errs, "TestString.JSONNumberNe", "TestString.JSONNumberNe", "JSONNumberNe", "JSONNumberNe", "ne")
+	AssertError(t, errs, "TestString.JSONNumberMin", "TestString.JSONNumberMin", "JSONNumberMin", "JSONNumberMin", "min")
+	AssertError(t, errs, "TestString.JSONNumberMax", "TestString.JSONNumberMax", "JSONNumberMax", "JSONNumberMax", "max")
+	AssertError(t, errs, "TestString.JSONNumberMinMax", "TestString.JSONNumberMinMax", "JSONNumberMinMax", "JSONNumberMinMax", "min")
+	AssertError(t, errs, "TestString.JSONNumberLt", "TestString.JSONNumberLt", "JSONNumberLt", "JSONNumberLt", "lt")
+	AssertError(t, errs, "TestString.JSONNumberLte", "TestString.JSONNumberLte", "JSONNumberLte", "JSONNumberLte", "lte")
+	AssertError(t, errs, "TestString.JSONNumberGt", "TestString.JSONNumberGt", "JSONNumberGt", "JSONNumberGt", "gt")
+	AssertError(t, errs, "TestString.JSONNumberGte", "TestString.JSONNumberGte", "JSONNumberGte", "JSONNumberGte", "gte")
 
 	// Nested Struct Field Errs
 	AssertError(t, errs, "TestString.Anonymous.A", "TestString.Anonymous.A", "A", "A", "required")
