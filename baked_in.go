@@ -533,7 +533,8 @@ func isEthereumAddress(fl FieldLevel) bool {
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
 	address = address[2:] // Skip "0x" prefix.
 	h := sha3.NewLegacyKeccak256()
-	h.Write([]byte(strings.ToLower(address)))
+        // hash.Hash's io.Writer implementation says it never returns an error. https://golang.org/pkg/hash/#Hash
+	_ , _ = h.Write([]byte(strings.ToLower(address)))
 	hash := hex.EncodeToString(h.Sum(nil))
 
 	for i := 0; i < len(address); i++ {
