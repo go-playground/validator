@@ -687,7 +687,7 @@ This validates that a string value contains a valid hsla color
 E.164 Phone Number String
 
 This validates that a string value contains a valid E.164 Phone number
-for example +1123456789
+https://en.wikipedia.org/wiki/E.164 (ex. +1123456789)
 
 	Usage: e164
 
