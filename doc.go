@@ -1088,6 +1088,14 @@ Supplied format must match the official Go time format layout as documented in h
 
 	Usage: datetime=2006-01-02
 
+TimeZone
+
+This validates that a string value is a valid time zone based on the time zone database present on the system.
+Although empty value and Local value are allowed by time.LoadLocation golang function, they are not allowed by this validator.
+More information on https://golang.org/pkg/time/#LoadLocation
+
+	Usage: timeZone
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
