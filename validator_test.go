@@ -9375,7 +9375,7 @@ func TestUniqueValidationStructSlice(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { validate.Var(testStructs, "unique=C") }, "Bad field name C")
+	PanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "Bad field name C")
 }
 
 func TestHTMLValidation(t *testing.T) {
@@ -10143,7 +10143,7 @@ func TestGetTag(t *testing.T) {
 	}
 
 	val := New()
-	val.RegisterValidation("mytag", func(fl FieldLevel) bool {
+	_ = val.RegisterValidation("mytag", func(fl FieldLevel) bool {
 		tag = fl.GetTag()
 		return true
 	})

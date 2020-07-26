@@ -2123,11 +2123,8 @@ func isDatetime(fl FieldLevel) bool {
 
 	if field.Kind() == reflect.String {
 		_, err := time.Parse(param, field.String())
-		if err != nil {
-			return false
-		}
 
-		return true
+		return err == nil
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
