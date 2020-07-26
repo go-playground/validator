@@ -1049,24 +1049,22 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration+time.Minute, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltecsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltecsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
 	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltecsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1077,18 +1075,18 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"ltecsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration + time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration - time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltecsfield")
@@ -1200,25 +1198,23 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration+time.Minute, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltcsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltcsfield")
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltcsfield")
 
 	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltcsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1229,19 +1225,19 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"ltcsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration + time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltcsfield")
 
-	timeDurationInner = &TimeDurationInner{duration - time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltcsfield")
@@ -1366,24 +1362,22 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration-time.Minute, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtecsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtecsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtecsfield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,gtecsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtecsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1394,18 +1388,18 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"gtecsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration + time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtecsfield")
@@ -1415,7 +1409,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"omitempty,gtecsfield=Inner.Duration"`
 	}
 
-	timeDurationInner = &TimeDurationInner{duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
 	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
@@ -1518,25 +1512,23 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration-time.Minute, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtcsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtcsfield")
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtcsfield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,gtcsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtcsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1547,19 +1539,19 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"gtcsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtcsfield")
 
-	timeDurationInner = &TimeDurationInner{duration + time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtcsfield")
@@ -1569,7 +1561,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"omitempty,gtcsfield=Inner.Duration"`
 	}
 
-	timeDurationInner = &TimeDurationInner{duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
 	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
@@ -1684,24 +1676,22 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration-time.Minute, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "necsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "necsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "necsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "necsfield")
 
 	errs = validate.VarWithValue(time.Duration(0), time.Duration(0), "omitempty,necsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1712,18 +1702,18 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"necsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration + time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "necsfield")
@@ -1845,25 +1835,23 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
+	// -- Validations for variables of time.Duration type.
 
-	// -- Validations for a variable of time.Duration type.
-
-	errs = validate.VarWithValue(duration, duration, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "eqcsfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "eqcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqcsfield")
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "eqcsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqcsfield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,eqcsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,eqcsfield")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct and a inner struct with time.Duration type fields.
+	// -- Validations for a struct and an inner struct with time.Duration type fields.
 
 	type TimeDurationInner struct {
 		Duration time.Duration
@@ -1874,19 +1862,19 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"eqcsfield=Inner.Duration"`
 	}
 
-	timeDurationInner := &TimeDurationInner{duration}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner := &TimeDurationInner{time.Hour}
+	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationInner = &TimeDurationInner{duration - time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqcsfield")
 
-	timeDurationInner = &TimeDurationInner{duration + time.Minute}
-	timeDurationTest = &TimeDurationTest{timeDurationInner, duration}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqcsfield")
@@ -1896,7 +1884,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 		Duration time.Duration `validate:"omitempty,eqcsfield=Inner.Duration"`
 	}
 
-	timeDurationInner = &TimeDurationInner{duration}
+	timeDurationInner = &TimeDurationInner{time.Hour}
 	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
@@ -4631,17 +4619,15 @@ func TestIsNeFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "nefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "nefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "nefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "nefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "nefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "nefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "nefield")
 
@@ -4655,15 +4641,15 @@ func TestIsNeFieldValidation(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "nefield")
@@ -4714,17 +4700,15 @@ func TestIsNeValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration-time.Minute, "ne=1h")
+	errs = validate.Var(time.Hour-time.Minute, "ne=1h")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+time.Minute, "ne=1h")
+	errs = validate.Var(time.Hour+time.Minute, "ne=1h")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration, "ne=1h")
+	errs = validate.Var(time.Hour, "ne=1h")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ne")
 
@@ -4737,15 +4721,15 @@ func TestIsNeValidation(t *testing.T) {
 		Duration time.Duration `validate:"ne=1h"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration - time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ne")
@@ -4879,22 +4863,20 @@ func TestIsEqFieldValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration, "eqfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "eqfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "eqfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "eqfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqfield")
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "eqfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "eqfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eqfield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,eqfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,eqfield")
 	Equal(t, errs, nil)
 
 	// -- Validations for a struct with time.Duration type fields.
@@ -4904,16 +4886,16 @@ func TestIsEqFieldValidation(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "eqfield")
 
-	timeDurationTest = &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "eqfield")
@@ -4923,7 +4905,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), duration}
+	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), time.Hour}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
@@ -4964,18 +4946,16 @@ func TestIsEqValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration, "eq=1h")
+	errs = validate.Var(time.Hour, "eq=1h")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "eq=1h")
+	errs = validate.Var(time.Hour-time.Minute, "eq=1h")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eq")
 
-	errs = validate.Var(duration+time.Minute, "eq=1h")
+	errs = validate.Var(time.Hour+time.Minute, "eq=1h")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "eq")
 
@@ -4988,16 +4968,16 @@ func TestIsEqValidation(t *testing.T) {
 		Duration time.Duration `validate:"eq=1h"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eq")
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eq")
@@ -5532,22 +5512,20 @@ func TestGtField(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "gtfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "gtfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtfield")
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "gtfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtfield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,gtfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtfield")
 	Equal(t, errs, nil)
 
 	// -- Validations for a struct with time.Duration type fields.
@@ -5557,16 +5535,16 @@ func TestGtField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "gtfield")
 
-	timeDurationTest = &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "gtfield")
@@ -5576,7 +5554,7 @@ func TestGtField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), duration}
+	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), time.Hour}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 
@@ -5760,18 +5738,16 @@ func TestLtField(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "ltfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltfield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "ltfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltfield")
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "ltfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltfield")
 
@@ -5785,16 +5761,16 @@ func TestLtField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "ltfield")
 
-	timeDurationTest = &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "ltfield")
@@ -6096,17 +6072,15 @@ func TestLteField(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "ltefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "ltefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "ltefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltefield")
 
@@ -6120,15 +6094,15 @@ func TestLteField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "ltefield")
@@ -6307,21 +6281,19 @@ func TestGteField(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(duration, duration-time.Minute, "gtefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration, "gtefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtefield")
 	Equal(t, errs, nil)
 
-	errs = validate.VarWithValue(duration, duration+time.Minute, "gtefield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtefield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gtefield")
 
-	errs = validate.VarWithValue(time.Duration(0), duration, "omitempty,gtefield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtefield")
 	Equal(t, errs, nil)
 
 	// -- Validations for a struct with time.Duration type fields.
@@ -6331,15 +6303,15 @@ func TestGteField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationTest := &TimeDurationTest{duration, duration - time.Minute}
+	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration, duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.First", "TimeDurationTest.First", "First", "First", "gtefield")
@@ -6349,7 +6321,7 @@ func TestGteField(t *testing.T) {
 		Second time.Duration
 	}
 
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), duration}
+	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0), time.Hour}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 
@@ -6640,40 +6612,38 @@ func TestIsGt(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration, "gt=59m")
+	errs = validate.Var(time.Hour, "gt=59m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "gt=59m")
+	errs = validate.Var(time.Hour-time.Minute, "gt=59m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gt")
 
-	errs = validate.Var(duration-2*time.Minute, "gt=59m")
+	errs = validate.Var(time.Hour-2*time.Minute, "gt=59m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gt")
 
 	errs = validate.Var(time.Duration(0), "omitempty,gt=59m")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type fields.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"gt=59m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gt")
 
-	timeDurationTest = &TimeDurationTest{duration - 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gt")
@@ -6724,38 +6694,36 @@ func TestIsGte(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration, "gte=59m")
+	errs = validate.Var(time.Hour, "gte=59m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "gte=59m")
+	errs = validate.Var(time.Hour-time.Minute, "gte=59m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-2*time.Minute, "gte=59m")
+	errs = validate.Var(time.Hour-2*time.Minute, "gte=59m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gte")
 
 	errs = validate.Var(time.Duration(0), "omitempty,gte=59m")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type fields.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"gte=59m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gte")
@@ -6774,38 +6742,36 @@ func TestMinValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(duration, "min=59m")
+	errs := validate.Var(time.Hour, "min=59m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "min=59m")
+	errs = validate.Var(time.Hour-time.Minute, "min=59m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-2*time.Minute, "min=59m")
+	errs = validate.Var(time.Hour-2*time.Minute, "min=59m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "min")
 
 	errs = validate.Var(time.Duration(0), "omitempty,min=59m")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type field.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"min=59m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "min")
@@ -6824,38 +6790,36 @@ func TestMaxValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(duration, "max=1h1m")
+	errs := validate.Var(time.Hour, "max=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+time.Minute, "max=1h1m")
+	errs = validate.Var(time.Hour+time.Minute, "max=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+2*time.Minute, "max=1h1m")
+	errs = validate.Var(time.Hour+2*time.Minute, "max=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "max")
 
 	errs = validate.Var(time.Duration(0), "omitempty,max=-1s")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type field.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"max=1h1m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "max")
@@ -6874,54 +6838,52 @@ func TestMinMaxValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(duration, "min=59m,max=1h1m")
+	errs := validate.Var(time.Hour, "min=59m,max=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "min=59m,max=1h1m")
+	errs = validate.Var(time.Hour-time.Minute, "min=59m,max=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+time.Minute, "min=59m,max=1h1m")
+	errs = validate.Var(time.Hour+time.Minute, "min=59m,max=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-2*time.Minute, "min=59m,max=1h1m")
+	errs = validate.Var(time.Hour-2*time.Minute, "min=59m,max=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "min")
 
-	errs = validate.Var(duration+2*time.Minute, "min=59m,max=1h1m")
+	errs = validate.Var(time.Hour+2*time.Minute, "min=59m,max=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "max")
 
 	errs = validate.Var(time.Duration(0), "omitempty,min=59m,max=1h1m")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type field.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"min=59m,max=1h1m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "min")
 
-	timeDurationTest = &TimeDurationTest{duration + 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "max")
@@ -6940,40 +6902,38 @@ func TestLenValidation(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(duration, "len=1h")
+	errs := validate.Var(time.Hour, "len=1h")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration-time.Minute, "len=1h")
+	errs = validate.Var(time.Hour-time.Minute, "len=1h")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "len")
 
-	errs = validate.Var(duration+time.Minute, "len=1h")
+	errs = validate.Var(time.Hour+time.Minute, "len=1h")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "len")
 
 	errs = validate.Var(time.Duration(0), "omitempty,len=1h")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type field.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"len=1h"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "len")
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "len")
@@ -7040,40 +7000,38 @@ func TestIsLt(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration, "lt=1h1m")
+	errs = validate.Var(time.Hour, "lt=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+time.Minute, "lt=1h1m")
+	errs = validate.Var(time.Hour+time.Minute, "lt=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
-	errs = validate.Var(duration+2*time.Minute, "lt=1h1m")
+	errs = validate.Var(time.Hour+2*time.Minute, "lt=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
 	errs = validate.Var(time.Duration(0), "omitempty,lt=0")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type fields.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"lt=1h1m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "lt")
 
-	timeDurationTest = &TimeDurationTest{duration + 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "lt")
@@ -7126,38 +7084,36 @@ func TestIsLte(t *testing.T) {
 
 	// Tests for time.Duration type.
 
-	duration := time.Duration(1 * time.Hour)
-
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(duration, "lte=1h1m")
+	errs = validate.Var(time.Hour, "lte=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+time.Minute, "lte=1h1m")
+	errs = validate.Var(time.Hour+time.Minute, "lte=1h1m")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(duration+2*time.Minute, "lte=1h1m")
+	errs = validate.Var(time.Hour+2*time.Minute, "lte=1h1m")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lte")
 
 	errs = validate.Var(time.Duration(0), "omitempty,lte=-1s")
 	Equal(t, errs, nil)
 
-	// -- Validations for a struct with time.Duration type fields.
+	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"lte=1h1m"`
 	}
 
-	timeDurationTest := &TimeDurationTest{duration}
+	timeDurationTest := &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
-	timeDurationTest = &TimeDurationTest{duration + 2*time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour + 2*time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "lte")
