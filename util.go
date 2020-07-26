@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // extractTypeInternal gets the actual underlying type of field value.
@@ -227,6 +228,15 @@ func asInt(param string) int64 {
 	panicIf(err)
 
 	return i
+}
+
+// asIntFromTimeDuration parses param as time.Duration and returns it as int64
+// or panics on error.
+func asIntFromTimeDuration(param string) int64 {
+	d, err := time.ParseDuration(param)
+	panicIf(err)
+
+	return int64(d)
 }
 
 // asUint returns the parameter as a uint64
