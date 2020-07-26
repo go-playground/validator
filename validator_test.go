@@ -940,6 +940,8 @@ func TestStructPartial(t *testing.T) {
 }
 
 func TestCrossStructLteFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -982,8 +984,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Array:     []string{"val1"},
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	test.CreatedAt = &then
@@ -1069,14 +1070,16 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"ltecsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour + time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1095,13 +1098,17 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,ltecsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
+
 	timeDurationInner = &TimeDurationInner{-time.Minute}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
 func TestCrossStructLtFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -1144,8 +1151,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Array:     []string{"val1"},
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	test.CreatedAt = &then
@@ -1219,14 +1225,16 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"ltcsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour + time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1246,14 +1254,17 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,ltcsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
 	timeDurationInner = &TimeDurationInner{-time.Minute}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
 func TestCrossStructGteFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -1296,8 +1307,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Array:     []string{"val1", "val2", "val3"},
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	test.CreatedAt = &then
@@ -1382,14 +1392,16 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"gtecsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1408,14 +1420,17 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,gtecsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
 	timeDurationInner = &TimeDurationInner{time.Hour}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
 func TestCrossStructGtFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -1458,8 +1473,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Array:     []string{"val1", "val2", "val3"},
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	test.CreatedAt = &then
@@ -1533,14 +1547,16 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"gtcsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1560,14 +1576,17 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,gtcsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
 	timeDurationInner = &TimeDurationInner{time.Hour}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
 func TestCrossStructNeFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -1590,8 +1609,7 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 		CreatedAt: &now,
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	test.CreatedAt = &then
@@ -1696,14 +1714,16 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"necsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour - time.Minute}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1722,14 +1742,17 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,necsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
 	timeDurationInner = &TimeDurationInner{time.Duration(0)}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
 func TestCrossStructEqFieldValidation(t *testing.T) {
+	var errs error
+	validate := New()
 
 	type Inner struct {
 		CreatedAt *time.Time
@@ -1751,8 +1774,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 		CreatedAt: &now,
 	}
 
-	validate := New()
-	errs := validate.Struct(test)
+	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
 	newTime := time.Now().UTC()
@@ -1856,14 +1878,16 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	type TimeDurationInner struct {
 		Duration time.Duration
 	}
+	var timeDurationInner *TimeDurationInner
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"eqcsfield=Inner.Duration"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationInner := &TimeDurationInner{time.Hour}
-	timeDurationTest := &TimeDurationTest{timeDurationInner, time.Hour}
+	timeDurationInner = &TimeDurationInner{time.Hour}
+	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -1883,9 +1907,10 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 		Inner    *TimeDurationInner
 		Duration time.Duration `validate:"omitempty,eqcsfield=Inner.Duration"`
 	}
+	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
 	timeDurationInner = &TimeDurationInner{time.Hour}
-	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
+	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
 }
@@ -4511,7 +4536,7 @@ func TestContainsValidation(t *testing.T) {
 }
 
 func TestIsNeFieldValidation(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	var j uint64
@@ -4533,7 +4558,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 	arr3 := []string{"test"}
 	now2 := now
 
-	errs := validate.VarWithValue(s, s2, "nefield")
+	errs = validate.VarWithValue(s, s2, "nefield")
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(i2, i, "nefield")
@@ -4640,8 +4665,9 @@ func TestIsNeFieldValidation(t *testing.T) {
 		First  time.Duration `validate:"nefield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -4665,7 +4691,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 }
 
 func TestIsNeValidation(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	var j uint64
@@ -4677,7 +4703,7 @@ func TestIsNeValidation(t *testing.T) {
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
-	errs := validate.Var(s, "ne=abcd")
+	errs = validate.Var(s, "ne=abcd")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(i, "ne=1")
@@ -4720,8 +4746,9 @@ func TestIsNeValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"ne=1h"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -4744,7 +4771,7 @@ func TestIsNeValidation(t *testing.T) {
 }
 
 func TestIsEqFieldValidation(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	var j uint64
@@ -4766,7 +4793,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 	arr3 := []string{"test", "test2"}
 	now2 := now
 
-	errs := validate.VarWithValue(s, s2, "eqfield")
+	errs = validate.VarWithValue(s, s2, "eqfield")
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(i2, i, "eqfield")
@@ -4885,8 +4912,9 @@ func TestIsEqFieldValidation(t *testing.T) {
 		First  time.Duration `validate:"eqfield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -4911,7 +4939,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 }
 
 func TestIsEqValidation(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	var j uint64
@@ -4923,7 +4951,7 @@ func TestIsEqValidation(t *testing.T) {
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
-	errs := validate.Var(s, "eq=abcd")
+	errs = validate.Var(s, "eq=abcd")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(i, "eq=1")
@@ -4967,8 +4995,9 @@ func TestIsEqValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"eq=1h"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -5465,7 +5494,7 @@ func TestStructOnlyValidation(t *testing.T) {
 }
 
 func TestGtField(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	type TimeTest struct {
@@ -5482,7 +5511,7 @@ func TestGtField(t *testing.T) {
 		End:   &end,
 	}
 
-	errs := validate.Struct(timeTest)
+	errs = validate.Struct(timeTest)
 	Equal(t, errs, nil)
 
 	timeTest = &TimeTest{
@@ -5534,8 +5563,9 @@ func TestGtField(t *testing.T) {
 		First  time.Duration `validate:"gtfield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -5693,7 +5723,7 @@ func TestGtField(t *testing.T) {
 }
 
 func TestLtField(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	type TimeTest struct {
@@ -5710,7 +5740,7 @@ func TestLtField(t *testing.T) {
 		End:   &end,
 	}
 
-	errs := validate.Struct(timeTest)
+	errs = validate.Struct(timeTest)
 	Equal(t, errs, nil)
 
 	timeTest = &TimeTest{
@@ -5760,8 +5790,9 @@ func TestLtField(t *testing.T) {
 		First  time.Duration `validate:"ltfield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6024,7 +6055,7 @@ func TestContainsAndExcludes(t *testing.T) {
 }
 
 func TestLteField(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	type TimeTest struct {
@@ -6041,7 +6072,7 @@ func TestLteField(t *testing.T) {
 		End:   &end,
 	}
 
-	errs := validate.Struct(timeTest)
+	errs = validate.Struct(timeTest)
 	Equal(t, errs, nil)
 
 	timeTest = &TimeTest{
@@ -6093,8 +6124,9 @@ func TestLteField(t *testing.T) {
 		First  time.Duration `validate:"ltefield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour + time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6233,7 +6265,7 @@ func TestLteField(t *testing.T) {
 }
 
 func TestGteField(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	type TimeTest struct {
@@ -6250,7 +6282,7 @@ func TestGteField(t *testing.T) {
 		End:   &end,
 	}
 
-	errs := validate.Struct(timeTest)
+	errs = validate.Struct(timeTest)
 	Equal(t, errs, nil)
 
 	timeTest = &TimeTest{
@@ -6302,8 +6334,9 @@ func TestGteField(t *testing.T) {
 		First  time.Duration `validate:"gtefield=Second"`
 		Second time.Duration
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour, time.Hour - time.Minute}
+	timeDurationTest = &TimeDurationTest{time.Hour, time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6562,9 +6595,11 @@ func TestLength(t *testing.T) {
 }
 
 func TestIsGt(t *testing.T) {
+	var errs error
 	validate := New()
+
 	myMap := map[string]string{}
-	errs := validate.Var(myMap, "gt=0")
+	errs = validate.Var(myMap, "gt=0")
 	NotEqual(t, errs, nil)
 
 	f := 1.23
@@ -6633,8 +6668,9 @@ func TestIsGt(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"gt=59m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6658,14 +6694,16 @@ func TestIsGt(t *testing.T) {
 }
 
 func TestIsGte(t *testing.T) {
+	var errs error
 	validate := New()
+
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
 
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
 
-	errs := validate.Var(t1, "gte")
+	errs = validate.Var(t1, "gte")
 	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC().Add(-time.Hour)
@@ -6714,8 +6752,9 @@ func TestIsGte(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"gte=59m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6738,13 +6777,14 @@ func TestIsGte(t *testing.T) {
 }
 
 func TestMinValidation(t *testing.T) {
+	var errs error
 	validate := New()
 
 	// Tests for time.Duration type.
 
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(time.Hour, "min=59m")
+	errs = validate.Var(time.Hour, "min=59m")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(time.Hour-time.Minute, "min=59m")
@@ -6762,8 +6802,9 @@ func TestMinValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"min=59m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6786,13 +6827,14 @@ func TestMinValidation(t *testing.T) {
 }
 
 func TestMaxValidation(t *testing.T) {
+	var errs error
 	validate := New()
 
 	// Tests for time.Duration type.
 
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(time.Hour, "max=1h1m")
+	errs = validate.Var(time.Hour, "max=1h1m")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(time.Hour+time.Minute, "max=1h1m")
@@ -6810,8 +6852,9 @@ func TestMaxValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"max=1h1m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6834,13 +6877,14 @@ func TestMaxValidation(t *testing.T) {
 }
 
 func TestMinMaxValidation(t *testing.T) {
+	var errs error
 	validate := New()
 
 	// Tests for time.Duration type.
 
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(time.Hour, "min=59m,max=1h1m")
+	errs = validate.Var(time.Hour, "min=59m,max=1h1m")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(time.Hour-time.Minute, "min=59m,max=1h1m")
@@ -6865,8 +6909,9 @@ func TestMinMaxValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"min=59m,max=1h1m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6898,13 +6943,14 @@ func TestMinMaxValidation(t *testing.T) {
 }
 
 func TestLenValidation(t *testing.T) {
+	var errs error
 	validate := New()
 
 	// Tests for time.Duration type.
 
 	// -- Validations for a variable of time.Duration type.
 
-	errs := validate.Var(time.Hour, "len=1h")
+	errs = validate.Var(time.Hour, "len=1h")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(time.Hour-time.Minute, "len=1h")
@@ -6923,8 +6969,9 @@ func TestLenValidation(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"len=1h"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -6948,9 +6995,11 @@ func TestLenValidation(t *testing.T) {
 }
 
 func TestIsLt(t *testing.T) {
+	var errs error
 	validate := New()
+
 	myMap := map[string]string{}
-	errs := validate.Var(myMap, "lt=0")
+	errs = validate.Var(myMap, "lt=0")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
@@ -7021,8 +7070,9 @@ func TestIsLt(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"lt=1h1m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
@@ -7046,7 +7096,7 @@ func TestIsLt(t *testing.T) {
 }
 
 func TestIsLte(t *testing.T) {
-
+	var errs error
 	validate := New()
 
 	i := true
@@ -7054,7 +7104,7 @@ func TestIsLte(t *testing.T) {
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
-	errs := validate.Var(t1, "lte")
+	errs = validate.Var(t1, "lte")
 	Equal(t, errs, nil)
 
 	t2 := time.Now().UTC()
@@ -7104,8 +7154,9 @@ func TestIsLte(t *testing.T) {
 	type TimeDurationTest struct {
 		Duration time.Duration `validate:"lte=1h1m"`
 	}
+	var timeDurationTest *TimeDurationTest
 
-	timeDurationTest := &TimeDurationTest{time.Hour}
+	timeDurationTest = &TimeDurationTest{time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	Equal(t, errs, nil)
 
