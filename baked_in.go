@@ -1129,7 +1129,13 @@ func isEq(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() == p
 
@@ -1541,7 +1547,13 @@ func isGte(fl FieldLevel) bool {
 		return int64(field.Len()) >= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() >= p
 
@@ -1588,7 +1600,13 @@ func isGt(fl FieldLevel) bool {
 		return int64(field.Len()) > p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() > p
 
@@ -1631,7 +1649,13 @@ func hasLengthOf(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() == p
 
@@ -1767,7 +1791,13 @@ func isLte(fl FieldLevel) bool {
 		return int64(field.Len()) <= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() <= p
 
@@ -1814,7 +1844,13 @@ func isLt(fl FieldLevel) bool {
 		return int64(field.Len()) < p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		var p int64
+
+		if field.Type() == timeDurationType {
+			p = asIntFromTimeDuration(param)
+		} else {
+			p = asInt(param)
+		}
 
 		return field.Int() < p
 
