@@ -321,7 +321,16 @@ equal to the parameter given. For strings, it checks that
 the string length is exactly that number of characters. For slices,
 arrays, and maps, validates the number of items.
 
+Example #1
+
 	Usage: len=10
+
+Example #2 (time.Duration)
+
+For time.Duration, len will ensure that the value is equal to the duration given
+in the parameter.
+
+	Usage: len=1h30m
 
 Maximum
 
@@ -330,7 +339,16 @@ less than or equal to the parameter given. For strings, it checks
 that the string length is at most that number of characters. For
 slices, arrays, and maps, validates the number of items.
 
+Example #1
+
 	Usage: max=10
+
+Example #2 (time.Duration)
+
+For time.Duration, max will ensure that the value is less than or equal to the
+duration given in the parameter.
+
+	Usage: max=1h30m
 
 Minimum
 
@@ -339,7 +357,16 @@ greater or equal to the parameter given. For strings, it checks that
 the string length is at least that number of characters. For slices,
 arrays, and maps, validates the number of items.
 
+Example #1
+
 	Usage: min=10
+
+Example #2 (time.Duration)
+
+For time.Duration, min will ensure that the value is greater than or equal to
+the duration given in the parameter.
+
+	Usage: min=1h30m
 
 Equals
 
@@ -347,7 +374,16 @@ For strings & numbers, eq will ensure that the value is
 equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
+Example #1
+
 	Usage: eq=10
+
+Example #2 (time.Duration)
+
+For time.Duration, eq will ensure that the value is equal to the duration given
+in the parameter.
+
+	Usage: eq=1h30m
 
 Not Equal
 
@@ -355,7 +391,16 @@ For strings & numbers, ne will ensure that the value is not
 equal to the parameter given. For slices, arrays, and maps,
 validates the number of items.
 
+Example #1
+
 	Usage: ne=10
+
+Example #2 (time.Duration)
+
+For time.Duration, ne will ensure that the value is not equal to the duration
+given in the parameter.
+
+	Usage: ne=1h30m
 
 One Of
 
@@ -386,10 +431,16 @@ For time.Time ensures the time value is greater than time.Now.UTC().
 
 	Usage: gt
 
+Example #3 (time.Duration)
+
+For time.Duration, gt will ensure that the value is greater than the duration
+given in the parameter.
+
+	Usage: gt=1h30m
+
 Greater Than or Equal
 
 Same as 'min' above. Kept both to make terminology with 'len' easier.
-
 
 Example #1
 
@@ -400,6 +451,13 @@ Example #2 (time.Time)
 For time.Time ensures the time value is greater than or equal to time.Now.UTC().
 
 	Usage: gte
+
+Example #3 (time.Duration)
+
+For time.Duration, gte will ensure that the value is greater than or equal to
+the duration given in the parameter.
+
+	Usage: gte=1h30m
 
 Less Than
 
@@ -412,9 +470,17 @@ Example #1
 	Usage: lt=10
 
 Example #2 (time.Time)
+
 For time.Time ensures the time value is less than time.Now.UTC().
 
 	Usage: lt
+
+Example #3 (time.Duration)
+
+For time.Duration, lt will ensure that the value is less than the duration given
+in the parameter.
+
+	Usage: lt=1h30m
 
 Less Than or Equal
 
@@ -429,6 +495,13 @@ Example #2 (time.Time)
 For time.Time ensures the time value is less than or equal to time.Now.UTC().
 
 	Usage: lte
+
+Example #3 (time.Duration)
+
+For time.Duration, lte will ensure that the value is less than or equal to the
+duration given in the parameter.
+
+	Usage: lte=1h30m
 
 Field Equals Another Field
 
@@ -476,9 +549,9 @@ relative to the top level struct.
 
 Field Greater Than Another Field
 
-Only valid for Numbers and time.Time types, this will validate the field value
-against another fields value either within a struct or passed in field.
-usage examples are for validation of a Start and End date:
+Only valid for Numbers, time.Duration and time.Time types, this will validate
+the field value against another fields value either within a struct or passed in
+field. usage examples are for validation of a Start and End date:
 
 Example #1:
 
@@ -490,7 +563,6 @@ Example #2:
 	// Validating by field:
 	validate.VarWithValue(start, end, "gtfield")
 
-
 Field Greater Than Another Relative Field
 
 This does the same as gtfield except that it validates the field provided
@@ -500,9 +572,9 @@ relative to the top level struct.
 
 Field Greater Than or Equal To Another Field
 
-Only valid for Numbers and time.Time types, this will validate the field value
-against another fields value either within a struct or passed in field.
-usage examples are for validation of a Start and End date:
+Only valid for Numbers, time.Duration and time.Time types, this will validate
+the field value against another fields value either within a struct or passed in
+field. usage examples are for validation of a Start and End date:
 
 Example #1:
 
@@ -523,9 +595,9 @@ to the top level struct.
 
 Less Than Another Field
 
-Only valid for Numbers and time.Time types, this will validate the field value
-against another fields value either within a struct or passed in field.
-usage examples are for validation of a Start and End date:
+Only valid for Numbers, time.Duration and time.Time types, this will validate
+the field value against another fields value either within a struct or passed in
+field. usage examples are for validation of a Start and End date:
 
 Example #1:
 
@@ -546,9 +618,9 @@ to the top level struct.
 
 Less Than or Equal To Another Field
 
-Only valid for Numbers and time.Time types, this will validate the field value
-against another fields value either within a struct or passed in field.
-usage examples are for validation of a Start and End date:
+Only valid for Numbers, time.Duration and time.Time types, this will validate
+the field value against another fields value either within a struct or passed in
+field. usage examples are for validation of a Start and End date:
 
 Example #1:
 
