@@ -41,8 +41,9 @@ const (
 )
 
 var (
-	timeType      = reflect.TypeOf(time.Time{})
-	defaultCField = &cField{namesEqual: true}
+	timeType         = reflect.TypeOf(time.Time{})
+	timeDurationType = reflect.TypeOf(time.Duration(0))
+	defaultCField    = &cField{namesEqual: true}
 )
 
 // FilterFunc is the type used to filter fields using
