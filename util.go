@@ -239,6 +239,17 @@ func asIntFromTimeDuration(param string) int64 {
 	return int64(d)
 }
 
+// asIntFromType calls the proper function to parse param as int64,
+// given a field's Type t.
+func asIntFromType(t reflect.Type, param string) int64 {
+	switch t {
+	case timeDurationType:
+		return asIntFromTimeDuration(param)
+	default:
+		return asInt(param)
+	}
+}
+
 // asUint returns the parameter as a uint64
 // or panics if it can't convert
 func asUint(param string) uint64 {
