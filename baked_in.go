@@ -241,23 +241,33 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
+		elem := field.Type().Elem()
+		if elem.Kind() == reflect.Ptr {
+			elem = elem.Elem()
+		}
+
 		if param == "" {
-			m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
 
 			for i := 0; i < field.Len(); i++ {
-				m.SetMapIndex(field.Index(i), v)
+				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
 			}
 			return field.Len() == m.Len()
 		}
 
-		sf, ok := field.Type().Elem().FieldByName(param)
+		sf, ok := elem.FieldByName(param)
 		if !ok {
 			panic(fmt.Sprintf("Bad field name %s", param))
 		}
 
-		m := reflect.MakeMap(reflect.MapOf(sf.Type, v.Type()))
+		sfTyp := sf.Type
+		if sfTyp.Kind() == reflect.Ptr {
+			sfTyp = sfTyp.Elem()
+		}
+
+		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(field.Index(i).FieldByName(param), v)
+			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
