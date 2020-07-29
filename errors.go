@@ -254,7 +254,7 @@ func (fe *fieldError) Error() string {
 // Translate returns the FieldError's translated error
 // from the provided 'ut.Translator' and registered 'TranslationFunc'
 //
-// NOTE: is not registered translation can be found it returns the same
+// NOTE: if not registered translation can be found, it returns the same
 // as calling fe.Error()
 func (fe *fieldError) Translate(ut ut.Translator) string {
 
