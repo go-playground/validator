@@ -174,7 +174,7 @@ var (
 		"lowercase":            isLowercase,
 		"uppercase":            isUppercase,
 		"datetime":             isDatetime,
-		"timeZone":             isTimeZone,
+		"timezone":             isTimeZone,
 	}
 )
 

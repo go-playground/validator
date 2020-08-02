@@ -9204,16 +9204,16 @@ func TestDatetimeValidation(t *testing.T) {
 
 func TestTimeZoneValidation(t *testing.T) {
 	tests := []struct {
-		value    string `validate:"timeZone"`
+		value    string `validate:"timezone"`
 		tag      string
 		expected bool
 	}{
 		// systems may have different time zone database, some systems time zone are case insensitive
-		{"America/New_York", `timeZone`, true},
-		{"UTC", `timeZone`, true},
-		{"", `timeZone`, false},
-		{"Local", `timeZone`, false},
-		{"Unknown", `timeZone`, false},
+		{"America/New_York", `timezone`, true},
+		{"UTC", `timezone`, true},
+		{"", `timezone`, false},
+		{"Local", `timezone`, false},
+		{"Unknown", `timezone`, false},
 	}
 
 	validate := New()
@@ -9231,7 +9231,7 @@ func TestTimeZoneValidation(t *testing.T) {
 				t.Fatalf("Index: %d time zone failed Error: %s", i, errs)
 			} else {
 				val := getError(errs, "", "")
-				if val.Tag() != "timeZone" {
+				if val.Tag() != "timezone" {
 					t.Fatalf("Index: %d time zone failed Error: %s", i, errs)
 				}
 			}
@@ -9239,6 +9239,6 @@ func TestTimeZoneValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		_ = validate.Var(2, "timeZone")
+		_ = validate.Var(2, "timezone")
 	}, "Bad field type int")
 }
