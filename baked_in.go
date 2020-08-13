@@ -180,6 +180,8 @@ var (
 var oneofValsCache = map[string][]string{}
 var oneofValsCacheRWLock = sync.RWMutex{}
 
+// AddValidator adds a custom validators.
+// Must be called before creating *Validate
 func AddValidator(name string, validator Func) {
 	if _, ok := bakedInValidators[name]; ok {
 		panic("validator " + name + " already exists")
