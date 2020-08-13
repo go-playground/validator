@@ -180,6 +180,16 @@ var (
 var oneofValsCache = map[string][]string{}
 var oneofValsCacheRWLock = sync.RWMutex{}
 
+func AddValidator(name string, validator Func) {
+	if _, ok := bakedInValidators[name]; ok {
+		panic("validator " + name + " already exists")
+	}
+	if validator == nil {
+		panic("validator Func can't be nil")
+	}
+	bakedInValidators[name] = validator
+}
+
 func parseOneOfParam2(s string) []string {
 	oneofValsCacheRWLock.RLock()
 	vals, ok := oneofValsCache[s]
