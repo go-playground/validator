@@ -197,6 +197,8 @@ Baked-in Validations
 | min | Minimum |
 | oneof | One Of |
 | required | Required |
+| required_if | Required If |
+| required_unless | Required Unless |
 | required_with | Required With |
 | required_with_all | Required With All |
 | required_without | Required Without |

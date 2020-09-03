@@ -64,6 +64,8 @@ var (
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
 		"required":             hasValue,
+		"required_if":          requiredIf,
+		"required_unless":      requiredUnless,
 		"required_with":        requiredWith,
 		"required_with_all":    requiredWithAll,
 		"required_without":     requiredWithout,
@@ -1381,6 +1383,63 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 		}
 		return field.IsValid() && field.Interface() == reflect.Zero(field.Type()).Interface()
 	}
+}
+
+// requireCheckFieldValue is a func for check field value
+func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
+	if !found {
+		return defaultNotFoundValue
+	}
+
+	switch kind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() == asInt(value)
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() == asUint(value)
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() == asFloat(value)
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) == asInt(value)
+	}
+
+	// default reflect.String:
+	return field.String() == value
+}
+
+// requiredIf is the validation function
+// The field under validation must be present and not empty only if all the other specified fields are equal to the value following with the specified field.
+func requiredIf(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_if %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// requiredUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func requiredUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_unless %s", fl.FieldName()))
+	}
+
+	for i := 0; i < len(params); i += 2 {
+		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
 }
 
 // RequiredWith is the validation function
