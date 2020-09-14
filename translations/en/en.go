@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-playground/locales"
 	ut "github.com/go-playground/universal-translator"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/pantsmann/validator" //"gopkg.in/go-playground/validator.v9"
 )
 
 // RegisterDefaultTranslations registers a set of default translations
@@ -28,6 +28,65 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag:         "required",
 			translation: "{0} is a required field",
 			override:    false,
+		},
+		{
+			tag:         "at_least",
+			translation: "at least {0} of the following fields must have values: {1}",
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				var fields, t string
+				vals := strings.Split(fe.Param(), " ")
+				if len(vals) < 2 {
+					vals = append(vals, "1")
+				}
+
+				for _, f := range validator.CoDependentGroups.Fields(vals[0]) {
+					fields += f.FieldName() + " "
+				}
+				t, err = ut.T("at_least", vals[1], strings.Trim(fields, " "))
+				if err != nil {
+					fmt.Printf("warning: error translating FieldError: %s", err)
+					return fe.(error).Error()
+				}
+				return t
+			},
+		},
+		{
+			tag:         "no_more_than",
+			translation: "no more than {0} of the following fields must have values: {1}",
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				var fields, t string
+				vals := strings.Split(fe.Param(), " ")
+				if len(vals) < 2 {
+					vals = append(vals, "1")
+				}
+
+				for _, f := range validator.CoDependentGroups.Fields(vals[0]) {
+					fields += f.FieldName() + " "
+				}
+				t, err = ut.T("no_more_than", vals[1], strings.Trim(fields, " "))
+				if err != nil {
+					fmt.Printf("warning: error translating FieldError: %s", err)
+					return fe.(error).Error()
+				}
+				return t
+			},
+		},
+		{
+			tag:         "mutex",
+			translation: "1 and only 1 of the following fields must have a value: {0}",
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				var fields, t string
+
+				for _, f := range validator.CoDependentGroups.Fields(fe.Param()) {
+					fields += f.FieldName() + " "
+				}
+				t, err = ut.T("mutex", strings.Trim(fields, " "))
+				if err != nil {
+					fmt.Printf("warning: error translating FieldError: %s", err)
+					return fe.(error).Error()
+				}
+				return t
+			},
 		},
 		{
 			tag: "len",
