@@ -68,6 +68,10 @@ var (
 		"required_with_all":    requiredWithAll,
 		"required_without":     requiredWithout,
 		"required_without_all": requiredWithoutAll,
+		"excluded_with":        excludedWith,
+		"excluded_with_all":    excludedWithAll,
+		"excluded_without":     excludedWithout,
+		"excluded_without_all": excludedWithoutAll,
 		"isdefault":            isDefault,
 		"len":                  hasLengthOf,
 		"min":                  hasMinOf,
@@ -1383,6 +1387,18 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 	}
 }
 
+// ExcludedWith is the validation function
+// The field under validation must not be present or is empty if any of the other specified fields are present.
+func excludedWith(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return !hasValue(fl)
+		}
+	}
+	return true
+}
+
 // RequiredWith is the validation function
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
@@ -1393,6 +1409,18 @@ func requiredWith(fl FieldLevel) bool {
 		}
 	}
 	return true
+}
+
+// ExcludedWithAll is the validation function
+// The field under validation must not be present or is empty if all of the other specified fields are present.
+func excludedWithAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithAll is the validation function
@@ -1407,6 +1435,15 @@ func requiredWithAll(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// ExcludedWithout is the validation function
+// The field under validation must not be present or is empty when any of the other specified fields are not present.
+func excludedWithout(fl FieldLevel) bool {
+	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
+		return !hasValue(fl)
+	}
+	return true
+}
+
 // RequiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
@@ -1414,6 +1451,18 @@ func requiredWithout(fl FieldLevel) bool {
 		return hasValue(fl)
 	}
 	return true
+}
+
+// RequiredWithoutAll is the validation function
+// The field under validation must not be present or is empty when all of the other specified fields are not present.
+func excludedWithoutAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithoutAll is the validation function
