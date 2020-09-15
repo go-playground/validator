@@ -90,7 +90,7 @@ func (v *validate) Param() string {
 	return v.ct.param
 }
 
-// GetStructFieldOK returns Param returns param for validation against current field
+// GetStructFieldOK returns param for validation against current field
 //
 // Deprecated: Use GetStructFieldOK2() instead which also return if the value is nullable.
 func (v *validate) GetStructFieldOK() (reflect.Value, reflect.Kind, bool) {
@@ -107,7 +107,7 @@ func (v *validate) GetStructFieldOKAdvanced(val reflect.Value, namespace string)
 	return current, kind, found
 }
 
-// GetStructFieldOK returns Param returns param for validation against current field
+// GetStructFieldOK returns param for validation against current field
 func (v *validate) GetStructFieldOK2() (reflect.Value, reflect.Kind, bool, bool) {
 	return v.getStructFieldOKInternal(v.slflParent, v.ct.param)
 }

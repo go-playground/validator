@@ -68,112 +68,116 @@ var (
 		"required_with_all":    requiredWithAll,
 		"required_without":     requiredWithout,
 		"required_without_all": requiredWithoutAll,
-		"isdefault":            isDefault,
-		"len":                  hasLengthOf,
-		"min":                  hasMinOf,
-		"max":                  hasMaxOf,
-		"eq":                   isEq,
-		"ne":                   isNe,
-		"lt":                   isLt,
-		"lte":                  isLte,
-		"gt":                   isGt,
-		"gte":                  isGte,
-		"eqfield":              isEqField,
-		"eqcsfield":            isEqCrossStructField,
-		"necsfield":            isNeCrossStructField,
-		"gtcsfield":            isGtCrossStructField,
-		"gtecsfield":           isGteCrossStructField,
-		"ltcsfield":            isLtCrossStructField,
-		"ltecsfield":           isLteCrossStructField,
-		"nefield":              isNeField,
-		"gtefield":             isGteField,
-		"gtfield":              isGtField,
-		"ltefield":             isLteField,
-		"ltfield":              isLtField,
-		"fieldcontains":        fieldContains,
-		"fieldexcludes":        fieldExcludes,
-		"alpha":                isAlpha,
-		"alphanum":             isAlphanum,
-		"alphaunicode":         isAlphaUnicode,
-		"alphanumunicode":      isAlphanumUnicode,
-		"numeric":              isNumeric,
-		"number":               isNumber,
-		"hexadecimal":          isHexadecimal,
-		"hexcolor":             isHEXColor,
-		"rgb":                  isRGB,
-		"rgba":                 isRGBA,
-		"hsl":                  isHSL,
-		"hsla":                 isHSLA,
-		"e164":                 isE164,
-		"email":                isEmail,
-		"url":                  isURL,
-		"uri":                  isURI,
-		"urn_rfc2141":          isUrnRFC2141, // RFC 2141
-		"file":                 isFile,
-		"base64":               isBase64,
-		"base64url":            isBase64URL,
-		"contains":             contains,
-		"containsany":          containsAny,
-		"containsrune":         containsRune,
-		"excludes":             excludes,
-		"excludesall":          excludesAll,
-		"excludesrune":         excludesRune,
-		"startswith":           startsWith,
-		"endswith":             endsWith,
-		"startsnotwith":        startsNotWith,
-		"endsnotwith":          endsNotWith,
-		"isbn":                 isISBN,
-		"isbn10":               isISBN10,
-		"isbn13":               isISBN13,
-		"eth_addr":             isEthereumAddress,
-		"btc_addr":             isBitcoinAddress,
-		"btc_addr_bech32":      isBitcoinBech32Address,
-		"uuid":                 isUUID,
-		"uuid3":                isUUID3,
-		"uuid4":                isUUID4,
-		"uuid5":                isUUID5,
-		"uuid_rfc4122":         isUUIDRFC4122,
-		"uuid3_rfc4122":        isUUID3RFC4122,
-		"uuid4_rfc4122":        isUUID4RFC4122,
-		"uuid5_rfc4122":        isUUID5RFC4122,
-		"ascii":                isASCII,
-		"printascii":           isPrintableASCII,
-		"multibyte":            hasMultiByteCharacter,
-		"datauri":              isDataURI,
-		"latitude":             isLatitude,
-		"longitude":            isLongitude,
-		"ssn":                  isSSN,
-		"ipv4":                 isIPv4,
-		"ipv6":                 isIPv6,
-		"ip":                   isIP,
-		"cidrv4":               isCIDRv4,
-		"cidrv6":               isCIDRv6,
-		"cidr":                 isCIDR,
-		"tcp4_addr":            isTCP4AddrResolvable,
-		"tcp6_addr":            isTCP6AddrResolvable,
-		"tcp_addr":             isTCPAddrResolvable,
-		"udp4_addr":            isUDP4AddrResolvable,
-		"udp6_addr":            isUDP6AddrResolvable,
-		"udp_addr":             isUDPAddrResolvable,
-		"ip4_addr":             isIP4AddrResolvable,
-		"ip6_addr":             isIP6AddrResolvable,
-		"ip_addr":              isIPAddrResolvable,
-		"unix_addr":            isUnixAddrResolvable,
-		"mac":                  isMAC,
-		"hostname":             isHostnameRFC952,  // RFC 952
-		"hostname_rfc1123":     isHostnameRFC1123, // RFC 1123
-		"fqdn":                 isFQDN,
-		"unique":               isUnique,
-		"oneof":                isOneOf,
-		"html":                 isHTML,
-		"html_encoded":         isHTMLEncoded,
-		"url_encoded":          isURLEncoded,
-		"dir":                  isDir,
-		"json":                 isJSON,
-		"hostname_port":        isHostnamePort,
-		"lowercase":            isLowercase,
-		"uppercase":            isUppercase,
-		"datetime":             isDatetime,
+		"excluded_with":        excludedWith,
+		// "excluded_with_all":    excludedWithAll,
+		"excluded_without": excludedWithout,
+		// "excluded_without_all": excludedWithoutAll,
+		"isdefault":        isDefault,
+		"len":              hasLengthOf,
+		"min":              hasMinOf,
+		"max":              hasMaxOf,
+		"eq":               isEq,
+		"ne":               isNe,
+		"lt":               isLt,
+		"lte":              isLte,
+		"gt":               isGt,
+		"gte":              isGte,
+		"eqfield":          isEqField,
+		"eqcsfield":        isEqCrossStructField,
+		"necsfield":        isNeCrossStructField,
+		"gtcsfield":        isGtCrossStructField,
+		"gtecsfield":       isGteCrossStructField,
+		"ltcsfield":        isLtCrossStructField,
+		"ltecsfield":       isLteCrossStructField,
+		"nefield":          isNeField,
+		"gtefield":         isGteField,
+		"gtfield":          isGtField,
+		"ltefield":         isLteField,
+		"ltfield":          isLtField,
+		"fieldcontains":    fieldContains,
+		"fieldexcludes":    fieldExcludes,
+		"alpha":            isAlpha,
+		"alphanum":         isAlphanum,
+		"alphaunicode":     isAlphaUnicode,
+		"alphanumunicode":  isAlphanumUnicode,
+		"numeric":          isNumeric,
+		"number":           isNumber,
+		"hexadecimal":      isHexadecimal,
+		"hexcolor":         isHEXColor,
+		"rgb":              isRGB,
+		"rgba":             isRGBA,
+		"hsl":              isHSL,
+		"hsla":             isHSLA,
+		"e164":             isE164,
+		"email":            isEmail,
+		"url":              isURL,
+		"uri":              isURI,
+		"urn_rfc2141":      isUrnRFC2141, // RFC 2141
+		"file":             isFile,
+		"base64":           isBase64,
+		"base64url":        isBase64URL,
+		"contains":         contains,
+		"containsany":      containsAny,
+		"containsrune":     containsRune,
+		"excludes":         excludes,
+		"excludesall":      excludesAll,
+		"excludesrune":     excludesRune,
+		"startswith":       startsWith,
+		"endswith":         endsWith,
+		"startsnotwith":    startsNotWith,
+		"endsnotwith":      endsNotWith,
+		"isbn":             isISBN,
+		"isbn10":           isISBN10,
+		"isbn13":           isISBN13,
+		"eth_addr":         isEthereumAddress,
+		"btc_addr":         isBitcoinAddress,
+		"btc_addr_bech32":  isBitcoinBech32Address,
+		"uuid":             isUUID,
+		"uuid3":            isUUID3,
+		"uuid4":            isUUID4,
+		"uuid5":            isUUID5,
+		"uuid_rfc4122":     isUUIDRFC4122,
+		"uuid3_rfc4122":    isUUID3RFC4122,
+		"uuid4_rfc4122":    isUUID4RFC4122,
+		"uuid5_rfc4122":    isUUID5RFC4122,
+		"ascii":            isASCII,
+		"printascii":       isPrintableASCII,
+		"multibyte":        hasMultiByteCharacter,
+		"datauri":          isDataURI,
+		"latitude":         isLatitude,
+		"longitude":        isLongitude,
+		"ssn":              isSSN,
+		"ipv4":             isIPv4,
+		"ipv6":             isIPv6,
+		"ip":               isIP,
+		"cidrv4":           isCIDRv4,
+		"cidrv6":           isCIDRv6,
+		"cidr":             isCIDR,
+		"tcp4_addr":        isTCP4AddrResolvable,
+		"tcp6_addr":        isTCP6AddrResolvable,
+		"tcp_addr":         isTCPAddrResolvable,
+		"udp4_addr":        isUDP4AddrResolvable,
+		"udp6_addr":        isUDP6AddrResolvable,
+		"udp_addr":         isUDPAddrResolvable,
+		"ip4_addr":         isIP4AddrResolvable,
+		"ip6_addr":         isIP6AddrResolvable,
+		"ip_addr":          isIPAddrResolvable,
+		"unix_addr":        isUnixAddrResolvable,
+		"mac":              isMAC,
+		"hostname":         isHostnameRFC952,  // RFC 952
+		"hostname_rfc1123": isHostnameRFC1123, // RFC 1123
+		"fqdn":             isFQDN,
+		"unique":           isUnique,
+		"oneof":            isOneOf,
+		"html":             isHTML,
+		"html_encoded":     isHTMLEncoded,
+		"url_encoded":      isURLEncoded,
+		"dir":              isDir,
+		"json":             isJSON,
+		"hostname_port":    isHostnamePort,
+		"lowercase":        isLowercase,
+		"uppercase":        isUppercase,
+		"datetime":         isDatetime,
 	}
 )
 
@@ -1359,7 +1363,7 @@ func hasValue(fl FieldLevel) bool {
 	}
 }
 
-// requireCheckField is a func for check field kind
+// requireCheckFieldKind is a func for check field kind
 func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
 	field := fl.Field()
 	kind := field.Kind()
@@ -1427,6 +1431,80 @@ func requiredWithoutAll(fl FieldLevel) bool {
 	}
 	return hasValue(fl)
 }
+
+// isZero determines if the field has its zero value.
+// It does not take default values into account.
+// https://stackoverflow.com/questions/23555241/how-to-get-zero-value-of-a-field-type
+func isZero(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return v.IsNil()
+	case reflect.Array:
+		z := true
+		for i := 0; i < v.Len(); i++ {
+			z = z && isZero(v.Index(i))
+		}
+		return z
+	case reflect.Struct:
+		z := true
+		for i := 0; i < v.NumField(); i++ {
+			if v.Field(i).CanSet() {
+				z = z && isZero(v.Field(i))
+			}
+		}
+		return z
+	// case reflect.Ptr:
+	// 	return isZero(reflect.Indirect(v))
+	default:
+		// Compare other types directly:
+		z := reflect.Zero(v.Type())
+		return v.Interface() == z.Interface()
+	}
+}
+
+// ExcludedWith is the validation function for validating that the excluded
+// field is either not present or has the Zero value
+func excludedWith(fl FieldLevel) bool {
+	// no need to exclude if zero
+	if isZero(fl.Field()) {
+		return true
+	}
+
+	paramField, _, ok := fl.GetStructFieldOK()
+	if !ok {
+		// ignore if target doesn't exist
+		return true
+	}
+
+	return isZero(paramField)
+}
+
+// // ExcludedWithAll is the validation function
+// func excludedWithAll(fl FieldLevel) bool {
+// 	return false
+// }
+
+// ExcludedWithout is the validation function for validating that the
+// excluded field is present and does not have the Zero value
+func excludedWithout(fl FieldLevel) bool {
+	// no need to exclude if zero
+	if isZero(fl.Field()) {
+		return true
+	}
+
+	paramField, _, ok := fl.GetStructFieldOK()
+	if !ok {
+		// fail if target doesn't exist
+		return false
+	}
+
+	return !isZero(paramField)
+}
+
+// // ExcludedWithoutAll is the validation function
+// func excludedWithoutAll(fl FieldLevel) bool {
+// 	return false
+// }
 
 // IsGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
 func isGteField(fl FieldLevel) bool {
