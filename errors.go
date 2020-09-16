@@ -155,6 +155,9 @@ type FieldError interface {
 	// NOTE: if no registered translator can be found it returns the same as
 	// calling fe.Error()
 	Translate(ut ut.Translator) string
+
+	// Error returns the FieldError's message
+	Error() string
 }
 
 // compile time interface checks
