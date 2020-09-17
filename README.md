@@ -129,6 +129,7 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
+| endswith | Ends With |
 | lowercase | Lowercase |
 | multibyte | Multi-Byte Characters |
 | number | NOT DOCUMENTED IN doc.go |
@@ -186,7 +187,6 @@ Baked-in Validations
 | - | - |
 | dir | Directory |
 | e164 | NOT DOCUMENTED IN doc.go |
-| endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
 | excludesrune | Excludes Rune |
