@@ -1200,6 +1200,27 @@ Supplied format must match the official Go time format layout as documented in h
 
 	Usage: datetime=2006-01-02
 
+Iso3166-1 alpha-2
+
+This validates that a string value is a valid country code based on iso3166-1 alpha-2 standard.
+see: https://www.iso.org/iso-3166-country-codes.html
+
+	Usage: iso3166_1_alpha2
+
+Iso3166-1 alpha-3
+
+This validates that a string value is a valid country code based on iso3166-1 alpha-3 standard.
+see: https://www.iso.org/iso-3166-country-codes.html
+
+	Usage: iso3166_1_alpha3
+
+Iso3166-1 alpha-numeric
+
+This validates that a string value is a valid country code based on iso3166-1 alpha-numeric standard.
+see: https://www.iso.org/iso-3166-country-codes.html
+
+	Usage: iso3166_1_alpha3
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
@@ -1207,6 +1228,7 @@ Although empty value and Local value are allowed by time.LoadLocation golang fun
 More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
+  
 
 Alias Validators and Tags
 
@@ -1219,6 +1241,8 @@ Here is a list of the current built in alias tags:
 
 	"iscolor"
 		alias is "hexcolor|rgb|rgba|hsl|hsla" (Usage: iscolor)
+	"country_code"
+		alias is "iso3166_1_alpha2|iso3166_1_alpha3|iso3166_1_alpha_numeric" (Usage: country_code)
 
 Validator notes:
 

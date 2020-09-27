@@ -10862,6 +10862,94 @@ func TestDatetimeValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestIsIso3166Alpha2Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_1_alpha2"`
+		expected bool
+	}{
+		{"PL", true},
+		{"POL", false},
+		{"AA", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha2")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha2 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha2 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso3166Alpha3Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_1_alpha3"`
+		expected bool
+	}{
+		{"POL", true},
+		{"PL", false},
+		{"AAA", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha3")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha3 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha3 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso3166AlphaNumericValidation(t *testing.T) {
+	tests := []struct {
+		value    int
+		expected bool
+	}{
+		{248, true},
+		{0, false},
+		{1, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha_numeric")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha_numeric failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha_numeric failed Error: %s", i, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var("1", "iso3166_1_alpha_numeric")
+	}, "Bad field type string")
+}
+
 func TestTimeZoneValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"timezone"`

@@ -59,7 +59,8 @@ var (
 	// defines a common or complex set of validation(s) to simplify
 	// adding validation to structs.
 	bakedInAliases = map[string]string{
-		"iscolor": "hexcolor|rgb|rgba|hsl|hsla",
+		"iscolor":      "hexcolor|rgb|rgba|hsl|hsla",
+		"country_code": "iso3166_1_alpha2|iso3166_1_alpha3|iso3166_1_alpha_numeric",
 	}
 
 	// BakedInValidators is the default map of ValidationFunc
@@ -184,6 +185,9 @@ var (
 		"uppercase":            isUppercase,
 		"datetime":             isDatetime,
 		"timezone":             isTimeZone,
+    "iso3166_1_alpha2":        isIso3166Alpha2,
+		"iso3166_1_alpha3":        isIso3166Alpha3,
+		"iso3166_1_alpha_numeric": isIso3166AlphaNumeric,
 	}
 )
 
@@ -2254,4 +2258,32 @@ func isTimeZone(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-2 country code.
+func isIso3166Alpha2(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return iso3166_1_alpha2[val]
+}
+
+// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
+func isIso3166Alpha3(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return iso3166_1_alpha3[val]
+}
+
+// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
+func isIso3166AlphaNumeric(fl FieldLevel) bool {
+	field := fl.Field()
+
+	var code int
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		code = int(field.Int() % 1000)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		code = int(field.Uint() % 1000)
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	return iso3166_1_alpha_numeric[code]
 }
