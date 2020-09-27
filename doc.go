@@ -245,6 +245,40 @@ ensures the value is not nil.
 
 	Usage: required
 
+Required If
+
+The field under validation must be present and not empty only if all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: required_if
+
+Examples:
+
+	// require the field if the Field1 is equal to the parameter given:
+	Usage: required_if=Field1 foobar
+
+	// require the field if the Field1 and Field2 is equal to the value respectively:
+	Usage: required_if=Field1 foo Field2 bar
+
+Required Unless
+
+The field under validation must be present and not empty unless all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: required_unless
+
+Examples:
+
+	// require the field unless the Field1 is equal to the parameter given:
+	Usage: required_unless=Field1 foobar
+
+	// require the field unless the Field1 and Field2 is equal to the value respectively:
+	Usage: required_unless=Field1 foo Field2 bar
+
 Required With
 
 The field under validation must be present and not empty only if any
