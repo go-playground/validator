@@ -64,10 +64,16 @@ var (
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
 		"required":             hasValue,
+		"required_if":          requiredIf,
+		"required_unless":      requiredUnless,
 		"required_with":        requiredWith,
 		"required_with_all":    requiredWithAll,
 		"required_without":     requiredWithout,
 		"required_without_all": requiredWithoutAll,
+		"excluded_with":        excludedWith,
+		"excluded_with_all":    excludedWithAll,
+		"excluded_without":     excludedWithout,
+		"excluded_without_all": excludedWithoutAll,
 		"isdefault":            isDefault,
 		"len":                  hasLengthOf,
 		"min":                  hasMinOf,
@@ -174,6 +180,7 @@ var (
 		"lowercase":            isLowercase,
 		"uppercase":            isUppercase,
 		"datetime":             isDatetime,
+		"timezone":             isTimeZone,
 	}
 )
 
@@ -241,23 +248,33 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
+		elem := field.Type().Elem()
+		if elem.Kind() == reflect.Ptr {
+			elem = elem.Elem()
+		}
+
 		if param == "" {
-			m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
 
 			for i := 0; i < field.Len(); i++ {
-				m.SetMapIndex(field.Index(i), v)
+				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
 			}
 			return field.Len() == m.Len()
 		}
 
-		sf, ok := field.Type().Elem().FieldByName(param)
+		sf, ok := elem.FieldByName(param)
 		if !ok {
 			panic(fmt.Sprintf("Bad field name %s", param))
 		}
 
-		m := reflect.MakeMap(reflect.MapOf(sf.Type, v.Type()))
+		sfTyp := sf.Type
+		if sfTyp.Kind() == reflect.Ptr {
+			sfTyp = sfTyp.Elem()
+		}
+
+		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(field.Index(i).FieldByName(param), v)
+			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
@@ -1129,7 +1146,7 @@ func isEq(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1383,6 +1400,75 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 	}
 }
 
+// requireCheckFieldValue is a func for check field value
+func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
+	if !found {
+		return defaultNotFoundValue
+	}
+
+	switch kind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() == asInt(value)
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() == asUint(value)
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() == asFloat(value)
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) == asInt(value)
+	}
+
+	// default reflect.String:
+	return field.String() == value
+}
+
+// requiredIf is the validation function
+// The field under validation must be present and not empty only if all the other specified fields are equal to the value following with the specified field.
+func requiredIf(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_if %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// requiredUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func requiredUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_unless %s", fl.FieldName()))
+	}
+
+	for i := 0; i < len(params); i += 2 {
+		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// ExcludedWith is the validation function
+// The field under validation must not be present or is empty if any of the other specified fields are present.
+func excludedWith(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return !hasValue(fl)
+		}
+	}
+	return true
+}
+
 // RequiredWith is the validation function
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
@@ -1393,6 +1479,18 @@ func requiredWith(fl FieldLevel) bool {
 		}
 	}
 	return true
+}
+
+// ExcludedWithAll is the validation function
+// The field under validation must not be present or is empty if all of the other specified fields are present.
+func excludedWithAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithAll is the validation function
@@ -1407,6 +1505,15 @@ func requiredWithAll(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// ExcludedWithout is the validation function
+// The field under validation must not be present or is empty when any of the other specified fields are not present.
+func excludedWithout(fl FieldLevel) bool {
+	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
+		return !hasValue(fl)
+	}
+	return true
+}
+
 // RequiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
@@ -1414,6 +1521,18 @@ func requiredWithout(fl FieldLevel) bool {
 		return hasValue(fl)
 	}
 	return true
+}
+
+// RequiredWithoutAll is the validation function
+// The field under validation must not be present or is empty when all of the other specified fields are not present.
+func excludedWithoutAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithoutAll is the validation function
@@ -1541,7 +1660,7 @@ func isGte(fl FieldLevel) bool {
 		return int64(field.Len()) >= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() >= p
 
@@ -1588,7 +1707,7 @@ func isGt(fl FieldLevel) bool {
 		return int64(field.Len()) > p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() > p
 
@@ -1631,7 +1750,7 @@ func hasLengthOf(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1767,7 +1886,7 @@ func isLte(fl FieldLevel) bool {
 		return int64(field.Len()) <= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() <= p
 
@@ -1814,7 +1933,7 @@ func isLt(fl FieldLevel) bool {
 		return int64(field.Len()) < p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() < p
 
@@ -2087,6 +2206,29 @@ func isDatetime(fl FieldLevel) bool {
 
 	if field.Kind() == reflect.String {
 		_, err := time.Parse(param, field.String())
+
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isTimeZone is the validation function for validating if the current field's value is a valid time zone string.
+func isTimeZone(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		// empty value is converted to UTC by time.LoadLocation but disallow it as it is not a valid time zone name
+		if field.String() == "" {
+			return false
+		}
+
+		// Local value is converted to the current system time zone by time.LoadLocation but disallow it as it is not a valid time zone name
+		if strings.ToLower(field.String()) == "local" {
+			return false
+		}
+
+		_, err := time.LoadLocation(field.String())
 		if err != nil {
 			return false
 		}

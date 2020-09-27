@@ -129,6 +129,7 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
+| endswith | Ends With |
 | lowercase | Lowercase |
 | multibyte | Multi-Byte Characters |
 | number | NOT DOCUMENTED IN doc.go |
@@ -197,10 +198,16 @@ Baked-in Validations
 | min | Minimum |
 | oneof | One Of |
 | required | Required |
+| required_if | Required If |
+| required_unless | Required Unless |
 | required_with | Required With |
 | required_with_all | Required With All |
 | required_without | Required Without |
 | required_without_all | Required Without All |
+| excluded_with | Excluded With |
+| excluded_with_all | Excluded With All |
+| excluded_without | Excluded Without |
+| excluded_without_all | Excluded Without All |
 | unique | Unique |
 
 Benchmarks
