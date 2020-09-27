@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -15,6 +16,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	"golang.org/x/crypto/sha3"
 
 	urn "github.com/leodido/go-urn"
 )
@@ -64,118 +67,125 @@ var (
 	// you can add, remove or even replace items to suite your needs,
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
-		"required":                hasValue,
-		"required_with":           requiredWith,
-		"required_with_all":       requiredWithAll,
-		"required_without":        requiredWithout,
-		"required_without_all":    requiredWithoutAll,
-		"isdefault":               isDefault,
-		"len":                     hasLengthOf,
-		"min":                     hasMinOf,
-		"max":                     hasMaxOf,
-		"eq":                      isEq,
-		"ne":                      isNe,
-		"lt":                      isLt,
-		"lte":                     isLte,
-		"gt":                      isGt,
-		"gte":                     isGte,
-		"eqfield":                 isEqField,
-		"eqcsfield":               isEqCrossStructField,
-		"necsfield":               isNeCrossStructField,
-		"gtcsfield":               isGtCrossStructField,
-		"gtecsfield":              isGteCrossStructField,
-		"ltcsfield":               isLtCrossStructField,
-		"ltecsfield":              isLteCrossStructField,
-		"nefield":                 isNeField,
-		"gtefield":                isGteField,
-		"gtfield":                 isGtField,
-		"ltefield":                isLteField,
-		"ltfield":                 isLtField,
-		"fieldcontains":           fieldContains,
-		"fieldexcludes":           fieldExcludes,
-		"alpha":                   isAlpha,
-		"alphanum":                isAlphanum,
-		"alphaunicode":            isAlphaUnicode,
-		"alphanumunicode":         isAlphanumUnicode,
-		"numeric":                 isNumeric,
-		"number":                  isNumber,
-		"hexadecimal":             isHexadecimal,
-		"hexcolor":                isHEXColor,
-		"rgb":                     isRGB,
-		"rgba":                    isRGBA,
-		"hsl":                     isHSL,
-		"hsla":                    isHSLA,
-		"e164":                    isE164,
-		"email":                   isEmail,
-		"url":                     isURL,
-		"uri":                     isURI,
-		"urn_rfc2141":             isUrnRFC2141, // RFC 2141
-		"file":                    isFile,
-		"base64":                  isBase64,
-		"base64url":               isBase64URL,
-		"contains":                contains,
-		"containsany":             containsAny,
-		"containsrune":            containsRune,
-		"excludes":                excludes,
-		"excludesall":             excludesAll,
-		"excludesrune":            excludesRune,
-		"startswith":              startsWith,
-		"endswith":                endsWith,
-		"startsnotwith":           startsNotWith,
-		"endsnotwith":             endsNotWith,
-		"isbn":                    isISBN,
-		"isbn10":                  isISBN10,
-		"isbn13":                  isISBN13,
-		"eth_addr":                isEthereumAddress,
-		"btc_addr":                isBitcoinAddress,
-		"btc_addr_bech32":         isBitcoinBech32Address,
-		"uuid":                    isUUID,
-		"uuid3":                   isUUID3,
-		"uuid4":                   isUUID4,
-		"uuid5":                   isUUID5,
-		"uuid_rfc4122":            isUUIDRFC4122,
-		"uuid3_rfc4122":           isUUID3RFC4122,
-		"uuid4_rfc4122":           isUUID4RFC4122,
-		"uuid5_rfc4122":           isUUID5RFC4122,
-		"ascii":                   isASCII,
-		"printascii":              isPrintableASCII,
-		"multibyte":               hasMultiByteCharacter,
-		"datauri":                 isDataURI,
-		"latitude":                isLatitude,
-		"longitude":               isLongitude,
-		"ssn":                     isSSN,
-		"ipv4":                    isIPv4,
-		"ipv6":                    isIPv6,
-		"ip":                      isIP,
-		"cidrv4":                  isCIDRv4,
-		"cidrv6":                  isCIDRv6,
-		"cidr":                    isCIDR,
-		"tcp4_addr":               isTCP4AddrResolvable,
-		"tcp6_addr":               isTCP6AddrResolvable,
-		"tcp_addr":                isTCPAddrResolvable,
-		"udp4_addr":               isUDP4AddrResolvable,
-		"udp6_addr":               isUDP6AddrResolvable,
-		"udp_addr":                isUDPAddrResolvable,
-		"ip4_addr":                isIP4AddrResolvable,
-		"ip6_addr":                isIP6AddrResolvable,
-		"ip_addr":                 isIPAddrResolvable,
-		"unix_addr":               isUnixAddrResolvable,
-		"mac":                     isMAC,
-		"hostname":                isHostnameRFC952,  // RFC 952
-		"hostname_rfc1123":        isHostnameRFC1123, // RFC 1123
-		"fqdn":                    isFQDN,
-		"unique":                  isUnique,
-		"oneof":                   isOneOf,
-		"html":                    isHTML,
-		"html_encoded":            isHTMLEncoded,
-		"url_encoded":             isURLEncoded,
-		"dir":                     isDir,
-		"json":                    isJSON,
-		"hostname_port":           isHostnamePort,
-		"lowercase":               isLowercase,
-		"uppercase":               isUppercase,
-		"datetime":                isDatetime,
-		"iso3166_1_alpha2":        isIso3166Alpha2,
+		"required":             hasValue,
+		"required_if":          requiredIf,
+		"required_unless":      requiredUnless,
+		"required_with":        requiredWith,
+		"required_with_all":    requiredWithAll,
+		"required_without":     requiredWithout,
+		"required_without_all": requiredWithoutAll,
+		"excluded_with":        excludedWith,
+		"excluded_with_all":    excludedWithAll,
+		"excluded_without":     excludedWithout,
+		"excluded_without_all": excludedWithoutAll,
+		"isdefault":            isDefault,
+		"len":                  hasLengthOf,
+		"min":                  hasMinOf,
+		"max":                  hasMaxOf,
+		"eq":                   isEq,
+		"ne":                   isNe,
+		"lt":                   isLt,
+		"lte":                  isLte,
+		"gt":                   isGt,
+		"gte":                  isGte,
+		"eqfield":              isEqField,
+		"eqcsfield":            isEqCrossStructField,
+		"necsfield":            isNeCrossStructField,
+		"gtcsfield":            isGtCrossStructField,
+		"gtecsfield":           isGteCrossStructField,
+		"ltcsfield":            isLtCrossStructField,
+		"ltecsfield":           isLteCrossStructField,
+		"nefield":              isNeField,
+		"gtefield":             isGteField,
+		"gtfield":              isGtField,
+		"ltefield":             isLteField,
+		"ltfield":              isLtField,
+		"fieldcontains":        fieldContains,
+		"fieldexcludes":        fieldExcludes,
+		"alpha":                isAlpha,
+		"alphanum":             isAlphanum,
+		"alphaunicode":         isAlphaUnicode,
+		"alphanumunicode":      isAlphanumUnicode,
+		"numeric":              isNumeric,
+		"number":               isNumber,
+		"hexadecimal":          isHexadecimal,
+		"hexcolor":             isHEXColor,
+		"rgb":                  isRGB,
+		"rgba":                 isRGBA,
+		"hsl":                  isHSL,
+		"hsla":                 isHSLA,
+		"e164":                 isE164,
+		"email":                isEmail,
+		"url":                  isURL,
+		"uri":                  isURI,
+		"urn_rfc2141":          isUrnRFC2141, // RFC 2141
+		"file":                 isFile,
+		"base64":               isBase64,
+		"base64url":            isBase64URL,
+		"contains":             contains,
+		"containsany":          containsAny,
+		"containsrune":         containsRune,
+		"excludes":             excludes,
+		"excludesall":          excludesAll,
+		"excludesrune":         excludesRune,
+		"startswith":           startsWith,
+		"endswith":             endsWith,
+		"startsnotwith":        startsNotWith,
+		"endsnotwith":          endsNotWith,
+		"isbn":                 isISBN,
+		"isbn10":               isISBN10,
+		"isbn13":               isISBN13,
+		"eth_addr":             isEthereumAddress,
+		"btc_addr":             isBitcoinAddress,
+		"btc_addr_bech32":      isBitcoinBech32Address,
+		"uuid":                 isUUID,
+		"uuid3":                isUUID3,
+		"uuid4":                isUUID4,
+		"uuid5":                isUUID5,
+		"uuid_rfc4122":         isUUIDRFC4122,
+		"uuid3_rfc4122":        isUUID3RFC4122,
+		"uuid4_rfc4122":        isUUID4RFC4122,
+		"uuid5_rfc4122":        isUUID5RFC4122,
+		"ascii":                isASCII,
+		"printascii":           isPrintableASCII,
+		"multibyte":            hasMultiByteCharacter,
+		"datauri":              isDataURI,
+		"latitude":             isLatitude,
+		"longitude":            isLongitude,
+		"ssn":                  isSSN,
+		"ipv4":                 isIPv4,
+		"ipv6":                 isIPv6,
+		"ip":                   isIP,
+		"cidrv4":               isCIDRv4,
+		"cidrv6":               isCIDRv6,
+		"cidr":                 isCIDR,
+		"tcp4_addr":            isTCP4AddrResolvable,
+		"tcp6_addr":            isTCP6AddrResolvable,
+		"tcp_addr":             isTCPAddrResolvable,
+		"udp4_addr":            isUDP4AddrResolvable,
+		"udp6_addr":            isUDP6AddrResolvable,
+		"udp_addr":             isUDPAddrResolvable,
+		"ip4_addr":             isIP4AddrResolvable,
+		"ip6_addr":             isIP6AddrResolvable,
+		"ip_addr":              isIPAddrResolvable,
+		"unix_addr":            isUnixAddrResolvable,
+		"mac":                  isMAC,
+		"hostname":             isHostnameRFC952,  // RFC 952
+		"hostname_rfc1123":     isHostnameRFC1123, // RFC 1123
+		"fqdn":                 isFQDN,
+		"unique":               isUnique,
+		"oneof":                isOneOf,
+		"html":                 isHTML,
+		"html_encoded":         isHTMLEncoded,
+		"url_encoded":          isURLEncoded,
+		"dir":                  isDir,
+		"json":                 isJSON,
+		"hostname_port":        isHostnamePort,
+		"lowercase":            isLowercase,
+		"uppercase":            isUppercase,
+		"datetime":             isDatetime,
+		"timezone":             isTimeZone,
+    "iso3166_1_alpha2":        isIso3166Alpha2,
 		"iso3166_1_alpha3":        isIso3166Alpha3,
 		"iso3166_1_alpha_numeric": isIso3166AlphaNumeric,
 	}
@@ -245,23 +255,33 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
+		elem := field.Type().Elem()
+		if elem.Kind() == reflect.Ptr {
+			elem = elem.Elem()
+		}
+
 		if param == "" {
-			m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
 
 			for i := 0; i < field.Len(); i++ {
-				m.SetMapIndex(field.Index(i), v)
+				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
 			}
 			return field.Len() == m.Len()
 		}
 
-		sf, ok := field.Type().Elem().FieldByName(param)
+		sf, ok := elem.FieldByName(param)
 		if !ok {
 			panic(fmt.Sprintf("Bad field name %s", param))
 		}
 
-		m := reflect.MakeMap(reflect.MapOf(sf.Type, v.Type()))
+		sfTyp := sf.Type
+		if sfTyp.Kind() == reflect.Ptr {
+			sfTyp = sfTyp.Elem()
+		}
+
+		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(field.Index(i).FieldByName(param), v)
+			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
@@ -519,7 +539,7 @@ func isISBN10(fl FieldLevel) bool {
 	return checksum%11 == 0
 }
 
-// IsEthereumAddress is the validation function for validating if the field's value is a valid ethereum address based currently only on the format
+// IsEthereumAddress is the validation function for validating if the field's value is a valid Ethereum address.
 func isEthereumAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
@@ -531,7 +551,21 @@ func isEthereumAddress(fl FieldLevel) bool {
 		return true
 	}
 
-	// checksum validation is blocked by https://github.com/golang/crypto/pull/28
+	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
+	address = address[2:] // Skip "0x" prefix.
+	h := sha3.NewLegacyKeccak256()
+	// hash.Hash's io.Writer implementation says it never returns an error. https://golang.org/pkg/hash/#Hash
+	_, _ = h.Write([]byte(strings.ToLower(address)))
+	hash := hex.EncodeToString(h.Sum(nil))
+
+	for i := 0; i < len(address); i++ {
+		if address[i] <= '9' { // Skip 0-9 digits: they don't have upper/lower-case.
+			continue
+		}
+		if hash[i] > '7' && address[i] >= 'a' || hash[i] <= '7' && address[i] <= 'F' {
+			return false
+		}
+	}
 
 	return true
 }
@@ -1133,7 +1167,7 @@ func isEq(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1387,6 +1421,75 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 	}
 }
 
+// requireCheckFieldValue is a func for check field value
+func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
+	if !found {
+		return defaultNotFoundValue
+	}
+
+	switch kind {
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() == asInt(value)
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return field.Uint() == asUint(value)
+
+	case reflect.Float32, reflect.Float64:
+		return field.Float() == asFloat(value)
+
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return int64(field.Len()) == asInt(value)
+	}
+
+	// default reflect.String:
+	return field.String() == value
+}
+
+// requiredIf is the validation function
+// The field under validation must be present and not empty only if all the other specified fields are equal to the value following with the specified field.
+func requiredIf(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_if %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// requiredUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func requiredUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_unless %s", fl.FieldName()))
+	}
+
+	for i := 0; i < len(params); i += 2 {
+		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// ExcludedWith is the validation function
+// The field under validation must not be present or is empty if any of the other specified fields are present.
+func excludedWith(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return !hasValue(fl)
+		}
+	}
+	return true
+}
+
 // RequiredWith is the validation function
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
@@ -1397,6 +1500,18 @@ func requiredWith(fl FieldLevel) bool {
 		}
 	}
 	return true
+}
+
+// ExcludedWithAll is the validation function
+// The field under validation must not be present or is empty if all of the other specified fields are present.
+func excludedWithAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithAll is the validation function
@@ -1411,6 +1526,15 @@ func requiredWithAll(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// ExcludedWithout is the validation function
+// The field under validation must not be present or is empty when any of the other specified fields are not present.
+func excludedWithout(fl FieldLevel) bool {
+	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
+		return !hasValue(fl)
+	}
+	return true
+}
+
 // RequiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
@@ -1418,6 +1542,18 @@ func requiredWithout(fl FieldLevel) bool {
 		return hasValue(fl)
 	}
 	return true
+}
+
+// RequiredWithoutAll is the validation function
+// The field under validation must not be present or is empty when all of the other specified fields are not present.
+func excludedWithoutAll(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if !requireCheckFieldKind(fl, param, true) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // RequiredWithoutAll is the validation function
@@ -1545,7 +1681,7 @@ func isGte(fl FieldLevel) bool {
 		return int64(field.Len()) >= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() >= p
 
@@ -1592,7 +1728,7 @@ func isGt(fl FieldLevel) bool {
 		return int64(field.Len()) > p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() > p
 
@@ -1635,7 +1771,7 @@ func hasLengthOf(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1771,7 +1907,7 @@ func isLte(fl FieldLevel) bool {
 		return int64(field.Len()) <= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() <= p
 
@@ -1818,7 +1954,7 @@ func isLt(fl FieldLevel) bool {
 		return int64(field.Len()) < p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() < p
 
@@ -2091,6 +2227,29 @@ func isDatetime(fl FieldLevel) bool {
 
 	if field.Kind() == reflect.String {
 		_, err := time.Parse(param, field.String())
+
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isTimeZone is the validation function for validating if the current field's value is a valid time zone string.
+func isTimeZone(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		// empty value is converted to UTC by time.LoadLocation but disallow it as it is not a valid time zone name
+		if field.String() == "" {
+			return false
+		}
+
+		// Local value is converted to the current system time zone by time.LoadLocation but disallow it as it is not a valid time zone name
+		if strings.ToLower(field.String()) == "local" {
+			return false
+		}
+
+		_, err := time.LoadLocation(field.String())
 		if err != nil {
 			return false
 		}

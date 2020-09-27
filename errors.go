@@ -155,6 +155,9 @@ type FieldError interface {
 	// NOTE: if no registered translator can be found it returns the same as
 	// calling fe.Error()
 	Translate(ut ut.Translator) string
+
+	// Error returns the FieldError's message
+	Error() string
 }
 
 // compile time interface checks
@@ -254,8 +257,8 @@ func (fe *fieldError) Error() string {
 // Translate returns the FieldError's translated error
 // from the provided 'ut.Translator' and registered 'TranslationFunc'
 //
-// NOTE: is not registered translation can be found it returns the same
-// as calling fe.Error()
+// NOTE: if no registered translation can be found, it returns the original
+// untranslated error message.
 func (fe *fieldError) Translate(ut ut.Translator) string {
 
 	m, ok := fe.v.transTagFunc[ut]
