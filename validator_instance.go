@@ -43,7 +43,9 @@ const (
 )
 
 var (
-	timeType      = reflect.TypeOf(time.Time{})
+	timeDurationType = reflect.TypeOf(time.Duration(0))
+	timeType         = reflect.TypeOf(time.Time{})
+
 	defaultCField = &cField{namesEqual: true}
 )
 

@@ -1145,7 +1145,7 @@ func isEq(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1659,7 +1659,7 @@ func isGte(fl FieldLevel) bool {
 		return int64(field.Len()) >= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() >= p
 
@@ -1706,7 +1706,7 @@ func isGt(fl FieldLevel) bool {
 		return int64(field.Len()) > p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() > p
 
@@ -1749,7 +1749,7 @@ func hasLengthOf(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() == p
 
@@ -1885,7 +1885,7 @@ func isLte(fl FieldLevel) bool {
 		return int64(field.Len()) <= p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() <= p
 
@@ -1932,7 +1932,7 @@ func isLt(fl FieldLevel) bool {
 		return int64(field.Len()) < p
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asInt(param)
+		p := asIntFromType(field.Type(), param)
 
 		return field.Int() < p
 
@@ -2205,11 +2205,8 @@ func isDatetime(fl FieldLevel) bool {
 
 	if field.Kind() == reflect.String {
 		_, err := time.Parse(param, field.String())
-		if err != nil {
-			return false
-		}
 
-		return true
+		return err == nil
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
