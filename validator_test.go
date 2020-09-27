@@ -10835,3 +10835,44 @@ func TestDatetimeValidation(t *testing.T) {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
 }
+
+func TestTimeZoneValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"timezone"`
+		tag      string
+		expected bool
+	}{
+		// systems may have different time zone database, some systems time zone are case insensitive
+		{"America/New_York", `timezone`, true},
+		{"UTC", `timezone`, true},
+		{"", `timezone`, false},
+		{"Local", `timezone`, false},
+		{"Unknown", `timezone`, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d time zone failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d time zone failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "timezone" {
+					t.Fatalf("Index: %d time zone failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "timezone")
+	}, "Bad field type int")
+}
