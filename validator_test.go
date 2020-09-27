@@ -9265,6 +9265,16 @@ func TestRequiredWithout(t *testing.T) {
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_without")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without")
 	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
+
+	test3 := struct {
+		Field1 *string `validate:"required_without=Field2,omitempty,min=1" json:"field_1"`
+		Field2 *string `validate:"required_without=Field1,omitempty,min=1" json:"field_2"`
+	}{
+		Field1: &fieldVal,
+	}
+
+	errs = validate.Struct(&test3)
+	Equal(t, errs, nil)
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
