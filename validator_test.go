@@ -346,6 +346,18 @@ func StructLevelInvalidError(sl StructLevel) {
 	}
 }
 
+func stringPtr(v string) *string {
+	return &v
+}
+
+func intPtr(v int) *int {
+	return &v
+}
+
+func float64Ptr(v float64) *float64 {
+	return &v
+}
+
 func TestStructLevelInvalidError(t *testing.T) {
 
 	validate := New()
@@ -8144,6 +8156,12 @@ func TestUniqueValidation(t *testing.T) {
 		{[2]string{"a", "a"}, false},
 		{[2]interface{}{"a", "a"}, false},
 		{[4]interface{}{"a", 1, "b", 1}, false},
+		{[2]*string{stringPtr("a"), stringPtr("b")}, true},
+		{[2]*int{intPtr(1), intPtr(2)}, true},
+		{[2]*float64{float64Ptr(1), float64Ptr(2)}, true},
+		{[2]*string{stringPtr("a"), stringPtr("a")}, false},
+		{[2]*float64{float64Ptr(1), float64Ptr(1)}, false},
+		{[2]*int{intPtr(1), intPtr(1)}, false},
 		// Slices
 		{[]string{"a", "b"}, true},
 		{[]int{1, 2}, true},
@@ -8155,6 +8173,12 @@ func TestUniqueValidation(t *testing.T) {
 		{[]string{"a", "a"}, false},
 		{[]interface{}{"a", "a"}, false},
 		{[]interface{}{"a", 1, "b", 1}, false},
+		{[]*string{stringPtr("a"), stringPtr("b")}, true},
+		{[]*int{intPtr(1), intPtr(2)}, true},
+		{[]*float64{float64Ptr(1), float64Ptr(2)}, true},
+		{[]*string{stringPtr("a"), stringPtr("a")}, false},
+		{[]*float64{float64Ptr(1), float64Ptr(1)}, false},
+		{[]*int{intPtr(1), intPtr(1)}, false},
 		// Maps
 		{map[string]string{"one": "a", "two": "b"}, true},
 		{map[string]int{"one": 1, "two": 2}, true},
@@ -8199,6 +8223,49 @@ func TestUniqueValidationStructSlice(t *testing.T) {
 	}{
 		{A: "one", B: "two"},
 		{A: "one", B: "three"},
+	}
+
+	tests := []struct {
+		target   interface{}
+		param    string
+		expected bool
+	}{
+		{testStructs, "unique", true},
+		{testStructs, "unique=A", false},
+		{testStructs, "unique=B", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.target, test.param)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "unique" {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+	PanicMatches(t, func() { validate.Var(testStructs, "unique=C") }, "Bad field name C")
+}
+
+func TestUniqueValidationStructPtrSlice(t *testing.T) {
+	testStructs := []*struct {
+		A *string
+		B *string
+	}{
+		{A: stringPtr("one"), B: stringPtr("two")},
+		{A: stringPtr("one"), B: stringPtr("three")},
 	}
 
 	tests := []struct {
