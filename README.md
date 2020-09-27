@@ -146,6 +146,7 @@ Baked-in Validations
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | datetime | Datetime |
+| e164 | e164 formatted phone number |
 | email | E-mail String
 | eth_addr | Ethereum Address |
 | hexadecimal | Hexadecimal String |
@@ -186,7 +187,7 @@ Baked-in Validations
 | Tag | Description |
 | - | - |
 | dir | Directory |
-| e164 | NOT DOCUMENTED IN doc.go |
+| endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
 | excludesrune | Excludes Rune |

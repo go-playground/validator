@@ -790,6 +790,13 @@ This validates that a string value contains a valid hsla color
 
 	Usage: hsla
 
+E.164 Phone Number String
+
+This validates that a string value contains a valid E.164 Phone number
+https://en.wikipedia.org/wiki/E.164 (ex. +1123456789)
+
+	Usage: e164
+
 E-mail String
 
 This validates that a string value contains a valid email
