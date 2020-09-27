@@ -5207,11 +5207,29 @@ func TestEthereumAddressValidation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"", false},
-		{"0x02F9AE5f22EA3fA88F05780B30385bEC", false},
-		{"123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
-		{"0x02F9AE5f22EA3fA88F05780B30385bECFacbf130", true},
+		// All caps.
+		{"0x52908400098527886E0F7030069857D2E4169EE7", true},
+		{"0x8617E340B3D01FA5F11F306F4090FD50E238070D", true},
+
+		// All lower.
+		{"0xde709f2102306220921060314715629080e2fb77", true},
+		{"0x27b1fdb04752bbc536007a920d24acb045561c26", true},
 		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", true},
+
+		// Mixed case: runs checksum validation.
+		{"0x02F9AE5f22EA3fA88F05780B30385bECFacbf130", true},
+		{"0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed", true},
+		{"0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359", true},
+		{"0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB", true},
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+
+		// Other.
+		{"", false},
+		{"D1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", false},    // Missing "0x" prefix.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDbc", false}, // More than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aD", false},   // Less than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDw", false},  // Invalid hex digit "w".
 	}
 
 	for i, test := range tests {
