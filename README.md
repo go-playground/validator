@@ -201,6 +201,10 @@ Baked-in Validations
 | required_with_all | Required With All |
 | required_without | Required Without |
 | required_without_all | Required Without All |
+| excluded_with | Excluded With |
+| excluded_with_all | Excluded With All |
+| excluded_without | Excluded Without |
+| excluded_without_all | Excluded Without All |
 | unique | Unique |
 
 Benchmarks

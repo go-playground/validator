@@ -8750,6 +8750,268 @@ func TestRequiredWith(t *testing.T) {
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_with")
 }
 
+func TestExcludedWith(t *testing.T) {
+	type Inner struct {
+		FieldE string
+		Field  *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_with=FieldE" json:"field_1"`
+		Field2 *string           `validate:"excluded_with=FieldE" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_with=FieldE" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
+		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
+		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_with=Field" json:"field_1"`
+		Field2 *string           `validate:"excluded_with=Field" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_with=Field" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_with=Field" json:"field_4"`
+		Field5 string            `validate:"excluded_with=Inner.Field" json:"field_5"`
+		Field6 string            `validate:"excluded_with=Inner2.Field" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field:  "populated",
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 5)
+	for i := 1; i <= 5; i++ {
+		name := fmt.Sprintf("Field%d", i)
+		AssertError(t, errs, name, name, name, name, "excluded_with")
+	}
+}
+
+func TestExcludedWithout(t *testing.T) {
+	type Inner struct {
+		FieldE string
+		Field  *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_without=Field" json:"field_1"`
+		Field2 *string           `validate:"excluded_without=Field" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
+		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field:  "populated",
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_without=FieldE" json:"field_1"`
+		Field2 *string           `validate:"excluded_without=FieldE" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_without=FieldE" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_without=FieldE" json:"field_4"`
+		Field5 string            `validate:"excluded_without=Inner.FieldE" json:"field_5"`
+		Field6 string            `validate:"excluded_without=Inner2.FieldE" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 6)
+	for i := 1; i <= 6; i++ {
+		name := fmt.Sprintf("Field%d", i)
+		AssertError(t, errs, name, name, name, name, "excluded_without")
+	}
+}
+
+func TestExcludedWithAll(t *testing.T) {
+	type Inner struct {
+		FieldE string
+		Field  *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_with_all=FieldE Field" json:"field_1"`
+		Field2 *string           `validate:"excluded_with_all=FieldE Field" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_with_all=FieldE Field" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
+		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
+		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field:  fieldVal,
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_with_all=Field FieldE" json:"field_1"`
+		Field2 *string           `validate:"excluded_with_all=Field FieldE" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_with_all=Field FieldE" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_with_all=Field FieldE" json:"field_4"`
+		Field5 string            `validate:"excluded_with_all=Inner.Field" json:"field_5"`
+		Field6 string            `validate:"excluded_with_all=Inner2.Field" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field:  "populated",
+		FieldE: "populated",
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 5)
+	for i := 1; i <= 5; i++ {
+		name := fmt.Sprintf("Field%d", i)
+		AssertError(t, errs, name, name, name, name, "excluded_with_all")
+	}
+}
+
+func TestExcludedWithoutAll(t *testing.T) {
+	type Inner struct {
+		FieldE string
+		Field  *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_without_all=Field FieldE" json:"field_1"`
+		Field2 *string           `validate:"excluded_without_all=Field FieldE" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
+		Field5 string            `validate:"excluded_without_all=Inner.Field Inner.Field2" json:"field_5"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field:  "populated",
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner  *Inner
+		Inner2 *Inner
+		Field  string            `validate:"omitempty" json:"field"`
+		FieldE string            `validate:"omitempty" json:"field_e"`
+		Field1 string            `validate:"excluded_without_all=FieldE Field" json:"field_1"`
+		Field2 *string           `validate:"excluded_without_all=FieldE Field" json:"field_2"`
+		Field3 map[string]string `validate:"excluded_without_all=FieldE Field" json:"field_3"`
+		Field4 interface{}       `validate:"excluded_without_all=FieldE Field" json:"field_4"`
+		Field5 string            `validate:"excluded_without_all=Inner.FieldE" json:"field_5"`
+		Field6 string            `validate:"excluded_without_all=Inner2.FieldE" json:"field_6"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		Field1: fieldVal,
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: "test",
+		Field6: "test",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 6)
+	for i := 1; i <= 6; i++ {
+		name := fmt.Sprintf("Field%d", i)
+		AssertError(t, errs, name, name, name, name, "excluded_without_all")
+	}
+}
+
 func TestRequiredWithAll(t *testing.T) {
 	type Inner struct {
 		Field *string
