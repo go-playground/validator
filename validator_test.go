@@ -749,10 +749,33 @@ func TestStructValidation(t *testing.T) {
 	val.RegisterValidation("one", fn1)
 	val.RegisterValidation("two", fn2)
 	errs := val.Struct(ts)
-	Equal(t, len(errs.(ValidationErrors)), 3)
+	Equal(t, len(errs.(ValidationErrors)), 2)
+	// TestStruct.Test.Test gets validated because TestStruct.Test != nil.
+	// Validators of TestStruct.Test are skipped because TestStruct.Test.Test is invalid
 	AssertError(t, errs, "TestStruct.Test.Test", "TestStruct.Test.Test", "Test", "Test", "required")
-	AssertError(t, errs, "TestStruct.Test", "TestStruct.Test", "Test", "Test", "one")
 	AssertError(t, errs, "TestStruct.Test2", "TestStruct.Test2", "Test2", "Test2", "two")
+}
+
+func TestStructValidation_SkipsInnerFieldsOfNullNestedStructs(t *testing.T) {
+	type inner struct {
+		Test string `validate:"required"`
+	}
+	type TestStruct struct {
+		Test *inner `validate:"one,dive"`
+	}
+
+	ts := TestStruct{}
+	val := New()
+
+	fn1 := func(fl FieldLevel) bool {
+		return fl.Field().FieldByName("Test").String() == "some value"
+	}
+
+	val.RegisterValidation("one", fn1)
+	errs := val.Struct(ts)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	// TestStruct.Test.Test hasn't been validated because TestStruct.Test is nil.
+	AssertError(t, errs, "TestStruct.Test", "TestStruct.Test", "Test", "Test", "one")
 }
 
 func TestStructPartial(t *testing.T) {
@@ -1051,7 +1074,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltecsfield")
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 7)
+	Equal(t, len(errs.(ValidationErrors)), 6)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltecsfield")
 	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltecsfield")
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
@@ -8163,9 +8186,26 @@ func TestIsDefault(t *testing.T) {
 	Equal(t, fe.Field(), "String")
 	Equal(t, fe.Namespace(), "Test2.inner.String")
 	Equal(t, fe.Tag(), "isdefault")
-	fe = errs.(ValidationErrors)[1]
+
+	type Inner3 struct {
+		String string
+	}
+
+	type Test3 struct {
+		Inner Inner3 `validate:"isdefault" json:"inner"`
+	}
+
+	var t3 Test3
+	errs = validate.Struct(t3)
+	Equal(t, errs, nil)
+
+	t3.Inner.String = "Changed"
+	errs = validate.Struct(t3)
+	NotEqual(t, errs, nil)
+
+	fe = errs.(ValidationErrors)[0]
 	Equal(t, fe.Field(), "inner")
-	Equal(t, fe.Namespace(), "Test2.inner")
+	Equal(t, fe.Namespace(), "Test3.inner")
 	Equal(t, fe.Tag(), "isdefault")
 }
 

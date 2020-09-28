@@ -188,10 +188,14 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				}
 
 				vFldIsPointerOld := v.fldIsPointer
+				previousErrorsCount := len(v.errs)
 				v.validateStruct(ctx, current, current, typ, ns, structNs, ct)
 				v.fldIsPointer = vFldIsPointerOld
 				ns = oldNs
 				structNs = oldStructNs
+				if len(v.errs) > previousErrorsCount {
+					skipValidations = true
+				}
 			}
 			if skipValidations {
 				return
