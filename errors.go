@@ -146,7 +146,7 @@ type FieldError interface {
 
 	// Type returns the Field's reflect Type
 	//
-	// // eg. time.Time's type is time.Time
+	// eg. time.Time's type is time.Time
 	Type() reflect.Type
 
 	// returns the FieldError's translated error
