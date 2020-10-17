@@ -4607,7 +4607,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Test.Start", "Test.Start", "Start", "Start", "nefield")
 
-	now3 := time.Now().UTC()
+	now3 := time.Now().Add(time.Hour).UTC()
 
 	sv = &Test{
 		Start: &now,
@@ -4840,7 +4840,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 	errs = validate.Struct(sv)
 	Equal(t, errs, nil)
 
-	now3 := time.Now().UTC()
+	now3 := time.Now().Add(time.Hour).UTC()
 
 	sv = &Test{
 		Start: &now,
