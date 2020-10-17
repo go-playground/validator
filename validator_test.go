@@ -9475,7 +9475,7 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { validate.Var(testStructs, "unique=C") }, "Bad field name C")
+	PanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "Bad field name C")
 }
 
 func TestHTMLValidation(t *testing.T) {
@@ -10989,4 +10989,47 @@ func TestTimeZoneValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "timezone")
 	}, "Bad field type int")
+}
+
+func TestDurationType(t *testing.T) {
+	tests := []struct {
+		name    string
+		s       interface{} // struct
+		success bool
+	}{
+		{
+			name: "valid duration string pass",
+			s: struct {
+				Value time.Duration `validate:"gte=500ns"`
+			}{
+				Value: time.Second,
+			},
+			success: true,
+		},
+		{
+			name: "valid duration int pass",
+			s: struct {
+				Value time.Duration `validate:"gte=500"`
+			}{
+				Value: time.Second,
+			},
+			success: true,
+		},
+	}
+
+	validate := New()
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			errs := validate.Struct(tc.s)
+			if tc.success {
+				Equal(t, errs, nil)
+				return
+			}
+			NotEqual(t, errs, nil)
+		})
+	}
 }
