@@ -1789,7 +1789,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	errs = validate.Struct(test)
 	Equal(t, errs, nil)
 
-	newTime := time.Now().UTC()
+	newTime := time.Now().Add(time.Hour).UTC()
 	test.CreatedAt = &newTime
 
 	errs = validate.Struct(test)
