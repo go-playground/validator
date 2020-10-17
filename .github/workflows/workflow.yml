@@ -17,23 +17,16 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Checkout code
+          uses: actions/checkout@v2
+
       - name: Restore Cache
-        if: matrix.os != 'ubuntu-latest' || matrix.go-version != '1.15.x'
         uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-v1-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-v1-go-
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: lint
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.15.x'
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: v1.31
 
       - name: Test
         run: go test -race -covermode=atomic -coverprofile="profile.cov" ./...
@@ -43,3 +36,13 @@ jobs:
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: profile.cov
+
+golangci:
+  name: lint
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v2
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.31
