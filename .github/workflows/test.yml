@@ -31,7 +31,7 @@ jobs:
           version: v1.31
 
       - name: Test
-        run: go test -race -covermode=atomic -coverprofile=profile.cov ./...
+        run: go test -race -covermode=atomic -coverprofile="profile.cov" ./...
 
       - name: Send Coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.15.x'
