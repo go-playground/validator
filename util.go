@@ -223,7 +223,6 @@ BEGIN:
 // asInt returns the parameter as a int64
 // or panics if it can't convert
 func asInt(param string) int64 {
-
 	i, err := strconv.ParseInt(param, 0, 64)
 	panicIf(err)
 
@@ -234,8 +233,10 @@ func asInt(param string) int64 {
 // or panics on error.
 func asIntFromTimeDuration(param string) int64 {
 	d, err := time.ParseDuration(param)
-	panicIf(err)
-
+	if err != nil {
+		// attempt parsing as an an integer assuming nanosecond precision
+		return asInt(param)
+	}
 	return int64(d)
 }
 
