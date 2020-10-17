@@ -1,0 +1,40 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.14.x, 1.15.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Restore Cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: lint
+        if: matrix.platform == 'ubuntu-latest' && matrix.go-version == '1.15.x'
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.31
+
+      - name: Test
+        run: go test -race -covermode=atomic -coverprofile=profile.cov ./...
+
+      - name: Send Coverage
+        if: matrix.platform == 'ubuntu-latest' && matrix.go-version == '1.15.x'
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
