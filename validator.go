@@ -98,6 +98,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 	var kind reflect.Kind
 
 	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
+	var skipValidations, structOnly bool
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
@@ -165,69 +166,44 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		typ = current.Type()
 
 		if typ != timeType {
+			for tag := ct; tag != nil; tag = tag.next {
+				switch tag.typeof {
+				case typeNoStructLevel:
+					skipValidations = true
+				case typeStructOnly:
+					structOnly = true
+				}
+			}
 
-			if ct != nil {
-
-				if ct.typeof == typeStructOnly {
-					goto CONTINUE
-				} else if ct.typeof == typeIsDefault {
-					// set Field Level fields
-					v.slflParent = parent
-					v.flField = current
-					v.cf = cf
-					v.ct = ct
-
-					if !ct.fn(ctx, v) {
-						v.str1 = string(append(ns, cf.altName...))
-
-						if v.v.hasTagNameFunc {
-							v.str2 = string(append(structNs, cf.name...))
-						} else {
-							v.str2 = v.str1
-						}
-
-						v.errs = append(v.errs,
-							&fieldError{
-								v:              v.v,
-								tag:            ct.aliasTag,
-								actualTag:      ct.tag,
-								ns:             v.str1,
-								structNs:       v.str2,
-								fieldLen:       uint8(len(cf.altName)),
-								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
-								param:          ct.param,
-								kind:           kind,
-								typ:            typ,
-							},
-						)
-						return
-					}
+			if !structOnly && !skipValidations {
+				// if len == 0 then validating using 'Var' or 'VarWithValue'
+				// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
+				// VarWithField - this allows for validating against each field within the struct against a specific value
+				//                pretty handy in certain situations
+				oldNs := ns
+				oldStructNs := structNs
+				if len(cf.name) > 0 {
+					ns = append(append(ns, cf.altName...), '.')
+					structNs = append(append(structNs, cf.name...), '.')
 				}
 
-				ct = ct.next
+				vFldIsPointerOld := v.fldIsPointer
+				previousErrorsCount := len(v.errs)
+				v.validateStruct(ctx, current, current, typ, ns, structNs, ct)
+				v.fldIsPointer = vFldIsPointerOld
+				ns = oldNs
+				structNs = oldStructNs
+				if len(v.errs) > previousErrorsCount {
+					skipValidations = true
+				}
 			}
-
-			if ct != nil && ct.typeof == typeNoStructLevel {
+			if skipValidations {
 				return
 			}
-
-		CONTINUE:
-			// if len == 0 then validating using 'Var' or 'VarWithValue'
-			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
-			// VarWithField - this allows for validating against each field within the struct against a specific value
-			//                pretty handy in certain situations
-			if len(cf.name) > 0 {
-				ns = append(append(ns, cf.altName...), '.')
-				structNs = append(append(structNs, cf.name...), '.')
-			}
-
-			v.validateStruct(ctx, current, current, typ, ns, structNs, ct)
-			return
 		}
 	}
 
-	if !ct.hasTag {
+	if ct != nil && !ct.hasTag {
 		return
 	}
 
@@ -435,14 +411,12 @@ OUTER:
 			}
 
 		default:
-
-			// set Field Level fields
-			v.slflParent = parent
-			v.flField = current
-			v.cf = cf
-			v.ct = ct
-
-			if !ct.fn(ctx, v) {
+			if ct.fn != nil {
+				// set Field Level fields
+				v.slflParent = parent
+				v.flField = current
+				v.cf = cf
+				v.ct = ct
 
 				v.str1 = string(append(ns, cf.altName...))
 
@@ -451,24 +425,25 @@ OUTER:
 				} else {
 					v.str2 = v.str1
 				}
+				if !ct.fn(ctx, v) {
+					v.errs = append(v.errs,
+						&fieldError{
+							v:              v.v,
+							tag:            ct.aliasTag,
+							actualTag:      ct.tag,
+							ns:             v.str1,
+							structNs:       v.str2,
+							fieldLen:       uint8(len(cf.altName)),
+							structfieldLen: uint8(len(cf.name)),
+							value:          current.Interface(),
+							param:          ct.param,
+							kind:           kind,
+							typ:            typ,
+						},
+					)
 
-				v.errs = append(v.errs,
-					&fieldError{
-						v:              v.v,
-						tag:            ct.aliasTag,
-						actualTag:      ct.tag,
-						ns:             v.str1,
-						structNs:       v.str2,
-						fieldLen:       uint8(len(cf.altName)),
-						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
-						param:          ct.param,
-						kind:           kind,
-						typ:            typ,
-					},
-				)
-
-				return
+					return
+				}
 			}
 			ct = ct.next
 		}

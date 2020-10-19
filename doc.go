@@ -170,7 +170,6 @@ When a field that is a nested struct is encountered, and contains this flag
 any validation on the nested struct will be run, but none of the nested
 struct fields will be validated. This is useful if inside of your program
 you know the struct will be valid, but need to verify it has been assigned.
-NOTE: only "required" and "omitempty" can be used on a struct itself.
 
 	Usage: structonly
 
