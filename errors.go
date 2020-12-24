@@ -61,7 +61,7 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 
 	trans := make(ValidationErrorsTranslations)
 
-	var fe *FieldError
+	var fe FieldError
 
 	for i := 0; i < len(ve); i++ {
 		fe = ve[i].(*FieldError)
