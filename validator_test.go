@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -8984,6 +8983,8 @@ func TestTranslationFieldErrors(t *testing.T) {
 
 			return t
 		})
+	Equal(t, err, nil)
+
 	err = validate.Var("", "required")
 	NotEqual(t, err, nil)
 
@@ -8992,11 +8993,9 @@ func TestTranslationFieldErrors(t *testing.T) {
 	Equal(t, ok, true)
 
 	for _, e := range errs {
-		selfErr = append(selfErr, e)
+		selfErr = append(selfErr, SelfError{e})
 	}
 
-	errTrans := selfErr.Translate(trans)
-	log.Println(errTrans)
 	Equal(t, selfErr.Translate(trans), ValidationErrorsTranslations{
 		"": " is a required field",
 	})
