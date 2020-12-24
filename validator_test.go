@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -8951,6 +8952,54 @@ func TestTranslationErrors(t *testing.T) {
 
 	NotEqual(t, err, nil)
 	Equal(t, err.Error(), "error: conflicting key 'required' rule 'Unknown' with text '{0} is a required field' for locale 'en', value being ignored")
+}
+
+func TestTranslationFieldErrors(t *testing.T) {
+	type SelfError struct {
+		FieldError
+	}
+
+	en := en.New()
+	uni := ut.New(en, en, fr.New())
+
+	trans, _ := uni.GetTranslator("en")
+	validate := New()
+	err := validate.RegisterTranslation("required", trans,
+		func(ut ut.Translator) (err error) {
+
+			// using this stype because multiple translation may have to be added for the full translation
+			if err = ut.Add("required", "{0} is a required field", false); err != nil {
+				return
+			}
+
+			return
+
+		}, func(ut ut.Translator, fe FieldError) string {
+
+			t, err := ut.T(fe.Tag(), fe.Field())
+			if err != nil {
+				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
+				return fe.(*fieldError).Error()
+			}
+
+			return t
+		})
+	err = validate.Var("", "required")
+	NotEqual(t, err, nil)
+
+	selfErr := ValidationErrors{}
+	errs, ok := err.(ValidationErrors)
+	Equal(t, ok, true)
+
+	for _, e := range errs {
+		selfErr = append(selfErr, e)
+	}
+
+	errTrans := selfErr.Translate(trans)
+	log.Println(errTrans)
+	Equal(t, selfErr.Translate(trans), ValidationErrorsTranslations{
+		"": " is a required field",
+	})
 }
 
 func TestStructFiltered(t *testing.T) {
