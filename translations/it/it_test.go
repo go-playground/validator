@@ -1,6 +1,7 @@
-package it
+package it_test
 
 import (
+	"go-playground/validator/translations/it"
 	"testing"
 	"time"
 
@@ -11,14 +12,14 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
+	t.Parallel()
 
 	ita := italian.New()
 	uni := ut.New(ita, ita)
 	trans, _ := uni.GetTranslator("it")
-
 	validate := validator.New()
 
-	err := RegisterDefaultTranslations(validate, trans)
+	err := it.RegisterDefaultTranslations(validate, trans)
 	Equal(t, err, nil)
 
 	type Inner struct {
@@ -659,7 +660,6 @@ func TestTranslations(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -672,5 +672,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
