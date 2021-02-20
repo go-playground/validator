@@ -11033,3 +11033,46 @@ func TestDurationType(t *testing.T) {
 		})
 	}
 }
+
+func TestLanguageTagValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"language_tag"`
+		tag      string
+		expected bool
+	}{
+		{"en-US", "language_tag", true},
+		{"en_GB", "language_tag", true},
+		{"es", "language_tag", true},
+		{"English", "language_tag", false},
+		{"ESES", "language_tag", false},
+		{"az-Cyrl-AZ", "language_tag", true},
+		{"en-029", "language_tag", true},
+		{"xog", "language_tag", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d locale failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d locale failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "language_tag" {
+					t.Fatalf("Index: %d locale failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "language_tag")
+	}, "Bad field type int")
+}

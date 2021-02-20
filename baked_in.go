@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/crypto/sha3"
+	"golang.org/x/text/language"
 
 	urn "github.com/leodido/go-urn"
 )
@@ -188,6 +189,7 @@ var (
 		"iso3166_1_alpha2":        isIso3166Alpha2,
 		"iso3166_1_alpha3":        isIso3166Alpha3,
 		"iso3166_1_alpha_numeric": isIso3166AlphaNumeric,
+		"language_tag":            isLanguageTag,
 	}
 )
 
@@ -2282,4 +2284,16 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 	return iso3166_1_alpha_numeric[code]
+}
+
+// isLanguageTag is the validation function for validating if the current field's value is a valid language tag, as parsed by language.Parse
+func isLanguageTag(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		_, err := language.Parse(field.String())
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
