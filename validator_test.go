@@ -949,6 +949,28 @@ func TestStructPartial(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "Test", "required")
 
+	// Test for composed struct
+	testStruct := &TestStruct{
+		String: "test",
+	}
+	composedStruct := struct{ *TestStruct }{&TestStruct{String: "test"}}
+
+	errs = validate.StructPartial(testStruct, "String")
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(composedStruct, "TestStruct.String")
+	Equal(t, errs, nil)
+
+	testStruct.String = ""
+
+	errs = validate.StructPartial(testStruct, "String")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "required")
+
+	composedStruct.String = ""
+	errs = validate.StructPartial(composedStruct, "TestStruct.String")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "required")
 }
 
 func TestCrossStructLteFieldValidation(t *testing.T) {
