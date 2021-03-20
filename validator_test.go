@@ -8480,7 +8480,7 @@ func TestTranslations(t *testing.T) {
 	nl := nl.New()
 	uni2 := ut.New(nl, nl)
 	trans2, _ := uni2.GetTranslator("nl")
-	Equal(t, fe.Translate(trans2), "Key: 'Test.Value' Error:Field validation for 'Value' failed on the 'required' tag")
+	Equal(t, fe.Translate(trans2), "key: 'Test.Value', error: field validation for 'Value' failed on the 'required' tag")
 
 	terrs := errs.Translate(trans)
 	Equal(t, len(terrs), 1)
