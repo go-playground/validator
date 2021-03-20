@@ -8511,7 +8511,7 @@ func TestTranslations(t *testing.T) {
 	fe = errs[0]
 	Equal(t, fe.Tag(), "gt")
 	Equal(t, fe.Namespace(), "Test2.Value")
-	Equal(t, fe.Translate(trans), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag")
+	Equal(t, fe.Translate(trans), "key: 'Test2.Value', error: field validation for 'Value' failed on the 'gt' tag")
 }
 
 func TestTranslationErrors(t *testing.T) {
