@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
+	fieldErrMsg = "key: '%s', error: field validation for '%s' failed on the '%s' tag"
 )
 
 // ValidationErrorsTranslations is the translation return type
