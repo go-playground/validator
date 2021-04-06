@@ -44,7 +44,7 @@ func main() {
 
 	// register validation for 'User'
 	// NOTE: only have to register a non-pointer type for 'User', validator
-	// interanlly dereferences during it's type checks.
+	// internally dereferences during it's type checks.
 	validate.RegisterStructValidation(UserStructLevelValidation, User{})
 
 	// build 'User' info, normally posted data etc...
