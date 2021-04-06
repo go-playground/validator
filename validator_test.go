@@ -949,6 +949,38 @@ func TestStructPartial(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestPartial.Anonymous.SubAnonStruct[0].Test", "TestPartial.Anonymous.SubAnonStruct[0].Test", "Test", "Test", "required")
 
+	// Test for unnamed struct
+	testStruct := &TestStruct{
+		String: "test",
+	}
+	unnamedStruct := struct {
+		String string `validate:"required" json:"StringVal"`
+	}{String: "test"}
+	composedUnnamedStruct := struct{ *TestStruct }{&TestStruct{String: "test"}}
+
+	errs = validate.StructPartial(testStruct, "String")
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(unnamedStruct, "String")
+	Equal(t, errs, nil)
+
+	errs = validate.StructPartial(composedUnnamedStruct, "TestStruct.String")
+	Equal(t, errs, nil)
+
+	testStruct.String = ""
+	errs = validate.StructPartial(testStruct, "String")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "required")
+
+	unnamedStruct.String = ""
+	errs = validate.StructPartial(unnamedStruct, "String")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "String", "String", "String", "String", "required")
+
+	composedUnnamedStruct.String = ""
+	errs = validate.StructPartial(composedUnnamedStruct, "TestStruct.String")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TestStruct.String", "TestStruct.String", "String", "String", "required")
 }
 
 func TestCrossStructLteFieldValidation(t *testing.T) {

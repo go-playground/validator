@@ -414,7 +414,10 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 		if len(flds) > 0 {
 
 			vd.misc = append(vd.misc[0:0], name...)
-			vd.misc = append(vd.misc, '.')
+			// Don't append empty name for unnamed structs
+			if len(vd.misc) != 0 {
+				vd.misc = append(vd.misc, '.')
+			}
 
 			for _, s := range flds {
 
