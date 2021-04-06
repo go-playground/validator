@@ -1544,7 +1544,7 @@ func requiredWithout(fl FieldLevel) bool {
 	return true
 }
 
-// RequiredWithoutAll is the validation function
+// ExcludedWithoutAll is the validation function
 // The field under validation must not be present or is empty when all of the other specified fields are not present.
 func excludedWithoutAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
