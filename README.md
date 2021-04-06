@@ -53,7 +53,7 @@ validationErrors := err.(validator.ValidationErrors)
 Usage and documentation
 ------
 
-Please see https://godoc.org/github.com/go-playground/validator for detailed usage docs.
+Please see https://pkg.go.dev/github.com/go-playground/validator/v10 for detailed usage docs.
 
 ##### Examples:
 
