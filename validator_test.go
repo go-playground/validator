@@ -4589,6 +4589,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 	i := 1
 	j = 1
 	k = 1.543
+	b := true
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
@@ -4598,6 +4599,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 	i2 := 3
 	j2 = 2
 	k2 = 1.5434456
+	b2 := false
 	arr2 := []string{"test", "test2"}
 	arr3 := []string{"test"}
 	now2 := now
@@ -4612,6 +4614,9 @@ func TestIsNeFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(k2, k, "nefield")
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue(b2, b, "nefield")
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(arr2, arr, "nefield")

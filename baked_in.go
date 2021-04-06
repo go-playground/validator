@@ -791,6 +791,9 @@ func isNeField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) != int64(currentField.Len())
 
+	case reflect.Bool:
+		return field.Bool() != currentField.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
