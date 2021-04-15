@@ -143,6 +143,19 @@ func (v *Validate) SetTagName(name string) {
 	v.tagName = name
 }
 
+// ValidateMapCtx validates a map using a map of validation rules and allows passing of contextual
+// validation validation information via context.Context.
+func (v *Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]string) map[string]error {
+	errs := make(map[string]error)
+	for field, rule := range rules {
+		err := v.VarCtx(ctx, data[field], rule)
+		if err != nil {
+			errs[field] = err
+		}
+	}
+	return errs
+}
+
 // RegisterTagNameFunc registers a function to get alternate names for StructFields.
 //
 // eg. to use the names which have been specified for JSON representations of structs, rather than normal Go field names:
