@@ -156,6 +156,11 @@ func (v *Validate) ValidateMapCtx(ctx context.Context, data map[string]interface
 	return errs
 }
 
+// ValidateMap validates map data form a map of tags
+func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]string) map[string]error {
+	return v.ValidateMapCtx(context.Background(),data,rules)
+}
+
 // RegisterTagNameFunc registers a function to get alternate names for StructFields.
 //
 // eg. to use the names which have been specified for JSON representations of structs, rather than normal Go field names:
