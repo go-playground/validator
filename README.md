@@ -137,6 +137,7 @@ Baked-in Validations
 | printascii | Printable ASCII |
 | startswith | Starts With |
 | uppercase | Uppercase |
+| regex | Regular Expression |
 
 ### Format:
 | Tag | Description |
