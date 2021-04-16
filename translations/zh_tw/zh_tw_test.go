@@ -97,6 +97,7 @@ func TestTranslations(t *testing.T) {
 		Excludes          string    `validate:"excludes=text"`
 		ExcludesAll       string    `validate:"excludesall=!@#$"`
 		ExcludesRune      string    `validate:"excludesrune=☻"`
+		Regex             string    `validate:"regex=[0-9]"`
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
@@ -176,6 +177,7 @@ func TestTranslations(t *testing.T) {
 	test.ExcludesAll = "This is Great!"
 	test.ExcludesRune = "Love it ☻"
 
+	test.Regex = "abctest"
 	test.ASCII = "ｶﾀｶﾅ"
 	test.PrintableASCII = "ｶﾀｶﾅ"
 
@@ -332,6 +334,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ExcludesRune",
 			expected: "ExcludesRune不能包含'☻'",
+		},
+		{
+			ns:       "Test.Regex",
+			expected: "Regex的格式不正確",
 		},
 		{
 			ns:       "Test.ContainsAny",
