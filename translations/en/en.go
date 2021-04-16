@@ -1144,6 +1144,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "regex",
+			translation: "{0} is not in the correct format",
+			override:    false,
+		},
+		{
 			tag:         "isbn",
 			translation: "{0} must be a valid ISBN number",
 			override:    false,
@@ -1325,8 +1330,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag:         "json",
 			translation: "{0} must be a valid json string",
 			override:    false,
-    },
-    {
+		},
+		{
 			tag:         "lowercase",
 			translation: "{0} must be a lowercase string",
 			override:    false,

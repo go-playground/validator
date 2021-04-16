@@ -1136,6 +1136,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "regex",
+			translation: "{0}的格式不正確",
+			override:    false,
+		},
+		{
 			tag:         "isbn",
 			translation: "{0}必须是一个有效的ISBN编号",
 			override:    false,

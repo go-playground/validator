@@ -1139,6 +1139,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "regex",
+			translation: "Format {0} salah",
+			override:    false,
+		},
+		{
 			tag:         "isbn",
 			translation: "{0} harus berupa nomor ISBN yang valid",
 			override:    false,

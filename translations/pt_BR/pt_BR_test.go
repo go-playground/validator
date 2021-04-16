@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	brazilian_portuguese "github.com/go-playground/locales/pt_BR"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	. "github.com/go-playground/assert/v2"
 )
 
 func TestTranslations(t *testing.T) {
@@ -97,6 +97,7 @@ func TestTranslations(t *testing.T) {
 		Excludes          string    `validate:"excludes=text"`
 		ExcludesAll       string    `validate:"excludesall=!@#$"`
 		ExcludesRune      string    `validate:"excludesrune=☻"`
+		Regex             string    `validate:"regex=[0-9]"`
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
@@ -175,6 +176,7 @@ func TestTranslations(t *testing.T) {
 	test.ExcludesAll = "Isso é Ótimo!"
 	test.ExcludesRune = "Amo isso ☻"
 
+	test.Regex = "abctest"
 	test.ASCII = "ｶﾀｶﾅ"
 	test.PrintableASCII = "ｶﾀｶﾅ"
 
@@ -329,6 +331,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ExcludesRune",
 			expected: "ExcludesRune não deve conter '☻'",
+		},
+		{
+			ns:       "Test.Regex",
+			expected: "Regex não está no formato correto",
 		},
 		{
 			ns:       "Test.ContainsAny",
