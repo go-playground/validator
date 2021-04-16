@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -133,6 +134,7 @@ var (
 		"endswith":                endsWith,
 		"startsnotwith":           startsNotWith,
 		"endsnotwith":             endsNotWith,
+		"regex":                   regex,
 		"isbn":                    isISBN,
 		"isbn10":                  isISBN10,
 		"isbn13":                  isISBN13,
@@ -765,6 +767,11 @@ func fieldExcludes(fl FieldLevel) bool {
 	}
 
 	return !strings.Contains(field.String(), currentField.String())
+}
+
+func regex(fl FieldLevel) bool {
+	regex := regexp.MustCompile(fl.Param())
+	return regex.MatchString(fl.Field().String())
 }
 
 // IsNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.

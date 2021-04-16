@@ -1139,6 +1139,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "regex",
+			translation: "{0} is not in the correct format",
+			override:    false,
+		},
+		{
 			tag:         "isbn",
 			translation: "{0} moet een geldig ISBN nummer zijn",
 			override:    false,
