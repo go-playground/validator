@@ -1038,6 +1038,9 @@ func isNeCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) != int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() != field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1085,6 +1088,9 @@ func isEqCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) == int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() == field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1131,6 +1137,9 @@ func isEqField(fl FieldLevel) bool {
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == int64(currentField.Len())
+
+	case reflect.Bool:
+		return field.Bool() == currentField.Bool()
 
 	case reflect.Struct:
 
@@ -1446,6 +1455,9 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == asInt(value)
+
+	case reflect.Bool:
+		return field.Bool() == asBool(value)
 	}
 
 	// default reflect.String:
