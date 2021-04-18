@@ -145,12 +145,19 @@ func (v *Validate) SetTagName(name string) {
 
 // ValidateMapCtx validates a map using a map of validation rules and allows passing of contextual
 // validation validation information via context.Context.
-func (v *Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]string) map[string]error {
-	errs := make(map[string]error)
+func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
+	errs := make(map[string]interface{})
 	for field, rule := range rules {
-		err := v.VarCtx(ctx, data[field], rule)
-		if err != nil {
-			errs[field] = err
+		if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Map {
+			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
+			if len(err) > 0 {
+				errs[field] = err
+			}
+		} else {
+			err := v.VarCtx(ctx, data[field], rule.(string))
+			if err != nil {
+				errs[field] = err
+			}
 		}
 	}
 	return errs
