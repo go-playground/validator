@@ -164,7 +164,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 }
 
 // ValidateMap validates map data form a map of tags
-func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]string) map[string]error {
+func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	return v.ValidateMapCtx(context.Background(),data,rules)
 }
 
