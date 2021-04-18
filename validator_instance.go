@@ -153,6 +153,8 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 			if len(err) > 0 {
 				errs[field] = err
 			}
+		} else if reflect.ValueOf(rule).Kind() == reflect.Map {
+			errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
 		} else {
 			err := v.VarCtx(ctx, data[field], rule.(string))
 			if err != nil {
@@ -165,7 +167,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 
 // ValidateMap validates map data form a map of tags
 func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
-	return v.ValidateMapCtx(context.Background(),data,rules)
+	return v.ValidateMapCtx(context.Background(), data, rules)
 }
 
 // RegisterTagNameFunc registers a function to get alternate names for StructFields.
