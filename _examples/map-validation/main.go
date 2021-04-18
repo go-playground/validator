@@ -19,7 +19,7 @@ func validateMap() {
 	// Every rule will be applied to the item of the data that the offset of rule is pointing to.
 	// So if you have a field "email": "omitempty,required,email", the validator will apply these
 	// rules to offset of email in user data
-	rules := map[string]string{"name": "required,min=8,max=32", "email": "omitempty,required,email"}
+	rules := map[string]interface{}{"name": "required,min=8,max=32", "email": "omitempty,required,email"}
 
 	// ValidateMap will return map[string]error.
 	// The offset of every item in errs is the name of invalid field and the value
