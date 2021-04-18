@@ -11,6 +11,7 @@ func main() {
 	validate = validator.New()
 
 	validateMap()
+	validateNestedMap()
 }
 
 func validateMap() {
@@ -34,4 +35,39 @@ func validateMap() {
 	}
 
 	// The user is valid
+}
+
+func validateNestedMap() {
+
+	data := map[string]interface{}{
+		"name":  "Arshiya Kiani",
+		"email": "zytel3301@gmail.com",
+		"details": map[string]interface{}{
+			"family_members": map[string]interface{}{
+				"father_name": "Micheal",
+				"mother_name": "Hannah",
+			},
+			"salary": "1000",
+		},
+	}
+
+	// Rules must be set as the structure as the data itself. If you want to dive into the
+	// map, just declare its rules as a map
+	rules := map[string]interface{}{
+		"name":  "min=4,max=32",
+		"email": "required,email",
+		"details": map[string]interface{}{
+			"family_members": map[string]interface{}{
+				"father_name": "required,min=4,max=32",
+				"mother_name": "required,min=4,max=32",
+			},
+			"salary": "number",
+		},
+	}
+
+	if len(validate.ValidateMap(data, rules)) == 0 {
+		// Data is valid
+	}
+
+	// Data is invalid
 }
