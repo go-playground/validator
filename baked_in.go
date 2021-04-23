@@ -190,6 +190,7 @@ var (
 		"iso3166_1_alpha3":        isIso3166Alpha3,
 		"iso3166_1_alpha_numeric": isIso3166AlphaNumeric,
 		"bcp47_language_tag":      isBCP47LanguageTag,
+		"bic":                     isIsoBicFormat,
 	}
 )
 
@@ -2299,4 +2300,15 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isIsoBicFormat is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
+func isIsoBicFormat(fl FieldLevel) bool {
+	bicString := fl.Field().String()
+
+	if !bicRegex.MatchString(bicString) {
+		return false
+	}
+
+	return true
 }

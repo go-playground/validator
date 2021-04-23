@@ -11201,3 +11201,44 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 		_ = validate.Var(2, "bcp47_language_tag")
 	}, "Bad field type int")
 }
+
+func TestBicIsoFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"bic"`
+		tag      string
+		expected bool
+	}{
+		{"SBICKEN1345", "bic", true},
+		{"SBICKEN1", "bic", true},
+		{"SBICKENY", "bic", true},
+		{"SBICKEN1YYP", "bic", true},
+		{"SBIC23NXXX", "bic", false},
+		{"S23CKENXXXX", "bic", false},
+		{"SBICKENXX", "bic", false},
+		{"SBICKENXX9", "bic", false},
+		{"SBICKEN13458", "bic", false},
+		{"SBICKEN", "bic", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bic" {
+					t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
