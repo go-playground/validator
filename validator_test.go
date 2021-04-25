@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-playground/assert/v2"
 	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
@@ -108,7 +109,6 @@ type TestSlice struct {
 }
 
 func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag string) {
-
 	errs := err.(ValidationErrors)
 
 	found := false
@@ -150,7 +150,6 @@ func AssertDeepError(t *testing.T, err error, nsKey, structNsKey, field, structF
 }
 
 func getError(err error, nsKey, structNsKey string) FieldError {
-
 	errs := err.(ValidationErrors)
 
 	var fe FieldError
@@ -170,7 +169,6 @@ type valuer struct {
 }
 
 func (v valuer) Value() (driver.Value, error) {
-
 	if v.Name == "errorme" {
 		panic("SQL Driver Valuer error: some kind of error")
 		// return nil, errors.New("some kind of error")
@@ -189,7 +187,6 @@ type MadeUpCustomType struct {
 }
 
 func ValidateCustomType(field reflect.Value) interface{} {
-
 	if cust, ok := field.Interface().(MadeUpCustomType); ok {
 
 		if len(cust.FirstName) == 0 || len(cust.LastName) == 0 {
@@ -203,7 +200,6 @@ func ValidateCustomType(field reflect.Value) interface{} {
 }
 
 func OverrideIntTypeForSomeReason(field reflect.Value) interface{} {
-
 	if i, ok := field.Interface().(int); ok {
 		if i == 1 {
 			return "1"
@@ -223,7 +219,6 @@ type CustomMadeUpStruct struct {
 }
 
 func ValidateValuerType(field reflect.Value) interface{} {
-
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
 
 		val, err := valuer.Value()
@@ -261,7 +256,6 @@ type TestStruct struct {
 }
 
 func StructValidationTestStructSuccess(sl StructLevel) {
-
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "good value" {
@@ -270,7 +264,6 @@ func StructValidationTestStructSuccess(sl StructLevel) {
 }
 
 func StructValidationTestStruct(sl StructLevel) {
-
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
@@ -279,7 +272,6 @@ func StructValidationTestStruct(sl StructLevel) {
 }
 
 func StructValidationNoTestStructCustomName(sl StructLevel) {
-
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
@@ -288,7 +280,6 @@ func StructValidationNoTestStructCustomName(sl StructLevel) {
 }
 
 func StructValidationTestStructInvalid(sl StructLevel) {
-
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
@@ -297,7 +288,6 @@ func StructValidationTestStructInvalid(sl StructLevel) {
 }
 
 func StructValidationTestStructReturnValidationErrors(sl StructLevel) {
-
 	s := sl.Current().Interface().(TestStructReturnValidationErrors)
 
 	errs := sl.Validator().Struct(s.Inner1.Inner2)
@@ -309,7 +299,6 @@ func StructValidationTestStructReturnValidationErrors(sl StructLevel) {
 }
 
 func StructValidationTestStructReturnValidationErrors2(sl StructLevel) {
-
 	s := sl.Current().Interface().(TestStructReturnValidationErrors)
 
 	errs := sl.Validator().Struct(s.Inner1.Inner2)
@@ -337,7 +326,6 @@ type StructLevelInvalidErr struct {
 }
 
 func StructLevelInvalidError(sl StructLevel) {
-
 	top := sl.Top().Interface().(StructLevelInvalidErr)
 	s := sl.Current().Interface().(StructLevelInvalidErr)
 
@@ -359,7 +347,6 @@ func float64Ptr(v float64) *float64 {
 }
 
 func TestStructLevelInvalidError(t *testing.T) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructLevelInvalidError, StructLevelInvalidErr{})
 
@@ -383,7 +370,6 @@ func TestStructLevelInvalidError(t *testing.T) {
 }
 
 func TestNameNamespace(t *testing.T) {
-
 	type Inner2Namespace struct {
 		String []string `validate:"dive,required" json:"JSONString"`
 	}
@@ -432,7 +418,6 @@ func TestNameNamespace(t *testing.T) {
 }
 
 func TestAnonymous(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -500,7 +485,6 @@ func TestAnonymous(t *testing.T) {
 }
 
 func TestAnonymousSameStructDifferentTags(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -545,7 +529,6 @@ func TestAnonymousSameStructDifferentTags(t *testing.T) {
 }
 
 func TestStructLevelReturnValidationErrors(t *testing.T) {
-
 	validate := New()
 	validate.RegisterStructValidation(StructValidationTestStructReturnValidationErrors, TestStructReturnValidationErrors{})
 
@@ -575,7 +558,6 @@ func TestStructLevelReturnValidationErrors(t *testing.T) {
 }
 
 func TestStructLevelReturnValidationErrorsWithJSON(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -632,7 +614,6 @@ func TestStructLevelReturnValidationErrorsWithJSON(t *testing.T) {
 }
 
 func TestStructLevelValidations(t *testing.T) {
-
 	v1 := New()
 	v1.RegisterStructValidation(StructValidationTestStruct, TestStruct{})
 
@@ -666,7 +647,6 @@ func TestStructLevelValidations(t *testing.T) {
 }
 
 func TestAliasTags(t *testing.T) {
-
 	validate := New()
 	validate.RegisterAlias("iscoloralias", "hexcolor|rgb|rgba|hsl|hsla")
 
@@ -714,7 +694,6 @@ func TestAliasTags(t *testing.T) {
 }
 
 func TestNilValidator(t *testing.T) {
-
 	type TestStruct struct {
 		Test string `validate:"required"`
 	}
@@ -724,7 +703,6 @@ func TestNilValidator(t *testing.T) {
 	var val *Validate
 
 	fn := func(fl FieldLevel) bool {
-
 		return fl.Parent().String() == fl.Field().String()
 	}
 
@@ -1960,7 +1938,6 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 }
 
 func TestCrossNamespaceFieldValidation(t *testing.T) {
-
 	type SliceStruct struct {
 		Name string
 	}
@@ -2198,7 +2175,6 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 }
 
 func TestExistsValidation(t *testing.T) {
-
 	jsonText := "{ \"truthiness2\": true }"
 
 	type Thing struct {
@@ -2229,7 +2205,6 @@ func TestExistsValidation(t *testing.T) {
 }
 
 func TestSQLValue2Validation(t *testing.T) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, valuer{}, (*driver.Valuer)(nil), sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})
 	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
@@ -2280,7 +2255,6 @@ func TestSQLValue2Validation(t *testing.T) {
 }
 
 func TestSQLValueValidation(t *testing.T) {
-
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, (*driver.Valuer)(nil), valuer{})
 	validate.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{})
@@ -2958,7 +2932,6 @@ func TestUnixAddrValidation(t *testing.T) {
 }
 
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
-
 	validate := New()
 
 	var m map[string]string
@@ -3036,7 +3009,6 @@ func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 }
 
 func TestDatePtrValidationIssueValidation(t *testing.T) {
-
 	type Test struct {
 		LastViewed *time.Time
 		Reminder   *time.Time
@@ -3088,7 +3060,6 @@ func TestBadKeyValidation(t *testing.T) {
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
-
 	var v2 interface{} = 1
 	var v1 interface{} = v2
 
@@ -3262,7 +3233,6 @@ func TestInterfaceErrValidation(t *testing.T) {
 }
 
 func TestMapDiveValidation(t *testing.T) {
-
 	validate := New()
 
 	n := map[int]interface{}{0: nil}
@@ -3385,7 +3355,6 @@ func TestMapDiveValidation(t *testing.T) {
 }
 
 func TestArrayDiveValidation(t *testing.T) {
-
 	validate := New()
 
 	arr := []string{"ok", "", "ok"}
@@ -4394,7 +4363,6 @@ func TestISBN10Validation(t *testing.T) {
 }
 
 func TestExcludesRuneValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"excludesrune=☻"`
 		Tag         string
@@ -4422,7 +4390,6 @@ func TestExcludesRuneValidation(t *testing.T) {
 }
 
 func TestExcludesAllValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"excludesall=@!{}[]"`
 		Tag         string
@@ -4468,7 +4435,6 @@ func TestExcludesAllValidation(t *testing.T) {
 }
 
 func TestExcludesValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"excludes=@"`
 		Tag         string
@@ -4496,7 +4462,6 @@ func TestExcludesValidation(t *testing.T) {
 }
 
 func TestContainsRuneValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"containsrune=☻"`
 		Tag         string
@@ -4524,7 +4489,6 @@ func TestContainsRuneValidation(t *testing.T) {
 }
 
 func TestContainsAnyValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"containsany=@!{}[]"`
 		Tag         string
@@ -4552,7 +4516,6 @@ func TestContainsAnyValidation(t *testing.T) {
 }
 
 func TestContainsValidation(t *testing.T) {
-
 	tests := []struct {
 		Value       string `validate:"contains=@"`
 		Tag         string
@@ -5133,7 +5096,6 @@ func TestOneOfValidation(t *testing.T) {
 }
 
 func TestBase64Validation(t *testing.T) {
-
 	validate := New()
 
 	s := "dW5pY29ybg=="
@@ -5237,7 +5199,6 @@ func TestFileValidation(t *testing.T) {
 }
 
 func TestEthereumAddressValidation(t *testing.T) {
-
 	validate := New()
 
 	tests := []struct {
@@ -5291,7 +5252,6 @@ func TestEthereumAddressValidation(t *testing.T) {
 }
 
 func TestBitcoinAddressValidation(t *testing.T) {
-
 	validate := New()
 
 	tests := []struct {
@@ -5401,7 +5361,6 @@ func TestBitcoinAddressValidation(t *testing.T) {
 }
 
 func TestBitcoinBech32AddressValidation(t *testing.T) {
-
 	validate := New()
 
 	tests := []struct {
@@ -5452,7 +5411,6 @@ func TestBitcoinBech32AddressValidation(t *testing.T) {
 }
 
 func TestNoStructLevelValidation(t *testing.T) {
-
 	type Inner struct {
 		Test string `validate:"len=5"`
 	}
@@ -5484,7 +5442,6 @@ func TestNoStructLevelValidation(t *testing.T) {
 }
 
 func TestStructOnlyValidation(t *testing.T) {
-
 	type Inner struct {
 		Test string `validate:"len=5"`
 	}
@@ -6550,7 +6507,6 @@ func TestValidateByTagAndValue(t *testing.T) {
 	Equal(t, errs, nil)
 
 	fn := func(fl FieldLevel) bool {
-
 		return fl.Parent().String() == fl.Field().String()
 	}
 
@@ -6568,9 +6524,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 }
 
 func TestAddFunctions(t *testing.T) {
-
 	fn := func(fl FieldLevel) bool {
-
 		return true
 	}
 
@@ -6599,7 +6553,6 @@ func TestAddFunctions(t *testing.T) {
 }
 
 func TestChangeTag(t *testing.T) {
-
 	validate := New()
 	validate.SetTagName("val")
 
@@ -7246,8 +7199,7 @@ func TestIsLte(t *testing.T) {
 }
 
 func TestUrnRFC2141(t *testing.T) {
-
-	var tests = []struct {
+	tests := []struct {
 		param    string
 		expected bool
 	}{
@@ -7323,8 +7275,7 @@ func TestUrnRFC2141(t *testing.T) {
 }
 
 func TestUrl(t *testing.T) {
-
-	var tests = []struct {
+	tests := []struct {
 		param    string
 		expected bool
 	}{
@@ -7391,8 +7342,7 @@ func TestUrl(t *testing.T) {
 }
 
 func TestUri(t *testing.T) {
-
-	var tests = []struct {
+	tests := []struct {
 		param    string
 		expected bool
 	}{
@@ -7458,7 +7408,6 @@ func TestUri(t *testing.T) {
 }
 
 func TestOrTag(t *testing.T) {
-
 	validate := New()
 
 	s := "rgba(0,31,255,0.5)"
@@ -7488,7 +7437,7 @@ func TestOrTag(t *testing.T) {
 	Equal(t, errs, nil)
 
 	s = "green"
-	errs = validate.Var(s, "eq=|eq=blue,rgb|rgba") //should fail on first validation block
+	errs = validate.Var(s, "eq=|eq=blue,rgb|rgba") // should fail on first validation block
 	NotEqual(t, errs, nil)
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 1)
@@ -7501,7 +7450,6 @@ func TestOrTag(t *testing.T) {
 
 	v2 := New()
 	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
-
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 
 		if name == "-" {
@@ -7526,7 +7474,6 @@ func TestOrTag(t *testing.T) {
 }
 
 func TestHsla(t *testing.T) {
-
 	validate := New()
 
 	s := "hsla(360,100%,100%,1)"
@@ -7573,7 +7520,6 @@ func TestHsla(t *testing.T) {
 }
 
 func TestHsl(t *testing.T) {
-
 	validate := New()
 
 	s := "hsl(360,100%,50%)"
@@ -7611,7 +7557,6 @@ func TestHsl(t *testing.T) {
 }
 
 func TestRgba(t *testing.T) {
-
 	validate := New()
 
 	s := "rgba(0,31,255,0.5)"
@@ -7657,7 +7602,6 @@ func TestRgba(t *testing.T) {
 }
 
 func TestRgb(t *testing.T) {
-
 	validate := New()
 
 	s := "rgb(0,31,255)"
@@ -7699,7 +7643,6 @@ func TestRgb(t *testing.T) {
 }
 
 func TestEmail(t *testing.T) {
-
 	validate := New()
 
 	s := "test@mail.com"
@@ -7767,7 +7710,6 @@ func TestEmail(t *testing.T) {
 }
 
 func TestHexColor(t *testing.T) {
-
 	validate := New()
 
 	s := "#fff"
@@ -7795,7 +7737,6 @@ func TestHexColor(t *testing.T) {
 }
 
 func TestHexadecimal(t *testing.T) {
-
 	validate := New()
 
 	s := "ff0044"
@@ -7822,7 +7763,6 @@ func TestHexadecimal(t *testing.T) {
 }
 
 func TestNumber(t *testing.T) {
-
 	validate := New()
 
 	s := "1"
@@ -7870,7 +7810,6 @@ func TestNumber(t *testing.T) {
 }
 
 func TestNumeric(t *testing.T) {
-
 	validate := New()
 
 	s := "1"
@@ -7913,7 +7852,6 @@ func TestNumeric(t *testing.T) {
 }
 
 func TestAlphaNumeric(t *testing.T) {
-
 	validate := New()
 
 	s := "abcd123"
@@ -7931,7 +7869,6 @@ func TestAlphaNumeric(t *testing.T) {
 }
 
 func TestAlpha(t *testing.T) {
-
 	validate := New()
 
 	s := "abcd"
@@ -7961,11 +7898,9 @@ func TestAlpha(t *testing.T) {
 	errs = validate.Var(1, "alpha")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alpha")
-
 }
 
 func TestStructStringValidation(t *testing.T) {
-
 	validate := New()
 
 	tSuccess := &TestString{
@@ -8047,7 +7982,6 @@ func TestStructStringValidation(t *testing.T) {
 }
 
 func TestStructInt32Validation(t *testing.T) {
-
 	type TestInt32 struct {
 		Required  int `validate:"required"`
 		Len       int `validate:"len=10"`
@@ -8111,7 +8045,6 @@ func TestStructInt32Validation(t *testing.T) {
 }
 
 func TestStructUint64Validation(t *testing.T) {
-
 	validate := New()
 
 	tSuccess := &TestUint64{
@@ -8151,7 +8084,6 @@ func TestStructUint64Validation(t *testing.T) {
 }
 
 func TestStructFloat64Validation(t *testing.T) {
-
 	validate := New()
 
 	tSuccess := &TestFloat64{
@@ -8191,7 +8123,6 @@ func TestStructFloat64Validation(t *testing.T) {
 }
 
 func TestStructSliceValidation(t *testing.T) {
-
 	validate := New()
 
 	tSuccess := &TestSlice{
@@ -8241,11 +8172,9 @@ func TestStructSliceValidation(t *testing.T) {
 
 	_, ok := fe.Value().([]int)
 	Equal(t, ok, true)
-
 }
 
 func TestInvalidStruct(t *testing.T) {
-
 	validate := New()
 
 	s := &SubTest{
@@ -8270,7 +8199,6 @@ func TestInvalidStruct(t *testing.T) {
 }
 
 func TestInvalidValidatorFunction(t *testing.T) {
-
 	validate := New()
 
 	s := &SubTest{
@@ -8281,7 +8209,6 @@ func TestInvalidValidatorFunction(t *testing.T) {
 }
 
 func TestCustomFieldName(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("schema"), ",", 2)[0]
@@ -8325,7 +8252,6 @@ func TestCustomFieldName(t *testing.T) {
 }
 
 func TestMutipleRecursiveExtractStructCache(t *testing.T) {
-
 	validate := New()
 
 	type Recursive struct {
@@ -8342,7 +8268,6 @@ func TestMutipleRecursiveExtractStructCache(t *testing.T) {
 	ptr := fmt.Sprintf("%p", sc)
 
 	for i := 0; i < 100; i++ {
-
 		go func() {
 			<-proceed
 			sc := validate.extractStructCache(current, name)
@@ -8355,7 +8280,6 @@ func TestMutipleRecursiveExtractStructCache(t *testing.T) {
 
 // Thanks @robbrockbank, see https://github.com/go-playground/validator/issues/249
 func TestPointerAndOmitEmpty(t *testing.T) {
-
 	validate := New()
 
 	type Test struct {
@@ -8401,7 +8325,6 @@ func TestPointerAndOmitEmpty(t *testing.T) {
 }
 
 func TestRequired(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -8425,7 +8348,6 @@ func TestRequired(t *testing.T) {
 }
 
 func TestBoolEqual(t *testing.T) {
-
 	validate := New()
 
 	type Test struct {
@@ -8453,16 +8375,13 @@ func TestTranslations(t *testing.T) {
 	validate := New()
 	err := validate.RegisterTranslation("required", trans,
 		func(ut ut.Translator) (err error) {
-
 			// using this stype because multiple translation may have to be added for the full translation
 			if err = ut.Add("required", "{0} is a required field", false); err != nil {
 				return
 			}
 
 			return
-
 		}, func(ut ut.Translator, fe FieldError) string {
-
 			t, err := ut.T(fe.Tag(), fe.Field())
 			if err != nil {
 				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
@@ -8475,16 +8394,13 @@ func TestTranslations(t *testing.T) {
 
 	err = validate.RegisterTranslation("required", fr,
 		func(ut ut.Translator) (err error) {
-
 			// using this stype because multiple translation may have to be added for the full translation
 			if err = ut.Add("required", "{0} est un champ obligatoire", false); err != nil {
 				return
 			}
 
 			return
-
 		}, func(ut ut.Translator, fe FieldError) string {
-
 			t, transErr := ut.T(fe.Tag(), fe.Field())
 			if transErr != nil {
 				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
@@ -8562,16 +8478,13 @@ func TestTranslationErrors(t *testing.T) {
 	validate := New()
 	err = validate.RegisterTranslation("required", trans,
 		func(ut ut.Translator) (err error) {
-
 			// using this stype because multiple translation may have to be added for the full translation
 			if err = ut.Add("required", "{0} is a required field", false); err != nil {
 				return
 			}
 
 			return
-
 		}, func(ut ut.Translator, fe FieldError) string {
-
 			t, err := ut.T(fe.Tag(), fe.Field())
 			if err != nil {
 				fmt.Printf("warning: error translating FieldError: %#v", fe.(*fieldError))
@@ -8586,7 +8499,6 @@ func TestTranslationErrors(t *testing.T) {
 }
 
 func TestStructFiltered(t *testing.T) {
-
 	p1 := func(ns []byte) bool {
 		if bytes.HasSuffix(ns, []byte("NoTag")) || bytes.HasSuffix(ns, []byte("Required")) {
 			return false
@@ -8752,7 +8664,6 @@ func TestStructFiltered(t *testing.T) {
 }
 
 func TestRequiredPtr(t *testing.T) {
-
 	type Test struct {
 		Bool *bool `validate:"required"`
 	}
@@ -8886,7 +8797,6 @@ func TestAlphaUnicodeValidation(t *testing.T) {
 }
 
 func TestAlphanumericUnicodeValidation(t *testing.T) {
-
 	tests := []struct {
 		param    string
 		expected bool
@@ -8929,7 +8839,6 @@ func TestAlphanumericUnicodeValidation(t *testing.T) {
 }
 
 func TestArrayStructNamespace(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -8958,7 +8867,6 @@ func TestArrayStructNamespace(t *testing.T) {
 }
 
 func TestMapStructNamespace(t *testing.T) {
-
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -9639,7 +9547,6 @@ func TestURLEncodedValidation(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-
 	type Test struct {
 		Test1 map[string]string `validate:"gt=0,dive,keys,eq=testkey,endkeys,eq=testval" json:"test1"`
 		Test2 map[int]int       `validate:"gt=0,dive,keys,eq=3,endkeys,eq=4"             json:"test2"`
@@ -9808,7 +9715,6 @@ func TestKeysCustomValidation(t *testing.T) {
 }
 
 func TestKeyOrs(t *testing.T) {
-
 	type Test struct {
 		Test1 map[string]string `validate:"gt=0,dive,keys,eq=testkey|eq=testkeyok,endkeys,eq=testval" json:"test1"`
 	}
@@ -10580,7 +10486,6 @@ func TestRequiredWithAll(t *testing.T) {
 }
 
 func TestRequiredWithout(t *testing.T) {
-
 	type Inner struct {
 		Field *string
 	}
@@ -10646,7 +10551,6 @@ func TestRequiredWithout(t *testing.T) {
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
-
 	fieldVal := "test"
 	test := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -10703,7 +10607,6 @@ func TestLookup(t *testing.T) {
 }
 
 func TestAbilityToValidateNils(t *testing.T) {
-
 	type TestStruct struct {
 		Test *string `validate:"nil"`
 	}
@@ -10845,7 +10748,6 @@ func TestJSONValidation(t *testing.T) {
 }
 
 func Test_hostnameport_validator(t *testing.T) {
-
 	type Host struct {
 		Addr string `validate:"hostname_port"`
 	}
@@ -10947,7 +10849,6 @@ func TestUppercaseValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "uppercase")
 	}, "Bad field type int")
-
 }
 
 func TestDatetimeValidation(t *testing.T) {
@@ -11200,4 +11101,116 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "bcp47_language_tag")
 	}, "Bad field type int")
+}
+
+func TestPostCodeByIso3166Alpha2(t *testing.T) {
+	tests := map[string][]struct {
+		value    string
+		expected bool
+	}{
+		"VN": {
+			{"ABC", false},
+			{"700000", true},
+			{"A1", false},
+		},
+		"GB": {
+			{"EC1A 1BB", true},
+			{"CF10 1B1H", false},
+		},
+		"VI": {
+			{"00803", true},
+			{"1234567", false},
+		},
+		"LC": { // not support regexp for post code
+			{"123456", false},
+		},
+		"XX": { // not support country
+			{"123456", false},
+		},
+	}
+
+	validate := New()
+
+	for cc, ccTests := range tests {
+		for i, test := range ccTests {
+			errs := validate.Var(test.value, fmt.Sprintf("postcode_iso3166_alpha2=%s", cc))
+
+			if test.expected {
+				if !IsEqual(errs, nil) {
+					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
+				}
+			} else {
+				if IsEqual(errs, nil) {
+					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+		CountryCode interface{}
+		expected    bool
+	}{
+		{"ABC", "VN", false},
+		{"700000", "VN", true},
+		{"A1", "VN", false},
+		{"EC1A 1BB", "GB", true},
+		{"CF10 1B1H", "GB", false},
+		{"00803", "VI", true},
+		{"1234567", "VI", false},
+		{"123456", "LC", false}, // not support regexp for post code
+		{"123456", "XX", false}, // not support country
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
+	type test struct {
+		Value        string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+		CountryCode1 interface{}
+		expected     bool
+	}
+
+	errs := New().Struct(test{"ABC", "VN", false})
+	assert.NotEqual(t, nil, errs)
+}
+
+func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
+	type test struct {
+		Value        string `validate:"postcode_iso3166_alpha2_field="`
+		CountryCode1 interface{}
+		expected     bool
+	}
+
+	errs := New().Struct(test{"ABC", "VN", false})
+	assert.NotEqual(t, nil, errs)
+}
+
+func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
+	type test struct {
+		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+		CountryCode interface{}
+		expected    bool
+	}
+	defer func() { recover() }()
+
+	_ = New().Struct(test{"ABC", 123, false})
+	t.Errorf("Didn't panic as expected")
 }
