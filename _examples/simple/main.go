@@ -90,10 +90,10 @@ func validateVariable() {
 
 	myEmail := "joeybloggs.gmail.com"
 
-	errs := validate.Var(myEmail, "required,email")
+	err := validate.Var(myEmail, "required,email")
 
-	if errs != nil {
-		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "email" tag
+	if err != nil {
+		fmt.Println(err) // output: Key: "" Error:Field validation for "" failed on the "email" tag
 		return
 	}
 
