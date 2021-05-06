@@ -192,6 +192,7 @@ var (
 		"bcp47_language_tag":            isBCP47LanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
+    "bic":                           isIsoBicFormat,
 	}
 )
 
@@ -1040,6 +1041,9 @@ func isNeCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) != int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() != field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1087,6 +1091,9 @@ func isEqCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) == int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() == field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1133,6 +1140,9 @@ func isEqField(fl FieldLevel) bool {
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == int64(currentField.Len())
+
+	case reflect.Bool:
+		return field.Bool() == currentField.Bool()
 
 	case reflect.Struct:
 
@@ -1491,6 +1501,9 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == asInt(value)
+
+	case reflect.Bool:
+		return field.Bool() == asBool(value)
 	}
 
 	// default reflect.String:
@@ -2344,4 +2357,15 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isIsoBicFormat is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
+func isIsoBicFormat(fl FieldLevel) bool {
+	bicString := fl.Field().String()
+
+	if !bicRegex.MatchString(bicString) {
+		return false
+	}
+
+	return true
 }

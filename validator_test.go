@@ -1648,12 +1648,14 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	i := 1
 	j = 1
 	k = 1.543
+	b := true
 	arr := []string{"test"}
 
 	s2 := "abcd"
 	i2 := 1
 	j2 = 1
 	k2 = 1.543
+	b2 := true
 	arr2 := []string{"test"}
 	arr3 := []string{"test", "test2"}
 	now2 := now
@@ -1671,6 +1673,10 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "necsfield")
 
 	errs = validate.VarWithValue(k2, k, "necsfield")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "necsfield")
+
+	errs = validate.VarWithValue(b2, b, "necsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "necsfield")
 
@@ -1812,6 +1818,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	i := 1
 	j = 1
 	k = 1.543
+	b := true
 	arr := []string{"test"}
 
 	var j2 uint64
@@ -1820,6 +1827,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	i2 := 1
 	j2 = 1
 	k2 = 1.543
+	b2 := true
 	arr2 := []string{"test"}
 	arr3 := []string{"test", "test2"}
 	now2 := now
@@ -1834,6 +1842,9 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(k2, k, "eqcsfield")
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue(b2, b, "eqcsfield")
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(arr2, arr, "eqcsfield")
@@ -4792,6 +4803,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 	i := 1
 	j = 1
 	k = 1.543
+	b := true
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
@@ -4801,6 +4813,7 @@ func TestIsEqFieldValidation(t *testing.T) {
 	i2 := 1
 	j2 = 1
 	k2 = 1.543
+	b2 := true
 	arr2 := []string{"test"}
 	arr3 := []string{"test", "test2"}
 	now2 := now
@@ -4815,6 +4828,9 @@ func TestIsEqFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(k2, k, "eqfield")
+	Equal(t, errs, nil)
+
+	errs = validate.VarWithValue(b2, b, "eqfield")
 	Equal(t, errs, nil)
 
 	errs = validate.VarWithValue(arr2, arr, "eqfield")
@@ -9971,12 +9987,15 @@ func TestRequiredUnless(t *testing.T) {
 		Field6  uint              `validate:"required_unless=Field5 2" json:"field_6"`
 		Field7  float32           `validate:"required_unless=Field6 0" json:"field_7"`
 		Field8  float64           `validate:"required_unless=Field7 0.0" json:"field_8"`
+		Field9  bool              `validate:"omitempty" json:"field_9"`
+		Field10 string            `validate:"required_unless=Field9 true" json:"field_10"`
 	}{
 		FieldE: "test",
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: 2,
+		Field9: true,
 	}
 
 	validate := New()
@@ -9996,6 +10015,8 @@ func TestRequiredUnless(t *testing.T) {
 		Field5  string            `validate:"required_unless=Field3 0" json:"field_5"`
 		Field6  string            `validate:"required_unless=Inner.Field test" json:"field_6"`
 		Field7  string            `validate:"required_unless=Inner2.Field test" json:"field_7"`
+		Field8  bool              `validate:"omitempty" json:"field_8"`
+		Field9  string            `validate:"required_unless=Field8 true" json:"field_9"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		FieldE: "test",
@@ -10006,10 +10027,11 @@ func TestRequiredUnless(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 3)
+	Equal(t, len(ve), 4)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_unless")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_unless")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_unless")
+	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_unless")
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -11103,114 +11125,155 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestBicIsoFormatValidation(t *testing.T) {
+ 	tests := []struct {
+ 		value    string `validate:"bic"`
+ 		tag      string
+ 		expected bool
+ 	}{
+ 		{"SBICKEN1345", "bic", true},
+ 		{"SBICKEN1", "bic", true},
+ 		{"SBICKENY", "bic", true},
+ 		{"SBICKEN1YYP", "bic", true},
+ 		{"SBIC23NXXX", "bic", false},
+ 		{"S23CKENXXXX", "bic", false},
+ 		{"SBICKENXX", "bic", false},
+ 		{"SBICKENXX9", "bic", false},
+ 		{"SBICKEN13458", "bic", false},
+ 		{"SBICKEN", "bic", false},
+ 	}
+
+ 	validate := New()
+
+ 	for i, test := range tests {
+
+ 		errs := validate.Var(test.value, test.tag)
+
+ 		if test.expected {
+ 			if !IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+ 			}
+ 		} else {
+ 			if IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+ 			} else {
+ 				val := getError(errs, "", "")
+ 				if val.Tag() != "bic" {
+ 					t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+ 				}
+ 			}
+ 		}
+ 	}
+ }
+
 func TestPostCodeByIso3166Alpha2(t *testing.T) {
-	tests := map[string][]struct {
-		value    string
-		expected bool
-	}{
-		"VN": {
-			{"ABC", false},
-			{"700000", true},
-			{"A1", false},
-		},
-		"GB": {
-			{"EC1A 1BB", true},
-			{"CF10 1B1H", false},
-		},
-		"VI": {
-			{"00803", true},
-			{"1234567", false},
-		},
-		"LC": { // not support regexp for post code
-			{"123456", false},
-		},
-		"XX": { // not support country
-			{"123456", false},
-		},
-	}
+ 	tests := map[string][]struct {
+ 		value    string
+ 		expected bool
+ 	}{
+ 		"VN": {
+ 			{"ABC", false},
+ 			{"700000", true},
+ 			{"A1", false},
+ 		},
+ 		"GB": {
+ 			{"EC1A 1BB", true},
+ 			{"CF10 1B1H", false},
+ 		},
+ 		"VI": {
+ 			{"00803", true},
+ 			{"1234567", false},
+ 		},
+ 		"LC": { // not support regexp for post code
+ 			{"123456", false},
+ 		},
+ 		"XX": { // not support country
+ 			{"123456", false},
+ 		},
+ 	}
 
-	validate := New()
+ 	validate := New()
 
-	for cc, ccTests := range tests {
-		for i, test := range ccTests {
-			errs := validate.Var(test.value, fmt.Sprintf("postcode_iso3166_alpha2=%s", cc))
+ 	for cc, ccTests := range tests {
+ 		for i, test := range ccTests {
+ 			errs := validate.Var(test.value, fmt.Sprintf("postcode_iso3166_alpha2=%s", cc))
 
-			if test.expected {
-				if !IsEqual(errs, nil) {
-					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
-				}
-			} else {
-				if IsEqual(errs, nil) {
-					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
-				}
-			}
-		}
-	}
-}
+ 			if test.expected {
+ 				if !IsEqual(errs, nil) {
+ 					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
+ 				}
+ 			} else {
+ 				if IsEqual(errs, nil) {
+ 					t.Fatalf("Index: %d postcode_iso3166_alpha2=%s failed Error: %s", i, cc, errs)
+ 				}
+ 			}
+ 		}
+ 	}
+ }
 
-func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
-	tests := []struct {
-		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode interface{}
-		expected    bool
-	}{
-		{"ABC", "VN", false},
-		{"700000", "VN", true},
-		{"A1", "VN", false},
-		{"EC1A 1BB", "GB", true},
-		{"CF10 1B1H", "GB", false},
-		{"00803", "VI", true},
-		{"1234567", "VI", false},
-		{"123456", "LC", false}, // not support regexp for post code
-		{"123456", "XX", false}, // not support country
-	}
+ func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
+ 	tests := []struct {
+ 		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+ 		CountryCode interface{}
+ 		expected    bool
+ 	}{
+ 		{"ABC", "VN", false},
+ 		{"700000", "VN", true},
+ 		{"A1", "VN", false},
+ 		{"EC1A 1BB", "GB", true},
+ 		{"CF10 1B1H", "GB", false},
+ 		{"00803", "VI", true},
+ 		{"1234567", "VI", false},
+ 		{"123456", "LC", false}, // not support regexp for post code
+ 		{"123456", "XX", false}, // not support country
+ 	}
 
-	validate := New()
+ 	validate := New()
 
-	for i, test := range tests {
-		errs := validate.Struct(test)
-		if test.expected {
-			if !IsEqual(errs, nil) {
-				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
-			}
-		} else {
-			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
-			}
-		}
-	}
-}
+ 	for i, test := range tests {
+ 		errs := validate.Struct(test)
+ 		if test.expected {
+ 			if !IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
+ 			}
+ 		} else {
+ 			if IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d postcode_iso3166_alpha2_field=CountryCode failed Error: %s", i, errs)
+ 			}
+ 		}
+ 	}
+ }
 
-func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
-	type test struct {
-		Value        string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode1 interface{}
-		expected     bool
-	}
+ func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
+ 	type test struct {
+ 		Value        string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+ 		CountryCode1 interface{}
+ 		expected     bool
+ 	}
 
-	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
-}
+ 	errs := New().Struct(test{"ABC", "VN", false})
+ 	assert.NotEqual(t, nil, errs)
+ }
 
-func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
-	type test struct {
-		Value        string `validate:"postcode_iso3166_alpha2_field="`
-		CountryCode1 interface{}
-		expected     bool
-	}
+ func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
+ 	type test struct {
+ 		Value        string `validate:"postcode_iso3166_alpha2_field="`
+ 		CountryCode1 interface{}
+ 		expected     bool
+ 	}
 
-	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
-}
+ 	errs := New().Struct(test{"ABC", "VN", false})
+ 	assert.NotEqual(t, nil, errs)
+ }
 
-func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
-	type test struct {
-		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode interface{}
-		expected    bool
-	}
-	defer func() { recover() }()
-
-	_ = New().Struct(test{"ABC", 123, false})
-	t.Errorf("Didn't panic as expected")
-}
+ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
+ 	type test struct {
+ 		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
+ 		CountryCode interface{}
+ 		expected    bool
+ 	}
+ 	defer func() { recover() }()
+   
+  _ = New().Struct(test{"ABC", 123, false})
+ 	t.Errorf("Didn't panic as expected")
+ }
