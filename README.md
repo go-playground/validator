@@ -1,7 +1,7 @@
 Package validator
-================
+=================
 <img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v9/logo.png">[![Join the chat at https://gitter.im/go-playground/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![Project status](https://img.shields.io/badge/version-10.5.0-green.svg)
+![Project status](https://img.shields.io/badge/version-10.6.0-green.svg)
 [![Build Status](https://travis-ci.org/go-playground/validator.svg?branch=master)](https://travis-ci.org/go-playground/validator)
 [![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/go-playground/validator?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/validator)](https://goreportcard.com/report/github.com/go-playground/validator)
@@ -295,5 +295,10 @@ How to Contribute
 Make a pull request...
 
 License
-------
+-------
 Distributed under MIT License, please see license file within the code for more details.
+
+Maintainers
+-----------
+This project has grown large enough that more than one person is required to properly support the community.
+If you are interested in becoming a maintainer please reach out to me https://github.com/deankarn

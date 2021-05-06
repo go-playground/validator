@@ -192,7 +192,7 @@ var (
 		"bcp47_language_tag":            isBCP47LanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
-    "bic":                           isIsoBicFormat,
+		"bic":                           isIsoBicFormat,
 	}
 )
 
@@ -552,7 +552,7 @@ func isEthereumAddress(fl FieldLevel) bool {
 		return false
 	}
 
-	if ethaddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
+	if ethAddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
 		return true
 	}
 
@@ -1225,8 +1225,6 @@ func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
 // example: `postcode_iso3166_alpha2_field=CountryCode`
 func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	field := fl.Field()
-	kind := field.Kind()
-
 	params := parseOneOfParam2(fl.Param())
 
 	if len(params) != 1 {
@@ -1390,7 +1388,7 @@ func isRGB(fl FieldLevel) bool {
 
 // IsHEXColor is the validation function for validating if the current field's value is a valid HEX color.
 func isHEXColor(fl FieldLevel) bool {
-	return hexcolorRegex.MatchString(fl.Field().String())
+	return hexColorRegex.MatchString(fl.Field().String())
 }
 
 // IsHexadecimal is the validation function for validating if the current field's value is a valid hexadecimal.
@@ -2363,9 +2361,5 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 func isIsoBicFormat(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
-	if !bicRegex.MatchString(bicString) {
-		return false
-	}
-
-	return true
+	return bicRegex.MatchString(bicString)
 }
