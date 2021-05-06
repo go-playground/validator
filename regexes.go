@@ -49,6 +49,7 @@ const (
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
 	splitParamsRegexString           = `'[^']*'|\S+`
+	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
 )
 
 var (
@@ -98,4 +99,5 @@ var (
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
+	bicRegex                   = regexp.MustCompile(bicRegexString)
 )

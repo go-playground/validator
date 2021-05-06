@@ -1228,6 +1228,13 @@ More information on https://pkg.go.dev/golang.org/x/text/language
 
 	Usage: bcp47_language_tag
 
+BIC (SWIFT code)
+
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.
+More information on https://www.iso.org/standard/60390.html
+
+	Usage: bic
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
