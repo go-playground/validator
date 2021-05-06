@@ -8,7 +8,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.14.x, 1.15.x]
+        go-version: [1.15.x, 1.16.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,7 +32,7 @@ jobs:
         run: go test -race -covermode=atomic -coverprofile="profile.cov" ./...
 
       - name: Send Coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.15.x'
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.16.x'
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: profile.cov
@@ -45,4 +45,4 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.31
+          version: v1.39

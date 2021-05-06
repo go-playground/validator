@@ -29,6 +29,10 @@ const (
 	requiredWithAllTag    = "required_with_all"
 	requiredIfTag         = "required_if"
 	requiredUnlessTag     = "required_unless"
+	excludedWithoutAllTag = "excluded_without_all"
+	excludedWithoutTag    = "excluded_without"
+	excludedWithTag       = "excluded_with"
+	excludedWithAllTag    = "excluded_with_all"
 	skipValidationTag     = "-"
 	diveTag               = "dive"
 	keysTag               = "keys"
@@ -111,7 +115,8 @@ func New() *Validate {
 
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
-		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag:
+		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
+			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
 			_ = v.registerValidation(k, wrapFunc(val), true, true)
 		default:
 			// no need to error check here, baked in will always be valid
@@ -136,6 +141,33 @@ func New() *Validate {
 // SetTagName allows for changing of the default tag name of 'validate'
 func (v *Validate) SetTagName(name string) {
 	v.tagName = name
+}
+
+// ValidateMapCtx validates a map using a map of validation rules and allows passing of contextual
+// validation validation information via context.Context.
+func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
+	errs := make(map[string]interface{})
+	for field, rule := range rules {
+		if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Map {
+			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
+			if len(err) > 0 {
+				errs[field] = err
+			}
+		} else if reflect.ValueOf(rule).Kind() == reflect.Map {
+			errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
+		} else {
+			err := v.VarCtx(ctx, data[field], rule.(string))
+			if err != nil {
+				errs[field] = err
+			}
+		}
+	}
+	return errs
+}
+
+// ValidateMap validates map data form a map of tags
+func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
+	return v.ValidateMapCtx(context.Background(), data, rules)
 }
 
 // RegisterTagNameFunc registers a function to get alternate names for StructFields.
@@ -409,7 +441,10 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 		if len(flds) > 0 {
 
 			vd.misc = append(vd.misc[0:0], name...)
-			vd.misc = append(vd.misc, '.')
+			// Don't append empty name for unnamed structs
+			if len(vd.misc) != 0 {
+				vd.misc = append(vd.misc, '.')
+			}
 
 			for _, s := range flds {
 

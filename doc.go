@@ -1221,6 +1221,20 @@ see: https://www.iso.org/iso-3166-country-codes.html
 
 	Usage: iso3166_1_alpha3
 
+BCP 47 Language Tag
+
+This validates that a string value is a valid BCP 47 language tag, as parsed by language.Parse.
+More information on https://pkg.go.dev/golang.org/x/text/language
+
+	Usage: bcp47_language_tag
+
+BIC (SWIFT code)
+
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.
+More information on https://www.iso.org/standard/60390.html
+
+	Usage: bic
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
@@ -1228,7 +1242,7 @@ Although empty value and Local value are allowed by time.LoadLocation golang fun
 More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
-  
+
 
 Alias Validators and Tags
 

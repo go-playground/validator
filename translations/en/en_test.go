@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	eng := english.New()
 	uni := ut.New(eng, eng)
 	trans, _ := uni.GetTranslator("en")
@@ -145,6 +144,9 @@ func TestTranslations(t *testing.T) {
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry   string
+		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 	}
 
 	var test Test
@@ -656,6 +658,14 @@ func TestTranslations(t *testing.T) {
 			ns:       "Test.Datetime",
 			expected: "Datetime does not match the 2006-01-02 format",
 		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode does not match postcode format of SG country",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+		},
 	}
 
 	for _, tt := range tests {
@@ -672,5 +682,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

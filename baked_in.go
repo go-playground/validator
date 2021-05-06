@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/crypto/sha3"
+	"golang.org/x/text/language"
 
 	urn "github.com/leodido/go-urn"
 )
@@ -67,127 +68,131 @@ var (
 	// you can add, remove or even replace items to suite your needs,
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
-		"required":                hasValue,
-		"required_if":             requiredIf,
-		"required_unless":         requiredUnless,
-		"required_with":           requiredWith,
-		"required_with_all":       requiredWithAll,
-		"required_without":        requiredWithout,
-		"required_without_all":    requiredWithoutAll,
-		"excluded_with":           excludedWith,
-		"excluded_with_all":       excludedWithAll,
-		"excluded_without":        excludedWithout,
-		"excluded_without_all":    excludedWithoutAll,
-		"isdefault":               isDefault,
-		"len":                     hasLengthOf,
-		"min":                     hasMinOf,
-		"max":                     hasMaxOf,
-		"eq":                      isEq,
-		"ne":                      isNe,
-		"lt":                      isLt,
-		"lte":                     isLte,
-		"gt":                      isGt,
-		"gte":                     isGte,
-		"eqfield":                 isEqField,
-		"eqcsfield":               isEqCrossStructField,
-		"necsfield":               isNeCrossStructField,
-		"gtcsfield":               isGtCrossStructField,
-		"gtecsfield":              isGteCrossStructField,
-		"ltcsfield":               isLtCrossStructField,
-		"ltecsfield":              isLteCrossStructField,
-		"nefield":                 isNeField,
-		"gtefield":                isGteField,
-		"gtfield":                 isGtField,
-		"ltefield":                isLteField,
-		"ltfield":                 isLtField,
-		"fieldcontains":           fieldContains,
-		"fieldexcludes":           fieldExcludes,
-		"alpha":                   isAlpha,
-		"alphanum":                isAlphanum,
-		"alphaunicode":            isAlphaUnicode,
-		"alphanumunicode":         isAlphanumUnicode,
-		"numeric":                 isNumeric,
-		"number":                  isNumber,
-		"hexadecimal":             isHexadecimal,
-		"hexcolor":                isHEXColor,
-		"rgb":                     isRGB,
-		"rgba":                    isRGBA,
-		"hsl":                     isHSL,
-		"hsla":                    isHSLA,
-		"e164":                    isE164,
-		"email":                   isEmail,
-		"url":                     isURL,
-		"uri":                     isURI,
-		"urn_rfc2141":             isUrnRFC2141, // RFC 2141
-		"file":                    isFile,
-		"base64":                  isBase64,
-		"base64url":               isBase64URL,
-		"contains":                contains,
-		"containsany":             containsAny,
-		"containsrune":            containsRune,
-		"excludes":                excludes,
-		"excludesall":             excludesAll,
-		"excludesrune":            excludesRune,
-		"startswith":              startsWith,
-		"endswith":                endsWith,
-		"startsnotwith":           startsNotWith,
-		"endsnotwith":             endsNotWith,
-		"isbn":                    isISBN,
-		"isbn10":                  isISBN10,
-		"isbn13":                  isISBN13,
-		"eth_addr":                isEthereumAddress,
-		"btc_addr":                isBitcoinAddress,
-		"btc_addr_bech32":         isBitcoinBech32Address,
-		"uuid":                    isUUID,
-		"uuid3":                   isUUID3,
-		"uuid4":                   isUUID4,
-		"uuid5":                   isUUID5,
-		"uuid_rfc4122":            isUUIDRFC4122,
-		"uuid3_rfc4122":           isUUID3RFC4122,
-		"uuid4_rfc4122":           isUUID4RFC4122,
-		"uuid5_rfc4122":           isUUID5RFC4122,
-		"ascii":                   isASCII,
-		"printascii":              isPrintableASCII,
-		"multibyte":               hasMultiByteCharacter,
-		"datauri":                 isDataURI,
-		"latitude":                isLatitude,
-		"longitude":               isLongitude,
-		"ssn":                     isSSN,
-		"ipv4":                    isIPv4,
-		"ipv6":                    isIPv6,
-		"ip":                      isIP,
-		"cidrv4":                  isCIDRv4,
-		"cidrv6":                  isCIDRv6,
-		"cidr":                    isCIDR,
-		"tcp4_addr":               isTCP4AddrResolvable,
-		"tcp6_addr":               isTCP6AddrResolvable,
-		"tcp_addr":                isTCPAddrResolvable,
-		"udp4_addr":               isUDP4AddrResolvable,
-		"udp6_addr":               isUDP6AddrResolvable,
-		"udp_addr":                isUDPAddrResolvable,
-		"ip4_addr":                isIP4AddrResolvable,
-		"ip6_addr":                isIP6AddrResolvable,
-		"ip_addr":                 isIPAddrResolvable,
-		"unix_addr":               isUnixAddrResolvable,
-		"mac":                     isMAC,
-		"hostname":                isHostnameRFC952,  // RFC 952
-		"hostname_rfc1123":        isHostnameRFC1123, // RFC 1123
-		"fqdn":                    isFQDN,
-		"unique":                  isUnique,
-		"oneof":                   isOneOf,
-		"html":                    isHTML,
-		"html_encoded":            isHTMLEncoded,
-		"url_encoded":             isURLEncoded,
-		"dir":                     isDir,
-		"json":                    isJSON,
-		"hostname_port":           isHostnamePort,
-		"lowercase":               isLowercase,
-		"uppercase":               isUppercase,
-		"datetime":                isDatetime,
-		"timezone":                isTimeZone,
-		"iso3166_1_alpha2":        isIso3166Alpha2,
-		"iso3166_1_alpha3":        isIso3166Alpha3,
-		"iso3166_1_alpha_numeric": isIso3166AlphaNumeric,
+		"required":                      hasValue,
+		"required_if":                   requiredIf,
+		"required_unless":               requiredUnless,
+		"required_with":                 requiredWith,
+		"required_with_all":             requiredWithAll,
+		"required_without":              requiredWithout,
+		"required_without_all":          requiredWithoutAll,
+		"excluded_with":                 excludedWith,
+		"excluded_with_all":             excludedWithAll,
+		"excluded_without":              excludedWithout,
+		"excluded_without_all":          excludedWithoutAll,
+		"isdefault":                     isDefault,
+		"len":                           hasLengthOf,
+		"min":                           hasMinOf,
+		"max":                           hasMaxOf,
+		"eq":                            isEq,
+		"ne":                            isNe,
+		"lt":                            isLt,
+		"lte":                           isLte,
+		"gt":                            isGt,
+		"gte":                           isGte,
+		"eqfield":                       isEqField,
+		"eqcsfield":                     isEqCrossStructField,
+		"necsfield":                     isNeCrossStructField,
+		"gtcsfield":                     isGtCrossStructField,
+		"gtecsfield":                    isGteCrossStructField,
+		"ltcsfield":                     isLtCrossStructField,
+		"ltecsfield":                    isLteCrossStructField,
+		"nefield":                       isNeField,
+		"gtefield":                      isGteField,
+		"gtfield":                       isGtField,
+		"ltefield":                      isLteField,
+		"ltfield":                       isLtField,
+		"fieldcontains":                 fieldContains,
+		"fieldexcludes":                 fieldExcludes,
+		"alpha":                         isAlpha,
+		"alphanum":                      isAlphanum,
+		"alphaunicode":                  isAlphaUnicode,
+		"alphanumunicode":               isAlphanumUnicode,
+		"numeric":                       isNumeric,
+		"number":                        isNumber,
+		"hexadecimal":                   isHexadecimal,
+		"hexcolor":                      isHEXColor,
+		"rgb":                           isRGB,
+		"rgba":                          isRGBA,
+		"hsl":                           isHSL,
+		"hsla":                          isHSLA,
+		"e164":                          isE164,
+		"email":                         isEmail,
+		"url":                           isURL,
+		"uri":                           isURI,
+		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
+		"file":                          isFile,
+		"base64":                        isBase64,
+		"base64url":                     isBase64URL,
+		"contains":                      contains,
+		"containsany":                   containsAny,
+		"containsrune":                  containsRune,
+		"excludes":                      excludes,
+		"excludesall":                   excludesAll,
+		"excludesrune":                  excludesRune,
+		"startswith":                    startsWith,
+		"endswith":                      endsWith,
+		"startsnotwith":                 startsNotWith,
+		"endsnotwith":                   endsNotWith,
+		"isbn":                          isISBN,
+		"isbn10":                        isISBN10,
+		"isbn13":                        isISBN13,
+		"eth_addr":                      isEthereumAddress,
+		"btc_addr":                      isBitcoinAddress,
+		"btc_addr_bech32":               isBitcoinBech32Address,
+		"uuid":                          isUUID,
+		"uuid3":                         isUUID3,
+		"uuid4":                         isUUID4,
+		"uuid5":                         isUUID5,
+		"uuid_rfc4122":                  isUUIDRFC4122,
+		"uuid3_rfc4122":                 isUUID3RFC4122,
+		"uuid4_rfc4122":                 isUUID4RFC4122,
+		"uuid5_rfc4122":                 isUUID5RFC4122,
+		"ascii":                         isASCII,
+		"printascii":                    isPrintableASCII,
+		"multibyte":                     hasMultiByteCharacter,
+		"datauri":                       isDataURI,
+		"latitude":                      isLatitude,
+		"longitude":                     isLongitude,
+		"ssn":                           isSSN,
+		"ipv4":                          isIPv4,
+		"ipv6":                          isIPv6,
+		"ip":                            isIP,
+		"cidrv4":                        isCIDRv4,
+		"cidrv6":                        isCIDRv6,
+		"cidr":                          isCIDR,
+		"tcp4_addr":                     isTCP4AddrResolvable,
+		"tcp6_addr":                     isTCP6AddrResolvable,
+		"tcp_addr":                      isTCPAddrResolvable,
+		"udp4_addr":                     isUDP4AddrResolvable,
+		"udp6_addr":                     isUDP6AddrResolvable,
+		"udp_addr":                      isUDPAddrResolvable,
+		"ip4_addr":                      isIP4AddrResolvable,
+		"ip6_addr":                      isIP6AddrResolvable,
+		"ip_addr":                       isIPAddrResolvable,
+		"unix_addr":                     isUnixAddrResolvable,
+		"mac":                           isMAC,
+		"hostname":                      isHostnameRFC952,  // RFC 952
+		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"fqdn":                          isFQDN,
+		"unique":                        isUnique,
+		"oneof":                         isOneOf,
+		"html":                          isHTML,
+		"html_encoded":                  isHTMLEncoded,
+		"url_encoded":                   isURLEncoded,
+		"dir":                           isDir,
+		"json":                          isJSON,
+		"hostname_port":                 isHostnamePort,
+		"lowercase":                     isLowercase,
+		"uppercase":                     isUppercase,
+		"datetime":                      isDatetime,
+		"timezone":                      isTimeZone,
+		"iso3166_1_alpha2":              isIso3166Alpha2,
+		"iso3166_1_alpha3":              isIso3166Alpha3,
+		"iso3166_1_alpha_numeric":       isIso3166AlphaNumeric,
+		"bcp47_language_tag":            isBCP47LanguageTag,
+		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
+		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
+		"bic":                           isIsoBicFormat,
 	}
 )
 
@@ -547,7 +552,7 @@ func isEthereumAddress(fl FieldLevel) bool {
 		return false
 	}
 
-	if ethaddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
+	if ethAddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
 		return true
 	}
 
@@ -791,6 +796,9 @@ func isNeField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) != int64(currentField.Len())
 
+	case reflect.Bool:
+		return field.Bool() != currentField.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1033,6 +1041,9 @@ func isNeCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) != int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() != field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1080,6 +1091,9 @@ func isEqCrossStructField(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(topField.Len()) == int64(field.Len())
 
+	case reflect.Bool:
+		return topField.Bool() == field.Bool()
+
 	case reflect.Struct:
 
 		fieldType := field.Type()
@@ -1126,6 +1140,9 @@ func isEqField(fl FieldLevel) bool {
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == int64(currentField.Len())
+
+	case reflect.Bool:
+		return field.Bool() == currentField.Bool()
 
 	case reflect.Struct:
 
@@ -1188,6 +1205,47 @@ func isEq(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
+// example: `postcode_iso3166_alpha2=US`
+func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	reg, found := postCodeRegexDict[param]
+	if !found {
+		return false
+	}
+
+	return reg.MatchString(field.String())
+}
+
+// isPostcodeByIso3166Alpha2 validates by field which represents for a value of country code in iso 3166 alpha 2
+// example: `postcode_iso3166_alpha2_field=CountryCode`
+func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
+	field := fl.Field()
+	params := parseOneOfParam2(fl.Param())
+
+	if len(params) != 1 {
+		return false
+	}
+
+	currentField, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), params[0])
+	if !found {
+		return false
+	}
+
+	if kind != reflect.String {
+		panic(fmt.Sprintf("Bad field type %T", currentField.Interface()))
+	}
+
+	reg, found := postCodeRegexDict[currentField.String()]
+	if !found {
+		return false
+	}
+
+	return reg.MatchString(field.String())
 }
 
 // IsBase64 is the validation function for validating if the current field's value is a valid base 64.
@@ -1330,7 +1388,7 @@ func isRGB(fl FieldLevel) bool {
 
 // IsHEXColor is the validation function for validating if the current field's value is a valid HEX color.
 func isHEXColor(fl FieldLevel) bool {
-	return hexcolorRegex.MatchString(fl.Field().String())
+	return hexColorRegex.MatchString(fl.Field().String())
 }
 
 // IsHexadecimal is the validation function for validating if the current field's value is a valid hexadecimal.
@@ -1441,6 +1499,9 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == asInt(value)
+
+	case reflect.Bool:
+		return field.Bool() == asBool(value)
 	}
 
 	// default reflect.String:
@@ -1544,7 +1605,7 @@ func requiredWithout(fl FieldLevel) bool {
 	return true
 }
 
-// RequiredWithoutAll is the validation function
+// ExcludedWithoutAll is the validation function
 // The field under validation must not be present or is empty when all of the other specified fields are not present.
 func excludedWithoutAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
@@ -2282,4 +2343,23 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 	return iso3166_1_alpha_numeric[code]
+}
+
+// isBCP47LanguageTag is the validation function for validating if the current field's value is a valid BCP 47 language tag, as parsed by language.Parse
+func isBCP47LanguageTag(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		_, err := language.Parse(field.String())
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isIsoBicFormat is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
+func isIsoBicFormat(fl FieldLevel) bool {
+	bicString := fl.Field().String()
+
+	return bicRegex.MatchString(bicString)
 }

@@ -10,7 +10,7 @@ const (
 	numericRegexString               = "^[-+]?[0-9]+(?:\\.[0-9]+)?$"
 	numberRegexString                = "^[0-9]+$"
 	hexadecimalRegexString           = "^(0[xX])?[0-9a-fA-F]+$"
-	hexcolorRegexString              = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+	hexColorRegexString              = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
 	rgbRegexString                   = "^rgb\\(\\s*(?:(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])|(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%)\\s*\\)$"
 	rgbaRegexString                  = "^rgba\\(\\s*(?:(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])|(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%)\\s*,\\s*(?:(?:0.[1-9]*)|[01])\\s*\\)$"
 	hslRegexString                   = "^hsl\\(\\s*(?:0|[1-9]\\d?|[12]\\d\\d|3[0-5]\\d|360)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*\\)$"
@@ -49,6 +49,7 @@ const (
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
 	splitParamsRegexString           = `'[^']*'|\S+`
+	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
 )
 
 var (
@@ -59,7 +60,7 @@ var (
 	numericRegex               = regexp.MustCompile(numericRegexString)
 	numberRegex                = regexp.MustCompile(numberRegexString)
 	hexadecimalRegex           = regexp.MustCompile(hexadecimalRegexString)
-	hexcolorRegex              = regexp.MustCompile(hexcolorRegexString)
+	hexColorRegex              = regexp.MustCompile(hexColorRegexString)
 	rgbRegex                   = regexp.MustCompile(rgbRegexString)
 	rgbaRegex                  = regexp.MustCompile(rgbaRegexString)
 	hslRegex                   = regexp.MustCompile(hslRegexString)
@@ -92,10 +93,11 @@ var (
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
 	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	ethaddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
+	ethAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
 	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
+	bicRegex                   = regexp.MustCompile(bicRegexString)
 )
