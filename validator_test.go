@@ -9537,6 +9537,9 @@ func TestURLEncodedValidation(t *testing.T) {
 		{"a%b", false},
 		{"1%2", false},
 		{"%%a%%", false},
+		{"hello", true},
+		{"", true},
+		{"+", true},
 	}
 
 	validate := New()
