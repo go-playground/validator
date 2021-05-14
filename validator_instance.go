@@ -327,7 +327,7 @@ func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	for val.Kind() != reflect.Struct || val.Type() == timeType {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
