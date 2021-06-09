@@ -811,6 +811,12 @@ This validates that a string value is valid JSON
 
 	Usage: json
 
+JWT String
+
+This validates that a string value is a valid JWT
+
+	Usage: jwt
+
 File path
 
 This validates that a string value contains a valid file path and that
