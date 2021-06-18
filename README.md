@@ -43,7 +43,7 @@ They return type error to avoid the issue discussed in the following, where err 
 * http://stackoverflow.com/a/29138676/3158232
 * https://github.com/go-playground/validator/issues/134
 
-Validator only InvalidValidationError for bad validation input, nil or ValidationErrors as type error; so, in your code all you need to do is check if the error returned is not nil, and if it's not check if error is InvalidValidationError ( if necessary, most of the time it isn't ) type cast it to type ValidationErrors like so:
+Validator returns only InvalidValidationError for bad validation input, nil or ValidationErrors as type error; so, in your code all you need to do is check if the error returned is not nil, and if it's not check if error is InvalidValidationError ( if necessary, most of the time it isn't ) type cast it to type ValidationErrors like so:
 
 ```go
 err := validate.Struct(mystruct)
