@@ -163,6 +163,8 @@ func (v *Validate) SetErrTagName(name string) {
 	index := v.customTags.Position(defaultErrTagName)
 	if index != -1 {
 		v.customTags[index] = name
+	} else {
+		v.customTags = append(v.customTags, name)
 	}
 	defaultErrTagName = name
 }
