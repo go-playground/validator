@@ -165,8 +165,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		}
 		// The priority of RegisterTagNameFunc is higher than the custom tag value
 		if v.hasTagNameFunc {
-			value := v.tagNameFunc(fld)
-			if len(value) != 0 {
+			if value := v.tagNameFunc(fld); len(value) != 0 {
 				tagValues[defaultErrTagName] = value
 			}
 		}
