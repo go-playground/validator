@@ -163,6 +163,13 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			ctname := v.customTags[i]
 			tagValues[ctname] = strings.TrimSpace(fld.Tag.Get(ctname))
 		}
+		// The priority of RegisterTagNameFunc is higher than the custom tag value
+		if v.hasTagNameFunc {
+			value := v.tagNameFunc(fld)
+			if len(value) != 0 {
+				tagValues[defaultErrTagName] = value
+			}
+		}
 
 		cs.fields = append(cs.fields, &cField{
 			idx:        i,
