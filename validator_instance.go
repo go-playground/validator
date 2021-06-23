@@ -50,8 +50,21 @@ var (
 	timeDurationType = reflect.TypeOf(time.Duration(0))
 	timeType         = reflect.TypeOf(time.Time{})
 
-	defaultCField = &cField{namesEqual: true}
+	defaultCField     = &cField{namesEqual: true}
+	defaultErrTagName = "message"
 )
+
+// StringSlice is custom tag slice data
+type StringSlice []string
+
+func (s StringSlice) Position(name string) int {
+	for i := 0; i < len(s); i++ {
+		if s[i] == name {
+			return i
+		}
+	}
+	return -1
+}
 
 // FilterFunc is the type used to filter fields using
 // StructFiltered(...) function.
@@ -75,6 +88,7 @@ type internalValidationFuncWrapper struct {
 // Validate contains the validator settings and cache
 type Validate struct {
 	tagName          string
+	customTags       StringSlice
 	pool             *sync.Pool
 	hasCustomFuncs   bool
 	hasTagNameFunc   bool
@@ -99,6 +113,7 @@ func New() *Validate {
 
 	v := &Validate{
 		tagName:     defaultTagName,
+		customTags:  StringSlice{defaultErrTagName},
 		aliases:     make(map[string]string, len(bakedInAliases)),
 		validations: make(map[string]internalValidationFuncWrapper, len(bakedInValidators)),
 		tagCache:    tc,
@@ -141,6 +156,15 @@ func New() *Validate {
 // SetTagName allows for changing of the default tag name of 'validate'
 func (v *Validate) SetTagName(name string) {
 	v.tagName = name
+}
+
+// SetErrTagName allows for changing of the default tag name of 'message'
+func (v *Validate) SetErrTagName(name string) {
+	index := v.customTags.Position(defaultErrTagName)
+	if index != -1 {
+		v.customTags[index] = name
+	}
+	defaultErrTagName = name
 }
 
 // ValidateMapCtx validates a map using a map of validation rules and allows passing of contextual

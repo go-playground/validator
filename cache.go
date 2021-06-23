@@ -79,6 +79,7 @@ type cField struct {
 	name       string
 	altName    string
 	namesEqual bool
+	tagValues  map[string]string // custom multiple tag information tagname:tagvalue
 	cTags      *cTag
 }
 
@@ -154,11 +155,21 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			ctag = new(cTag)
 		}
 
+		// handle custom tag map
+		length := len(v.customTags)
+		tagValues := make(map[string]string, length)
+
+		for i := 0; i < length; i++ {
+			ctname := v.customTags[i]
+			tagValues[ctname] = strings.TrimSpace(fld.Tag.Get(ctname))
+		}
+
 		cs.fields = append(cs.fields, &cField{
 			idx:        i,
 			name:       fld.Name,
 			altName:    customName,
 			cTags:      ctag,
+			tagValues:  tagValues,
 			namesEqual: fld.Name == customName,
 		})
 	}
