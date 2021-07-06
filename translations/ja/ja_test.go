@@ -304,7 +304,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5はバージョンが4の正しいUUIDでなければなりません",
+			expected: "UUID5はバージョンが5の正しいUUIDでなければなりません",
 		},
 		{
 			ns:       "Test.ISBN",
