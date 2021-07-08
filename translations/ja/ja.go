@@ -1226,7 +1226,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0}はバージョンが4の正しいUUIDでなければなりません",
+			translation: "{0}はバージョンが5の正しいUUIDでなければなりません",
 			override:    false,
 		},
 		{
