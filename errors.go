@@ -44,12 +44,9 @@ func (ve ValidationErrors) Error() string {
 
 	buff := bytes.NewBufferString("")
 
-	var fe *fieldError
-
 	for i := 0; i < len(ve); i++ {
 
-		fe = ve[i].(*fieldError)
-		buff.WriteString(fe.Error())
+		buff.WriteString(ve[i].Error())
 		buff.WriteString("\n")
 	}
 
@@ -61,10 +58,10 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 
 	trans := make(ValidationErrorsTranslations)
 
-	var fe *fieldError
+	var fe FieldError
 
 	for i := 0; i < len(ve); i++ {
-		fe = ve[i].(*fieldError)
+		fe = ve[i].(FieldError)
 
 		// // in case an Anonymous struct was used, ensure that the key
 		// // would be 'Username' instead of ".Username"
@@ -73,7 +70,7 @@ func (ve ValidationErrors) Translate(ut ut.Translator) ValidationErrorsTranslati
 		// 	continue
 		// }
 
-		trans[fe.ns] = fe.Translate(ut)
+		trans[fe.Namespace()] = fe.Translate(ut)
 	}
 
 	return trans
