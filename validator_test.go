@@ -10956,6 +10956,34 @@ func TestIsIso3166Alpha2Validation(t *testing.T) {
 	}
 }
 
+func TestIsIso31662Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_2"`
+		expected bool
+	}{
+		{"US-FL", true},
+		{"US-F", false},
+		{"US", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_2")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestIsIso3166Alpha3Validation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"iso3166_1_alpha3"`
