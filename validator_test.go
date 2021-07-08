@@ -3285,6 +3285,21 @@ func TestMapDiveValidation(t *testing.T) {
 	s := fmt.Sprint(errs.Error())
 	NotEqual(t, s, "")
 
+	type TestMapInterface struct {
+		Errs map[int]interface{} `validate:"dive"`
+	}
+
+	mit := map[int]interface{}{0: Inner{"ok"}, 1: Inner{""}, 3: nil, 5: "string", 6: 33}
+
+	msi := &TestMapInterface{
+		Errs: mit,
+	}
+
+	errs = validate.Struct(msi)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	AssertError(t, errs, "TestMapInterface.Errs[1].Name", "TestMapInterface.Errs[1].Name", "Name", "Name", "required")
+
 	type TestMapTimeStruct struct {
 		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
 	}

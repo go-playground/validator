@@ -227,7 +227,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 	}
 
-	if !ct.hasTag {
+	if ct == nil || !ct.hasTag {
 		return
 	}
 
