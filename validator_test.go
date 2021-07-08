@@ -11323,3 +11323,67 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	_ = New().Struct(test{"ABC", 123, false})
 	t.Errorf("Didn't panic as expected")
 }
+
+func TestCustomMessage(t *testing.T) {
+	type test struct {
+		Min      int    `validate:"min=1" message:"test int min"`
+		Max      string `validate:"max=10" message:"test string max"`
+		Required []int  `validate:"required" message:"test slice required"`
+	}
+
+	err := New().Struct(&test{Max: "xxxxxxxxxxxxxxxxxx"})
+	if err == nil {
+		t.Fatal("struct validator err")
+	}
+
+	if !strings.Contains(err.Error(), "test int min") ||
+		!strings.Contains(err.Error(), "test string max") ||
+		!strings.Contains(err.Error(), "test slice required") {
+		t.Error("Unable to match custom err info")
+	}
+}
+
+func TestCustomTagMessage(t *testing.T) {
+	type test struct {
+		Min      int    `validate:"min=1" msg:"中文"`
+		Max      string `validate:"max=10" msg:"한글"`
+		Required []int  `validate:"required" msg:"日本語"`
+	}
+
+	validate := New()
+	validate.SetErrTagName("msg")
+
+	err := validate.Struct(&test{Max: "xxxxxxxxxxxxxxxxxx"})
+	if err == nil {
+		t.Fatal("struct validator err")
+	}
+	if !strings.Contains(err.Error(), "中文") ||
+		!strings.Contains(err.Error(), "한글") ||
+		!strings.Contains(err.Error(), "日本語") {
+		t.Error("Unable to match custom err info")
+	}
+}
+
+func TestCustomRegisterTagMessage(t *testing.T) {
+	type test struct {
+		Min      int    `validate:"min=1" msg:"中文" schema:"schema int error"`
+		Max      string `validate:"max=10" msg:"한글" schema:"schema string error"`
+		Required []int  `validate:"required" msg:"日本語"`
+	}
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
+		return field.Tag.Get("schema")
+	})
+	validate.SetErrTagName("msg")
+
+	err := validate.Struct(&test{Max: "xxxxxxxxxxxxxxxxxx"})
+	if err == nil {
+		t.Fatal("struct validator err")
+	}
+	if !strings.Contains(err.Error(), "schema int error") ||
+		!strings.Contains(err.Error(), "schema string error") ||
+		!strings.Contains(err.Error(), "日本語") {
+		t.Error("Unable to match custom err info")
+	}
+}

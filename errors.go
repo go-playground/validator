@@ -177,6 +177,7 @@ type fieldError struct {
 	structfieldLen uint8
 	value          interface{}
 	param          string
+	cem            string // custom error message
 	kind           reflect.Kind
 	typ            reflect.Type
 }
@@ -251,6 +252,9 @@ func (fe *fieldError) Type() reflect.Type {
 
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
+	if len(fe.cem) != 0 {
+		return fe.cem
+	}
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
 }
 
