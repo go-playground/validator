@@ -181,6 +181,7 @@ var (
 		"url_encoded":                   isURLEncoded,
 		"dir":                           isDir,
 		"json":                          isJSON,
+		"jwt":                           isJWT,
 		"hostname_port":                 isHostnamePort,
 		"lowercase":                     isLowercase,
 		"uppercase":                     isUppercase,
@@ -2233,6 +2234,11 @@ func isJSON(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isJWT is the validation function for validating if the current field's value is a valid JWT string.
+func isJWT(fl FieldLevel) bool {
+	return jWTRegex.MatchString(fl.Field().String())
 }
 
 // isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.

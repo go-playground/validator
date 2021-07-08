@@ -1285,6 +1285,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "jwt",
+			translation: "{0} must be a valid jwt string",
+			override:    false,
+		},
+		{
 			tag:         "lowercase",
 			translation: "{0} must be a lowercase string",
 			override:    false,
