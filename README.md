@@ -27,11 +27,11 @@ Installation
 
 Use go get.
 
-	go get github.com/go-playground/validator
+	go get github.com/go-playground/validator/v10
 
 Then import the validator package into your own code.
 
-	import "github.com/go-playground/validator"
+	import "github.com/go-playground/validator/v10"
 
 Error Return Value
 -------
