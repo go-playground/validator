@@ -5511,14 +5511,15 @@ func TestStructOnlyValidation(t *testing.T) {
 	}
 
 	type User struct {
-		FirstName      string     `json:"fname"`
-		LastName       string     `json:"lname"`
-		Age            uint8      `validate:"gte=0,lte=130"`
-		Number         string     `validate:"required,e164"`
-		Email          string     `validate:"required,email"`
-		FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
-		Addresses      []*Address `validate:"required"`   // a person can have a home and cottage...
-		Address        Address    `validate:"structonly"` // a person can have a home and cottage...
+		FirstName         string     `json:"fname"`
+		LastName          string     `json:"lname"`
+		Age               uint8      `validate:"gte=0,lte=130"`
+		Number            string     `validate:"required,e164"`
+		AlternativeNumber string     `validate:"e164"`
+		Email             string     `validate:"required,email"`
+		FavouriteColor    string     `validate:"hexcolor|rgb|rgba"`
+		Addresses         []*Address `validate:"required"`   // a person can have a home and cottage...
+		Address           Address    `validate:"structonly"` // a person can have a home and cottage...
 	}
 
 	address := &Address{
@@ -5529,13 +5530,14 @@ func TestStructOnlyValidation(t *testing.T) {
 	}
 
 	user := &User{
-		FirstName:      "",
-		LastName:       "",
-		Age:            45,
-		Number:         "+1123456789",
-		Email:          "Badger.Smith@gmail.com",
-		FavouriteColor: "#000",
-		Addresses:      []*Address{address},
+		FirstName:         "",
+		LastName:          "",
+		Age:               45,
+		Number:            "+1123456789",
+		AlternativeNumber: "",
+		Email:             "Badger.Smith@gmail.com",
+		FavouriteColor:    "#000",
+		Addresses:         []*Address{address},
 		Address: Address{
 			// Street: "Eavesdown Docks",
 			Planet: "Persphone",
