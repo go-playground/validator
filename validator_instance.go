@@ -207,11 +207,11 @@ func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationE
 
 func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
 	if len(tag) == 0 {
-		return errors.New("Function Key cannot be empty")
+		return errors.New("function Key cannot be empty")
 	}
 
 	if fn == nil {
-		return errors.New("Function cannot be empty")
+		return errors.New("function cannot be empty")
 	}
 
 	_, ok := restrictedTags[tag]

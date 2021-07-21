@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-playground/assert/v2"
 	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
@@ -9639,7 +9638,7 @@ func TestKeys(t *testing.T) {
 	AssertError(t, err.(ValidationErrors), "Test2.NestedKeys", "Test2.NestedKeys", "NestedKeys", "NestedKeys", "gt")
 
 	tst2.NestedKeys = map[[1]string]string{
-		[1]string{"innertestkey"}: "outertestval",
+		{"innertestkey"}: "outertestval",
 	}
 
 	err = validate.Struct(tst2)
@@ -11298,7 +11297,7 @@ func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
 	}
 
 	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
+	NotEqual(t, nil, errs)
 }
 
 func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
@@ -11309,7 +11308,7 @@ func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
 	}
 
 	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
+	NotEqual(t, nil, errs)
 }
 
 func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
