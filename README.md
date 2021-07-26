@@ -27,11 +27,11 @@ Installation
 
 Use go get.
 
-	go get github.com/go-playground/validator
+	go get github.com/go-playground/validator/v10
 
 Then import the validator package into your own code.
 
-	import "github.com/go-playground/validator"
+	import "github.com/go-playground/validator/v10"
 
 Error Return Value
 -------
@@ -170,6 +170,7 @@ Baked-in Validations
 | iso3166_1_alpha_numeric | Numeric country code (ISO 3166-1 numeric) |
 | iso3166_2 | Country subdivision code (ISO 3166-2) |
 | json | JSON |
+| jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
 | longitude | Longitude |
 | postcode_iso3166_alpha2 | Postcode |
