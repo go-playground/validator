@@ -159,6 +159,7 @@ Baked-in Validations
 | isbn10 | International Standard Book Number 10 |
 | isbn13 | International Standard Book Number 13 |
 | json | JSON |
+| jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
 | longitude | Longitude |
 | rgb | RGB String |

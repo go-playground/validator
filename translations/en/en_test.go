@@ -141,6 +141,7 @@ func TestTranslations(t *testing.T) {
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
 		JSONString        string            `validate:"json"`
+		JWTString         string            `validate:"jwt"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
@@ -645,6 +646,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.JSONString",
 			expected: "JSONString must be a valid json string",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString must be a valid jwt string",
 		},
 		{
 			ns:       "Test.LowercaseString",
