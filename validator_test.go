@@ -3285,6 +3285,21 @@ func TestMapDiveValidation(t *testing.T) {
 	s := fmt.Sprint(errs.Error())
 	NotEqual(t, s, "")
 
+	type TestMapInterface struct {
+		Errs map[int]interface{} `validate:"dive"`
+	}
+
+	mit := map[int]interface{}{0: Inner{"ok"}, 1: Inner{""}, 3: nil, 5: "string", 6: 33}
+
+	msi := &TestMapInterface{
+		Errs: mit,
+	}
+
+	errs = validate.Struct(msi)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	AssertError(t, errs, "TestMapInterface.Errs[1].Name", "TestMapInterface.Errs[1].Name", "Name", "Name", "required")
+
 	type TestMapTimeStruct struct {
 		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
 	}
@@ -10972,6 +10987,34 @@ func TestIsIso3166Alpha2Validation(t *testing.T) {
 		} else {
 			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d iso3166_1_alpha2 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso31662Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_2"`
+		expected bool
+	}{
+		{"US-FL", true},
+		{"US-F", false},
+		{"US", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_2")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
 			}
 		}
 	}
