@@ -10789,6 +10789,42 @@ func TestJSONValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestJWTValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ29waGVyIn0.O_bROM_szPq9qBql-XDHMranHwP48ODdoLICWzqBr_U", true},
+		{"acb123-_.def456-_.ghi789-_", true},
+		{"eyJhbGciOiJOT05FIn0.e30.", true},
+		{"eyJhbGciOiJOT05FIn0.e30.\n", false},
+		{"\x00.\x00.\x00", false},
+		{"", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "jwt")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "jwt" {
+					t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func Test_hostnameport_validator(t *testing.T) {
 	type Host struct {
 		Addr string `validate:"hostname_port"`
