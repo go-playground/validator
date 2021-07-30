@@ -5515,7 +5515,7 @@ func TestStructOnlyValidation(t *testing.T) {
 		LastName          string     `json:"lname"`
 		Age               uint8      `validate:"gte=0,lte=130"`
 		Number            string     `validate:"required,e164"`
-		AlternativeNumber string     `validate:"e164"`
+		AlternativeNumber string     `validate:"e164,omitempty"`
 		Email             string     `validate:"required,email"`
 		FavouriteColor    string     `validate:"hexcolor|rgb|rgba"`
 		Addresses         []*Address `validate:"required"`   // a person can have a home and cottage...
