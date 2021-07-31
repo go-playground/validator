@@ -11079,6 +11079,62 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	}, "Bad field type string")
 }
 
+func TestIsIso4217Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso4217"`
+		expected bool
+	}{
+		{"TRY", true},
+		{"EUR", true},
+		{"USA", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso4217NumericValidation(t *testing.T) {
+	tests := []struct {
+		value    int `validate:"iso4217_numeric"`
+		expected bool
+	}{
+		{8, true},
+		{12, true},
+		{13, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217_numeric")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestTimeZoneValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"timezone"`
