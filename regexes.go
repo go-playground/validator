@@ -45,9 +45,10 @@ const (
 	ethAddressRegexString            = `^0x[0-9a-fA-F]{40}$`
 	ethAddressUpperRegexString       = `^0x[0-9A-F]{40}$`
 	ethAddressLowerRegexString       = `^0x[0-9a-f]{40}$`
-	uRLEncodedRegexString            = `(%[A-Fa-f0-9]{2})`
+	uRLEncodedRegexString            = `^(?:[^%]|%[0-9A-Fa-f]{2})*$`
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
+	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
 )
@@ -98,6 +99,7 @@ var (
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
+	jWTRegex                   = regexp.MustCompile(jWTRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 	bicRegex                   = regexp.MustCompile(bicRegexString)
 )
