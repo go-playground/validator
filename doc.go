@@ -734,6 +734,12 @@ This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
+Boolean
+
+This validates that a string value can successfully be parsed into a boolean with strconv.ParseBool
+
+	Usage: boolean
+
 Number
 
 This validates that a string value contains number values only.
