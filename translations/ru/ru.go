@@ -41,6 +41,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("len-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("len-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("len-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -52,7 +60,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("len-items", "{0} должен содержать {1}", false); err != nil {
 					return
 				}
+
 				if err = ut.AddCardinal("len-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("len-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("len-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -132,6 +149,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("min-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("min-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("min-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -144,6 +169,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 				if err = ut.AddCardinal("min-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("min-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("min-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -223,6 +256,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("max-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("max-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("max-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -235,6 +276,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 				if err = ut.AddCardinal("max-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("max-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("max-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -344,6 +393,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("lt-string-character", "{0} символов", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lt-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("lt-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -357,6 +414,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("lt-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lt-items-item", "{0} элементов", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lt-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -465,6 +530,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("lte-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lte-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("lte-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -478,6 +551,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("lte-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lte-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lte-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -585,6 +666,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("gt-string-character", "{0} символов", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gt-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("gt-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -598,6 +687,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("gt-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gt-items-item", "{0} элементов", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gt-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
@@ -705,6 +802,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("gte-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gte-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("gte-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -718,6 +823,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("gte-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gte-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gte-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
 					return
 				}
 
