@@ -126,6 +126,7 @@ Baked-in Validations
 | alphanumunicode | Alphanumeric Unicode |
 | alphaunicode | Alpha Unicode |
 | ascii | ASCII |
+| boolean | Boolean |
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
