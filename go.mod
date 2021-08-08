@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/locales v0.14.0
-	github.com/go-playground/universal-translator v0.17.0
+	github.com/go-playground/universal-translator v0.18.0
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1
