@@ -7,6 +7,14 @@ and has the ability to dive into arrays and maps of any type.
 
 see more examples https://github.com/go-playground/validator/tree/master/_examples
 
+Singleton
+
+Validator is designed to be thread-safe and used as a singleton instance.
+It caches information about your struct and validations,
+in essence only parsing your validation tags once per struct type.
+Using multiple instances neglects the benefit of caching.
+The not thread-safe functions are explicitly marked as such in the documentation.
+
 Validation Functions Return Type error
 
 Doing things this way is actually the way the standard library does, see the
@@ -726,6 +734,12 @@ This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
+Boolean
+
+This validates that a string value can successfully be parsed into a boolean with strconv.ParseBool
+
+	Usage: boolean
+
 Number
 
 This validates that a string value contains number values only.
@@ -810,6 +824,12 @@ JSON String
 This validates that a string value is valid JSON
 
 	Usage: json
+
+JWT String
+
+This validates that a string value is a valid JWT
+
+	Usage: jwt
 
 File path
 

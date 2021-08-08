@@ -1,7 +1,7 @@
 Package validator
 =================
 <img align="right" src="https://raw.githubusercontent.com/go-playground/validator/v9/logo.png">[![Join the chat at https://gitter.im/go-playground/validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/go-playground/validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![Project status](https://img.shields.io/badge/version-10.6.1-green.svg)
+![Project status](https://img.shields.io/badge/version-10.9.0-green.svg)
 [![Build Status](https://travis-ci.org/go-playground/validator.svg?branch=master)](https://travis-ci.org/go-playground/validator)
 [![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/go-playground/validator?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/validator)](https://goreportcard.com/report/github.com/go-playground/validator)
@@ -27,11 +27,11 @@ Installation
 
 Use go get.
 
-	go get github.com/go-playground/validator
+	go get github.com/go-playground/validator/v10
 
 Then import the validator package into your own code.
 
-	import "github.com/go-playground/validator"
+	import "github.com/go-playground/validator/v10"
 
 Error Return Value
 -------
@@ -43,7 +43,7 @@ They return type error to avoid the issue discussed in the following, where err 
 * http://stackoverflow.com/a/29138676/3158232
 * https://github.com/go-playground/validator/issues/134
 
-Validator only InvalidValidationError for bad validation input, nil or ValidationErrors as type error; so, in your code all you need to do is check if the error returned is not nil, and if it's not check if error is InvalidValidationError ( if necessary, most of the time it isn't ) type cast it to type ValidationErrors like so:
+Validator returns only InvalidValidationError for bad validation input, nil or ValidationErrors as type error; so, in your code all you need to do is check if the error returned is not nil, and if it's not check if error is InvalidValidationError ( if necessary, most of the time it isn't ) type cast it to type ValidationErrors like so:
 
 ```go
 err := validate.Struct(mystruct)
@@ -100,7 +100,7 @@ Baked-in Validations
 | hostname_rfc1123 | Hostname RFC 1123 |
 | ip | Internet Protocol Address IP |
 | ip4_addr | Internet Protocol Address IPv4 |
-| ip6_addr |Internet Protocol Address IPv6 |
+| ip6_addr | Internet Protocol Address IPv6 |
 | ip_addr | Internet Protocol Address IP |
 | ipv4 | Internet Protocol Address IPv4 |
 | ipv6 | Internet Protocol Address IPv6 |
@@ -126,15 +126,21 @@ Baked-in Validations
 | alphanumunicode | Alphanumeric Unicode |
 | alphaunicode | Alpha Unicode |
 | ascii | ASCII |
+| boolean | Boolean |
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
+| endsnotwith | Ends With |
 | endswith | Ends With |
+| excludes | Excludes |
+| excludesall | Excludes All |
+| excludesrune | Excludes Rune |
 | lowercase | Lowercase |
 | multibyte | Multi-Byte Characters |
 | number | NOT DOCUMENTED IN doc.go |
 | numeric | Numeric |
 | printascii | Printable ASCII |
+| startsnotwith | Starts Not With |
 | startswith | Starts With |
 | uppercase | Uppercase |
 
@@ -143,6 +149,8 @@ Baked-in Validations
 | - | - |
 | base64 | Base64 String |
 | base64url | Base64URL String |
+| bic | Business Identifier Code (ISO 9362) |
+| bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | datetime | Datetime |
@@ -158,12 +166,21 @@ Baked-in Validations
 | isbn | International Standard Book Number |
 | isbn10 | International Standard Book Number 10 |
 | isbn13 | International Standard Book Number 13 |
+| iso3166_1_alpha2 | Two-letter country code (ISO 3166-1 alpha-2) |
+| iso3166_1_alpha3 | Three-letter country code (ISO 3166-1 alpha-3) |
+| iso3166_1_alpha_numeric | Numeric country code (ISO 3166-1 numeric) |
+| iso3166_2 | Country subdivision code (ISO 3166-2) |
+| iso4217 | Currency code (ISO 4217) |
 | json | JSON |
+| jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
 | longitude | Longitude |
+| postcode_iso3166_alpha2 | Postcode |
+| postcode_iso3166_alpha2_field | Postcode |
 | rgb | RGB String |
 | rgba | RGBA String |
 | ssn | Social Security Number SSN |
+| timezone | Timezone |
 | uuid | Universally Unique Identifier UUID |
 | uuid3 | Universally Unique Identifier UUID v3 |
 | uuid3_rfc4122 | Universally Unique Identifier UUID v3 RFC4122 |
@@ -178,7 +195,7 @@ Baked-in Validations
 | - | - |
 | eq | Equals |
 | gt | Greater than|
-| gte |Greater than or equal |
+| gte | Greater than or equal |
 | lt | Less Than |
 | lte | Less Than or Equal |
 | ne | Not Equal |
@@ -187,10 +204,6 @@ Baked-in Validations
 | Tag | Description |
 | - | - |
 | dir | Directory |
-| endswith | Ends With |
-| excludes | Excludes |
-| excludesall | Excludes All |
-| excludesrune | Excludes Rune |
 | file | File path |
 | isdefault | Is Default |
 | len | Length |
@@ -209,6 +222,12 @@ Baked-in Validations
 | excluded_without | Excluded Without |
 | excluded_without_all | Excluded Without All |
 | unique | Unique |
+
+#### Aliases:
+| Tag | Description |
+| - | - |
+| iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
+| country_code | iso3166_1_alpha2\|iso3166_1_alpha3\|iso3166_1_alpha_numeric |
 
 Benchmarks
 ------
