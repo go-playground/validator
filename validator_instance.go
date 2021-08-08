@@ -89,6 +89,10 @@ type Validate struct {
 }
 
 // New returns a new instance of 'validate' with sane defaults.
+// Validate is designed to be thread-safe and used as a singleton instance.
+// It caches information about your struct and validations,
+// in essence only parsing your validation tags once per struct type.
+// Using multiple instances neglects the benefit of caching.
 func New() *Validate {
 
 	tc := new(tagCache)
