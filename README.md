@@ -170,6 +170,7 @@ Baked-in Validations
 | iso3166_1_alpha3 | Three-letter country code (ISO 3166-1 alpha-3) |
 | iso3166_1_alpha_numeric | Numeric country code (ISO 3166-1 numeric) |
 | iso3166_2 | Country subdivision code (ISO 3166-2) |
+| iso4217 | Currency code (ISO 4217) |
 | json | JSON |
 | jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
