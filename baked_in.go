@@ -107,6 +107,7 @@ var (
 		"alphanum":                      isAlphanum,
 		"alphaunicode":                  isAlphaUnicode,
 		"alphanumunicode":               isAlphanumUnicode,
+		"boolean":                       isBoolean,
 		"numeric":                       isNumeric,
 		"number":                        isNumber,
 		"hexadecimal":                   isHexadecimal,
@@ -191,6 +192,8 @@ var (
 		"iso3166_1_alpha3":              isIso3166Alpha3,
 		"iso3166_1_alpha_numeric":       isIso3166AlphaNumeric,
 		"iso3166_2":                     isIso31662,
+		"iso4217":                       isIso4217,
+		"iso4217_numeric":               isIso4217Numeric,
 		"bcp47_language_tag":            isBCP47LanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
@@ -1438,6 +1441,12 @@ func isAlphaUnicode(fl FieldLevel) bool {
 	return alphaUnicodeRegex.MatchString(fl.Field().String())
 }
 
+// isBoolean is the validation function for validating if the current field's value can be safely converted to a boolean.
+func isBoolean(fl FieldLevel) bool {
+	_, err := strconv.ParseBool(fl.Field().String())
+	return err == nil
+}
+
 // isDefault is the opposite of required aka hasValue
 func isDefault(fl FieldLevel) bool {
 	return !hasValue(fl)
@@ -2356,6 +2365,28 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 func isIso31662(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return iso3166_2[val]
+}
+
+// isIso4217 is the validation function for validating if the current field's value is a valid iso4217 currency code.
+func isIso4217(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return iso4217[val]
+}
+
+// isIso4217Numeric is the validation function for validating if the current field's value is a valid iso4217 numeric currency code.
+func isIso4217Numeric(fl FieldLevel) bool {
+	field := fl.Field()
+
+	var code int
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		code = int(field.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		code = int(field.Uint())
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	return iso4217_numeric[code]
 }
 
 // isBCP47LanguageTag is the validation function for validating if the current field's value is a valid BCP 47 language tag, as parsed by language.Parse

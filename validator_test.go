@@ -71,6 +71,7 @@ type TestString struct {
 	Gt        string `validate:"gt=10"`
 	Gte       string `validate:"gte=10"`
 	OmitEmpty string `validate:"omitempty,min=1,max=10"`
+	Boolean   string `validate:"boolean"`
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
 	Anonymous struct {
@@ -7943,6 +7944,7 @@ func TestStructStringValidation(t *testing.T) {
 		Lte:       "0123456789",
 		Gt:        "01234567890",
 		Gte:       "0123456789",
+		Boolean:   "true",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -7974,6 +7976,7 @@ func TestStructStringValidation(t *testing.T) {
 		Gt:        "1",
 		Gte:       "1",
 		OmitEmpty: "12345678901",
+		Boolean:   "nope",
 		Sub: &SubTest{
 			Test: "",
 		},
@@ -7991,7 +7994,7 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 13)
+	Equal(t, len(errs.(ValidationErrors)), 14)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
@@ -8004,6 +8007,7 @@ func TestStructStringValidation(t *testing.T) {
 	AssertError(t, errs, "TestString.Gt", "TestString.Gt", "Gt", "Gt", "gt")
 	AssertError(t, errs, "TestString.Gte", "TestString.Gte", "Gte", "Gte", "gte")
 	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestString.Boolean", "TestString.Boolean", "Boolean", "Boolean", "boolean")
 
 	// Nested Struct Field Errs
 	AssertError(t, errs, "TestString.Anonymous.A", "TestString.Anonymous.A", "A", "A", "required")
@@ -11077,6 +11081,62 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var("1", "iso3166_1_alpha_numeric")
 	}, "Bad field type string")
+}
+
+func TestIsIso4217Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso4217"`
+		expected bool
+	}{
+		{"TRY", true},
+		{"EUR", true},
+		{"USA", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso4217NumericValidation(t *testing.T) {
+	tests := []struct {
+		value    int `validate:"iso4217_numeric"`
+		expected bool
+	}{
+		{8, true},
+		{12, true},
+		{13, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217_numeric")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
 }
 
 func TestTimeZoneValidation(t *testing.T) {
