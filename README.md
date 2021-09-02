@@ -130,7 +130,7 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
-| endsnotwith | Ends With |
+| endsnotwith | Ends Not With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
