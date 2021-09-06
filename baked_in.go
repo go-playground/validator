@@ -148,6 +148,7 @@ var (
 		"uuid3_rfc4122":                 isUUID3RFC4122,
 		"uuid4_rfc4122":                 isUUID4RFC4122,
 		"uuid5_rfc4122":                 isUUID5RFC4122,
+		"ulid":                          isULID,
 		"ascii":                         isASCII,
 		"printascii":                    isPrintableASCII,
 		"multibyte":                     hasMultiByteCharacter,
@@ -496,6 +497,11 @@ func isUUID3RFC4122(fl FieldLevel) bool {
 // isUUIDRFC4122 is the validation function for validating if the field's value is a valid RFC4122 UUID of any version.
 func isUUIDRFC4122(fl FieldLevel) bool {
 	return uUIDRFC4122Regex.MatchString(fl.Field().String())
+}
+
+// isULID is the validation function for validating if the field's value is a valid ULID.
+func isULID(fl FieldLevel) bool {
+	return uLIDRegex.MatchString(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.

@@ -4269,6 +4269,46 @@ func TestUUIDRFC4122Validation(t *testing.T) {
 	}
 }
 
+func TestULIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"01BX5ZZKBKACT-V9WEVGEMMVRZ", false},
+		{"01bx5zzkbkactav9wevgemmvrz", false},
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
+		{"0IBX5ZZKBKACTAV9WEVGEMMVRZ", false},
+		{"O1BX5ZZKBKACTAV9WEVGEMMVRZ", false},
+		{"01BX5ZZKBKACTAVLWEVGEMMVRZ", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "ulid")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "ulid" {
+					t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestISBNValidation(t *testing.T) {
 	tests := []struct {
 		param    string

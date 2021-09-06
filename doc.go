@@ -1007,6 +1007,12 @@ This validates that a string value contains a valid version 5 UUID.  Uppercase U
 
 	Usage: uuid5
 
+Universally Unique Lexicographically Sortable Identifier ULID
+
+This validates that a string value contains a valid ULID value.
+
+	Usage: ulid
+
 ASCII
 
 This validates that a string value contains only ASCII characters.
