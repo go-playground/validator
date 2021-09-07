@@ -51,7 +51,7 @@ var (
 	timeType         = reflect.TypeOf(time.Time{})
 
 	defaultCField = &cField{namesEqual: true}
-	m sync.RWMutex
+	rwMutex sync.RWMutex
 )
 
 // FilterFunc is the type used to filter fields using
@@ -294,7 +294,7 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	if err = registerFn(trans); err != nil {
 		return
 	}
-	m.Lock()
+	rwMutex.Lock()
 	m, ok := v.transTagFunc[trans]
 	if !ok {
 		m = make(map[string]TranslationFunc)
@@ -302,7 +302,7 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	}
 
 	m[tag] = translationFn
-	m.Unlock()
+	rwMutex.Unlock()
 	return
 }
 
