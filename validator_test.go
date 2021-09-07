@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-playground/assert/v2"
 	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
@@ -72,6 +71,7 @@ type TestString struct {
 	Gt        string `validate:"gt=10"`
 	Gte       string `validate:"gte=10"`
 	OmitEmpty string `validate:"omitempty,min=1,max=10"`
+	Boolean   string `validate:"boolean"`
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
 	Anonymous struct {
@@ -3284,6 +3284,21 @@ func TestMapDiveValidation(t *testing.T) {
 	// for full test coverage
 	s := fmt.Sprint(errs.Error())
 	NotEqual(t, s, "")
+
+	type TestMapInterface struct {
+		Errs map[int]interface{} `validate:"dive"`
+	}
+
+	mit := map[int]interface{}{0: Inner{"ok"}, 1: Inner{""}, 3: nil, 5: "string", 6: 33}
+
+	msi := &TestMapInterface{
+		Errs: mit,
+	}
+
+	errs = validate.Struct(msi)
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	AssertError(t, errs, "TestMapInterface.Errs[1].Name", "TestMapInterface.Errs[1].Name", "Name", "Name", "required")
 
 	type TestMapTimeStruct struct {
 		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
@@ -7929,6 +7944,7 @@ func TestStructStringValidation(t *testing.T) {
 		Lte:       "0123456789",
 		Gt:        "01234567890",
 		Gte:       "0123456789",
+		Boolean:   "true",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -7960,6 +7976,7 @@ func TestStructStringValidation(t *testing.T) {
 		Gt:        "1",
 		Gte:       "1",
 		OmitEmpty: "12345678901",
+		Boolean:   "nope",
 		Sub: &SubTest{
 			Test: "",
 		},
@@ -7977,7 +7994,7 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	NotEqual(t, errs, nil)
-	Equal(t, len(errs.(ValidationErrors)), 13)
+	Equal(t, len(errs.(ValidationErrors)), 14)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
@@ -7990,6 +8007,7 @@ func TestStructStringValidation(t *testing.T) {
 	AssertError(t, errs, "TestString.Gt", "TestString.Gt", "Gt", "Gt", "gt")
 	AssertError(t, errs, "TestString.Gte", "TestString.Gte", "Gte", "Gte", "gte")
 	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestString.Boolean", "TestString.Boolean", "Boolean", "Boolean", "boolean")
 
 	// Nested Struct Field Errs
 	AssertError(t, errs, "TestString.Anonymous.A", "TestString.Anonymous.A", "A", "A", "required")
@@ -9624,7 +9642,7 @@ func TestKeys(t *testing.T) {
 	AssertError(t, err.(ValidationErrors), "Test2.NestedKeys", "Test2.NestedKeys", "NestedKeys", "NestedKeys", "gt")
 
 	tst2.NestedKeys = map[[1]string]string{
-		[1]string{"innertestkey"}: "outertestval",
+		{"innertestkey"}: "outertestval",
 	}
 
 	err = validate.Struct(tst2)
@@ -10772,6 +10790,42 @@ func TestJSONValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestJWTValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ29waGVyIn0.O_bROM_szPq9qBql-XDHMranHwP48ODdoLICWzqBr_U", true},
+		{"acb123-_.def456-_.ghi789-_", true},
+		{"eyJhbGciOiJOT05FIn0.e30.", true},
+		{"eyJhbGciOiJOT05FIn0.e30.\n", false},
+		{"\x00.\x00.\x00", false},
+		{"", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "jwt")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "jwt" {
+					t.Fatalf("Index: %d jwt failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func Test_hostnameport_validator(t *testing.T) {
 	type Host struct {
 		Addr string `validate:"hostname_port"`
@@ -10941,6 +10995,34 @@ func TestIsIso3166Alpha2Validation(t *testing.T) {
 	}
 }
 
+func TestIsIso31662Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_2"`
+		expected bool
+	}{
+		{"US-FL", true},
+		{"US-F", false},
+		{"US", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_2")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_2 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestIsIso3166Alpha3Validation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"iso3166_1_alpha3"`
@@ -10999,6 +11081,62 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var("1", "iso3166_1_alpha_numeric")
 	}, "Bad field type string")
+}
+
+func TestIsIso4217Validation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso4217"`
+		expected bool
+	}{
+		{"TRY", true},
+		{"EUR", true},
+		{"USA", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestIsIso4217NumericValidation(t *testing.T) {
+	tests := []struct {
+		value    int `validate:"iso4217_numeric"`
+		expected bool
+	}{
+		{8, true},
+		{12, true},
+		{13, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso4217_numeric")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso4217 failed Error: %s", i, errs)
+			}
+		}
+	}
 }
 
 func TestTimeZoneValidation(t *testing.T) {
@@ -11255,7 +11393,7 @@ func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
 	}
 
 	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
+	NotEqual(t, nil, errs)
 }
 
 func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
@@ -11266,7 +11404,7 @@ func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
 	}
 
 	errs := New().Struct(test{"ABC", "VN", false})
-	assert.NotEqual(t, nil, errs)
+	NotEqual(t, nil, errs)
 }
 
 func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {

@@ -1,4 +1,4 @@
-package zh
+package fa
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -26,45 +25,42 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0}为必填字段",
+			translation: "فیلد {0} اجباری میباشد",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("len-string", "{0}长度必须是{1}", false); err != nil {
+				if err = ut.Add("len-string", "طول {0} باید {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("len-string-character", "{0}字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("len-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-number", "{0}必须等于{1}", false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-items", "{0}必须包含{1}", false); err != nil {
+				if err = ut.Add("len-number", "طول {0} باید برابر {1} باشد", false); err != nil {
 					return
 				}
-				//if err = ut.AddCardinal("len-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
 
-				if err = ut.AddCardinal("len-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("len-items", "تعداد {0} باید برابر {1} باشد", false); err != nil {
+					return
+				}
+				if err = ut.AddCardinal("len-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("len-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -113,7 +109,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -123,39 +119,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("min-string", "{0}长度必须至少为{1}", false); err != nil {
+				if err = ut.Add("min-string", "طول {0} باید حداقل {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("min-string-character", "{0}个字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("min-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}最小只能为{1}", false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "{0}必须至少包含{1}", false); err != nil {
+				if err = ut.Add("min-number", "{0} باید بزرگتر یا برابر {1} باشد", false); err != nil {
 					return
 				}
-				//if err = ut.AddCardinal("min-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
 
-				if err = ut.AddCardinal("min-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("min-items", "{0} باید شامل حداقل {1} باشد", false); err != nil {
+					return
+				}
+				if err = ut.AddCardinal("min-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("min-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -204,7 +197,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -214,39 +207,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("max-string", "{0}长度不能超过{1}", false); err != nil {
+				if err = ut.Add("max-string", "طول {0} باید حداکثر {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("max-string-character", "{0}个字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("max-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-number", "{0}必须小于或等于{1}", false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-items", "{0}最多只能包含{1}", false); err != nil {
+				if err = ut.Add("max-number", "{0} باید کمتر یا برابر {1} باشد", false); err != nil {
 					return
 				}
-				//if err = ut.AddCardinal("max-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
 
-				if err = ut.AddCardinal("max-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("max-items", "{0} باید شامل حداکثر {1} باشد", false); err != nil {
+					return
+				}
+				if err = ut.AddCardinal("max-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("max-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -295,7 +285,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -304,13 +294,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0}不等于{1}",
+			translation: "{0} برابر {1} نمیباشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %#v", fe)
+					fmt.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -319,13 +308,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ne",
-			translation: "{0}不能等于{1}",
+			translation: "{0} نباید برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %#v", fe)
+					fmt.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -335,44 +323,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lt-string", "{0}长度必须小于{1}", false); err != nil {
+				if err = ut.Add("lt-string", "طول {0} باید کمتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("lt-string-character", "{0}个字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("lt-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-number", "{0}必须小于{1}", false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0}必须包含少于{1}", false); err != nil {
+				if err = ut.Add("lt-number", "{0} باید کمتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("lt-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("lt-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("lt-items", "{0} باید دارای کمتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0}必须小于当前日期和时间", false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lt-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
+					return
+				}
+
+				if err = ut.Add("lt-datetime", "{0} باید قبل از تاریخ و زمان کنونی باشد", false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -380,7 +365,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -429,10 +413,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
-					} else {
-						t, err = ut.T("lt-datetime", fe.Field())
+						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						goto END
 					}
+
+					t, err = ut.T("lt-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -445,7 +430,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -455,43 +440,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lte-string", "{0}长度不能超过{1}", false); err != nil {
+				if err = ut.Add("lte-string", "طول {0} باید حداکثر {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("lte-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("lte-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0}必须小于或等于{1}", false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0}最多只能包含{1}", false); err != nil {
+				if err = ut.Add("lte-number", "{0} باید کمتر یا برابر {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("lte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("lte-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("lte-items", "{0} باید حداکثر شامل {1} باشد", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0}必须小于或等于当前日期和时间", false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("lte-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
+					return
+				}
+
+				if err = ut.Add("lte-datetime", "{0} باید قبل یا برابر تاریخ و زمان کنونی باشد", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -499,7 +482,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -548,10 +530,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
-					} else {
-						t, err = ut.T("lte-datetime", fe.Field())
+						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						goto END
 					}
+
+					t, err = ut.T("lte-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -564,7 +547,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -574,43 +557,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gt-string", "{0}长度必须大于{1}", false); err != nil {
+				if err = ut.Add("gt-string", "طول {0} باید بیشتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("gt-string-character", "{0}个字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("gt-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-number", "{0}必须大于{1}", false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0}必须大于{1}", false); err != nil {
+				if err = ut.Add("gt-number", "{0} باید بیشتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("gt-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("gt-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gt-items", "{0} باید دارای بیشتر از {1} باشد", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0}必须大于当前日期和时间", false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gt-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
+					return
+				}
+
+				if err = ut.Add("gt-datetime", "{0} باید بعد از تاریخ و زمان کنونی باشد", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -618,7 +599,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -667,11 +647,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
-					} else {
-
-						t, err = ut.T("gt-datetime", fe.Field())
+						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						goto END
 					}
+
+					t, err = ut.T("gt-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -684,7 +664,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -694,43 +674,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gte-string", "{0}长度必须至少为{1}", false); err != nil {
+				if err = ut.Add("gte-string", "طول {0} باید حداقل {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("gte-string-character", "{0}个字符", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("gte-string-character", "{0}个字符", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} کاراکتر", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}必须大于或等于{1}", false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} کاراکتر", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0}必须至少包含{1}", false); err != nil {
+				if err = ut.Add("gte-number", "{0} باید بیشتر یا برابر {1} باشد", false); err != nil {
 					return
 				}
 
-				//if err = ut.AddCardinal("gte-items-item", "{0}项", locales.PluralRuleOne, false); err != nil {
-				//	return
-				//}
-
-				if err = ut.AddCardinal("gte-items-item", "{0}项", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gte-items", "{0} باید شامل حداقل {1} باشد", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0}必须大于或等于当前日期和时间", false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} آیتم", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gte-items-item", "{0} آیتم", locales.PluralRuleOther, false); err != nil {
+					return
+				}
+
+				if err = ut.Add("gte-datetime", "{0} باید بعد یا برابر تاریخ و زمان کنونی باشد", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -738,7 +716,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -787,10 +764,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
-					} else {
-						t, err = ut.T("gte-datetime", fe.Field())
+						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						goto END
 					}
+
+					t, err = ut.T("gte-datetime", fe.Field())
 
 				default:
 					err = fn()
@@ -803,7 +781,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("警告: 翻译字段错误: %s", err)
+					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -812,13 +790,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "{0}必须等于{1}",
+			translation: "{0} باید برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -827,13 +804,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "{0}必须等于{1}",
+			translation: "{0} باید برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -842,13 +818,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0}不能等于{1}",
+			translation: "{0} نمیتواند برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -857,13 +832,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtcsfield",
-			translation: "{0}必须大于{1}",
+			translation: "طول {0} باید بیشتر از {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -872,13 +846,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0}必须大于或等于{1}",
+			translation: "طول {0} باید بیشتر یا برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -887,13 +860,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltcsfield",
-			translation: "{0}必须小于{1}",
+			translation: "طول {0} باید کمتر از {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -902,13 +874,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "{0}必须小于或等于{1}",
+			translation: "طول {0} باید کمتر یا برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -917,13 +888,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0}不能等于{1}",
+			translation: "{0} نمیتواند برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -932,13 +902,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtfield",
-			translation: "{0}必须大于{1}",
+			translation: "طول {0} باید بیشتر از {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -947,13 +916,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0}必须大于或等于{1}",
+			translation: "طول {0} باید بیشتر یا برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -962,13 +930,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltfield",
-			translation: "{0}必须小于{1}",
+			translation: "طول {0} باید کمتر از {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -977,13 +944,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "{0}必须小于或等于{1}",
+			translation: "طول {0} باید کمتر یا برابر {1} باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -992,93 +958,87 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "{0}只能包含字母",
+			translation: "{0} میتواند فقط شامل حروف باشد",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0}只能包含字母和数字",
-			override:    false,
-		},
-		{
-			tag:         "alphanumunicode",
-			translation: "{0}只能包含字母数字和Unicode字符",
-			override:    false,
-		},
-		{
-			tag:         "alphaunicode",
-			translation: "{0}只能包含字母和Unicode字符",
+			translation: "{0} میتواند فقط شامل حروف و اعداد باشد",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "{0}必须是一个有效的数值",
+			translation: "{0} باید یک عدد معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0}必须是一个有效的数字",
+			translation: "{0} باید یک عدد معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0}必须是一个有效的十六进制",
+			translation: "{0} باید یک عدد درمبنای16 باشد",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "{0}必须是一个有效的十六进制颜色",
+			translation: "{0} باید یک کد رنگ HEX باشد",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "{0}必须是一个有效的RGB颜色",
+			translation: "{0} باید یک کد رنگ RGB باشد",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "{0}必须是一个有效的RGBA颜色",
+			translation: "{0} باید یک کد رنگ RGBA باشد",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "{0}必须是一个有效的HSL颜色",
+			translation: "{0} باید یک کد رنگ HSL باشد",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "{0}必须是一个有效的HSLA颜色",
+			translation: "{0} باید یک کد رنگ HSLA باشد",
+			override:    false,
+		},
+		{
+			tag:         "e164",
+			translation: "{0} باید یک شماره‌تلفن معتبر با فرمت E.164 باشد",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "{0}必须是一个有效的邮箱",
+			translation: "{0} باید یک ایمیل معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "{0}必须是一个有效的URL",
+			translation: "{0} باید یک آدرس اینترنتی معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0}必须是一个有效的URI",
+			translation: "{0} باید یک URI معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0}必须是一个有效的Base64字符串",
+			translation: "{0} باید یک متن درمبنای64 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "contains",
-			translation: "{0}必须包含文本'{1}'",
+			translation: "{0} باید شامل '{1}' باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1087,28 +1047,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0}必须包含至少一个以下字符'{1}'",
+			translation: "{0} باید شامل کاراکترهای '{1}' باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
-		},
-		{
-			tag:         "containsrune",
-			translation: "{0}必须包含字符'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1117,13 +1061,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludes",
-			translation: "{0}不能包含文本'{1}'",
+			translation: "{0} نمیتواند شامل '{1}' باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1132,13 +1075,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesall",
-			translation: "{0}不能包含以下任何字符'{1}'",
+			translation: "{0} نمیتواند شامل کاراکترهای '{1}' باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1147,43 +1089,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesrune",
-			translation: "{0}不能包含'{1}'",
+			translation: "{0} نمیتواند شامل '{1}' باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
-		},
-		{
-			tag:         "endswith",
-			translation: "{0}必须以文本'{1}'结尾",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
-		},
-		{
-			tag:         "startswith",
-			translation: "{0}必须以文本'{1}'开头",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1192,172 +1103,177 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0}必须是一个有效的ISBN编号",
+			translation: "{0} باید یک شابک معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0}必须是一个有效的ISBN-10编号",
+			translation: "{0} باید یک شابک(ISBN-10) معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0}必须是一个有效的ISBN-13编号",
+			translation: "{0} باید یک شابک(ISBN-13) معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0}必须是一个有效的UUID",
+			translation: "{0} باید یک UUID معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0}必须是一个有效的V3 UUID",
+			translation: "{0} باید یک UUID نسخه 3 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0}必须是一个有效的V4 UUID",
+			translation: "{0} باید یک UUID نسخه 4 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0}必须是一个有效的V5 UUID",
+			translation: "{0} باید یک UUID نسخه 5 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "{0}必须只包含ascii字符",
+			translation: "{0} باید فقط شامل کاراکترهای اسکی باشد",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0}必须只包含可打印的ascii字符",
+			translation: "{0} باید فقط شامل کاراکترهای اسکی قابل چاپ باشد",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0}必须包含多字节字符",
+			translation: "{0} باید شامل کاراکترهای چندبایته باشد",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "{0}必须包含有效的数据URI",
+			translation: "{0} باید یک Data URI معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0}必须包含有效的纬度坐标",
+			translation: "{0} باید یک عرض جغرافیایی معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0}必须包含有效的经度坐标",
+			translation: "{0} باید یک طول جغرافیایی معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "{0}必须是一个有效的社会安全号码(SSN)",
+			translation: "{0} باید یک شماره SSN معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "{0}必须是一个有效的IPv4地址",
+			translation: "{0} باید یک آدرس آی‌پی IPv4 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "{0}必须是一个有效的IPv6地址",
+			translation: "{0} باید یک آدرس آی‌پی IPv6 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "{0}必须是一个有效的IP地址",
+			translation: "{0} باید یک آدرس آی‌پی معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "{0}必须是一个有效的无类别域间路由(CIDR)",
+			translation: "{0} باید یک نشانه‌گذاری CIDR معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "{0}必须是一个包含IPv4地址的有效无类别域间路由(CIDR)",
+			translation: "{0} باید یک نشانه‌گذاری CIDR معتبر برای آدرس آی‌پی IPv4 باشد",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "{0}必须是一个包含IPv6地址的有效无类别域间路由(CIDR)",
+			translation: "{0} باید یک نشانه‌گذاری CIDR معتبر برای آدرس آی‌پی IPv6 باشد",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "{0}必须是一个有效的TCP地址",
+			translation: "{0} باید یک آدرس TCP معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "{0}必须是一个有效的IPv4 TCP地址",
+			translation: "{0} باید یک آدرس TCP IPv4 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "{0}必须是一个有效的IPv6 TCP地址",
+			translation: "{0} باید یک آدرس TCP IPv6 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "{0}必须是一个有效的UDP地址",
+			translation: "{0} باید یک آدرس UDP معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "{0}必须是一个有效的IPv4 UDP地址",
+			translation: "{0} باید یک آدرس UDP IPv4 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "{0}必须是一个有效的IPv6 UDP地址",
+			translation: "{0} باید یک آدرس UDP IPv6 معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "{0}必须是一个有效的IP地址",
+			translation: "{0} باید یک آدرس آی‌پی قابل دسترس باشد",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0}必须是一个有效的IPv4地址",
+			translation: "{0} باید یک آدرس آی‌پی IPv4 قابل دسترس باشد",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0}必须是一个有效的IPv6地址",
+			translation: "{0} باید یک آدرس آی‌پی IPv6 قابل دسترس باشد",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0}必须是一个有效的UNIX地址",
+			translation: "{0} باید یک آدرس UNIX معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "{0}必须是一个有效的MAC地址",
+			translation: "{0} باید یک مک‌آدرس معتبر باشد",
+			override:    false,
+		},
+		{
+			tag:         "unique",
+			translation: "{0} باید شامل مقادیر منحصربفرد باشد",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0}必须是一个有效的颜色",
+			translation: "{0} باید یک رنگ معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "oneof",
-			translation: "{0}必须是[{1}]中的一个",
+			translation: "{0} باید یکی از مقادیر [{1}] باشد",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 				return s
@@ -1365,28 +1281,55 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "json",
-			translation: "{0}必须是一个JSON字符串",
+			translation: "{0} باید یک json معتبر باشد",
 			override:    false,
 		},
 		{
 			tag:         "lowercase",
-			translation: "{0}必须是小写字母",
+			translation: "{0} باید یک متن با حروف کوچک باشد",
 			override:    false,
 		},
 		{
 			tag:         "uppercase",
-			translation: "{0}必须是大写字母",
+			translation: "{0} باید یک متن با حروف بزرگ باشد",
 			override:    false,
 		},
 		{
 			tag:         "datetime",
-			translation: "{0}的格式必须是{1}",
+			translation: "فرمت {0} با {1} سازگار نیست",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("警告: 翻译字段错误: %#v", fe)
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0} یک کدپستی معتبر کشور {1} نیست",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0} یک کدپستی معتبر کشور فیلد {1} نیست",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1398,17 +1341,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	for _, t := range translations {
 
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
-
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
-
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), t.customTransFunc)
-
 		} else if t.customTransFunc == nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, translateFunc)
-
 		} else {
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		}
@@ -1422,24 +1359,19 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
 
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
-		log.Printf("警告: 翻译字段错误: %#v", fe)
+		log.Printf("warning: error translating FieldError: %#v", fe)
 		return fe.(error).Error()
 	}
 
