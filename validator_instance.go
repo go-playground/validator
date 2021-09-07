@@ -86,6 +86,7 @@ type Validate struct {
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
 	tagCache         *tagCache
 	structCache      *structCache
+	m                sync.RWMutex
 }
 
 // New returns a new instance of 'validate' with sane defaults.
@@ -293,7 +294,7 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	if err = registerFn(trans); err != nil {
 		return
 	}
-
+	v.m.Lock()
 	m, ok := v.transTagFunc[trans]
 	if !ok {
 		m = make(map[string]TranslationFunc)
@@ -301,7 +302,7 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	}
 
 	m[tag] = translationFn
-
+	v.m.Unlock()
 	return
 }
 
