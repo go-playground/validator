@@ -1263,6 +1263,12 @@ More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
 
+Semantic Version
+
+This validates that a string value is a valid semver version, defined in Semantic Versioning 2.0.0.
+More information on https://semver.org/
+
+	Usage: semver
 
 Alias Validators and Tags
 

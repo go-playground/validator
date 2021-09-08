@@ -11307,6 +11307,84 @@ func TestBicIsoFormatValidation(t *testing.T) {
 	}
 }
 
+func TestSemverFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"semver"`
+		tag      string
+		expected bool
+	}{
+		{"1.2.3", "semver", true},
+		{"10.20.30", "semver", true},
+		{"1.1.2-prerelease+meta", "semver", true},
+		{"1.1.2+meta", "semver", true},
+		{"1.1.2+meta-valid", "semver", true},
+		{"1.0.0-alpha", "semver", true},
+		{"1.0.0-alpha.1", "semver", true},
+		{"1.0.0-alpha.beta", "semver", true},
+		{"1.0.0-alpha.beta.1", "semver", true},
+		{"1.0.0-alpha0.valid", "semver", true},
+		{"1.0.0-alpha.0valid", "semver", true},
+		{"1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay", "semver", true},
+		{"1.0.0-rc.1+build.1", "semver", true},
+		{"1.0.0-rc.1+build.123", "semver", true},
+		{"1.2.3-beta", "semver", true},
+		{"1.2.3-DEV-SNAPSHOT", "semver", true},
+		{"1.2.3-SNAPSHOT-123", "semver", true},
+		{"2.0.0+build.1848", "semver", true},
+		{"2.0.1-alpha.1227", "semver", true},
+		{"1.0.0-alpha+beta", "semver", true},
+		{"1.2.3----RC-SNAPSHOT.12.9.1--.12+788", "semver", true},
+		{"1.2.3----R-S.12.9.1--.12+meta", "semver", true},
+		{"1.2.3----RC-SNAPSHOT.12.9.1--.12", "semver", true},
+		{"1.0.0+0.build.1-rc.10000aaa-kk-0.1", "semver", true},
+		{"99999999999999999999999.999999999999999999.99999999999999999", "semver", true},
+		{"1.0.0-0A.is.legal", "semver", true},
+		{"1", "semver", false},
+		{"1.2", "semver", false},
+		{"1.2.3-0123", "semver", false},
+		{"1.2.3-0123.0123", "semver", false},
+		{"1.1.2+.123", "semver", false},
+		{"+invalid", "semver", false},
+		{"-invalid", "semver", false},
+		{"-invalid+invalid", "semver", false},
+		{"alpha", "semver", false},
+		{"alpha.beta.1", "semver", false},
+		{"alpha.1", "semver", false},
+		{"1.0.0-alpha_beta", "semver", false},
+		{"1.0.0-alpha_beta", "semver", false},
+		{"1.0.0-alpha...1", "semver", false},
+		{"01.1.1", "semver", false},
+		{"1.01.1", "semver", false},
+		{"1.1.01", "semver", false},
+		{"1.2", "semver", false},
+		{"1.2.Dev", "semver", false},
+		{"1.2.3.Dev", "semver", false},
+		{"1.2-SNAPSHOT", "semver", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "semver" {
+					t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestPostCodeByIso3166Alpha2(t *testing.T) {
 	tests := map[string][]struct {
 		value    string
