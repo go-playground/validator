@@ -1255,6 +1255,13 @@ More information on https://www.iso.org/standard/60390.html
 
 	Usage: bic
 
+RFC 1035 label
+
+This validates that a string value is a valid dns RFC 1035 label, defined in RFC 1035.
+More information on https://datatracker.ietf.org/doc/html/rfc1035
+
+	Usage: dns_rfc1035_label
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
