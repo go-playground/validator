@@ -51,6 +51,7 @@ const (
 	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	msgRegexString                   = `^msg=.+`
 )
 
 var (
@@ -102,4 +103,5 @@ var (
 	jWTRegex                   = regexp.MustCompile(jWTRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 	bicRegex                   = regexp.MustCompile(bicRegexString)
+	msgRegex                   = regexp.MustCompile(msgRegexString)
 )
