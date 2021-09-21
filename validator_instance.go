@@ -44,7 +44,6 @@ const (
 	restrictedTagChars    = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
 	restrictedAliasErr    = "Alias '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
 	restrictedTagErr      = "Tag '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
-	msgTag                = "msg"
 )
 
 var (
