@@ -1346,14 +1346,10 @@ when an error happpend the fieldError will output this msg.
 
 	Usage: msg
 
-Examples:
-
-	// error msg for field
-
+	// error msg for field:
 	Usage: msg=my own msg
 
-	// error msg for slice or array
-
+	// error msg for slice or array:
 	Usage: msg=msg for slice,min=1,dive,msg=msg for items,min=6,max=20
 
 */
