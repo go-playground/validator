@@ -10635,6 +10635,105 @@ func TestRequiredWithoutAll(t *testing.T) {
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
 }
 
+func TestExcludedIf(t *testing.T) {
+	type (
+		Inner struct {
+			Field *string
+		}
+	)
+	test1 := struct {
+		FieldE  string  `validate:"omitempty" json:"field_e"`
+		FieldER *string `validate:"excluded_if=FieldE test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test1)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE test" json:"field_er"`
+	}{
+		FieldE: "notest",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
+
+	// Checks number of params in struct tag is correct
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("test3 should have panicked!")
+		}
+	}()
+
+	fieldVal := "test"
+	test3 := struct {
+		Inner  *Inner
+		Field1 string `validate:"excluded_if=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	_ = validate.Struct(test3)
+}
+
+func TestExcludedUnless(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE:  "notest",
+		FieldER: "filled",
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE:  "test",
+		FieldER: "filled",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_unless")
+
+	// Checks number of params in struct tag is correct
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("test3 should have panicked!")
+		}
+	}()
+
+	test3 := struct {
+		Inner  *Inner
+		Field1 string `validate:"excluded_unless=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	_ = validate.Struct(test3)
+}
+
 func TestLookup(t *testing.T) {
 	type Lookup struct {
 		FieldA *string `json:"fieldA,omitempty" validate:"required_without=FieldB"`
