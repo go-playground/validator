@@ -1147,6 +1147,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "cpf",
+			translation: "{0} must be a valid CPF",
+			override:    false,
+		},
+		{
 			tag:         "ascii",
 			translation: "{0} must contain only ascii characters",
 			override:    false,

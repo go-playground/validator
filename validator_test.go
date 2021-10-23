@@ -12286,3 +12286,52 @@ func TestMultiOrOperatorGroup(t *testing.T) {
  		}
  	}
  }
+
+func TestCPFField(t *testing.T) {
+	tests := []struct {
+		Value    string `validate:"cpf"`
+		expected bool
+	}{
+		{"33888222044", true}, //249//293
+		{"16814496097", true}, //233 290
+		{"37919050073", true},
+		{"338.882.220-44", false},
+		{"02588789854INVALID", false},
+		{"33888222042", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cpf failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cpf failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestSumDigit(t *testing.T) {
+	tests := []struct {
+		sequence string `validate:"cpf"`
+		indexs   []int
+		expected int
+	}{
+		{"338882220", []int{10, 9, 8, 7, 6, 5, 4, 3, 2}, 249},
+		{"3388822204", []int{11, 10, 9, 8, 7, 6, 5, 4, 3, 2}, 293},
+		{"168144960", []int{10, 9, 8, 7, 6, 5, 4, 3, 2}, 233},
+		{"1681449609", []int{11, 10, 9, 8, 7, 6, 5, 4, 3, 2}, 290},
+	}
+
+	for i, test := range tests {
+		result := sumDigit(test.sequence, test.indexs)
+		if !IsEqual(result, test.expected) {
+			t.Fatalf("Index: %d cpf failed. Expected: %d, received: %d", i, test.expected, result)
+		}
+	}
+}

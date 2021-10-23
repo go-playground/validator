@@ -1047,6 +1047,12 @@ This validates that a string value contains a valid ULID value.
 
 	Usage: ulid
 
+Registration of Individuals (CPF)
+
+This validates that a string value contains a valid CPF.
+
+	Usage: cpf
+
 ASCII
 
 This validates that a string value contains only ASCII characters.
