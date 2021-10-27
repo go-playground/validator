@@ -2409,9 +2409,10 @@ func isIsoBicFormat(fl FieldLevel) bool {
 	return bicRegex.MatchString(bicString)
 }
 
-// isDnsRFC1035LabelFormat is the validation function for validating if the current field's value is a valid dns RFC 1035 label, defined in RFC 1035
+// isDnsRFC1035LabelFormat is the validation function
+// for validating if the current field's value is
+// a valid dns RFC 1035 label, defined in RFC 1035.
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
-
 	return dnsRegexRFC1035Label.MatchString(val)
 }

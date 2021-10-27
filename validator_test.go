@@ -11318,12 +11318,15 @@ func TestRFC1035LabelFormatValidation(t *testing.T) {
 		{"abc-123", "dns_rfc1035_label", true},
 		{"ABC", "dns_rfc1035_label", false},
 		{"ABC-123", "dns_rfc1035_label", false},
+		{"abc-abc", "dns_rfc1035_label", true},
+		{"ABC-ABC", "dns_rfc1035_label", false},
+		{"123-abc", "dns_rfc1035_label", false},
+		{"", "dns_rfc1035_label", false},
 	}
 
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {
