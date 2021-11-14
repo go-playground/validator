@@ -30,6 +30,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
