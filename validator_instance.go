@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -156,6 +157,14 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
 			if len(err) > 0 {
 				errs[field] = err
+			}
+		} else if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Slice {
+			for i := 0; i < reflect.ValueOf(data[field]).Len(); i++ {
+				fieldWithIndex := field + "[" + strconv.FormatInt(int64(i), 10) + "]"
+				err := v.ValidateMapCtx(ctx, reflect.ValueOf(data[field]).Index(i).Interface().(map[string]interface{}), rule.(map[string]interface{}))
+				if len(err) > 0 {
+					errs[fieldWithIndex] = err
+				}
 			}
 		} else if reflect.ValueOf(rule).Kind() == reflect.Map {
 			errs[field] = errors.New("The field: '" + field + "' is not a map to dive")

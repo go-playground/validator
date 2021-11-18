@@ -11418,3 +11418,50 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	_ = New().Struct(test{"ABC", 123, false})
 	t.Errorf("Didn't panic as expected")
 }
+
+func TestValidate_ValidateMap_WithSlicesOfStructs(t *testing.T) {
+	test := map[string]interface{}{
+		"value": []map[string]interface{}{
+			{
+				"subValue": "abc",
+			}, {},
+		},
+	}
+	rules := map[string]interface{}{
+		"value": map[string]interface{}{
+			"subValue": "required",
+		},
+	}
+	errs := New().ValidateMap(test, rules)
+	NotEqual(t, nil, errs)
+}
+
+func TestValidate_ValidateMap_WithSubMaps(t *testing.T) {
+	test := map[string]interface{}{
+		"value": map[string]interface{}{
+			"subValue": "abc",
+		},
+	}
+	rules := map[string]interface{}{
+		"value": map[string]interface{}{
+			"subValue": "required",
+		},
+	}
+	errs := New().ValidateMap(test, rules)
+	NotEqual(t, nil, errs)
+}
+
+func TestValidate_ValidateMap_InvalidType(t *testing.T) {
+	test := map[string]interface{}{
+		"value": "abc",
+	}
+	rules := map[string]interface{}{
+		"value": map[string]interface{}{
+			"subValue": "required",
+		},
+	}
+	errs := New().ValidateMap(test, rules)
+	if IsEqual(errs, nil) {
+		t.Fatal("expected field error")
+	}
+}
