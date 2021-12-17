@@ -2215,6 +2215,45 @@ func TestExistsValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestSQLValue3Validation(t *testing.T) {
+	validate := New()
+	validate.RegisterCustomTypeFunc(ValidateValuerType, reflect.TypeOf((*driver.Valuer)(nil)).Elem())
+
+	val := valuer{
+		Name: "",
+	}
+
+	errs := validate.Var(val, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "required")
+
+	val.Name = "Valid Name"
+	errs = validate.VarCtx(context.Background(), val, "required")
+	Equal(t, errs, nil)
+
+	val.Name = "errorme"
+
+	PanicMatches(t, func() { _ = validate.Var(val, "required") }, "SQL Driver Valuer error: some kind of error")
+
+	myVal := valuer{
+		Name: "",
+	}
+
+	errs = validate.Var(myVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "required")
+
+	intVal := sql.NullInt64{}
+	errs = validate.Var(intVal, "required")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "required")
+
+	intVal.Int64 = 10
+	intVal.Valid = true
+	errs = validate.Var(intVal, "required")
+	Equal(t, errs, nil)
+}
+
 func TestSQLValue2Validation(t *testing.T) {
 	validate := New()
 	validate.RegisterCustomTypeFunc(ValidateValuerType, valuer{}, (*driver.Valuer)(nil), sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})

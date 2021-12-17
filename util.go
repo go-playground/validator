@@ -42,8 +42,7 @@ BEGIN:
 	default:
 
 		if v.v.hasCustomFuncs {
-
-			if fn, ok := v.v.customFuncs[current.Type()]; ok {
+			if fn, ok := v.findCustomTypeFunc(current.Type()); ok {
 				current = reflect.ValueOf(fn(current))
 				goto BEGIN
 			}
@@ -51,6 +50,42 @@ BEGIN:
 
 		return current, current.Kind(), nullable
 	}
+}
+
+func (v *validate) findCustomTypeFunc(typ reflect.Type) (CustomTypeFunc, bool) {
+	// fast path
+	if fn, ok := v.v.customFuncs.Load(typ); ok {
+		if fn == nil {
+			return nil, false
+		}
+		return fn.(CustomTypeFunc), true
+	}
+
+	// slow path
+	var fn CustomTypeFunc
+	var found bool
+
+	// iterate the customFuncs to find if the typ implement any interface type registered
+	v.v.customFuncs.Range(func(key, value interface{}) bool {
+		keyTyp := key.(reflect.Type)
+		if keyTyp.Kind() != reflect.Interface {
+			return true
+		}
+
+		if typ.Implements(keyTyp) {
+			fn = value.(CustomTypeFunc)
+			found = true
+			return false
+		}
+		return true
+	})
+
+	if found {
+		v.v.customFuncs.Store(typ, fn)
+	} else {
+		v.v.customFuncs.Store(typ, nil)
+	}
+	return fn, found
 }
 
 // getStructFieldOKInternal traverses a struct to retrieve a specific field denoted by the provided namespace and
