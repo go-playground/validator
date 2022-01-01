@@ -11061,6 +11061,7 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 		{0, false},
 		{1, false},
 		{"1", false},
+		{"invalid_int", false},
 	}
 
 	validate := New()
@@ -11093,7 +11094,9 @@ func TestCountryCodeValidation(t *testing.T) {
 		{248, true},
 		{0, false},
 		{1, false},
+		{"POL", true},
 		{"NO", true},
+		{"248", true},
 		{"1", false},
 		{"0", false},
 	}
