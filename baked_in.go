@@ -2351,6 +2351,12 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 
 	var code int
 	switch field.Kind() {
+	case reflect.String:
+		i, err := strconv.Atoi(field.String())
+		if err != nil {
+			return false
+		}
+		code = i % 1000
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		code = int(field.Int() % 1000)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
