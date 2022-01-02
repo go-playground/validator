@@ -103,6 +103,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string            `validate:"uuid3"`
 		UUID4             string            `validate:"uuid4"`
 		UUID5             string            `validate:"uuid5"`
+		ULID              string            `validate:"ulid"`
 		ASCII             string            `validate:"ascii"`
 		PrintableASCII    string            `validate:"printascii"`
 		MultiByte         string            `validate:"multibyte"`
@@ -322,6 +323,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UUID5",
 			expected: "UUID5 must be a valid version 5 UUID",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID must be a valid ULID",
 		},
 		{
 			ns:       "Test.ISBN",

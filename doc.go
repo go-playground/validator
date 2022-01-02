@@ -1007,6 +1007,12 @@ This validates that a string value contains a valid version 5 UUID.  Uppercase U
 
 	Usage: uuid5
 
+Universally Unique Lexicographically Sortable Identifier ULID
+
+This validates that a string value contains a valid ULID value.
+
+	Usage: ulid
+
 ASCII
 
 This validates that a string value contains only ASCII characters.
@@ -1254,6 +1260,13 @@ This validates that a string value is a valid Business Identifier Code (SWIFT co
 More information on https://www.iso.org/standard/60390.html
 
 	Usage: bic
+
+RFC 1035 label
+
+This validates that a string value is a valid dns RFC 1035 label, defined in RFC 1035.
+More information on https://datatracker.ietf.org/doc/html/rfc1035
+
+	Usage: dns_rfc1035_label
 
 TimeZone
 

@@ -148,6 +148,7 @@ var (
 		"uuid3_rfc4122":                 isUUID3RFC4122,
 		"uuid4_rfc4122":                 isUUID4RFC4122,
 		"uuid5_rfc4122":                 isUUID5RFC4122,
+		"ulid":                          isULID,
 		"ascii":                         isASCII,
 		"printascii":                    isPrintableASCII,
 		"multibyte":                     hasMultiByteCharacter,
@@ -199,6 +200,7 @@ var (
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic":                           isIsoBicFormat,
 		"semver":                        isSemverFormat,
+		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 	}
 )
 
@@ -497,6 +499,11 @@ func isUUID3RFC4122(fl FieldLevel) bool {
 // isUUIDRFC4122 is the validation function for validating if the field's value is a valid RFC4122 UUID of any version.
 func isUUIDRFC4122(fl FieldLevel) bool {
 	return uUIDRFC4122Regex.MatchString(fl.Field().String())
+}
+
+// isULID is the validation function for validating if the field's value is a valid ULID.
+func isULID(fl FieldLevel) bool {
+	return uLIDRegex.MatchString(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
@@ -2352,6 +2359,12 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 
 	var code int
 	switch field.Kind() {
+	case reflect.String:
+		i, err := strconv.Atoi(field.String())
+		if err != nil {
+			return false
+		}
+		code = i % 1000
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		code = int(field.Int() % 1000)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -2416,3 +2429,10 @@ func isSemverFormat(fl FieldLevel) bool {
 	return semverRegex.MatchString(semverString)
 }
 
+// isDnsRFC1035LabelFormat is the validation function
+// for validating if the current field's value is
+// a valid dns RFC 1035 label, defined in RFC 1035.
+func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return dnsRegexRFC1035Label.MatchString(val)
+}
