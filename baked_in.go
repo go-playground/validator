@@ -198,6 +198,7 @@ var (
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic":                           isIsoBicFormat,
+		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 	}
 )
 
@@ -2412,4 +2413,12 @@ func isIsoBicFormat(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
 	return bicRegex.MatchString(bicString)
+}
+
+// isDnsRFC1035LabelFormat is the validation function
+// for validating if the current field's value is
+// a valid dns RFC 1035 label, defined in RFC 1035.
+func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return dnsRegexRFC1035Label.MatchString(val)
 }
