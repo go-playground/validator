@@ -1179,6 +1179,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "ulid",
+			translation: "{0} debe ser un ULID válido",
+			override:    false,
+		},
+		{
 			tag:         "ascii",
 			translation: "{0} debe contener sólo caracteres ascii",
 			override:    false,

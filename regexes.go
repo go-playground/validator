@@ -29,6 +29,7 @@ const (
 	uUID4RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUID5RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-5[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUIDRFC4122RegexString           = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
 	aSCIIRegexString                 = "^[\x00-\x7F]*$"
 	printableASCIIRegexString        = "^[\x20-\x7E]*$"
 	multibyteRegexString             = "[^\x00-\x7F]"
@@ -81,6 +82,7 @@ var (
 	uUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)
 	uUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)
 	uUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)
+	uLIDRegex                  = regexp.MustCompile(uLIDRegexString)
 	aSCIIRegex                 = regexp.MustCompile(aSCIIRegexString)
 	printableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)
 	multibyteRegex             = regexp.MustCompile(multibyteRegexString)
