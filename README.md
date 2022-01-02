@@ -189,6 +189,7 @@ Baked-in Validations
 | uuid5 | Universally Unique Identifier UUID v5 |
 | uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
+| semver | Semantic Versioning 2.0.0 |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 
 ### Comparisons:

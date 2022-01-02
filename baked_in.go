@@ -199,6 +199,7 @@ var (
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic":                           isIsoBicFormat,
+		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 	}
 )
@@ -2419,6 +2420,13 @@ func isIsoBicFormat(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
 	return bicRegex.MatchString(bicString)
+}
+
+// isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
+func isSemverFormat(fl FieldLevel) bool {
+	semverString := fl.Field().String()
+
+	return semverRegex.MatchString(semverString)
 }
 
 // isDnsRFC1035LabelFormat is the validation function

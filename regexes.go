@@ -52,6 +52,7 @@ const (
 	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
 )
 
@@ -105,5 +106,6 @@ var (
 	jWTRegex                   = regexp.MustCompile(jWTRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 	bicRegex                   = regexp.MustCompile(bicRegexString)
+	semverRegex                = regexp.MustCompile(semverRegexString)
 	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
 )
