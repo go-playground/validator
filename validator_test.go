@@ -11093,12 +11093,15 @@ func TestIsIso3166Alpha3Validation(t *testing.T) {
 
 func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	tests := []struct {
-		value    int
+		value    interface{}
 		expected bool
 	}{
 		{248, true},
+		{"248", true},
 		{0, false},
 		{1, false},
+		{"1", false},
+		{"invalid_int", false},
 	}
 
 	validate := New()
@@ -11119,8 +11122,41 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		_ = validate.Var("1", "iso3166_1_alpha_numeric")
-	}, "Bad field type string")
+		_ = validate.Var([]string{"1"}, "iso3166_1_alpha_numeric")
+	}, "Bad field type []string")
+}
+
+func TestCountryCodeValidation(t *testing.T) {
+	tests := []struct {
+		value    interface{}
+		expected bool
+	}{
+		{248, true},
+		{0, false},
+		{1, false},
+		{"POL", true},
+		{"NO", true},
+		{"248", true},
+		{"1", false},
+		{"0", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "country_code")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d country_code failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d country_code failed Error: %s", i, errs)
+			}
+		}
+	}
 }
 
 func TestIsIso4217Validation(t *testing.T) {
@@ -11341,6 +11377,45 @@ func TestBicIsoFormatValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "bic" {
 					t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestRFC1035LabelFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"dns_rfc1035_label"`
+		tag      string
+		expected bool
+	}{
+		{"abc", "dns_rfc1035_label", true},
+		{"abc-", "dns_rfc1035_label", false},
+		{"abc-123", "dns_rfc1035_label", true},
+		{"ABC", "dns_rfc1035_label", false},
+		{"ABC-123", "dns_rfc1035_label", false},
+		{"abc-abc", "dns_rfc1035_label", true},
+		{"ABC-ABC", "dns_rfc1035_label", false},
+		{"123-abc", "dns_rfc1035_label", false},
+		{"", "dns_rfc1035_label", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "dns_rfc1035_label" {
+					t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
 				}
 			}
 		}
