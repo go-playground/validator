@@ -1338,5 +1338,19 @@ that should not make it to production.
 	}
 
 	validate.Struct(t) // this will panic
+
+Error Msg
+
+The field can return a custom error msg, you should put the tag at the first part of the tag,
+when an error happpend the fieldError will output this msg.
+
+	Usage: msg
+
+	// error msg for field:
+	Usage: msg=my own msg
+
+	// error msg for slice or array:
+	Usage: msg=msg for slice,min=1,dive,msg=msg for items,min=6,max=20
+
 */
 package validator

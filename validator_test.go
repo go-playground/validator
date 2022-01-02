@@ -11454,3 +11454,34 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	_ = New().Struct(test{"ABC", 123, false})
 	t.Errorf("Didn't panic as expected")
 }
+
+// msg must put at the first
+
+func TestMsg(t *testing.T) {
+	type test struct {
+		Keywords string   `validate:"msg=mush have a keywords which len>6,required,min=6"`
+		Slice    []string `validate:"msg=slice mush have a value,min=1,dive,msg=len must gt 6,min=6"`
+	}
+	var err error
+	err = New().Struct(test{})
+	t.Logf("err: %s", err)
+
+	err = New().Struct(test{
+		Keywords: "123456",
+	})
+	t.Logf("err: %s", err)
+
+	err = New().Struct(test{
+		Keywords: "123456",
+		Slice:    []string{},
+	})
+	t.Logf("err: %s", err)
+
+	err = New().Struct(test{
+		Keywords: "123456",
+		Slice: []string{
+			"12345",
+		},
+	})
+	t.Logf("err: %s", err)
+}

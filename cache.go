@@ -96,6 +96,7 @@ type cTag struct {
 	hasParam             bool // true if parameter used eg. eq= where the equal sign has been set
 	isBlockEnd           bool // indicates the current tag represents the last validation in the block
 	runValidationWhenNil bool
+	msg                  string // error msg
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
@@ -170,7 +171,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 	var t string
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
-
+	var msg string
 	for i := 0; i < len(tags); i++ {
 		t = tags[i]
 		if noAlias {
@@ -190,13 +191,18 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		}
 
 		var prevTag tagType
+		isMsg := msgRegex.MatchString(t)
+		if isMsg {
+			msg = strings.Split(t, "=")[1]
+			continue
+		}
 
-		if i == 0 {
-			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, typeof: typeDefault}
+		if firstCtag == nil {
+			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, typeof: typeDefault, msg: msg}
 			firstCtag = current
 		} else {
 			prevTag = current.typeof
-			current.next = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
+			current.next = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, msg: msg}
 			current = current.next
 		}
 
