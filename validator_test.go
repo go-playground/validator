@@ -4309,6 +4309,365 @@ func TestULIDValidation(t *testing.T) {
 	}
 }
 
+func TestMD4Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "md4")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d MD4 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d MD4 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "md4" {
+					t.Fatalf("Index: %d MD4 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestMD5Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "md5")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d MD5 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d MD5 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "md5" {
+					t.Fatalf("Index: %d MD5 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSHA256Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "sha256")
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA256 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA256 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "sha256" {
+					t.Fatalf("Index: %d SHA256 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSHA384Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "sha384")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA384 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA384 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "sha384" {
+					t.Fatalf("Index: %d SHA384 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSHA512Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc46f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "sha512")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA512 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d SHA512 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "sha512" {
+					t.Fatalf("Index: %d SHA512 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestRIPEMD128Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "ripemd128")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d RIPEMD128 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d RIPEMD128 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "ripemd128" {
+					t.Fatalf("Index: %d RIPEMD128 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestRIPEMD160Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "ripemd160")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d RIPEMD160 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d RIPEMD160 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "ripemd160" {
+					t.Fatalf("Index: %d RIPEMD160 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestTIGER128Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "tiger128")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER128 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER128 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "tiger128" {
+					t.Fatalf("Index: %d TIGER128 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestTIGER160Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "tiger160")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER160 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER160 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "tiger160" {
+					t.Fatalf("Index: %d TIGER160 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestTIGER192Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"6f5902ac237024bd6f5902ac237024bdd0c176cb93063dc4", true},
+		{"6f5902ac237024bd6f5902ac237024bdd0c176cb93063dc-", false},
+		{"6f5902ac237024bd6f5902ac237024bdd0c176cb93063dc41", false},
+		{"6f5902ac237024bd6f5902ac237024bdd0c176cb93063dcC", false},
+		{"6f5902ac237024bd6f5902ac237024bdd0c176cb93063dc", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "tiger192")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER192 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d TIGER192 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "tiger192" {
+					t.Fatalf("Index: %d TIGER192 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestISBNValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -11460,7 +11819,7 @@ func TestSemverFormatValidation(t *testing.T) {
 		}
 	}
 }
-  
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`

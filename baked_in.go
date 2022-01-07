@@ -149,6 +149,16 @@ var (
 		"uuid4_rfc4122":                 isUUID4RFC4122,
 		"uuid5_rfc4122":                 isUUID5RFC4122,
 		"ulid":                          isULID,
+		"md4":                           isMD4,
+		"md5":                           isMD5,
+		"sha256":                        isSHA256,
+		"sha384":                        isSHA384,
+		"sha512":                        isSHA512,
+		"ripemd128":                     isRIPEMD128,
+		"ripemd160":                     isRIPEMD160,
+		"tiger128":                      isTIGER128,
+		"tiger160":                      isTIGER160,
+		"tiger192":                      isTIGER192,
 		"ascii":                         isASCII,
 		"printascii":                    isPrintableASCII,
 		"multibyte":                     hasMultiByteCharacter,
@@ -504,6 +514,56 @@ func isUUIDRFC4122(fl FieldLevel) bool {
 // isULID is the validation function for validating if the field's value is a valid ULID.
 func isULID(fl FieldLevel) bool {
 	return uLIDRegex.MatchString(fl.Field().String())
+}
+
+// isMD4 is the validation function for validating if the field's value is a valid MD4.
+func isMD4(fl FieldLevel) bool {
+	return md4Regex.MatchString(fl.Field().String())
+}
+
+// isMD5 is the validation function for validating if the field's value is a valid MD5.
+func isMD5(fl FieldLevel) bool {
+	return md5Regex.MatchString(fl.Field().String())
+}
+
+// isSHA256 is the validation function for validating if the field's value is a valid SHA256.
+func isSHA256(fl FieldLevel) bool {
+	return sha256Regex.MatchString(fl.Field().String())
+}
+
+// isSHA384 is the validation function for validating if the field's value is a valid SHA384.
+func isSHA384(fl FieldLevel) bool {
+	return sha384Regex.MatchString(fl.Field().String())
+}
+
+// isSHA512 is the validation function for validating if the field's value is a valid SHA512.
+func isSHA512(fl FieldLevel) bool {
+	return sha512Regex.MatchString(fl.Field().String())
+}
+
+// isRIPEMD128 is the validation function for validating if the field's value is a valid PIPEMD128.
+func isRIPEMD128(fl FieldLevel) bool {
+	return ripemd128Regex.MatchString(fl.Field().String())
+}
+
+// isRIPEMD160 is the validation function for validating if the field's value is a valid PIPEMD160.
+func isRIPEMD160(fl FieldLevel) bool {
+	return ripemd160Regex.MatchString(fl.Field().String())
+}
+
+// isTIGER128 is the validation function for validating if the field's value is a valid TIGER128.
+func isTIGER128(fl FieldLevel) bool {
+	return tiger128Regex.MatchString(fl.Field().String())
+}
+
+// isTIGER160 is the validation function for validating if the field's value is a valid TIGER160.
+func isTIGER160(fl FieldLevel) bool {
+	return tiger160Regex.MatchString(fl.Field().String())
+}
+
+// isTIGER192 is the validation function for validating if the field's value is a valid isTIGER192.
+func isTIGER192(fl FieldLevel) bool {
+	return tiger192Regex.MatchString(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
