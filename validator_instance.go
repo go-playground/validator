@@ -325,6 +325,30 @@ func (v *Validate) Struct(s interface{}) error {
 func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 
 	val := reflect.ValueOf(s)
+	if val.Kind() == reflect.Ptr && !val.IsNil() {
+		val = val.Elem()
+	}
+
+	// input is not a slice
+	if val.Kind() != reflect.Slice {
+		if err := v.onlyStructCtx(ctx, s); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// input is slice
+	for i := 0; i < val.Len(); i++ {
+		if err := v.onlyStructCtx(ctx, val.Index(i).Interface()); err != nil {
+			return err
+		}
+	}
+	return
+}
+
+func (v *Validate) onlyStructCtx(ctx context.Context, s interface{}) (err error) {
+
+	val := reflect.ValueOf(s)
 	top := val
 
 	if val.Kind() == reflect.Ptr && !val.IsNil() {

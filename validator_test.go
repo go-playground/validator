@@ -8912,6 +8912,32 @@ func TestAlphanumericUnicodeValidation(t *testing.T) {
 	}
 }
 
+func TestTopStructArray(t *testing.T) {
+	in := []struct {
+		Value string `validate:"contains=@"`
+	}{
+		{Value: "test@1"}, {Value: "test@2"},
+	}
+
+	validate := New()
+
+	errs := validate.Struct(in)
+	Equal(t, errs, nil)
+}
+
+func TestTopStructArrayInvalid(t *testing.T) {
+	in := []struct {
+		Value string `validate:"contains=@"`
+	}{
+		{Value: "test@1"}, {Value: "test2"},
+	}
+
+	validate := New()
+
+	errs := validate.Struct(in)
+	NotEqual(t, errs, nil)
+}
+
 func TestArrayStructNamespace(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -11460,7 +11486,7 @@ func TestSemverFormatValidation(t *testing.T) {
 		}
 	}
 }
-  
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`
