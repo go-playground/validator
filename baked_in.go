@@ -816,12 +816,7 @@ func isNeField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return true
-		}
-
-		if fieldType == timeType {
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
 
 			t := currentField.Interface().(time.Time)
 			fieldTime := field.Interface().(time.Time)
@@ -829,6 +824,10 @@ func isNeField(fl FieldLevel) bool {
 			return !fieldTime.Equal(t)
 		}
 
+		// Not Same underlying type i.e. struct and time
+		if fieldType != currentField.Type() {
+			return true
+		}
 	}
 
 	// default reflect.String:
@@ -869,17 +868,17 @@ func isLteCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+			topTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.Before(topTime) || fieldTime.Equal(topTime)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			fieldTime := field.Interface().(time.Time)
-			topTime := topField.Interface().(time.Time)
-
-			return fieldTime.Before(topTime) || fieldTime.Equal(topTime)
 		}
 	}
 
@@ -917,17 +916,17 @@ func isLtCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+			topTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.Before(topTime)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			fieldTime := field.Interface().(time.Time)
-			topTime := topField.Interface().(time.Time)
-
-			return fieldTime.Before(topTime)
 		}
 	}
 
@@ -964,17 +963,17 @@ func isGteCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+			topTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.After(topTime) || fieldTime.Equal(topTime)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			fieldTime := field.Interface().(time.Time)
-			topTime := topField.Interface().(time.Time)
-
-			return fieldTime.After(topTime) || fieldTime.Equal(topTime)
 		}
 	}
 
@@ -1011,17 +1010,17 @@ func isGtCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+			topTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.After(topTime)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			fieldTime := field.Interface().(time.Time)
-			topTime := topField.Interface().(time.Time)
-
-			return fieldTime.After(topTime)
 		}
 	}
 
@@ -1061,17 +1060,17 @@ func isNeCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			t := field.Convert(timeType).Interface().(time.Time)
+			fieldTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return !fieldTime.Equal(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return true
-		}
-
-		if fieldType == timeType {
-
-			t := field.Interface().(time.Time)
-			fieldTime := topField.Interface().(time.Time)
-
-			return !fieldTime.Equal(t)
 		}
 	}
 
@@ -1111,17 +1110,17 @@ func isEqCrossStructField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
+
+			t := field.Convert(timeType).Interface().(time.Time)
+			fieldTime := topField.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.Equal(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != topField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			t := field.Interface().(time.Time)
-			fieldTime := topField.Interface().(time.Time)
-
-			return fieldTime.Equal(t)
 		}
 	}
 
@@ -1161,19 +1160,18 @@ func isEqField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return false
-		}
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
 
-		if fieldType == timeType {
-
-			t := currentField.Interface().(time.Time)
-			fieldTime := field.Interface().(time.Time)
+			t := currentField.Convert(timeType).Interface().(time.Time)
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
 			return fieldTime.Equal(t)
 		}
 
+		// Not Same underlying type i.e. struct and time
+		if fieldType != currentField.Type() {
+			return false
+		}
 	}
 
 	// default reflect.String:
@@ -1677,17 +1675,17 @@ func isGteField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
+
+			t := currentField.Convert(timeType).Interface().(time.Time)
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.After(t) || fieldTime.Equal(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != currentField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			t := currentField.Interface().(time.Time)
-			fieldTime := field.Interface().(time.Time)
-
-			return fieldTime.After(t) || fieldTime.Equal(t)
 		}
 	}
 
@@ -1724,17 +1722,17 @@ func isGtField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
+
+			t := currentField.Convert(timeType).Interface().(time.Time)
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.After(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != currentField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			t := currentField.Interface().(time.Time)
-			fieldTime := field.Interface().(time.Time)
-
-			return fieldTime.After(t)
 		}
 	}
 
@@ -1777,10 +1775,10 @@ func isGte(fl FieldLevel) bool {
 
 	case reflect.Struct:
 
-		if field.Type() == timeType {
+		if field.Type().ConvertibleTo(timeType) {
 
 			now := time.Now().UTC()
-			t := field.Interface().(time.Time)
+			t := field.Convert(timeType).Interface().(time.Time)
 
 			return t.After(now) || t.Equal(now)
 		}
@@ -1823,9 +1821,9 @@ func isGt(fl FieldLevel) bool {
 		return field.Float() > p
 	case reflect.Struct:
 
-		if field.Type() == timeType {
+		if field.Type().ConvertibleTo(timeType) {
 
-			return field.Interface().(time.Time).After(time.Now().UTC())
+			return field.Convert(timeType).Interface().(time.Time).After(time.Now().UTC())
 		}
 	}
 
@@ -1903,17 +1901,17 @@ func isLteField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
+
+			t := currentField.Convert(timeType).Interface().(time.Time)
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.Before(t) || fieldTime.Equal(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != currentField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			t := currentField.Interface().(time.Time)
-			fieldTime := field.Interface().(time.Time)
-
-			return fieldTime.Before(t) || fieldTime.Equal(t)
 		}
 	}
 
@@ -1950,17 +1948,17 @@ func isLtField(fl FieldLevel) bool {
 
 		fieldType := field.Type()
 
+		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
+
+			t := currentField.Convert(timeType).Interface().(time.Time)
+			fieldTime := field.Convert(timeType).Interface().(time.Time)
+
+			return fieldTime.Before(t)
+		}
+
 		// Not Same underlying type i.e. struct and time
 		if fieldType != currentField.Type() {
 			return false
-		}
-
-		if fieldType == timeType {
-
-			t := currentField.Interface().(time.Time)
-			fieldTime := field.Interface().(time.Time)
-
-			return fieldTime.Before(t)
 		}
 	}
 
@@ -2003,10 +2001,10 @@ func isLte(fl FieldLevel) bool {
 
 	case reflect.Struct:
 
-		if field.Type() == timeType {
+		if field.Type().ConvertibleTo(timeType) {
 
 			now := time.Now().UTC()
-			t := field.Interface().(time.Time)
+			t := field.Convert(timeType).Interface().(time.Time)
 
 			return t.Before(now) || t.Equal(now)
 		}
@@ -2050,9 +2048,9 @@ func isLt(fl FieldLevel) bool {
 
 	case reflect.Struct:
 
-		if field.Type() == timeType {
+		if field.Type().ConvertibleTo(timeType) {
 
-			return field.Interface().(time.Time).Before(time.Now().UTC())
+			return field.Convert(timeType).Interface().(time.Time).Before(time.Now().UTC())
 		}
 	}
 
