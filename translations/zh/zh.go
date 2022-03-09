@@ -1226,6 +1226,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "ulid",
+			translation: "{0}必须是一个有效的ULID",
+			override:    false,
+		},
+		{
 			tag:         "ascii",
 			translation: "{0}必须只包含ascii字符",
 			override:    false,

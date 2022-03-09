@@ -1007,6 +1007,12 @@ This validates that a string value contains a valid version 5 UUID.  Uppercase U
 
 	Usage: uuid5
 
+Universally Unique Lexicographically Sortable Identifier ULID
+
+This validates that a string value contains a valid ULID value.
+
+	Usage: ulid
+
 ASCII
 
 This validates that a string value contains only ASCII characters.
@@ -1255,6 +1261,13 @@ More information on https://www.iso.org/standard/60390.html
 
 	Usage: bic
 
+RFC 1035 label
+
+This validates that a string value is a valid dns RFC 1035 label, defined in RFC 1035.
+More information on https://datatracker.ietf.org/doc/html/rfc1035
+
+	Usage: dns_rfc1035_label
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
@@ -1263,6 +1276,12 @@ More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
 
+Semantic Version
+
+This validates that a string value is a valid semver version, defined in Semantic Versioning 2.0.0.
+More information on https://semver.org/
+
+	Usage: semver
 
 Alias Validators and Tags
 

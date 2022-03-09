@@ -4269,6 +4269,46 @@ func TestUUIDRFC4122Validation(t *testing.T) {
 	}
 }
 
+func TestULIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"01BX5ZZKBKACT-V9WEVGEMMVRZ", false},
+		{"01bx5zzkbkactav9wevgemmvrz", false},
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
+		{"0IBX5ZZKBKACTAV9WEVGEMMVRZ", false},
+		{"O1BX5ZZKBKACTAV9WEVGEMMVRZ", false},
+		{"01BX5ZZKBKACTAVLWEVGEMMVRZ", false},
+		{"01BX5ZZKBKACTAV9WEVGEMMVRZ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "ulid")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "ulid" {
+					t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestISBNValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -11053,12 +11093,15 @@ func TestIsIso3166Alpha3Validation(t *testing.T) {
 
 func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	tests := []struct {
-		value    int
+		value    interface{}
 		expected bool
 	}{
 		{248, true},
+		{"248", true},
 		{0, false},
 		{1, false},
+		{"1", false},
+		{"invalid_int", false},
 	}
 
 	validate := New()
@@ -11079,8 +11122,41 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		_ = validate.Var("1", "iso3166_1_alpha_numeric")
-	}, "Bad field type string")
+		_ = validate.Var([]string{"1"}, "iso3166_1_alpha_numeric")
+	}, "Bad field type []string")
+}
+
+func TestCountryCodeValidation(t *testing.T) {
+	tests := []struct {
+		value    interface{}
+		expected bool
+	}{
+		{248, true},
+		{0, false},
+		{1, false},
+		{"POL", true},
+		{"NO", true},
+		{"248", true},
+		{"1", false},
+		{"0", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "country_code")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d country_code failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d country_code failed Error: %s", i, errs)
+			}
+		}
+	}
 }
 
 func TestIsIso4217Validation(t *testing.T) {
@@ -11301,6 +11377,123 @@ func TestBicIsoFormatValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "bic" {
 					t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSemverFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"semver"`
+		tag      string
+		expected bool
+	}{
+		{"1.2.3", "semver", true},
+		{"10.20.30", "semver", true},
+		{"1.1.2-prerelease+meta", "semver", true},
+		{"1.1.2+meta", "semver", true},
+		{"1.1.2+meta-valid", "semver", true},
+		{"1.0.0-alpha", "semver", true},
+		{"1.0.0-alpha.1", "semver", true},
+		{"1.0.0-alpha.beta", "semver", true},
+		{"1.0.0-alpha.beta.1", "semver", true},
+		{"1.0.0-alpha0.valid", "semver", true},
+		{"1.0.0-alpha.0valid", "semver", true},
+		{"1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay", "semver", true},
+		{"1.0.0-rc.1+build.1", "semver", true},
+		{"1.0.0-rc.1+build.123", "semver", true},
+		{"1.2.3-beta", "semver", true},
+		{"1.2.3-DEV-SNAPSHOT", "semver", true},
+		{"1.2.3-SNAPSHOT-123", "semver", true},
+		{"2.0.0+build.1848", "semver", true},
+		{"2.0.1-alpha.1227", "semver", true},
+		{"1.0.0-alpha+beta", "semver", true},
+		{"1.2.3----RC-SNAPSHOT.12.9.1--.12+788", "semver", true},
+		{"1.2.3----R-S.12.9.1--.12+meta", "semver", true},
+		{"1.2.3----RC-SNAPSHOT.12.9.1--.12", "semver", true},
+		{"1.0.0+0.build.1-rc.10000aaa-kk-0.1", "semver", true},
+		{"99999999999999999999999.999999999999999999.99999999999999999", "semver", true},
+		{"1.0.0-0A.is.legal", "semver", true},
+		{"1", "semver", false},
+		{"1.2", "semver", false},
+		{"1.2.3-0123", "semver", false},
+		{"1.2.3-0123.0123", "semver", false},
+		{"1.1.2+.123", "semver", false},
+		{"+invalid", "semver", false},
+		{"-invalid", "semver", false},
+		{"-invalid+invalid", "semver", false},
+		{"alpha", "semver", false},
+		{"alpha.beta.1", "semver", false},
+		{"alpha.1", "semver", false},
+		{"1.0.0-alpha_beta", "semver", false},
+		{"1.0.0-alpha_beta", "semver", false},
+		{"1.0.0-alpha...1", "semver", false},
+		{"01.1.1", "semver", false},
+		{"1.01.1", "semver", false},
+		{"1.1.01", "semver", false},
+		{"1.2", "semver", false},
+		{"1.2.Dev", "semver", false},
+		{"1.2.3.Dev", "semver", false},
+		{"1.2-SNAPSHOT", "semver", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "semver" {
+					t.Fatalf("Index: %d semver failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+  
+func TestRFC1035LabelFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"dns_rfc1035_label"`
+		tag      string
+		expected bool
+	}{
+		{"abc", "dns_rfc1035_label", true},
+		{"abc-", "dns_rfc1035_label", false},
+		{"abc-123", "dns_rfc1035_label", true},
+		{"ABC", "dns_rfc1035_label", false},
+		{"ABC-123", "dns_rfc1035_label", false},
+		{"abc-abc", "dns_rfc1035_label", true},
+		{"ABC-ABC", "dns_rfc1035_label", false},
+		{"123-abc", "dns_rfc1035_label", false},
+		{"", "dns_rfc1035_label", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "dns_rfc1035_label" {
+					t.Fatalf("Index: %d dns_rfc1035_label failed Error: %s", i, errs)
 				}
 			}
 		}
