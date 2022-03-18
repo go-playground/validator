@@ -293,32 +293,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eq",
-			translation: "{0} non è uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq",
+			translation:     "{0} non è uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ne",
-			translation: "{0} deve essere diverso da {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne",
+			translation:     "{0} deve essere diverso da {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag: "lt",
@@ -789,172 +773,76 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eqfield",
-			translation: "{0} deve essere uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqfield",
+			translation:     "{0} deve essere uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "eqcsfield",
-			translation: "{0} deve essere uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqcsfield",
+			translation:     "{0} deve essere uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "necsfield",
-			translation: "{0} deve essere diverso da {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "necsfield",
+			translation:     "{0} deve essere diverso da {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtcsfield",
-			translation: "{0} deve essere maggiore di {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtcsfield",
+			translation:     "{0} deve essere maggiore di {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtecsfield",
-			translation: "{0} deve essere maggiore o uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtecsfield",
+			translation:     "{0} deve essere maggiore o uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltcsfield",
-			translation: "{0} deve essere minore di {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltcsfield",
+			translation:     "{0} deve essere minore di {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltecsfield",
-			translation: "{0} deve essere minore o uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltecsfield",
+			translation:     "{0} deve essere minore o uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "nefield",
-			translation: "{0} deve essere diverso da {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "nefield",
+			translation:     "{0} deve essere diverso da {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtfield",
-			translation: "{0} deve essere maggiore di {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtfield",
+			translation:     "{0} deve essere maggiore di {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtefield",
-			translation: "{0} deve essere maggiore o uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtefield",
+			translation:     "{0} deve essere maggiore o uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltfield",
-			translation: "{0} deve essere minore di {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltfield",
+			translation:     "{0} deve essere minore di {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltefield",
-			translation: "{0} deve essere minore o uguale a {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltefield",
+			translation:     "{0} deve essere minore o uguale a {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag:         "alpha",
@@ -1032,74 +920,34 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "contains",
-			translation: "{0} deve contenere il testo '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "contains",
+			translation:     "{0} deve contenere il testo '{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "containsany",
-			translation: "{0} deve contenere almeno uno dei seguenti caratteri '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsany",
+			translation:     "{0} deve contenere almeno uno dei seguenti caratteri '{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludes",
-			translation: "{0} non deve contenere il testo '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludes",
+			translation:     "{0} non deve contenere il testo '{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludesall",
-			translation: "{0} non deve contenere alcuno dei seguenti caratteri '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesall",
+			translation:     "{0} non deve contenere alcuno dei seguenti caratteri '{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludesrune",
-			translation: "{0} non deve contenere '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesrune",
+			translation:     "{0} non deve contenere '{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag:         "isbn",
@@ -1272,17 +1120,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "oneof",
-			translation: "{0} deve essere uno di [{1}]",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-				return s
-			},
+			tag:             "oneof",
+			translation:     "{0} deve essere uno di [{1}]",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag:         "json",
@@ -1296,55 +1137,60 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "lowercase",
-			translation: "{0} deve essere una string minuscola",
+			translation: "{0} deve essere una stringa minuscola",
+			override:    false,
+		},
+		{
+			tag:         "boolean",
+			translation: "{0} deve rappresentare un valore booleano",
 			override:    false,
 		},
 		{
 			tag:         "uppercase",
-			translation: "{0} deve essere una string maiuscola",
+			translation: "{0} deve essere una stringa maiuscola",
 			override:    false,
 		},
 		{
-			tag:         "datetime",
-			translation: "{0} non corrisponde al formato {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "startswith",
+			translation:     "{0} deve iniziare con {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2",
-			translation: "{0} non corrisponde al formato del codice postale dello stato {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "startsnotwith",
+			translation:     "{0} non deve iniziare con {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0} non corrisponde al formato del codice postale dello stato nel campo {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "endswith",
+			translation:     "{0} deve terminare con {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "endsnotwith",
+			translation:     "{0} non deve terminare con {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "datetime",
+			translation:     "{0} non corrisponde al formato {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "postcode_iso3166_alpha2",
+			translation:     "{0} non corrisponde al formato del codice postale dello stato {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "postcode_iso3166_alpha2_field",
+			translation:     "{0} non corrisponde al formato del codice postale dello stato nel campo {1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 	}
 
@@ -1386,4 +1232,13 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	}
 
 	return t
+}
+
+func customTransFuncV1(ut ut.Translator, fe validator.FieldError) string {
+	s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+	if err != nil {
+		log.Printf("warning: error translating FieldError: %#v", fe)
+		return fe.(error).Error()
+	}
+	return s
 }
