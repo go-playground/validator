@@ -152,15 +152,24 @@ func (v *Validate) SetTagName(name string) {
 func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	errs := make(map[string]interface{})
 	for field, rule := range rules {
-		if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Map {
-			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
-			if len(err) > 0 {
-				errs[field] = err
+		if ruleObj, ok := rule.(map[string]interface{}); ok {
+			if dataObj, ok := data[field].(map[string]interface{}); ok {
+				err := v.ValidateMapCtx(ctx, dataObj, ruleObj)
+				if len(err) > 0 {
+					errs[field] = err
+				}
+			} else if dataObjs, ok := data[field].([]map[string]interface{}); ok {
+				for _, obj := range dataObjs {
+					err := v.ValidateMapCtx(ctx, obj, ruleObj)
+					if len(err) > 0 {
+						errs[field] = err
+					}
+				}
+			} else {
+				errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
 			}
-		} else if reflect.ValueOf(rule).Kind() == reflect.Map {
-			errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
-		} else {
-			err := v.VarCtx(ctx, data[field], rule.(string))
+		} else if ruleStr, ok := rule.(string); ok {
+			err := v.VarCtx(ctx, data[field], ruleStr)
 			if err != nil {
 				errs[field] = err
 			}
