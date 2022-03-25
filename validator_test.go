@@ -11460,7 +11460,7 @@ func TestSemverFormatValidation(t *testing.T) {
 		}
 	}
 }
-  
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`
@@ -11610,4 +11610,40 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 
 	_ = New().Struct(test{"ABC", 123, false})
 	t.Errorf("Didn't panic as expected")
+}
+
+func TestCreditCardFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"credit_card"`
+		tag      string
+		expected bool
+	}{
+		{"4624748233249780", "credit_card", true},
+		{"4624748233349780", "credit_card", false},
+		{"378282246310005", "credit_card", true},
+		{"378282146310005", "credit_card", false},
+		{"4624 7482 3324 9780", "credit_card", true},
+		{"4624 7482 3324  9780", "credit_card", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "credit_card" {
+					t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
 }

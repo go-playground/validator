@@ -201,6 +201,7 @@ var (
 		"bic":                           isIsoBicFormat,
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
+		"credit_card":                   isCreditCard,
 	}
 )
 
@@ -2435,4 +2436,41 @@ func isSemverFormat(fl FieldLevel) bool {
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return dnsRegexRFC1035Label.MatchString(val)
+}
+
+func isCreditCard(fl FieldLevel) bool {
+	val := fl.Field().String()
+	var creditCard bytes.Buffer
+	parts := strings.Split(val, " ")
+	for _, part := range parts {
+		if len(part) < 2 {
+			return false
+		}
+		creditCard.WriteString(part)
+	}
+
+	ccDigits := strings.Split(creditCard.String(), "")
+	size := len(ccDigits)
+	if size < 14 || size > 16 {
+		return false
+	}
+
+	sum := 0
+	for i := 0; i < size; i++ {
+		value, err := strconv.Atoi(ccDigits[i])
+		if err != nil {
+			return false
+		}
+		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
+			v := value * 2
+			if v >= 10 {
+				sum += 1 + (v % 10)
+			} else {
+				sum += v
+			}
+		} else {
+			sum += value
+		}
+	}
+	return (sum % 10) == 0
 }
