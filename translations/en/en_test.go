@@ -149,6 +149,7 @@ func TestTranslations(t *testing.T) {
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString     string `validate:"boolean"`
 	}
 
 	var test Test
@@ -201,6 +202,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.BooleanString = "A"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -675,6 +677,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.PostCodeByField",
 			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString must be a valid boolean value",
 		},
 	}
 
