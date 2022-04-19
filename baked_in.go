@@ -1583,7 +1583,6 @@ func excludedUnless(fl FieldLevel) bool {
 	if len(params)%2 != 0 {
 		panic(fmt.Sprintf("Bad param number for excluded_unless %s", fl.FieldName()))
 	}
-	fmt.Println(params[0], params[1], requireCheckFieldValue(fl, params[0], params[1], false), !hasValue(fl))
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
 			return true
