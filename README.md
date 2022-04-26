@@ -153,6 +153,7 @@ Baked-in Validations
 | bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
+| credit_card | Credit Card Number |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
 | email | E-mail String
