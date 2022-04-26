@@ -2438,26 +2438,27 @@ func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	return dnsRegexRFC1035Label.MatchString(val)
 }
 
+// isCreditCard is the validation function for validating if the current field's value is a valid credit card number
 func isCreditCard(fl FieldLevel) bool {
 	val := fl.Field().String()
 	var creditCard bytes.Buffer
-	parts := strings.Split(val, " ")
-	for _, part := range parts {
-		if len(part) < 2 {
+	segments := strings.Split(val, " ")
+	for _, segment := range segments {
+		if len(segment) < 3 {
 			return false
 		}
-		creditCard.WriteString(part)
+		creditCard.WriteString(segment)
 	}
 
 	ccDigits := strings.Split(creditCard.String(), "")
 	size := len(ccDigits)
-	if size < 14 || size > 16 {
+	if size < 12 || size > 19 {
 		return false
 	}
 
 	sum := 0
-	for i := 0; i < size; i++ {
-		value, err := strconv.Atoi(ccDigits[i])
+	for i, digit := range ccDigits {
+		value, err := strconv.Atoi(digit)
 		if err != nil {
 			return false
 		}
