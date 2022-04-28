@@ -11619,6 +11619,7 @@ func TestCreditCardFormatValidation(t *testing.T) {
 		expected bool
 	}{
 		{"586824160825533338", "credit_card", true},
+		{"586824160825533328", "credit_card", false},
 		{"4624748233249780", "credit_card", true},
 		{"4624748233349780", "credit_card", false},
 		{"378282246310005", "credit_card", true},
