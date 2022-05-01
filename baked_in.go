@@ -75,6 +75,8 @@ var (
 		"required_with_all":             requiredWithAll,
 		"required_without":              requiredWithout,
 		"required_without_all":          requiredWithoutAll,
+		"excluded_if":                   excludedIf,
+		"excluded_unless":               excludedUnless,
 		"excluded_with":                 excludedWith,
 		"excluded_with_all":             excludedWithAll,
 		"excluded_without":              excludedWithout,
@@ -148,6 +150,7 @@ var (
 		"uuid3_rfc4122":                 isUUID3RFC4122,
 		"uuid4_rfc4122":                 isUUID4RFC4122,
 		"uuid5_rfc4122":                 isUUID5RFC4122,
+		"ulid":                          isULID,
 		"ascii":                         isASCII,
 		"printascii":                    isPrintableASCII,
 		"multibyte":                     hasMultiByteCharacter,
@@ -198,6 +201,9 @@ var (
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic":                           isIsoBicFormat,
+		"semver":                        isSemverFormat,
+		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
+		"credit_card":                   isCreditCard,
 	}
 )
 
@@ -496,6 +502,11 @@ func isUUID3RFC4122(fl FieldLevel) bool {
 // isUUIDRFC4122 is the validation function for validating if the field's value is a valid RFC4122 UUID of any version.
 func isUUIDRFC4122(fl FieldLevel) bool {
 	return uUIDRFC4122Regex.MatchString(fl.Field().String())
+}
+
+// isULID is the validation function for validating if the field's value is a valid ULID.
+func isULID(fl FieldLevel) bool {
+	return uLIDRegex.MatchString(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
@@ -1534,6 +1545,22 @@ func requiredIf(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// excludedIf is the validation function
+// The field under validation must not be present or is empty only if all the other specified fields are equal to the value following with the specified field.
+func excludedIf(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for excluded_if %s", fl.FieldName()))
+	}
+
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return false
+		}
+	}
+	return true
+}
+
 // requiredUnless is the validation function
 // The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
 func requiredUnless(fl FieldLevel) bool {
@@ -1548,6 +1575,21 @@ func requiredUnless(fl FieldLevel) bool {
 		}
 	}
 	return hasValue(fl)
+}
+
+// excludedUnless is the validation function
+// The field under validation must not be present or is empty unless all the other specified fields are equal to the value following with the specified field.
+func excludedUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for excluded_unless %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return !hasValue(fl)
 }
 
 // excludedWith is the validation function
@@ -2351,6 +2393,12 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 
 	var code int
 	switch field.Kind() {
+	case reflect.String:
+		i, err := strconv.Atoi(field.String())
+		if err != nil {
+			return false
+		}
+		code = i % 1000
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		code = int(field.Int() % 1000)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -2406,4 +2454,57 @@ func isIsoBicFormat(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
 	return bicRegex.MatchString(bicString)
+}
+
+// isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
+func isSemverFormat(fl FieldLevel) bool {
+	semverString := fl.Field().String()
+
+	return semverRegex.MatchString(semverString)
+}
+
+// isDnsRFC1035LabelFormat is the validation function
+// for validating if the current field's value is
+// a valid dns RFC 1035 label, defined in RFC 1035.
+func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return dnsRegexRFC1035Label.MatchString(val)
+}
+
+// isCreditCard is the validation function for validating if the current field's value is a valid credit card number
+func isCreditCard(fl FieldLevel) bool {
+	val := fl.Field().String()
+	var creditCard bytes.Buffer
+	segments := strings.Split(val, " ")
+	for _, segment := range segments {
+		if len(segment) < 3 {
+			return false
+		}
+		creditCard.WriteString(segment)
+	}
+
+	ccDigits := strings.Split(creditCard.String(), "")
+	size := len(ccDigits)
+	if size < 12 || size > 19 {
+		return false
+	}
+
+	sum := 0
+	for i, digit := range ccDigits {
+		value, err := strconv.Atoi(digit)
+		if err != nil {
+			return false
+		}
+		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
+			v := value * 2
+			if v >= 10 {
+				sum += 1 + (v % 10)
+			} else {
+				sum += v
+			}
+		} else {
+			sum += value
+		}
+	}
+	return (sum % 10) == 0
 }

@@ -349,6 +349,40 @@ Example:
 	// require the field if the Field1 and Field2 is not present:
 	Usage: required_without_all=Field1 Field2
 
+Excluded If
+
+The field under validation must not be present or not empty only if all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: excluded_if
+
+Examples:
+
+	// exclude the field if the Field1 is equal to the parameter given:
+	Usage: excluded_if=Field1 foobar
+
+	// exclude the field if the Field1 and Field2 is equal to the value respectively:
+	Usage: excluded_if=Field1 foo Field2 bar
+
+Excluded Unless
+
+The field under validation must not be present or empty unless all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: excluded_unless
+
+Examples:
+
+	// exclude the field unless the Field1 is equal to the parameter given:
+	Usage: excluded_unless=Field1 foobar
+
+	// exclude the field unless the Field1 and Field2 is equal to the value respectively:
+	Usage: excluded_unless=Field1 foo Field2 bar
+
 Is Default
 
 This validates that the value is the default value and is almost the
@@ -1007,6 +1041,12 @@ This validates that a string value contains a valid version 5 UUID.  Uppercase U
 
 	Usage: uuid5
 
+Universally Unique Lexicographically Sortable Identifier ULID
+
+This validates that a string value contains a valid ULID value.
+
+	Usage: ulid
+
 ASCII
 
 This validates that a string value contains only ASCII characters.
@@ -1255,6 +1295,13 @@ More information on https://www.iso.org/standard/60390.html
 
 	Usage: bic
 
+RFC 1035 label
+
+This validates that a string value is a valid dns RFC 1035 label, defined in RFC 1035.
+More information on https://datatracker.ietf.org/doc/html/rfc1035
+
+	Usage: dns_rfc1035_label
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
@@ -1263,6 +1310,18 @@ More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
 
+Semantic Version
+
+This validates that a string value is a valid semver version, defined in Semantic Versioning 2.0.0.
+More information on https://semver.org/
+
+	Usage: semver
+
+Credit Card
+
+This validates that a string value contains a valid credit card number using Luhn algoritm.
+
+	Usage: credit_card
 
 Alias Validators and Tags
 

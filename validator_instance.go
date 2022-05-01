@@ -33,6 +33,8 @@ const (
 	excludedWithoutTag    = "excluded_without"
 	excludedWithTag       = "excluded_with"
 	excludedWithAllTag    = "excluded_with_all"
+	excludedIfTag         = "excluded_if"
+	excludedUnlessTag     = "excluded_unless"
 	skipValidationTag     = "-"
 	diveTag               = "dive"
 	keysTag               = "keys"
@@ -120,7 +122,7 @@ func New() *Validate {
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
-			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
+			excludedIfTag, excludedUnlessTag, excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
 			_ = v.registerValidation(k, wrapFunc(val), true, true)
 		default:
 			// no need to error check here, baked in will always be valid

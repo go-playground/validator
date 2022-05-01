@@ -10,7 +10,7 @@ const (
 	numericRegexString               = "^[-+]?[0-9]+(?:\\.[0-9]+)?$"
 	numberRegexString                = "^[0-9]+$"
 	hexadecimalRegexString           = "^(0[xX])?[0-9a-fA-F]+$"
-	hexColorRegexString              = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+	hexColorRegexString              = "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
 	rgbRegexString                   = "^rgb\\(\\s*(?:(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])|(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%)\\s*\\)$"
 	rgbaRegexString                  = "^rgba\\(\\s*(?:(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])|(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%)\\s*,\\s*(?:(?:0.[1-9]*)|[01])\\s*\\)$"
 	hslRegexString                   = "^hsl\\(\\s*(?:0|[1-9]\\d?|[12]\\d\\d|3[0-5]\\d|360)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*\\)$"
@@ -29,6 +29,7 @@ const (
 	uUID4RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUID5RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-5[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUIDRFC4122RegexString           = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
 	aSCIIRegexString                 = "^[\x00-\x7F]*$"
 	printableASCIIRegexString        = "^[\x20-\x7E]*$"
 	multibyteRegexString             = "[^\x00-\x7F]"
@@ -51,6 +52,8 @@ const (
 	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
+	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
 )
 
 var (
@@ -80,6 +83,7 @@ var (
 	uUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)
 	uUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)
 	uUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)
+	uLIDRegex                  = regexp.MustCompile(uLIDRegexString)
 	aSCIIRegex                 = regexp.MustCompile(aSCIIRegexString)
 	printableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)
 	multibyteRegex             = regexp.MustCompile(multibyteRegexString)
@@ -102,4 +106,6 @@ var (
 	jWTRegex                   = regexp.MustCompile(jWTRegexString)
 	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 	bicRegex                   = regexp.MustCompile(bicRegexString)
+	semverRegex                = regexp.MustCompile(semverRegexString)
+	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
 )
