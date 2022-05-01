@@ -1,4 +1,4 @@
-package en
+package it
 
 import (
 	"testing"
@@ -11,9 +11,9 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-	it := italian.New()
-	uni := ut.New(it, it)
-	trans, _ := uni.GetTranslator("en")
+	ita := italian.New()
+	uni := ut.New(ita, ita)
+	trans, _ := uni.GetTranslator("it")
 
 	validate := validator.New()
 
@@ -198,6 +198,7 @@ func TestTranslations(t *testing.T) {
 
 	test.LowercaseString = "ABCDEFG"
 	test.UppercaseString = "abcdefg"
+
 	test.StartsWithString = "hello"
 	test.StartsNotWithString = "foo-hello"
 	test.EndsWithString = "hello"

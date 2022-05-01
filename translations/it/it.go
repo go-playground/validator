@@ -1,4 +1,4 @@
-package en
+package it
 
 import (
 	"fmt"
@@ -25,6 +25,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
+			translation: "{0} è un campo obbligatorio",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
 			translation: "{0} è un campo obbligatorio",
 			override:    false,
 		},
@@ -119,6 +124,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
+        
 				if err = ut.Add("min-string", "{0} deve essere lungo almeno {1}", false); err != nil {
 					return
 				}
@@ -150,6 +156,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
+
 				var t string
 
 				var digits uint64
@@ -320,6 +327,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("lt-number", "{0} deve essere minore di {1}", false); err != nil {
+
 					return
 				}
 
@@ -424,6 +432,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
+        
 				if err = ut.Add("lte-string", "{0} deve essere lungo al massimo {1}", false); err != nil {
 					return
 				}
@@ -459,6 +468,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
 				var err error
 				var t string
 				var f64 float64
@@ -541,6 +551,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
+
 				if err = ut.Add("gt-string", "{0} deve essere lungo più di {1}", false); err != nil {
 					return
 				}
@@ -576,6 +587,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
 				var err error
 				var t string
 				var f64 float64
@@ -693,6 +705,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
 				var err error
 				var t string
 				var f64 float64
@@ -1195,7 +1208,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
