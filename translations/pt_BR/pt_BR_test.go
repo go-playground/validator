@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	brazilian_portuguese "github.com/go-playground/locales/pt_BR"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	. "github.com/go-playground/assert/v2"
 )
 
 func TestTranslations(t *testing.T) {
@@ -104,6 +104,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
 		UUID5             string    `validate:"uuid5"`
+		ULID              string    `validate:"ulid"`
 		ASCII             string    `validate:"ascii"`
 		PrintableASCII    string    `validate:"printascii"`
 		MultiByte         string    `validate:"multibyte"`
@@ -138,6 +139,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		BooleanString     string    `validate:"boolean"`
 	}
 
 	var test Test
@@ -170,6 +172,7 @@ func TestTranslations(t *testing.T) {
 	test.AlphanumString = "abc3!"
 	test.NumericString = "12E.00"
 	test.NumberString = "12E"
+	test.BooleanString = "A"
 
 	test.Excludes = "este é um texto de teste"
 	test.ExcludesAll = "Isso é Ótimo!"
@@ -305,6 +308,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UUID5",
 			expected: "UUID5 deve ser um UUID versão 5 válido",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID deve ser uma ULID válida",
 		},
 		{
 			ns:       "Test.ISBN",
@@ -613,6 +620,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfInt deve ser um de [5 63]",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString deve ser um valor booleano válido",
 		},
 	}
 
