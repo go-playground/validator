@@ -284,7 +284,8 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 	}
 }
 
-// RegisterStructValidationMapRules registers validate map rules
+// RegisterStructValidationMapRules registers validate map rules.
+// Be aware that map validation rules supersede those defined on a/the struct if present.
 //
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterStructValidationMapRules(rules map[string]string, types ...interface{}) {
