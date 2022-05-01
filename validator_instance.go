@@ -171,7 +171,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 	return errs
 }
 
-// ValidateMap validates map data form a map of tags
+// ValidateMap validates map data from a map of tags
 func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	return v.ValidateMapCtx(context.Background(), data, rules)
 }
