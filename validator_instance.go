@@ -86,6 +86,7 @@ type Validate struct {
 	aliases          map[string]string
 	validations      map[string]internalValidationFuncWrapper
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
+	rules            map[reflect.Type]map[string]string
 	tagCache         *tagCache
 	structCache      *structCache
 }
@@ -280,6 +281,33 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 		}
 
 		v.structLevelFuncs[reflect.TypeOf(t)] = fn
+	}
+}
+
+// RegisterStructValidationMapRules registers validate map rules
+//
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
+func (v *Validate) RegisterStructValidationMapRules(rules map[string]string, types ...interface{}) {
+	if v.rules == nil {
+		v.rules = make(map[reflect.Type]map[string]string)
+	}
+
+	deepCopyRules := make(map[string]string)
+	for i, rule := range rules {
+		deepCopyRules[i] = rule
+	}
+
+	for _, t := range types {
+		typ := reflect.TypeOf(t)
+
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+
+		if typ.Kind() != reflect.Struct {
+			continue
+		}
+		v.rules[typ] = deepCopyRules
 	}
 }
 
