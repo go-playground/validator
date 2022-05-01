@@ -1316,6 +1316,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "boolean",
+			translation: "{0} deve ser um valor booleano válido",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
