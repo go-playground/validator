@@ -48,6 +48,16 @@ func validateNestedMap() {
 				"mother_name": "Hannah",
 			},
 			"salary": "1000",
+			"phones": []map[string]interface{}{
+				{
+					"number": "11-111-1111",
+					"remark": "home",
+				},
+				{
+					"number": "22-222-2222",
+					"remark": "work",
+				},
+			},
 		},
 	}
 
@@ -62,6 +72,10 @@ func validateNestedMap() {
 				"mother_name": "required,min=4,max=32",
 			},
 			"salary": "number",
+			"phones": map[string]interface{}{
+				"number": "required,min=4,max=32",
+				"remark": "required,min=1,max=32",
+			},
 		},
 	}
 

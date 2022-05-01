@@ -12134,6 +12134,97 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	t.Errorf("Didn't panic as expected")
 }
 
+func TestValidate_ValidateMapCtx(t *testing.T) {
+
+	type args struct {
+		data  map[string]interface{}
+		rules map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "test nested map in slice",
+			args: args{
+				data: map[string]interface{}{
+					"Test_A": map[string]interface{}{
+						"Test_B": "Test_B",
+						"Test_C": []map[string]interface{}{
+							{
+								"Test_D": "Test_D",
+							},
+						},
+						"Test_E": map[string]interface{}{
+							"Test_F": "Test_F",
+						},
+					},
+				},
+				rules: map[string]interface{}{
+					"Test_A": map[string]interface{}{
+						"Test_B": "min=2",
+						"Test_C": map[string]interface{}{
+							"Test_D": "min=2",
+						},
+						"Test_E": map[string]interface{}{
+							"Test_F": "min=2",
+						},
+					},
+				},
+			},
+			want: 0,
+		},
+
+		{
+			name: "test nested map error",
+			args: args{
+				data: map[string]interface{}{
+					"Test_A": map[string]interface{}{
+						"Test_B": "Test_B",
+						"Test_C": []interface{}{"Test_D"},
+						"Test_E": map[string]interface{}{
+							"Test_F": "Test_F",
+						},
+						"Test_G": "Test_G",
+						"Test_I": []map[string]interface{}{
+							{
+								"Test_J": "Test_J",
+							},
+						},
+					},
+				},
+				rules: map[string]interface{}{
+					"Test_A": map[string]interface{}{
+						"Test_B": "min=2",
+						"Test_C": map[string]interface{}{
+							"Test_D": "min=2",
+						},
+						"Test_E": map[string]interface{}{
+							"Test_F": "min=100",
+						},
+						"Test_G": map[string]interface{}{
+							"Test_H": "min=2",
+						},
+						"Test_I": map[string]interface{}{
+							"Test_J": "min=100",
+						},
+					},
+				},
+			},
+			want: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validate := New()
+			if got := validate.ValidateMapCtx(context.Background(), tt.args.data, tt.args.rules); len(got) != tt.want {
+				t.Errorf("ValidateMapCtx() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCreditCardFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"credit_card"`
