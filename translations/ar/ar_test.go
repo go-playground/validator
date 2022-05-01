@@ -1,4 +1,4 @@
-package en
+package ar
 
 import (
 	"testing"
@@ -27,7 +27,6 @@ func TestTranslations(t *testing.T) {
 		GteCSFieldString string
 		LtCSFieldString  string
 		LteCSFieldString string
-		RequiredIf       string
 	}
 
 	type Test struct {
@@ -35,7 +34,6 @@ func TestTranslations(t *testing.T) {
 		RequiredString    string            `validate:"required"`
 		RequiredNumber    int               `validate:"required"`
 		RequiredMultiple  []string          `validate:"required"`
-		RequiredIf        string            `validate:"required_if=Inner.RequiredIf abcd"`
 		LenString         string            `validate:"len=1"`
 		LenNumber         float64           `validate:"len=1113.00"`
 		LenMultiple       []string          `validate:"len=7"`
@@ -151,7 +149,6 @@ func TestTranslations(t *testing.T) {
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		BooleanString     string `validate:"boolean"`
 	}
 
 	var test Test
@@ -204,9 +201,6 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
-	test.BooleanString = "A"
-
-	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -220,475 +214,467 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor must be a valid color",
+			expected: "يجب أن يكون IsColor لون صالح",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC must contain a valid MAC address",
+			expected: "يجب أن يحتوي MAC على عنوان MAC صالح",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr must be a resolvable IP address",
+			expected: "يجب أن يكون IPAddr عنوان IP قابل للحل",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 must be a resolvable IPv4 address",
+			expected: "يجب أن يكون IPAddrv4 عنوان IP قابل للحل",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 must be a resolvable IPv6 address",
+			expected: "يجب أن يكون IPAddrv6 عنوان IPv6 قابل للحل",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr must be a valid UDP address",
+			expected: "يجب أن يكون UDPAddr عنوان UDP صالح",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 must be a valid IPv4 UDP address",
+			expected: "يجب أن يكون UDPAddrv4 عنوان IPv4 UDP صالح",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 must be a valid IPv6 UDP address",
+			expected: "يجب أن يكون UDPAddrv6 عنوان IPv6 UDP صالح",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr must be a valid TCP address",
+			expected: "يجب أن يكون TCPAddr عنوان TCP صالح",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 must be a valid IPv4 TCP address",
+			expected: "يجب أن يكون TCPAddrv4 عنوان IPv4 TCP صالح",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 must be a valid IPv6 TCP address",
+			expected: "يجب أن يكون TCPAddrv6 عنوان IPv6 TCP صالح",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR must contain a valid CIDR notation",
+			expected: "يجب أن يحتوي CIDR على علامة CIDR صالحة",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 must contain a valid CIDR notation for an IPv4 address",
+			expected: "يجب أن يحتوي CIDRv4 على علامة CIDR صالحة لعنوان IPv4",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 must contain a valid CIDR notation for an IPv6 address",
+			expected: "يجب أن يحتوي CIDRv6 على علامة CIDR صالحة لعنوان IPv6",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN must be a valid SSN number",
+			expected: "يجب أن يكون SSN رقم SSN صالح",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP must be a valid IP address",
+			expected: "يجب أن يكون IP عنوان IP صالح",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 must be a valid IPv4 address",
+			expected: "يجب أن يكون IPv4 عنوان IPv4 صالح",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 must be a valid IPv6 address",
+			expected: "يجب أن يكون IPv6 عنوان IPv6 صالح",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI must contain a valid Data URI",
+			expected: "يجب أن يحتوي DataURI على URI صالح للبيانات",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude must contain valid latitude coordinates",
+			expected: "يجب أن يحتوي Latitude على إحداثيات خط عرض صالحة",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude must contain a valid longitude coordinates",
+			expected: "يجب أن يحتوي Longitude على إحداثيات خط طول صالحة",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte must contain multibyte characters",
+			expected: "يجب أن يحتوي MultiByte على أحرف متعددة البايت",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII must contain only ascii characters",
+			expected: "يجب أن يحتوي ASCII على أحرف ascii فقط",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII must contain only printable ascii characters",
+			expected: "يجب أن يحتوي PrintableASCII على أحرف ascii قابلة للطباعة فقط",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID must be a valid UUID",
+			expected: "يجب أن يكون UUID UUID صالح",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 must be a valid version 3 UUID",
+			expected: "يجب أن يكون UUID3 UUID صالح من النسخة 3",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 must be a valid version 4 UUID",
+			expected: "يجب أن يكون UUID4 UUID صالح من النسخة 4",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 must be a valid version 5 UUID",
+			expected: "يجب أن يكون UUID5 UUID صالح من النسخة 5",
 		},
 		{
 			ns:       "Test.ULID",
-			expected: "ULID must be a valid ULID",
+			expected: "يجب أن يكون ULID ULID صالح من نسخة",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN must be a valid ISBN number",
+			expected: "يجب أن يكون ISBN رقم ISBN صالح",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 must be a valid ISBN-10 number",
+			expected: "يجب أن يكون ISBN10 رقم ISBN-10 صالح",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 must be a valid ISBN-13 number",
+			expected: "يجب أن يكون ISBN13 رقم ISBN-13 صالح",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes cannot contain the text 'text'",
+			expected: "لا يمكن أن يحتوي Excludes على النص 'text'",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll cannot contain any of the following characters '!@#$'",
+			expected: "لا يمكن أن يحتوي ExcludesAll على أي من الأحرف التالية '!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune cannot contain the following '☻'",
+			expected: "لا يمكن أن يحتوي ExcludesRune على التالي '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny must contain at least one of the following characters '!@#$'",
+			expected: "يجب أن يحتوي ContainsAny على حرف واحد على الأقل من الأحرف التالية '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains must contain the text 'purpose'",
+			expected: "يجب أن يحتوي Contains على النص 'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 must be a valid Base64 string",
+			expected: "يجب أن يكون Base64 سلسلة Base64 صالحة",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email must be a valid email address",
+			expected: "يجب أن يكون Email عنوان بريد إلكتروني صالح",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL must be a valid URL",
+			expected: "يجب أن يكون URL رابط إنترنت صالح",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI must be a valid URI",
+			expected: "يجب أن يكون URI URI صالح",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString must be a valid RGB color",
+			expected: "يجب أن يكون RGBColorString لون RGB صالح",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString must be a valid RGBA color",
+			expected: "يجب أن يكون RGBAColorString لون RGBA صالح",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString must be a valid HSL color",
+			expected: "يجب أن يكون HSLColorString لون HSL صالح",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString must be a valid HSLA color",
+			expected: "يجب أن يكون HSLAColorString لون HSLA صالح",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString must be a valid hexadecimal",
+			expected: "يجب أن يكون HexadecimalString عددًا سداسيًا عشريًا صالحاً",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString must be a valid HEX color",
+			expected: "يجب أن يكون HexColorString لون HEX صالح",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString must be a valid number",
+			expected: "يجب أن يكون NumberString رقم صالح",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString must be a valid numeric value",
+			expected: "يجب أن يكون NumericString قيمة رقمية صالحة",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString can only contain alphanumeric characters",
+			expected: "يمكن أن يحتوي AlphanumString على أحرف أبجدية رقمية فقط",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString can only contain alphabetic characters",
+			expected: "يمكن أن يحتوي AlphaString على أحرف أبجدية فقط",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString must be less than MaxString",
+			expected: "يجب أن يكون LtFieldString أصغر من MaxString",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString must be less than or equal to MaxString",
+			expected: "يجب أن يكون LteFieldString أصغر من أو يساوي MaxString",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString must be greater than MaxString",
+			expected: "يجب أن يكون GtFieldString أكبر من MaxString",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString must be greater than or equal to MaxString",
+			expected: "يجب أن يكون GteFieldString أكبر من أو يساوي MaxString",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString cannot be equal to EqFieldString",
+			expected: "NeFieldString لا يمكن أن يساوي EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString must be less than Inner.LtCSFieldString",
+			expected: "يجب أن يكون LtCSFieldString أصغر من Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString must be less than or equal to Inner.LteCSFieldString",
+			expected: "يجب أن يكون LteCSFieldString أصغر من أو يساوي Inner.LteCSFieldString",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString must be greater than Inner.GtCSFieldString",
+			expected: "يجب أن يكون GtCSFieldString أكبر من Inner.GtCSFieldString",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString must be greater than or equal to Inner.GteCSFieldString",
+			expected: "يجب أن يكون GteCSFieldString أكبر من أو يساوي Inner.GteCSFieldString",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString cannot be equal to Inner.NeCSFieldString",
+			expected: "NeCSFieldString لا يمكن أن يساوي Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString must be equal to Inner.EqCSFieldString",
+			expected: "يجب أن يكون EqCSFieldString مساويا ل Inner.EqCSFieldString",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString must be equal to MaxString",
+			expected: "يجب أن يكون EqFieldString مساويا ل MaxString",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString must be at least 3 characters in length",
+			expected: "يجب أن يكون طول GteString على الأقل 3 أحرف",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber must be 5.56 or greater",
+			expected: "GteNumber يجب أن يكون 5.56 أو أكبر",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple must contain at least 2 items",
+			expected: "يجب أن يحتوي GteMultiple على 2 عناصر على الأقل",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime must be greater than or equal to the current Date & Time",
+			expected: "يجب أن يكون GteTime أكبر من أو يساوي التاريخ والوقت الحاليين",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString must be greater than 3 characters in length",
+			expected: "يجب أن يكون طول GtString أكبر من 3 أحرف",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber must be greater than 5.56",
+			expected: "يجب أن يكون GtNumber أكبر من 5.56",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple must contain more than 2 items",
+			expected: "يجب أن يحتوي GtMultiple على أكثر من 2 عناصر",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime must be greater than the current Date & Time",
+			expected: "يجب أن يكون GtTime أكبر من التاريخ والوقت الحاليين",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
+			expected: "يجب أن يكون طول LteString كحد أقصى 3 أحرف",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber must be 5.56 or less",
+			expected: "LteNumber يجب أن يكون 5.56 أو اقل",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "يجب أن يحتوي LteMultiple على 2 عناصر كحد أقصى",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "يجب أن يكون LteTime أقل من أو يساوي التاريخ والوقت الحاليين",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString must be less than 3 characters in length",
+			expected: "يجب أن يكون طول LtString أقل من 3 أحرف",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber must be less than 5.56",
+			expected: "يجب أن يكون LtNumber أقل من 5.56",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple must contain less than 2 items",
+			expected: "يجب أن يحتوي LtMultiple على أقل من 2 عناصر",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "يجب أن يكون LtTime أقل من التاريخ والوقت الحاليين",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString should not be equal to ",
+			expected: "NeString يجب ألا يساوي ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber should not be equal to 0.00",
+			expected: "NeNumber يجب ألا يساوي 0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple should not be equal to 0",
+			expected: "NeMultiple يجب ألا يساوي 0",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString is not equal to 3",
+			expected: "EqString لا يساوي 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber is not equal to 2.33",
+			expected: "EqNumber لا يساوي 2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple is not equal to 7",
+			expected: "EqMultiple لا يساوي 7",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString must be a maximum of 3 characters in length",
+			expected: "يجب أن يكون طول MaxString بحد أقصى 3 أحرف",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber must be 1,113.00 or less",
+			expected: "MaxNumber يجب أن يكون 1,113.00 أو اقل",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "يجب أن يحتوي MaxMultiple على 7 عناصر كحد أقصى",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString must be at least 1 character in length",
+			expected: "MinString يجب أن يكون 1 حرف أو اقل",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber must be 1,113.00 or greater",
+			expected: "MinNumber يجب أن يكون 1,113.00 أو اقل",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple must contain at least 7 items",
+			expected: "يجب أن يحتوي MinMultiple على 7 عناصر على الأقل",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString must be 1 character in length",
+			expected: "يجب أن يكون طول LenString مساويا ل 1 حرف",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber must be equal to 1,113.00",
+			expected: "يجب أن يكون LenNumber مساويا ل 1,113.00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 items",
+			expected: "يجب أن يحتوي LenMultiple على 7 عناصر",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString is a required field",
-		},
-		{
-			ns:       "Test.RequiredIf",
-			expected: "RequiredIf is a required field",
+			expected: "حقل RequiredString مطلوب",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber is a required field",
+			expected: "حقل RequiredNumber مطلوب",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple is a required field",
+			expected: "حقل RequiredMultiple مطلوب",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen must be at least 10 characters in length",
+			expected: "StrPtrMinLen يجب أن يكون 10 أحرف أو اقل",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+			expected: "يجب أن يكون طول StrPtrMaxLen بحد أقصى 1 حرف",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen must be 2 characters in length",
+			expected: "يجب أن يكون طول StrPtrLen مساويا ل 2 أحرف",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt must be less than 1 character in length",
+			expected: "يجب أن يكون طول StrPtrLt أقل من 1 حرف",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "يجب أن يكون طول StrPtrLte كحد أقصى 1 حرف",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt must be greater than 10 characters in length",
+			expected: "يجب أن يكون طول StrPtrGt أكبر من 10 أحرف",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte must be at least 10 characters in length",
+			expected: "يجب أن يكون طول StrPtrGte على الأقل 10 أحرف",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString must be one of [red green]",
+			expected: "يجب أن يكون OneOfString واحدا من [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt must be one of [5 63]",
+			expected: "يجب أن يكون OneOfInt واحدا من [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice must contain unique values",
+			expected: "يجب أن يحتوي UniqueSlice على قيم فريدة",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray must contain unique values",
+			expected: "يجب أن يحتوي UniqueArray على قيم فريدة",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap must contain unique values",
+			expected: "يجب أن يحتوي UniqueMap على قيم فريدة",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString must be a valid json string",
+			expected: "يجب أن يكون JSONString نص json صالح",
 		},
 		{
 			ns:       "Test.JWTString",
-			expected: "JWTString must be a valid jwt string",
+			expected: "يجب أن يكون JWTString نص jwt صالح",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString must be a lowercase string",
+			expected: "يجب أن يكون LowercaseString نص حروف صغيرة",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString must be an uppercase string",
+			expected: "يجب أن يكون UppercaseString نص حروف كبيرة",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime does not match the 2006-01-02 format",
+			expected: "لا يتطابق Datetime مع تنسيق 2006-01-02",
 		},
 		{
 			ns:       "Test.PostCode",
-			expected: "PostCode does not match postcode format of SG country",
+			expected: "لا يتطابق PostCode مع تنسيق الرمز البريدي للبلد SG",
 		},
 		{
 			ns:       "Test.PostCodeByField",
-			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
-		},
-		{
-			ns:       "Test.BooleanString",
-			expected: "BooleanString must be a valid boolean value",
+			expected: "لا يتطابق PostCodeByField مع تنسيق الرمز البريدي للبلد في حقل PostCodeCountry",
 		},
 	}
 

@@ -139,6 +139,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		BooleanString     string    `validate:"boolean"`
 	}
 
 	var test Test
@@ -171,6 +172,7 @@ func TestTranslations(t *testing.T) {
 	test.AlphanumString = "abc3!"
 	test.NumericString = "12E.00"
 	test.NumberString = "12E"
+	test.BooleanString = "A"
 
 	test.Excludes = "este é um texto de teste"
 	test.ExcludesAll = "Isso é Ótimo!"
@@ -618,6 +620,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfInt deve ser um de [5 63]",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString deve ser um valor booleano válido",
 		},
 	}
 

@@ -130,7 +130,7 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
-| endsnotwith | Ends With |
+| endsnotwith | Ends Not With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
@@ -153,6 +153,7 @@ Baked-in Validations
 | bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
+| credit_card | Credit Card Number |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
 | email | E-mail String
@@ -189,6 +190,16 @@ Baked-in Validations
 | uuid5 | Universally Unique Identifier UUID v5 |
 | uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
+| md4 | MD4 hash |
+| md5 | MD5 hash |
+| sha256 | SHA256 hash |
+| sha384 | SHA384 hash |
+| sha512 | SHA512 hash |
+| ripemd128 | RIPEMD-128 hash |
+| ripemd128 | RIPEMD-160 hash |
+| tiger128 | TIGER128 hash |
+| tiger160 | TIGER160 hash |
+| tiger192 | TIGER192 hash |
 | semver | Semantic Versioning 2.0.0 |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 
@@ -219,6 +230,8 @@ Baked-in Validations
 | required_with_all | Required With All |
 | required_without | Required Without |
 | required_without_all | Required Without All |
+| excluded_if | Excluded If |
+| excluded_unless | Excluded Unless |
 | excluded_with | Excluded With |
 | excluded_with_all | Excluded With All |
 | excluded_without | Excluded Without |

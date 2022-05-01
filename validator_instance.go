@@ -33,6 +33,8 @@ const (
 	excludedWithoutTag    = "excluded_without"
 	excludedWithTag       = "excluded_with"
 	excludedWithAllTag    = "excluded_with_all"
+	excludedIfTag         = "excluded_if"
+	excludedUnlessTag     = "excluded_unless"
 	skipValidationTag     = "-"
 	diveTag               = "dive"
 	keysTag               = "keys"
@@ -120,7 +122,7 @@ func New() *Validate {
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
-			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
+			excludedIfTag, excludedUnlessTag, excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
 			_ = v.registerValidation(k, wrapFunc(val), true, true)
 		default:
 			// no need to error check here, baked in will always be valid
@@ -178,7 +180,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 	return errs
 }
 
-// ValidateMap validates map data form a map of tags
+// ValidateMap validates map data from a map of tags
 func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	return v.ValidateMapCtx(context.Background(), data, rules)
 }
@@ -189,6 +191,7 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 //
 //    validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 //        name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+//        // skip if tag key says it should be ignored
 //        if name == "-" {
 //            return ""
 //        }
@@ -340,7 +343,7 @@ func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -385,7 +388,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -433,7 +436,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -523,7 +526,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ..
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
