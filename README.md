@@ -130,7 +130,7 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
-| endsnotwith | Ends With |
+| endsnotwith | Ends Not With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
@@ -153,6 +153,7 @@ Baked-in Validations
 | bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
+| credit_card | Credit Card Number |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
 | email | E-mail String
@@ -219,6 +220,8 @@ Baked-in Validations
 | required_with_all | Required With All |
 | required_without | Required Without |
 | required_without_all | Required Without All |
+| excluded_if | Excluded If |
+| excluded_unless | Excluded Unless |
 | excluded_with | Excluded With |
 | excluded_with_all | Excluded With All |
 | excluded_without | Excluded Without |
