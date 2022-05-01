@@ -333,7 +333,7 @@ func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -378,7 +378,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -426,7 +426,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -516,7 +516,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ..
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 

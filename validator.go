@@ -164,7 +164,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 		typ = current.Type()
 
-		if typ != timeType {
+		if !typ.ConvertibleTo(timeType) {
 
 			if ct != nil {
 

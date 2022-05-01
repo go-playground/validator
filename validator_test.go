@@ -5021,6 +5021,28 @@ func TestIsEqFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsEqFieldValidationWithAliasTime(t *testing.T) {
+	var errs error
+	validate := New()
+
+	type CustomTime time.Time
+
+	type Test struct {
+		Start CustomTime `validate:"eqfield=End"`
+		End   *time.Time
+	}
+
+	now := time.Now().UTC()
+
+	sv := &Test{
+		Start: CustomTime(now),
+		End:   &now,
+	}
+
+	errs = validate.Struct(sv)
+	Equal(t, errs, nil)
+}
+
 func TestIsEqValidation(t *testing.T) {
 	var errs error
 	validate := New()
