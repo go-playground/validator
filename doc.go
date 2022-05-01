@@ -1317,6 +1317,12 @@ More information on https://semver.org/
 
 	Usage: semver
 
+Credit Card
+
+This validates that a string value contains a valid credit card number using Luhn algoritm.
+
+	Usage: credit_card
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
