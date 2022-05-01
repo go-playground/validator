@@ -190,6 +190,16 @@ Baked-in Validations
 | uuid5 | Universally Unique Identifier UUID v5 |
 | uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
+| md4 | MD4 hash |
+| md5 | MD5 hash |
+| sha256 | SHA256 hash |
+| sha384 | SHA384 hash |
+| sha512 | SHA512 hash |
+| ripemd128 | RIPEMD-128 hash |
+| ripemd128 | RIPEMD-160 hash |
+| tiger128 | TIGER128 hash |
+| tiger160 | TIGER160 hash |
+| tiger192 | TIGER192 hash |
 | semver | Semantic Versioning 2.0.0 |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 
