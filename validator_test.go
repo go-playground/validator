@@ -5021,6 +5021,28 @@ func TestIsEqFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsEqFieldValidationWithAliasTime(t *testing.T) {
+	var errs error
+	validate := New()
+
+	type CustomTime time.Time
+
+	type Test struct {
+		Start CustomTime `validate:"eqfield=End"`
+		End   *time.Time
+	}
+
+	now := time.Now().UTC()
+
+	sv := &Test{
+		Start: CustomTime(now),
+		End:   &now,
+	}
+
+	errs = validate.Struct(sv)
+	Equal(t, errs, nil)
+}
+
 func TestIsEqValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -9151,6 +9173,7 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 		{"test.example24.com.", false},
 		{"test24.example24.com.", false},
 		{"example.", false},
+		{"test_example", false},
 		{"192.168.0.1", true},
 		{"email@example.com", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
@@ -9199,6 +9222,7 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 		{"test.example24.com.", false},
 		{"test24.example24.com.", false},
 		{"example.", false},
+		{"test_example", false},
 		{"192.168.0.1", true},
 		{"email@example.com", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
@@ -10675,6 +10699,145 @@ func TestRequiredWithoutAll(t *testing.T) {
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
 }
 
+func TestExcludedIf(t *testing.T) {
+	validate := New()
+	type Inner struct {
+		Field *string
+	}
+
+	test1 := struct {
+		FieldE  string  `validate:"omitempty" json:"field_e"`
+		FieldER *string `validate:"excluded_if=FieldE test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs := validate.Struct(test1)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE test" json:"field_er"`
+	}{
+		FieldE: "notest",
+	}
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
+
+	shouldError := "shouldError"
+	test3 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldError},
+	}
+	errs = validate.Struct(test3)
+	NotEqual(t, errs, nil)
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_if")
+
+	shouldPass := "test"
+	test4 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldPass},
+	}
+	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	// Checks number of params in struct tag is correct
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("panicTest should have panicked!")
+		}
+	}()
+	fieldVal := "panicTest"
+	panicTest := struct {
+		Inner  *Inner
+		Field1 string `validate:"excluded_if=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	_ = validate.Struct(panicTest)
+}
+
+func TestExcludedUnless(t *testing.T) {
+	validate := New()
+	type Inner struct {
+		Field *string
+	}
+
+	fieldVal := "test"
+	test := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE:  "notest",
+		FieldER: "filled",
+	}
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE:  "test",
+		FieldER: "filled",
+	}
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_unless")
+
+	shouldError := "test"
+	test3 := struct {
+		Inner  *Inner
+		Field1 string `validate:"excluded_unless=Inner.Field test" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldError},
+		Field1: "filled",
+	}
+	errs = validate.Struct(test3)
+	NotEqual(t, errs, nil)
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_unless")
+
+	shouldPass := "shouldPass"
+	test4 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 string `validate:"excluded_unless=Inner.Field test" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldPass},
+		Field1: "filled",
+	}
+	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	// Checks number of params in struct tag is correct
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("panicTest should have panicked!")
+		}
+	}()
+	panicTest := struct {
+		Inner  *Inner
+		Field1 string `validate:"excluded_unless=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	_ = validate.Struct(panicTest)
+}
+
 func TestLookup(t *testing.T) {
 	type Lookup struct {
 		FieldA *string `json:"fieldA,omitempty" validate:"required_without=FieldB"`
@@ -11460,7 +11623,7 @@ func TestSemverFormatValidation(t *testing.T) {
 		}
 	}
 }
-  
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`
@@ -11611,3 +11774,65 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	_ = New().Struct(test{"ABC", 123, false})
 	t.Errorf("Didn't panic as expected")
 }
+
+func TestCreditCardFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"credit_card"`
+		tag      string
+		expected bool
+	}{
+		{"586824160825533338", "credit_card", true},
+		{"586824160825533328", "credit_card", false},
+		{"4624748233249780", "credit_card", true},
+		{"4624748233349780", "credit_card", false},
+		{"378282246310005", "credit_card", true},
+		{"378282146310005", "credit_card", false},
+		{"4624 7482 3324 9780", "credit_card", true},
+		{"4624 7482 3324  9780", "credit_card", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "credit_card" {
+					t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestMultiOrOperatorGroup(t *testing.T) {
+ 	tests := []struct {
+ 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+ 		expected bool
+ 	}{
+ 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+ 	}
+
+ 	validate := New()
+
+ 	for i, test := range tests {
+ 		errs := validate.Struct(test)
+ 		if test.expected {
+ 			if !IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+ 			}
+ 		} else {
+ 			if IsEqual(errs, nil) {
+ 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+ 			}
+ 		}
+ 	}
+ }
