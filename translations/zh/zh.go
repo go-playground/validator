@@ -30,6 +30,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0}为必填字段",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
@@ -1001,6 +1031,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "alphanumunicode",
+			translation: "{0}只能包含字母数字和Unicode字符",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0}只能包含字母和Unicode字符",
+			override:    false,
+		},
+		{
 			tag:         "numeric",
 			translation: "{0}必须是一个有效的数值",
 			override:    false,
@@ -1091,6 +1131,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "containsrune",
+			translation: "{0}必须包含字符'{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻译字段错误: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "excludes",
 			translation: "{0}不能包含文本'{1}'",
 			override:    false,
@@ -1136,6 +1191,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "endswith",
+			translation: "{0}必须以文本'{1}'结尾",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻译字段错误: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startswith",
+			translation: "{0}必须以文本'{1}'开头",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻译字段错误: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "isbn",
 			translation: "{0}必须是一个有效的ISBN编号",
 			override:    false,
@@ -1168,6 +1253,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "uuid5",
 			translation: "{0}必须是一个有效的V5 UUID",
+			override:    false,
+		},
+		{
+			tag:         "ulid",
+			translation: "{0}必须是一个有效的ULID",
 			override:    false,
 		},
 		{

@@ -1,7 +1,6 @@
-package it_test
+package it
 
 import (
-	"go-playground/validator/translations/it"
 	"testing"
 	"time"
 
@@ -12,14 +11,13 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-	t.Parallel()
-
 	ita := italian.New()
 	uni := ut.New(ita, ita)
 	trans, _ := uni.GetTranslator("it")
+
 	validate := validator.New()
 
-	err := it.RegisterDefaultTranslations(validate, trans)
+	err := RegisterDefaultTranslations(validate, trans)
 	Equal(t, err, nil)
 
 	type Inner struct {
@@ -32,120 +30,130 @@ func TestTranslations(t *testing.T) {
 	}
 
 	type Test struct {
-		Inner             Inner
-		RequiredString    string            `validate:"required"`
-		RequiredNumber    int               `validate:"required"`
-		RequiredMultiple  []string          `validate:"required"`
-		LenString         string            `validate:"len=1"`
-		LenNumber         float64           `validate:"len=1113.00"`
-		LenMultiple       []string          `validate:"len=7"`
-		MinString         string            `validate:"min=1"`
-		MinNumber         float64           `validate:"min=1113.00"`
-		MinMultiple       []string          `validate:"min=7"`
-		MaxString         string            `validate:"max=3"`
-		MaxNumber         float64           `validate:"max=1113.00"`
-		MaxMultiple       []string          `validate:"max=7"`
-		EqString          string            `validate:"eq=3"`
-		EqNumber          float64           `validate:"eq=2.33"`
-		EqMultiple        []string          `validate:"eq=7"`
-		NeString          string            `validate:"ne="`
-		NeNumber          float64           `validate:"ne=0.00"`
-		NeMultiple        []string          `validate:"ne=0"`
-		LtString          string            `validate:"lt=3"`
-		LtNumber          float64           `validate:"lt=5.56"`
-		LtMultiple        []string          `validate:"lt=2"`
-		LtTime            time.Time         `validate:"lt"`
-		LteString         string            `validate:"lte=3"`
-		LteNumber         float64           `validate:"lte=5.56"`
-		LteMultiple       []string          `validate:"lte=2"`
-		LteTime           time.Time         `validate:"lte"`
-		GtString          string            `validate:"gt=3"`
-		GtNumber          float64           `validate:"gt=5.56"`
-		GtMultiple        []string          `validate:"gt=2"`
-		GtTime            time.Time         `validate:"gt"`
-		GteString         string            `validate:"gte=3"`
-		GteNumber         float64           `validate:"gte=5.56"`
-		GteMultiple       []string          `validate:"gte=2"`
-		GteTime           time.Time         `validate:"gte"`
-		EqFieldString     string            `validate:"eqfield=MaxString"`
-		EqCSFieldString   string            `validate:"eqcsfield=Inner.EqCSFieldString"`
-		NeCSFieldString   string            `validate:"necsfield=Inner.NeCSFieldString"`
-		GtCSFieldString   string            `validate:"gtcsfield=Inner.GtCSFieldString"`
-		GteCSFieldString  string            `validate:"gtecsfield=Inner.GteCSFieldString"`
-		LtCSFieldString   string            `validate:"ltcsfield=Inner.LtCSFieldString"`
-		LteCSFieldString  string            `validate:"ltecsfield=Inner.LteCSFieldString"`
-		NeFieldString     string            `validate:"nefield=EqFieldString"`
-		GtFieldString     string            `validate:"gtfield=MaxString"`
-		GteFieldString    string            `validate:"gtefield=MaxString"`
-		LtFieldString     string            `validate:"ltfield=MaxString"`
-		LteFieldString    string            `validate:"ltefield=MaxString"`
-		AlphaString       string            `validate:"alpha"`
-		AlphanumString    string            `validate:"alphanum"`
-		NumericString     string            `validate:"numeric"`
-		NumberString      string            `validate:"number"`
-		HexadecimalString string            `validate:"hexadecimal"`
-		HexColorString    string            `validate:"hexcolor"`
-		RGBColorString    string            `validate:"rgb"`
-		RGBAColorString   string            `validate:"rgba"`
-		HSLColorString    string            `validate:"hsl"`
-		HSLAColorString   string            `validate:"hsla"`
-		Email             string            `validate:"email"`
-		URL               string            `validate:"url"`
-		URI               string            `validate:"uri"`
-		Base64            string            `validate:"base64"`
-		Contains          string            `validate:"contains=purpose"`
-		ContainsAny       string            `validate:"containsany=!@#$"`
-		Excludes          string            `validate:"excludes=text"`
-		ExcludesAll       string            `validate:"excludesall=!@#$"`
-		ExcludesRune      string            `validate:"excludesrune=☻"`
-		ISBN              string            `validate:"isbn"`
-		ISBN10            string            `validate:"isbn10"`
-		ISBN13            string            `validate:"isbn13"`
-		UUID              string            `validate:"uuid"`
-		UUID3             string            `validate:"uuid3"`
-		UUID4             string            `validate:"uuid4"`
-		UUID5             string            `validate:"uuid5"`
-		ASCII             string            `validate:"ascii"`
-		PrintableASCII    string            `validate:"printascii"`
-		MultiByte         string            `validate:"multibyte"`
-		DataURI           string            `validate:"datauri"`
-		Latitude          string            `validate:"latitude"`
-		Longitude         string            `validate:"longitude"`
-		SSN               string            `validate:"ssn"`
-		IP                string            `validate:"ip"`
-		IPv4              string            `validate:"ipv4"`
-		IPv6              string            `validate:"ipv6"`
-		CIDR              string            `validate:"cidr"`
-		CIDRv4            string            `validate:"cidrv4"`
-		CIDRv6            string            `validate:"cidrv6"`
-		TCPAddr           string            `validate:"tcp_addr"`
-		TCPAddrv4         string            `validate:"tcp4_addr"`
-		TCPAddrv6         string            `validate:"tcp6_addr"`
-		UDPAddr           string            `validate:"udp_addr"`
-		UDPAddrv4         string            `validate:"udp4_addr"`
-		UDPAddrv6         string            `validate:"udp6_addr"`
-		IPAddr            string            `validate:"ip_addr"`
-		IPAddrv4          string            `validate:"ip4_addr"`
-		IPAddrv6          string            `validate:"ip6_addr"`
-		UinxAddr          string            `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
-		MAC               string            `validate:"mac"`
-		IsColor           string            `validate:"iscolor"`
-		StrPtrMinLen      *string           `validate:"min=10"`
-		StrPtrMaxLen      *string           `validate:"max=1"`
-		StrPtrLen         *string           `validate:"len=2"`
-		StrPtrLt          *string           `validate:"lt=1"`
-		StrPtrLte         *string           `validate:"lte=1"`
-		StrPtrGt          *string           `validate:"gt=10"`
-		StrPtrGte         *string           `validate:"gte=10"`
-		OneOfString       string            `validate:"oneof=red green"`
-		OneOfInt          int               `validate:"oneof=5 63"`
-		UniqueSlice       []string          `validate:"unique"`
-		UniqueArray       [3]string         `validate:"unique"`
-		UniqueMap         map[string]string `validate:"unique"`
-		JSONString        string            `validate:"json"`
-		LowercaseString   string            `validate:"lowercase"`
-		UppercaseString   string            `validate:"uppercase"`
-		Datetime          string            `validate:"datetime=2006-01-02"`
+		Inner               Inner
+		RequiredString      string            `validate:"required"`
+		RequiredNumber      int               `validate:"required"`
+		RequiredMultiple    []string          `validate:"required"`
+		LenString           string            `validate:"len=1"`
+		LenNumber           float64           `validate:"len=1113.00"`
+		LenMultiple         []string          `validate:"len=7"`
+		MinString           string            `validate:"min=1"`
+		MinNumber           float64           `validate:"min=1113.00"`
+		MinMultiple         []string          `validate:"min=7"`
+		MaxString           string            `validate:"max=3"`
+		MaxNumber           float64           `validate:"max=1113.00"`
+		MaxMultiple         []string          `validate:"max=7"`
+		EqString            string            `validate:"eq=3"`
+		EqNumber            float64           `validate:"eq=2.33"`
+		EqMultiple          []string          `validate:"eq=7"`
+		NeString            string            `validate:"ne="`
+		NeNumber            float64           `validate:"ne=0.00"`
+		NeMultiple          []string          `validate:"ne=0"`
+		LtString            string            `validate:"lt=3"`
+		LtNumber            float64           `validate:"lt=5.56"`
+		LtMultiple          []string          `validate:"lt=2"`
+		LtTime              time.Time         `validate:"lt"`
+		LteString           string            `validate:"lte=3"`
+		LteNumber           float64           `validate:"lte=5.56"`
+		LteMultiple         []string          `validate:"lte=2"`
+		LteTime             time.Time         `validate:"lte"`
+		GtString            string            `validate:"gt=3"`
+		GtNumber            float64           `validate:"gt=5.56"`
+		GtMultiple          []string          `validate:"gt=2"`
+		GtTime              time.Time         `validate:"gt"`
+		GteString           string            `validate:"gte=3"`
+		GteNumber           float64           `validate:"gte=5.56"`
+		GteMultiple         []string          `validate:"gte=2"`
+		GteTime             time.Time         `validate:"gte"`
+		EqFieldString       string            `validate:"eqfield=MaxString"`
+		EqCSFieldString     string            `validate:"eqcsfield=Inner.EqCSFieldString"`
+		NeCSFieldString     string            `validate:"necsfield=Inner.NeCSFieldString"`
+		GtCSFieldString     string            `validate:"gtcsfield=Inner.GtCSFieldString"`
+		GteCSFieldString    string            `validate:"gtecsfield=Inner.GteCSFieldString"`
+		LtCSFieldString     string            `validate:"ltcsfield=Inner.LtCSFieldString"`
+		LteCSFieldString    string            `validate:"ltecsfield=Inner.LteCSFieldString"`
+		NeFieldString       string            `validate:"nefield=EqFieldString"`
+		GtFieldString       string            `validate:"gtfield=MaxString"`
+		GteFieldString      string            `validate:"gtefield=MaxString"`
+		LtFieldString       string            `validate:"ltfield=MaxString"`
+		LteFieldString      string            `validate:"ltefield=MaxString"`
+		AlphaString         string            `validate:"alpha"`
+		AlphanumString      string            `validate:"alphanum"`
+		NumericString       string            `validate:"numeric"`
+		NumberString        string            `validate:"number"`
+		HexadecimalString   string            `validate:"hexadecimal"`
+		HexColorString      string            `validate:"hexcolor"`
+		RGBColorString      string            `validate:"rgb"`
+		RGBAColorString     string            `validate:"rgba"`
+		HSLColorString      string            `validate:"hsl"`
+		HSLAColorString     string            `validate:"hsla"`
+		Email               string            `validate:"email"`
+		URL                 string            `validate:"url"`
+		URI                 string            `validate:"uri"`
+		Base64              string            `validate:"base64"`
+		Contains            string            `validate:"contains=purpose"`
+		ContainsAny         string            `validate:"containsany=!@#$"`
+		Excludes            string            `validate:"excludes=text"`
+		ExcludesAll         string            `validate:"excludesall=!@#$"`
+		ExcludesRune        string            `validate:"excludesrune=☻"`
+		ISBN                string            `validate:"isbn"`
+		ISBN10              string            `validate:"isbn10"`
+		ISBN13              string            `validate:"isbn13"`
+		UUID                string            `validate:"uuid"`
+		UUID3               string            `validate:"uuid3"`
+		UUID4               string            `validate:"uuid4"`
+		UUID5               string            `validate:"uuid5"`
+		ULID                string            `validate:"ulid"`
+		ASCII               string            `validate:"ascii"`
+		PrintableASCII      string            `validate:"printascii"`
+		MultiByte           string            `validate:"multibyte"`
+		DataURI             string            `validate:"datauri"`
+		Latitude            string            `validate:"latitude"`
+		Longitude           string            `validate:"longitude"`
+		SSN                 string            `validate:"ssn"`
+		IP                  string            `validate:"ip"`
+		IPv4                string            `validate:"ipv4"`
+		IPv6                string            `validate:"ipv6"`
+		CIDR                string            `validate:"cidr"`
+		CIDRv4              string            `validate:"cidrv4"`
+		CIDRv6              string            `validate:"cidrv6"`
+		TCPAddr             string            `validate:"tcp_addr"`
+		TCPAddrv4           string            `validate:"tcp4_addr"`
+		TCPAddrv6           string            `validate:"tcp6_addr"`
+		UDPAddr             string            `validate:"udp_addr"`
+		UDPAddrv4           string            `validate:"udp4_addr"`
+		UDPAddrv6           string            `validate:"udp6_addr"`
+		IPAddr              string            `validate:"ip_addr"`
+		IPAddrv4            string            `validate:"ip4_addr"`
+		IPAddrv6            string            `validate:"ip6_addr"`
+		UinxAddr            string            `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
+		MAC                 string            `validate:"mac"`
+		IsColor             string            `validate:"iscolor"`
+		StrPtrMinLen        *string           `validate:"min=10"`
+		StrPtrMaxLen        *string           `validate:"max=1"`
+		StrPtrLen           *string           `validate:"len=2"`
+		StrPtrLt            *string           `validate:"lt=1"`
+		StrPtrLte           *string           `validate:"lte=1"`
+		StrPtrGt            *string           `validate:"gt=10"`
+		StrPtrGte           *string           `validate:"gte=10"`
+		OneOfString         string            `validate:"oneof=red green"`
+		OneOfInt            int               `validate:"oneof=5 63"`
+		UniqueSlice         []string          `validate:"unique"`
+		UniqueArray         [3]string         `validate:"unique"`
+		UniqueMap           map[string]string `validate:"unique"`
+		BooleanString       string            `validate:"boolean"`
+		JSONString          string            `validate:"json"`
+		JWTString           string            `validate:"jwt"`
+		LowercaseString     string            `validate:"lowercase"`
+		UppercaseString     string            `validate:"uppercase"`
+		StartsWithString    string            `validate:"startswith=foo"`
+		StartsNotWithString string            `validate:"startsnotwith=foo"`
+		EndsWithString      string            `validate:"endswith=foo"`
+		EndsNotWithString   string            `validate:"endsnotwith=foo"`
+		Datetime            string            `validate:"datetime=2006-01-02"`
+		PostCode            string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry     string
+		PostCodeByField     string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 	}
 
 	var test Test
@@ -191,6 +199,11 @@ func TestTranslations(t *testing.T) {
 	test.LowercaseString = "ABCDEFG"
 	test.UppercaseString = "abcdefg"
 
+	test.StartsWithString = "hello"
+	test.StartsNotWithString = "foo-hello"
+	test.EndsWithString = "hello"
+	test.EndsNotWithString = "hello-foo"
+
 	s := "toolong"
 	test.StrPtrMaxLen = &s
 	test.StrPtrLen = &s
@@ -235,11 +248,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 deve essere un indirizzo UDP IPv4 valido",
+			expected: "UDPAddrv4 deve essere un indirizzo IPv4 UDP valido",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 deve essere un indirizzo UDP IPv6 valido",
+			expected: "UDPAddrv6 deve essere un indirizzo IPv6 UDP valido",
 		},
 		{
 			ns:       "Test.TCPAddr",
@@ -247,11 +260,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 deve essere un indirizzo TCP IPv4 valido",
+			expected: "TCPAddrv4 deve essere un indirizzo IPv4 TCP valido",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 deve essere un indirizzo TCP IPv6 valido",
+			expected: "TCPAddrv6 deve essere un indirizzo IPv6 TCP valido",
 		},
 		{
 			ns:       "Test.CIDR",
@@ -259,11 +272,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 deve contenere una notazione CIDR valida per un indirizzo IPv4",
+			expected: "CIDRv4 deve contenere una notazione CIDR per un indirizzo IPv4 valida",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 deve contenere una notazione CIDR valida per un indirizzo IPv6",
+			expected: "CIDRv6 deve contenere una notazione CIDR per un indirizzo IPv6 valida",
 		},
 		{
 			ns:       "Test.SSN",
@@ -283,15 +296,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI deve contenere un URI dati valido",
+			expected: "DataURI deve contenere un Data URI valido",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude deve contenere coordinate di latitudine valide",
+			expected: "Latitude deve contenere una latitudine valida",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude deve contenere coordinate di longitudine valide",
+			expected: "Longitude deve contenere una longitudine valida",
 		},
 		{
 			ns:       "Test.MultiByte",
@@ -299,11 +312,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII deve contenere solo caratteri ASCII",
+			expected: "ASCII deve contenere solo caratteri ascii",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII deve contenere solo caratteri ASCII stampabili",
+			expected: "PrintableASCII deve contenere solo caratteri ascii stampabili",
 		},
 		{
 			ns:       "Test.UUID",
@@ -322,6 +335,10 @@ func TestTranslations(t *testing.T) {
 			expected: "UUID5 deve essere un UUID versione 5 valido",
 		},
 		{
+			ns:       "Test.ULID",
+			expected: "ULID deve essere un ULID valido",
+		},
+		{
 			ns:       "Test.ISBN",
 			expected: "ISBN deve essere un numero ISBN valido",
 		},
@@ -335,15 +352,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes non può contenere il testo 'text'",
+			expected: "Excludes non deve contenere il testo 'text'",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll non può contenere nessuno dei seguenti caratteri '!@#$'",
+			expected: "ExcludesAll non deve contenere alcuno dei seguenti caratteri '!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune non può contenere '☻'",
+			expected: "ExcludesRune non deve contenere '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
@@ -427,7 +444,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString non può essere uguale a EqFieldString",
+			expected: "NeFieldString deve essere diverso da EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
@@ -447,7 +464,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString non può essere uguale a Inner.NeCSFieldString",
+			expected: "NeCSFieldString deve essere diverso da Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
@@ -459,11 +476,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString deve essere almeno 3 caratteri di lunghezza",
+			expected: "GteString deve essere lungo almeno 3 caratteri",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber deve essere 5,56 o maggiore",
+			expected: "GteNumber deve essere maggiore o uguale a 5,56",
 		},
 		{
 			ns:       "Test.GteMultiple",
@@ -471,11 +488,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime deve essere maggiore o uguale alla data e ora correnti",
+			expected: "GteTime deve essere uguale o successivo alla Data/Ora corrente",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString deve essere maggiore di 3 caratteri di lunghezza",
+			expected: "GtString deve essere lungo più di 3 caratteri",
 		},
 		{
 			ns:       "Test.GtNumber",
@@ -487,15 +504,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime deve essere maggiore della data e dell'ora correnti",
+			expected: "GtTime deve essere successivo alla Data/Ora corrente",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString deve avere una lunghezza massima di 3 caratteri",
+			expected: "LteString deve essere lungo al massimo 3 caratteri",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber deve essere 5,56 o inferiore",
+			expected: "LteNumber deve essere minore o uguale a 5,56",
 		},
 		{
 			ns:       "Test.LteMultiple",
@@ -503,15 +520,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime deve essere minore o uguale alla data e ora correnti",
+			expected: "LteTime deve essere uguale o precedente alla Data/Ora corrente",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString deve essere inferiore a 3 caratteri di lunghezza",
+			expected: "LtString deve essere lungo meno di 3 caratteri",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber deve essere inferiore a 5,56",
+			expected: "LtNumber deve essere minore di 5,56",
 		},
 		{
 			ns:       "Test.LtMultiple",
@@ -519,19 +536,19 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime deve essere inferiore alla data e ora correnti",
+			expected: "LtTime deve essere precedente alla Data/Ora corrente",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString non dovrebbe essere uguale a ",
+			expected: "NeString deve essere diverso da ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber non dovrebbe essere uguale a 0.00",
+			expected: "NeNumber deve essere diverso da 0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple non dovrebbe essere uguale a 0",
+			expected: "NeMultiple deve essere diverso da 0",
 		},
 		{
 			ns:       "Test.EqString",
@@ -547,11 +564,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString deve avere una lunghezza massima di 3 caratteri",
+			expected: "MaxString deve essere lungo al massimo 3 caratteri",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber deve essere 1.113,00 o inferiore",
+			expected: "MaxNumber deve essere minore o uguale a 1.113,00",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -559,11 +576,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString deve essere almeno 1 carattere di lunghezza",
+			expected: "MinString deve essere lungo almeno 1 carattere",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber deve essere 1.113,00 o maggiore",
+			expected: "MinNumber deve essere maggiore o uguale a 1.113,00",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -571,7 +588,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString deve essere 1 carattere di lunghezza",
+			expected: "LenString deve essere lungo 1 carattere",
 		},
 		{
 			ns:       "Test.LenNumber",
@@ -595,55 +612,63 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen deve essere almeno 10 caratteri di lunghezza",
+			expected: "StrPtrMinLen deve essere lungo almeno 10 caratteri",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen deve avere una lunghezza massima di 1 carattere",
+			expected: "StrPtrMaxLen deve essere lungo al massimo 1 carattere",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen deve essere 2 caratteri di lunghezza",
+			expected: "StrPtrLen deve essere lungo 2 caratteri",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt deve essere inferiore a 1 carattere di lunghezza",
+			expected: "StrPtrLt deve essere lungo meno di 1 carattere",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte deve avere una lunghezza massima di 1 carattere",
+			expected: "StrPtrLte deve essere lungo al massimo 1 carattere",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt deve essere maggiore di 10 caratteri di lunghezza",
+			expected: "StrPtrGt deve essere lungo più di 10 caratteri",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte deve essere almeno 10 caratteri di lunghezza",
+			expected: "StrPtrGte deve essere lungo almeno 10 caratteri",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString deve essere uno tra [red green]",
+			expected: "OneOfString deve essere uno di [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt deve essere uno tra [5 63]",
+			expected: "OneOfInt deve essere uno di [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice deve contenere valori univoci",
+			expected: "UniqueSlice deve contenere valori unici",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray deve contenere valori univoci",
+			expected: "UniqueArray deve contenere valori unici",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap deve contenere valori univoci",
+			expected: "UniqueMap deve contenere valori unici",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString deve rappresentare un valore booleano",
 		},
 		{
 			ns:       "Test.JSONString",
 			expected: "JSONString deve essere una stringa json valida",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString deve essere una stringa jwt valida",
 		},
 		{
 			ns:       "Test.LowercaseString",
@@ -654,12 +679,37 @@ func TestTranslations(t *testing.T) {
 			expected: "UppercaseString deve essere una stringa maiuscola",
 		},
 		{
+			ns:       "Test.StartsWithString",
+			expected: "StartsWithString deve iniziare con foo",
+		},
+		{
+			ns:       "Test.StartsNotWithString",
+			expected: "StartsNotWithString non deve iniziare con foo",
+		},
+		{
+			ns:       "Test.EndsWithString",
+			expected: "EndsWithString deve terminare con foo",
+		},
+		{
+			ns:       "Test.EndsNotWithString",
+			expected: "EndsNotWithString non deve terminare con foo",
+		},
+		{
 			ns:       "Test.Datetime",
 			expected: "Datetime non corrisponde al formato 2006-01-02",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode non corrisponde al formato del codice postale dello stato SG",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField non corrisponde al formato del codice postale dello stato nel campo PostCodeCountry",
 		},
 	}
 
 	for _, tt := range tests {
+
 		var fe validator.FieldError
 
 		for _, e := range errs {

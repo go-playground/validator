@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	indonesia "github.com/go-playground/locales/id"
 	ut "github.com/go-playground/universal-translator"
-	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -104,6 +104,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
 		UUID5             string    `validate:"uuid5"`
+		ULID              string    `validate:"ulid"`
 		ASCII             string    `validate:"ascii"`
 		PrintableASCII    string    `validate:"printascii"`
 		MultiByte         string    `validate:"multibyte"`
@@ -305,6 +306,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UUID5",
 			expected: "UUID5 harus berupa UUID versi 5 yang valid",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID harus berupa ULID yang valid",
 		},
 		{
 			ns:       "Test.ISBN",

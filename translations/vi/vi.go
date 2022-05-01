@@ -1,4 +1,4 @@
-package id
+package vi
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -26,45 +25,42 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0} wajib diisi",
+			translation: "{0} không được bỏ trống",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("len-string", "panjang {0} harus {1}", false); err != nil {
+				if err = ut.Add("len-string", "{0} phải có độ dài là {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("len-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("len-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("len-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-number", "{0} harus sama dengan {1}", false); err != nil {
+				if err = ut.Add("len-number", "{0} phải bằng {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-items", "{0} harus berisi {1}", false); err != nil {
+				if err = ut.Add("len-items", "{0} phải chứa {1}", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("len-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("len-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("len-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -113,7 +109,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -123,39 +119,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("min-string", "panjang minimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("min-string", "{0} phải chứa ít nhất {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("min-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("min-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("min-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-number", "{0} harus {1} atau lebih besar", false); err != nil {
+				if err = ut.Add("min-number", "{0} phải bằng {1} hoặc lớn hơn", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "panjang minimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("min-items", "{0} phải chứa ít nhất {1}", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("min-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("min-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("min-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -204,7 +197,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -214,39 +207,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("max-string", "panjang maksimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("max-string", "{0} chỉ được chứa tối đa {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("max-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("max-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("max-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-number", "{0} harus {1} atau kurang", false); err != nil {
+				if err = ut.Add("max-number", "{0} phải là {1} hoặc nhỏ hơn", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-items", "{0} harus berisi maksimal {1}", false); err != nil {
+				if err = ut.Add("max-items", "{0} chỉ được chứa tối đa {1}", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("max-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -295,7 +285,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -304,13 +294,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0} tidak sama dengan {1}",
+			translation: "{0} không bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -319,13 +308,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ne",
-			translation: "{0} tidak sama dengan {1}",
+			translation: "{0} không được bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -335,44 +323,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lt-string", "panjang {0} harus kurang dari {1}", false); err != nil {
+				if err = ut.Add("lt-string", "{0} phải có độ dài nhỏ hơn {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("lt-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lt-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lt-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-number", "{0} harus kurang dari {1}", false); err != nil {
+				if err = ut.Add("lt-number", "{0} phải nhỏ hơn {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0} harus berisi kurang dari {1}", false); err != nil {
+				if err = ut.Add("lt-items", "{0} chỉ được chứa ít hơn {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("lt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lt-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lt-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0} harus kurang dari tanggal & waktu saat ini", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} phải nhỏ hơn Ngày & Giờ hiện tại", false); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -380,7 +365,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -429,7 +413,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						err = fmt.Errorf("tag '%s' không thể dùng trên kiểu struct", fe.Tag())
 						goto END
 					}
 
@@ -446,7 +430,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -456,43 +440,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lte-string", "panjang maksimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("lte-string", "{0} chỉ được có độ dài tối đa là {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("lte-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lte-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lte-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0} harus {1} atau kurang", false); err != nil {
+				if err = ut.Add("lte-number", "{0} phải là {1} hoặc nhỏ hơn", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0} harus berisi maksimal {1}", false); err != nil {
+				if err = ut.Add("lte-items", "{0} chỉ được chứa nhiều nhất {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("lte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lte-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lte-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0} harus kurang dari atau sama dengan tanggal & waktu saat ini", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} chỉ được nhỏ hơn hoặc bằng Ngày & Giờ hiện tại", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -500,7 +482,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -549,7 +530,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						err = fmt.Errorf("tag '%s' không thể dùng trên kiểu struct", fe.Tag())
 						goto END
 					}
 
@@ -566,7 +547,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -576,43 +557,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gt-string", "panjang {0} harus lebih dari {1}", false); err != nil {
+				if err = ut.Add("gt-string", "{0} phải có độ dài lớn hơn {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("gt-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gt-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gt-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-number", "{0} harus lebih besar dari {1}", false); err != nil {
+				if err = ut.Add("gt-number", "{0} phải lớn hơn {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0} harus berisi lebih dari {1}", false); err != nil {
+				if err = ut.Add("gt-items", "{0} phải chứa nhiều hơn {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("gt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gt-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gt-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0} harus lebih besar dari tanggal & waktu saat ini", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} phải lớn hơn Ngày & Giờ hiện tại", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -620,7 +599,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -669,7 +647,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						err = fmt.Errorf("tag '%s' không thể dùng trên kiểu struct", fe.Tag())
 						goto END
 					}
 
@@ -686,7 +664,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -696,43 +674,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gte-string", "panjang minimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("gte-string", "{0} phải có độ dài ít nhất {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("gte-string-character", "{0} karakter", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gte-string-character", "{0} ký tự", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gte-string-character", "{0} karakter", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} ký tự", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0} harus {1} atau lebih besar", false); err != nil {
+				if err = ut.Add("gte-number", "{0} phải là {1} hoặc lớn hơn", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0} harus berisi setidaknya {1}", false); err != nil {
+				if err = ut.Add("gte-items", "{0} phải chứa ít nhất {1}", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("gte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gte-items-item", "{0} phần tử", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gte-items-item", "{0} item", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} phần tử", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0} harus lebih besar dari atau sama dengan tanggal & waktu saat ini", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} phải lớn hơn hoặc bằng Ngày & Giờ hiện tại", false); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -740,7 +716,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -789,7 +764,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				case reflect.Struct:
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
+						err = fmt.Errorf("tag '%s' không thể dùng trên kiểu struct", fe.Tag())
 						goto END
 					}
 
@@ -806,7 +781,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					fmt.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %s", err)
 					return fe.(error).Error()
 				}
 
@@ -815,13 +790,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "{0} harus sama dengan {1}",
+			translation: "{0} phải bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -830,13 +804,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "{0} harus sama dengan {1}",
+			translation: "{0} phải bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -845,13 +818,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0} tidak sama dengan {1}",
+			translation: "{0} không được phép bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -860,13 +832,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtcsfield",
-			translation: "{0} harus lebih besar dari {1}",
+			translation: "{0} phải lớn hơn {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -875,13 +846,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0} harus lebih besar dari atau sama dengan {1}",
+			translation: "{0} phải lớn hơn hoặc bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -890,13 +860,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltcsfield",
-			translation: "{0} harus kurang dari {1}",
+			translation: "{0} chỉ được nhỏ hơn {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -905,13 +874,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "{0} harus kurang dari atau sama dengan {1}",
+			translation: "{0} chỉ được nhỏ hơn hoặc bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -920,13 +888,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0} tidak sama dengan {1}",
+			translation: "{0} không được phép bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -935,13 +902,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtfield",
-			translation: "{0} harus lebih besar dari {1}",
+			translation: "{0} phải lớn hơn {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -950,13 +916,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0} harus lebih besar dari atau sama dengan {1}",
+			translation: "{0} phải lớn hơn hoặc bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -965,13 +930,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltfield",
-			translation: "{0} harus kurang dari {1}",
+			translation: "{0} chỉ được nhỏ hơn {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -980,13 +944,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "{0} harus kurang dari atau sama dengan {1}",
+			translation: "{0} chỉ được nhỏ hơn hoặc bằng {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -995,83 +958,87 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "{0} hanya dapat berisi karakter abjad",
+			translation: "{0} chỉ được chứa ký tự dạng alphabetic",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0} hanya dapat berisi karakter alfanumerik",
+			translation: "{0} chỉ được chứa ký tự dạng alphanumeric",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "{0} harus berupa nilai numerik yang valid",
+			translation: "{0} chỉ được chứa giá trị số hoặc số dưới dạng chữ",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0} harus berupa angka yang valid",
+			translation: "{0} chỉ được chứa giá trị số",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0} harus berupa heksadesimal yang valid",
+			translation: "{0} phải là giá trị hexadecimal",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "{0} harus berupa warna HEX yang valid",
+			translation: "{0} phải là giá trị HEX color",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "{0} harus berupa warna RGB yang valid",
+			translation: "{0} phải là giá trị RGB color",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "{0} harus berupa warna RGBA yang valid",
+			translation: "{0} phải là giá trị RGBA color",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "{0} harus berupa warna HSL yang valid",
+			translation: "{0} phải là giá trị HSL color",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "{0} harus berupa warna HSLA yang valid",
+			translation: "{0} phải là giá trị HSLA color",
+			override:    false,
+		},
+		{
+			tag:         "e164",
+			translation: "{0} phải là giá trị số điện thoại theo định dạng E.164",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "{0} harus berupa alamat email yang valid",
+			translation: "{0} phải là giá trị email address",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "{0} harus berupa URL yang valid",
+			translation: "{0} phải là giá trị URL",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0} harus berupa URI yang valid",
+			translation: "{0} phải là giá trị URI",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0} harus berupa string Base64 yang valid",
+			translation: "{0} phải là giá trị chuỗi Base64",
 			override:    false,
 		},
 		{
 			tag:         "contains",
-			translation: "{0} harus berisi teks '{1}'",
+			translation: "{0} phải chứa chuỗi '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1080,13 +1047,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
+			translation: "{0} phải chứa ít nhất 1 trong cách ký tự sau '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1095,13 +1061,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludes",
-			translation: "{0} tidak boleh berisi teks '{1}'",
+			translation: "{0} không được chứa chuỗi '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1110,13 +1075,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesall",
-			translation: "{0} tidak boleh berisi salah satu karakter berikut '{1}'",
+			translation: "{0} không được chứa bất kỳ ký tự nào trong nhóm ký tự '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1125,13 +1089,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesrune",
-			translation: "{0} tidak boleh berisi '{1}'",
+			translation: "{0} không được chứa '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
@@ -1140,180 +1103,242 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0} harus berupa nomor ISBN yang valid",
+			translation: "{0} phải là số ISBN",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0} harus berupa nomor ISBN-10 yang valid",
+			translation: "{0} phải là số ISBN-10",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0} harus berupa nomor ISBN-13 yang valid",
+			translation: "{0} phải là số ISBN-13",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0} harus berupa UUID yang valid",
+			translation: "{0} phải là giá trị UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0} harus berupa UUID versi 3 yang valid",
+			translation: "{0} phải là giá trị UUID phiên bản 3",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0} harus berupa UUID versi 4 yang valid",
+			translation: "{0} phải là giá trị UUID phiên bản 4",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0} harus berupa UUID versi 5 yang valid",
-			override:    false,
-		},
-		{
-			tag:         "ulid",
-			translation: "{0} harus berupa ULID yang valid",
+			translation: "{0} phải là giá trị UUID phiên bản 5",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "{0} hanya boleh berisi karakter ascii",
+			translation: "{0} chỉ được chứa ký tự ASCII",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0} hanya boleh berisi karakter ascii yang dapat dicetak",
+			translation: "{0} chỉ được chứa ký tự ASCII có thể in ấn",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0} harus berisi karakter multibyte",
+			translation: "{0} chỉ được chứa ký tự multibyte",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "{0} harus berisi URI Data yang valid",
+			translation: "{0} chỉ được chứa Data URI",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0} harus berisi koordinat lintang yang valid",
+			translation: "{0} chỉ được chứa latitude (vỹ độ)",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0} harus berisi koordinat bujur yang valid",
+			translation: "{0} chỉ được chứa longitude (kinh độ)",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "{0} harus berupa nomor SSN yang valid",
+			translation: "{0} phải là SSN number",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "{0} harus berupa alamat IPv4 yang valid",
+			translation: "{0} phải là địa chỉ IPv4",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "{0} harus berupa alamat IPv6 yang valid",
+			translation: "{0} phải là địa chỉ IPv6",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "{0} harus berupa alamat IP yang valid",
+			translation: "{0} phải là địa chỉ IP",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "{0} harus berisi notasi CIDR yang valid",
+			translation: "{0} chỉ được chứa CIDR notation",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "{0} harus berisi notasi CIDR yang valid untuk alamat IPv4",
+			translation: "{0} chỉ được chứa CIDR notation của một địa chỉ IPv4",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "{0} harus berisi notasi CIDR yang valid untuk alamat IPv6",
+			translation: "{0} chỉ được chứa CIDR notation của một địa chỉ IPv6",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "{0} harus berupa alamat TCP yang valid",
+			translation: "{0} phải là địa chỉ TCP",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "{0} harus berupa alamat TCP IPv4 yang valid",
+			translation: "{0} phải là địa chỉ IPv4 TCP",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "{0} harus berupa alamat TCP IPv6 yang valid",
+			translation: "{0} phải là địa chỉ IPv6 TCP",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "{0} harus berupa alamat UDP yang valid",
+			translation: "{0} phải là địa chỉ UDP",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "{0} harus berupa alamat IPv4 UDP yang valid",
+			translation: "{0} phải là địa chỉ IPv4 UDP",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "{0} harus berupa alamat IPv6 UDP yang valid",
+			translation: "{0} phải là địa chỉ IPv6 UDP",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "{0} harus berupa alamat IP yang dapat dipecahkan",
+			translation: "{0} phải là địa chỉ IP có thể phân giải",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0} harus berupa alamat IPv4 yang dapat diatasi",
+			translation: "{0} phải là địa chỉ IPv4 có thể phân giải",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0} harus berupa alamat IPv6 yang dapat diatasi",
+			translation: "{0} phải là địa chỉ IPv6 có thể phân giải",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0} harus berupa alamat UNIX yang dapat diatasi",
+			translation: "{0} phải là địa chỉ UNIX có thể phân giải",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "{0} harus berisi alamat MAC yang valid",
+			translation: "{0} chỉ được chứa địa chỉ MAC",
+			override:    false,
+		},
+		{
+			tag:         "unique",
+			translation: "{0} chỉ được chứa những giá trị không trùng lặp",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0} harus berupa warna yang valid",
+			translation: "{0} phải là màu sắc hợp lệ",
 			override:    false,
 		},
 		{
 			tag:         "oneof",
-			translation: "{0} harus berupa salah satu dari [{1}]",
+			translation: "{0} phải là trong những giá trị [{1}]",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 				return s
+			},
+		},
+		{
+			tag:         "json",
+			translation: "{0} phải là một chuỗi json hợp lệ",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0} phải là một chuỗi jwt hợp lệ",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0} phải được viết thường",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0} phải được viết hoa",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0} không trùng định dạng ngày tháng {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0} sai định dạng postcode của quốc gia {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0} sai định dạng postcode của quốc gia tương ứng thuộc trường {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
 			},
 		},
 	}
@@ -1321,17 +1346,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	for _, t := range translations {
 
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
-
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
-
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), t.customTransFunc)
-
 		} else if t.customTransFunc == nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, translateFunc)
-
 		} else {
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		}
@@ -1345,24 +1364,19 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
 
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
-		log.Printf("warning: error translating FieldError: %#v", fe)
+		log.Printf("cảnh báo: lỗi chuyển ngữ FieldError: %#v", fe)
 		return fe.(error).Error()
 	}
 

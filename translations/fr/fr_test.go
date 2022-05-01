@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	french "github.com/go-playground/locales/fr"
 	ut "github.com/go-playground/universal-translator"
-	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -104,6 +104,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
 		UUID5             string    `validate:"uuid5"`
+		ULID              string    `validate:"ulid"`
 		ASCII             string    `validate:"ascii"`
 		PrintableASCII    string    `validate:"printascii"`
 		MultiByte         string    `validate:"multibyte"`
@@ -305,6 +306,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UUID5",
 			expected: "UUID5 doit être un UUID version 5 valid",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID doit être une ULID valide",
 		},
 		{
 			ns:       "Test.ISBN",
@@ -536,7 +541,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber doit être égal à 1 113,00 ou moins",
+			expected: "MaxNumber doit être égal à 1 113,00 ou moins",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -548,7 +553,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber doit être égal à 1 113,00 ou plus",
+			expected: "MinNumber doit être égal à 1 113,00 ou plus",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -560,7 +565,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber doit être égal à 1 113,00",
+			expected: "LenNumber doit être égal à 1 113,00",
 		},
 		{
 			ns:       "Test.LenMultiple",

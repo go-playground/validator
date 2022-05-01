@@ -1,21 +1,19 @@
-package pt
+package vi
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	"github.com/go-playground/locales/pt"
+	vietnamese "github.com/go-playground/locales/vi"
 	ut "github.com/go-playground/universal-translator"
-
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
-
-	pt := pt.New()
-	uni := ut.New(pt, pt)
-	trans, _ := uni.GetTranslator("pt")
+	vie := vietnamese.New()
+	uni := ut.New(vie, vie)
+	trans, _ := uni.GetTranslator("vi")
 
 	validate := validator.New()
 
@@ -105,7 +103,6 @@ func TestTranslations(t *testing.T) {
 		UUID3             string            `validate:"uuid3"`
 		UUID4             string            `validate:"uuid4"`
 		UUID5             string            `validate:"uuid5"`
-		ULID              string            `validate:"ulid"`
 		ASCII             string            `validate:"ascii"`
 		PrintableASCII    string            `validate:"printascii"`
 		MultiByte         string            `validate:"multibyte"`
@@ -144,9 +141,13 @@ func TestTranslations(t *testing.T) {
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
 		JSONString        string            `validate:"json"`
+		JWTString         string            `validate:"jwt"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry   string
+		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 	}
 
 	var test Test
@@ -212,455 +213,463 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor deve ser uma cor válida",
+			expected: "IsColor phải là màu sắc hợp lệ",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC deve conter um endereço MAC válido",
+			expected: "MAC chỉ được chứa địa chỉ MAC",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr deve ser um endereço IP resolvível",
+			expected: "IPAddr phải là địa chỉ IP có thể phân giải",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 deve ser um endereço IPv4 resolvível",
+			expected: "IPAddrv4 phải là địa chỉ IPv4 có thể phân giải",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 deve ser um endereço IPv6 resolvível",
+			expected: "IPAddrv6 phải là địa chỉ IPv6 có thể phân giải",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr deve ser um endereço UDP válido",
+			expected: "UDPAddr phải là địa chỉ UDP",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 deve ser um endereço UDP IPv4 válido",
+			expected: "UDPAddrv4 phải là địa chỉ IPv4 UDP",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 deve ser um endereço UDP IPv6 válido",
+			expected: "UDPAddrv6 phải là địa chỉ IPv6 UDP",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr deve ser um endereço TCP válido",
+			expected: "TCPAddr phải là địa chỉ TCP",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 deve ser um endereço TCP IPv4 válido",
+			expected: "TCPAddrv4 phải là địa chỉ IPv4 TCP",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 deve ser um endereço TCP IPv6 válido",
+			expected: "TCPAddrv6 phải là địa chỉ IPv6 TCP",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR não respeita a notação CIDR",
+			expected: "CIDR chỉ được chứa CIDR notation",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 não respeita a notação CIDR para um endereço IPv4",
+			expected: "CIDRv4 chỉ được chứa CIDR notation của một địa chỉ IPv4",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 não respeita a notação CIDR para um endereço IPv6",
+			expected: "CIDRv6 chỉ được chứa CIDR notation của một địa chỉ IPv6",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN deve ser um número SSN válido",
+			expected: "SSN phải là SSN number",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP deve ser um endereço IP válido",
+			expected: "IP phải là địa chỉ IP",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 deve ser um endereço IPv4 válido",
+			expected: "IPv4 phải là địa chỉ IPv4",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 deve ser um endereço IPv6 válido",
+			expected: "IPv6 phải là địa chỉ IPv6",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI deve conter um Data URI válido",
+			expected: "DataURI chỉ được chứa Data URI",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude deve conter uma coordenada de latitude válida",
+			expected: "Latitude chỉ được chứa latitude (vỹ độ)",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude deve conter uma coordenada de longitude válida",
+			expected: "Longitude chỉ được chứa longitude (kinh độ)",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte deve conter caracteres multibyte",
+			expected: "MultiByte chỉ được chứa ký tự multibyte",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII deve conter apenas caracteres ascii",
+			expected: "ASCII chỉ được chứa ký tự ASCII",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII deve conter apenas caracteres ascii imprimíveis",
+			expected: "PrintableASCII chỉ được chứa ký tự ASCII có thể in ấn",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID deve ser um UUID válido",
+			expected: "UUID phải là giá trị UUID",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 deve ser um UUID versão 3 válido",
+			expected: "UUID3 phải là giá trị UUID phiên bản 3",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 deve ser um UUID versão 4 válido",
+			expected: "UUID4 phải là giá trị UUID phiên bản 4",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 deve ser um UUID versão 5 válido",
-		},
-		{
-			ns:       "Test.ULID",
-			expected: "ULID deve ser um ULID válido",
+			expected: "UUID5 phải là giá trị UUID phiên bản 5",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN deve ser um número de ISBN válido",
+			expected: "ISBN phải là số ISBN",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 deve ser um número ISBN-10 válido",
+			expected: "ISBN10 phải là số ISBN-10",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 deve ser um número ISBN-13 válido",
+			expected: "ISBN13 phải là số ISBN-13",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes não deve conter o texto 'text'",
+			expected: "Excludes không được chứa chuỗi 'text'",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll não deve conter os seguintes caracteres '!@#$'",
+			expected: "ExcludesAll không được chứa bất kỳ ký tự nào trong nhóm ký tự '!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune não pode conter o seguinte '☻'",
+			expected: "ExcludesRune không được chứa '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny deve conter pelo menos um dos seguintes caracteres '!@#$'",
+			expected: "ContainsAny phải chứa ít nhất 1 trong cách ký tự sau '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains deve conter o texto 'purpose'",
+			expected: "Contains phải chứa chuỗi 'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 deve ser uma string Base64 válida",
+			expected: "Base64 phải là giá trị chuỗi Base64",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email deve ser um endereço de e-mail válido",
+			expected: "Email phải là giá trị email address",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL deve ser um URL válido",
+			expected: "URL phải là giá trị URL",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI deve ser um URI válido",
+			expected: "URI phải là giá trị URI",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString deve ser uma cor RGB válida",
+			expected: "RGBColorString phải là giá trị RGB color",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString deve ser uma cor RGBA válida",
+			expected: "RGBAColorString phải là giá trị RGBA color",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString deve ser uma cor HSL válida",
+			expected: "HSLColorString phải là giá trị HSL color",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString deve ser uma cor HSLA válida",
+			expected: "HSLAColorString phải là giá trị HSLA color",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString deve ser um hexadecimal válido",
+			expected: "HexadecimalString phải là giá trị hexadecimal",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString deve ser uma cor HEX válida",
+			expected: "HexColorString phải là giá trị HEX color",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString deve ser um número válido",
+			expected: "NumberString chỉ được chứa giá trị số",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString deve ser um valor numérico válido",
+			expected: "NumericString chỉ được chứa giá trị số hoặc số dưới dạng chữ",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString deve conter apenas caracteres alfanuméricos",
+			expected: "AlphanumString chỉ được chứa ký tự dạng alphanumeric",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString deve conter apenas caracteres alfabéticos",
+			expected: "AlphaString chỉ được chứa ký tự dạng alphabetic",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString deve ser menor que MaxString",
+			expected: "LtFieldString chỉ được nhỏ hơn MaxString",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString deve ser menor ou igual que MaxString",
+			expected: "LteFieldString chỉ được nhỏ hơn hoặc bằng MaxString",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString deve ser maior que MaxString",
+			expected: "GtFieldString phải lớn hơn MaxString",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString deve ser maior ou igual que MaxString",
+			expected: "GteFieldString phải lớn hơn hoặc bằng MaxString",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString não deve ser igual a EqFieldString",
+			expected: "NeFieldString không được phép bằng EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString deve ser menor que Inner.LtCSFieldString",
+			expected: "LtCSFieldString chỉ được nhỏ hơn Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString deve ser menor ou igual que Inner.LteCSFieldString",
+			expected: "LteCSFieldString chỉ được nhỏ hơn hoặc bằng Inner.LteCSFieldString",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString deve ser maior que Inner.GtCSFieldString",
+			expected: "GtCSFieldString phải lớn hơn Inner.GtCSFieldString",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString deve ser maior ou igual que Inner.GteCSFieldString",
+			expected: "GteCSFieldString phải lớn hơn hoặc bằng Inner.GteCSFieldString",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString não deve ser igual a Inner.NeCSFieldString",
+			expected: "NeCSFieldString không được phép bằng Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString deve ser igual a Inner.EqCSFieldString",
+			expected: "EqCSFieldString phải bằng Inner.EqCSFieldString",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString deve ser igual a MaxString",
+			expected: "EqFieldString phải bằng MaxString",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString deve ter pelo menos 3 caracteres",
+			expected: "GteString phải có độ dài ít nhất 3 ký tự",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber deve ser maior ou igual a 5,56",
+			expected: "GteNumber phải là 5,56 hoặc lớn hơn",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple deve conter pelo menos 2 items",
+			expected: "GteMultiple phải chứa ít nhất 2 phần tử",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime deve ser posterior ou igual à data/hora atual",
+			expected: "GteTime phải lớn hơn hoặc bằng Ngày & Giờ hiện tại",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString deve conter mais de 3 caracteres",
+			expected: "GtString phải có độ dài lớn hơn 3 ký tự",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber deve ser maior que 5,56",
+			expected: "GtNumber phải lớn hơn 5,56",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple deve conter mais de 2 items",
+			expected: "GtMultiple phải chứa nhiều hơn 2 phần tử",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime deve ser posterior à data/hora atual",
+			expected: "GtTime phải lớn hơn Ngày & Giờ hiện tại",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString deve ter no máximo 3 caracteres",
+			expected: "LteString chỉ được có độ dài tối đa là 3 ký tự",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber deve ser menor ou igual a 5,56",
+			expected: "LteNumber phải là 5,56 hoặc nhỏ hơn",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple deve conter no máximo 2 items",
+			expected: "LteMultiple chỉ được chứa nhiều nhất 2 phần tử",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime deve ser anterior ou igual à data/hora atual",
+			expected: "LteTime chỉ được nhỏ hơn hoặc bằng Ngày & Giờ hiện tại",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString deve ter menos de 3 caracteres",
+			expected: "LtString phải có độ dài nhỏ hơn 3 ký tự",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber deve ser menor que 5,56",
+			expected: "LtNumber phải nhỏ hơn 5,56",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple deve conter menos de 2 items",
+			expected: "LtMultiple chỉ được chứa ít hơn 2 phần tử",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime deve ser anterior à data / hora atual",
+			expected: "LtTime phải nhỏ hơn Ngày & Giờ hiện tại",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString não deve ser igual a ",
+			expected: "NeString không được bằng ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber não deve ser igual a 0.00",
+			expected: "NeNumber không được bằng 0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple não deve ser igual a 0",
+			expected: "NeMultiple không được bằng 0",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString não é igual a 3",
+			expected: "EqString không bằng 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber não é igual a 2.33",
+			expected: "EqNumber không bằng 2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple não é igual a 7",
+			expected: "EqMultiple không bằng 7",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString deve ter no máximo 3 caracteres",
+			expected: "MaxString chỉ được chứa tối đa 3 ký tự",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber deve ser 1.113,00 ou menos",
+			expected: "MaxNumber phải là 1.113,00 hoặc nhỏ hơn",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple deve conter no máximo 7 items",
+			expected: "MaxMultiple chỉ được chứa tối đa 7 phần tử",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString deve ter pelo menos 1 caractere",
+			expected: "MinString phải chứa ít nhất 1 ký tự",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber deve ser 1.113,00 ou superior",
+			expected: "MinNumber phải bằng 1.113,00 hoặc lớn hơn",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple deve conter pelo menos 7 items",
+			expected: "MinMultiple phải chứa ít nhất 7 phần tử",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString deve ter 1 caractere",
+			expected: "LenString phải có độ dài là 1 ký tự",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber deve ser igual a 1.113,00",
+			expected: "LenNumber phải bằng 1.113,00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple deve conter 7 items",
+			expected: "LenMultiple phải chứa 7 phần tử",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString é obrigatório",
+			expected: "RequiredString không được bỏ trống",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber é obrigatório",
+			expected: "RequiredNumber không được bỏ trống",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple é obrigatório",
+			expected: "RequiredMultiple không được bỏ trống",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen deve ter pelo menos 10 caracteres",
+			expected: "StrPtrMinLen phải chứa ít nhất 10 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen deve ter no máximo 1 caractere",
+			expected: "StrPtrMaxLen chỉ được chứa tối đa 1 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen deve ter 2 caracteres",
+			expected: "StrPtrLen phải có độ dài là 2 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt deve ter menos de 1 caractere",
+			expected: "StrPtrLt phải có độ dài nhỏ hơn 1 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte deve ter no máximo 1 caractere",
+			expected: "StrPtrLte chỉ được có độ dài tối đa là 1 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt deve conter mais de 10 caracteres",
+			expected: "StrPtrGt phải có độ dài lớn hơn 10 ký tự",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte deve ter pelo menos 10 caracteres",
+			expected: "StrPtrGte phải có độ dài ít nhất 10 ký tự",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString deve ser um de [red green]",
+			expected: "OneOfString phải là trong những giá trị [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt deve ser um de [5 63]",
+			expected: "OneOfInt phải là trong những giá trị [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice deve conter valores únicos",
+			expected: "UniqueSlice chỉ được chứa những giá trị không trùng lặp",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray deve conter valores únicos",
+			expected: "UniqueArray chỉ được chứa những giá trị không trùng lặp",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap deve conter valores únicos",
+			expected: "UniqueMap chỉ được chứa những giá trị không trùng lặp",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString deve ser uma string json válida",
+			expected: "JSONString phải là một chuỗi json hợp lệ",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString phải là một chuỗi jwt hợp lệ",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString deve estar em minuscúlas",
+			expected: "LowercaseString phải được viết thường",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString deve estar em maiúsculas",
+			expected: "UppercaseString phải được viết hoa",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime não está no formato 2006-01-02",
+			expected: "Datetime không trùng định dạng ngày tháng 2006-01-02",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode sai định dạng postcode của quốc gia SG",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField sai định dạng postcode của quốc gia tương ứng thuộc trường PostCodeCountry",
 		},
 	}
 
@@ -678,5 +687,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

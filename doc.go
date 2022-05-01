@@ -7,6 +7,14 @@ and has the ability to dive into arrays and maps of any type.
 
 see more examples https://github.com/go-playground/validator/tree/master/_examples
 
+Singleton
+
+Validator is designed to be thread-safe and used as a singleton instance.
+It caches information about your struct and validations,
+in essence only parsing your validation tags once per struct type.
+Using multiple instances neglects the benefit of caching.
+The not thread-safe functions are explicitly marked as such in the documentation.
+
 Validation Functions Return Type error
 
 Doing things this way is actually the way the standard library does, see the
@@ -340,6 +348,40 @@ Example:
 
 	// require the field if the Field1 and Field2 is not present:
 	Usage: required_without_all=Field1 Field2
+
+Excluded If
+
+The field under validation must not be present or not empty only if all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: excluded_if
+
+Examples:
+
+	// exclude the field if the Field1 is equal to the parameter given:
+	Usage: excluded_if=Field1 foobar
+
+	// exclude the field if the Field1 and Field2 is equal to the value respectively:
+	Usage: excluded_if=Field1 foo Field2 bar
+
+Excluded Unless
+
+The field under validation must not be present or empty unless all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil.
+
+	Usage: excluded_unless
+
+Examples:
+
+	// exclude the field unless the Field1 is equal to the parameter given:
+	Usage: excluded_unless=Field1 foobar
+
+	// exclude the field unless the Field1 and Field2 is equal to the value respectively:
+	Usage: excluded_unless=Field1 foo Field2 bar
 
 Is Default
 
@@ -726,6 +768,12 @@ This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
+Boolean
+
+This validates that a string value can successfully be parsed into a boolean with strconv.ParseBool
+
+	Usage: boolean
+
 Number
 
 This validates that a string value contains number values only.
@@ -810,6 +858,12 @@ JSON String
 This validates that a string value is valid JSON
 
 	Usage: json
+
+JWT String
+
+This validates that a string value is a valid JWT
+
+	Usage: jwt
 
 File path
 
@@ -986,6 +1040,12 @@ Universally Unique Identifier UUID v5
 This validates that a string value contains a valid version 5 UUID.  Uppercase UUID values will not pass - use `uuid5_rfc4122` instead.
 
 	Usage: uuid5
+
+Universally Unique Lexicographically Sortable Identifier ULID
+
+This validates that a string value contains a valid ULID value.
+
+	Usage: ulid
 
 ASCII
 
@@ -1221,6 +1281,27 @@ see: https://www.iso.org/iso-3166-country-codes.html
 
 	Usage: iso3166_1_alpha3
 
+BCP 47 Language Tag
+
+This validates that a string value is a valid BCP 47 language tag, as parsed by language.Parse.
+More information on https://pkg.go.dev/golang.org/x/text/language
+
+	Usage: bcp47_language_tag
+
+BIC (SWIFT code)
+
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.
+More information on https://www.iso.org/standard/60390.html
+
+	Usage: bic
+
+RFC 1035 label
+
+This validates that a string value is a valid dns RFC 1035 label, defined in RFC 1035.
+More information on https://datatracker.ietf.org/doc/html/rfc1035
+
+	Usage: dns_rfc1035_label
+
 TimeZone
 
 This validates that a string value is a valid time zone based on the time zone database present on the system.
@@ -1228,7 +1309,19 @@ Although empty value and Local value are allowed by time.LoadLocation golang fun
 More information on https://golang.org/pkg/time/#LoadLocation
 
 	Usage: timezone
-  
+
+Semantic Version
+
+This validates that a string value is a valid semver version, defined in Semantic Versioning 2.0.0.
+More information on https://semver.org/
+
+	Usage: semver
+
+Credit Card
+
+This validates that a string value contains a valid credit card number using Luhn algoritm.
+
+	Usage: credit_card
 
 Alias Validators and Tags
 

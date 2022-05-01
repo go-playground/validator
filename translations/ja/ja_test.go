@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	ja_locale "github.com/go-playground/locales/ja"
 	ut "github.com/go-playground/universal-translator"
-	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -104,6 +104,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
 		UUID5             string    `validate:"uuid5"`
+		ULID              string    `validate:"ulid"`
 		ASCII             string    `validate:"ascii"`
 		PrintableASCII    string    `validate:"printascii"`
 		MultiByte         string    `validate:"multibyte"`
@@ -304,7 +305,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5はバージョンが4の正しいUUIDでなければなりません",
+			expected: "UUID5はバージョンが5の正しいUUIDでなければなりません",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULIDは正しいULIDでなければなりません",
 		},
 		{
 			ns:       "Test.ISBN",
@@ -448,7 +453,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumberは5.56かより大きくなければなりません",
+			expected: "GteNumberは5.56より大きくなければなりません",
 		},
 		{
 			ns:       "Test.GteMultiple",
@@ -480,7 +485,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumberは5.56かより小さくなければなりません",
+			expected: "LteNumberは5.56より小さくなければなりません",
 		},
 		{
 			ns:       "Test.LteMultiple",
@@ -536,7 +541,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumberは1,113.00かより小さくなければなりません",
+			expected: "MaxNumberは1,113.00より小さくなければなりません",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -548,7 +553,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumberは1,113.00かより大きくなければなりません",
+			expected: "MinNumberは1,113.00より大きくなければなりません",
 		},
 		{
 			ns:       "Test.MinMultiple",

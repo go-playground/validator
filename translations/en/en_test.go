@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	eng := english.New()
 	uni := ut.New(eng, eng)
 	trans, _ := uni.GetTranslator("en")
@@ -28,6 +27,7 @@ func TestTranslations(t *testing.T) {
 		GteCSFieldString string
 		LtCSFieldString  string
 		LteCSFieldString string
+		RequiredIf       string
 	}
 
 	type Test struct {
@@ -35,6 +35,7 @@ func TestTranslations(t *testing.T) {
 		RequiredString    string            `validate:"required"`
 		RequiredNumber    int               `validate:"required"`
 		RequiredMultiple  []string          `validate:"required"`
+		RequiredIf        string            `validate:"required_if=Inner.RequiredIf abcd"`
 		LenString         string            `validate:"len=1"`
 		LenNumber         float64           `validate:"len=1113.00"`
 		LenMultiple       []string          `validate:"len=7"`
@@ -104,6 +105,7 @@ func TestTranslations(t *testing.T) {
 		UUID3             string            `validate:"uuid3"`
 		UUID4             string            `validate:"uuid4"`
 		UUID5             string            `validate:"uuid5"`
+		ULID              string            `validate:"ulid"`
 		ASCII             string            `validate:"ascii"`
 		PrintableASCII    string            `validate:"printascii"`
 		MultiByte         string            `validate:"multibyte"`
@@ -142,9 +144,14 @@ func TestTranslations(t *testing.T) {
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
 		JSONString        string            `validate:"json"`
+		JWTString         string            `validate:"jwt"`
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry   string
+		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString     string `validate:"boolean"`
 	}
 
 	var test Test
@@ -197,6 +204,9 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.BooleanString = "A"
+
+	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -319,6 +329,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UUID5",
 			expected: "UUID5 must be a valid version 5 UUID",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID must be a valid ULID",
 		},
 		{
 			ns:       "Test.ISBN",
@@ -585,6 +599,10 @@ func TestTranslations(t *testing.T) {
 			expected: "RequiredString is a required field",
 		},
 		{
+			ns:       "Test.RequiredIf",
+			expected: "RequiredIf is a required field",
+		},
+		{
 			ns:       "Test.RequiredNumber",
 			expected: "RequiredNumber is a required field",
 		},
@@ -645,6 +663,10 @@ func TestTranslations(t *testing.T) {
 			expected: "JSONString must be a valid json string",
 		},
 		{
+			ns:       "Test.JWTString",
+			expected: "JWTString must be a valid jwt string",
+		},
+		{
 			ns:       "Test.LowercaseString",
 			expected: "LowercaseString must be a lowercase string",
 		},
@@ -655,6 +677,18 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime does not match the 2006-01-02 format",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode does not match postcode format of SG country",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString must be a valid boolean value",
 		},
 	}
 
@@ -672,5 +706,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
