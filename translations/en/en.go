@@ -29,6 +29,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("len-string", "{0} must be {1} in length", false); err != nil {
@@ -1137,6 +1142,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "ulid",
+			translation: "{0} must be a valid ULID",
+			override:    false,
+		},
+		{
 			tag:         "ascii",
 			translation: "{0} must contain only ascii characters",
 			override:    false,
@@ -1340,6 +1350,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0} must be a valid boolean value",
+			override:    false,
 		},
 	}
 

@@ -324,6 +324,10 @@ func TestTranslations(t *testing.T) {
 			expected: "UUID5 harus berupa UUID versi 5 yang valid",
 		},
 		{
+			ns:       "Test.ULID",
+			expected: "ULID harus berupa ULID yang valid",
+		},
+		{
 			ns:       "Test.ISBN",
 			expected: "ISBN harus berupa nomor ISBN yang valid",
 		},
