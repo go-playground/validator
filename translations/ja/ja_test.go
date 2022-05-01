@@ -453,7 +453,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumberは5.56かより大きくなければなりません",
+			expected: "GteNumberは5.56より大きくなければなりません",
 		},
 		{
 			ns:       "Test.GteMultiple",
@@ -485,7 +485,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumberは5.56かより小さくなければなりません",
+			expected: "LteNumberは5.56より小さくなければなりません",
 		},
 		{
 			ns:       "Test.LteMultiple",
@@ -541,7 +541,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumberは1,113.00かより小さくなければなりません",
+			expected: "MaxNumberは1,113.00より小さくなければなりません",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -553,7 +553,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumberは1,113.00かより大きくなければなりません",
+			expected: "MinNumberは1,113.00より大きくなければなりません",
 		},
 		{
 			ns:       "Test.MinMultiple",
