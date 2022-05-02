@@ -1126,6 +1126,47 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"ltecsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "ltecsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,ltecsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(-time.Minute)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
+	Equal(t, errs, nil)
 }
 
 func TestCrossStructLtFieldValidation(t *testing.T) {
@@ -1281,6 +1322,48 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	timeDurationInner = &TimeDurationInner{-time.Minute}
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
+	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"ltcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "ltcsfield")
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "ltcsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,ltcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(-time.Minute)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
@@ -1448,6 +1531,47 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"gtecsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "gtecsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,gtecsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
+	Equal(t, errs, nil)
 }
 
 func TestCrossStructGtFieldValidation(t *testing.T) {
@@ -1603,6 +1727,48 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	timeDurationInner = &TimeDurationInner{time.Hour}
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
+	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"gtcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "gtcsfield")
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "gtcsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,gtcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
@@ -1776,6 +1942,47 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"necsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "necsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,necsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(0)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
+	Equal(t, errs, nil)
 }
 
 func TestCrossStructEqFieldValidation(t *testing.T) {
@@ -1945,6 +2152,48 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	timeDurationInner = &TimeDurationInner{time.Hour}
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
+	Equal(t, errs, nil)
+
+	// -- Validations for a struct and an inner struct with time.Duration alias type fields.
+
+	type DurationAlias time.Duration
+	type TimeDurationAliasInner struct {
+		Duration DurationAlias
+	}
+	var timeDurationAliasInner *TimeDurationAliasInner
+
+	type TimeDurationAliasTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"eqcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasTest *TimeDurationAliasTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	Equal(t, errs, nil)
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour - time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "eqcsfield")
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour + time.Minute)}
+	timeDurationAliasTest = &TimeDurationAliasTest{timeDurationAliasInner, DurationAlias(time.Hour)}
+	errs = validate.Struct(timeDurationAliasTest)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "TimeDurationAliasTest.Duration", "TimeDurationAliasTest.Duration", "Duration", "Duration", "eqcsfield")
+
+	type TimeDurationAliasOmitemptyTest struct {
+		Inner    *TimeDurationAliasInner
+		Duration DurationAlias `validate:"omitempty,eqcsfield=Inner.Duration"`
+	}
+	var timeDurationAliasOmitemptyTest *TimeDurationAliasOmitemptyTest
+
+	timeDurationAliasInner = &TimeDurationAliasInner{DurationAlias(time.Hour)}
+	timeDurationAliasOmitemptyTest = &TimeDurationAliasOmitemptyTest{timeDurationAliasInner, DurationAlias(0)}
+	errs = validate.Struct(timeDurationAliasOmitemptyTest)
 	Equal(t, errs, nil)
 }
 
@@ -5396,6 +5645,33 @@ func TestIsEqFieldValidationWithAliasTime(t *testing.T) {
 	sv := &Test{
 		Start: CustomTime(now),
 		End:   &now,
+	}
+
+	errs = validate.Struct(sv)
+	Equal(t, errs, nil)
+}
+
+func TestMaxValidationWithAliasTimeDuration(t *testing.T) {
+	var errs error
+	validate := New()
+
+	type CustomDuration time.Duration
+
+	type Test struct {
+		ParamInt             CustomDuration  `validate:"max=1000000000"`
+		ParamDurationString  CustomDuration  `validate:"max=1s"`
+		ParamIntP            *CustomDuration `validate:"max=1000000000"`
+		ParamDurationStringP *CustomDuration `validate:"max=1s"`
+	}
+
+	duration := time.Second
+	customDuration := CustomDuration(duration)
+
+	sv := &Test{
+		ParamInt:             customDuration,
+		ParamDurationString:  customDuration,
+		ParamIntP:            &customDuration,
+		ParamDurationStringP: &customDuration,
 	}
 
 	errs = validate.Struct(sv)
@@ -12264,25 +12540,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}

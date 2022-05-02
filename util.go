@@ -243,10 +243,9 @@ func asIntFromTimeDuration(param string) int64 {
 // asIntFromType calls the proper function to parse param as int64,
 // given a field's Type t.
 func asIntFromType(t reflect.Type, param string) int64 {
-	switch t {
-	case timeDurationType:
+	if t.ConvertibleTo(timeDurationType) {
 		return asIntFromTimeDuration(param)
-	default:
+	} else {
 		return asInt(param)
 	}
 }
