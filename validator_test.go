@@ -5402,6 +5402,33 @@ func TestIsEqFieldValidationWithAliasTime(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestMaxValidationWithAliasTimeDuration(t *testing.T) {
+	var errs error
+	validate := New()
+
+	type CustomDuration time.Duration
+
+	type Test struct {
+		ParamInt             CustomDuration  `validate:"max=1000000000"`
+		ParamDurationString  CustomDuration  `validate:"max=1s"`
+		ParamIntP            *CustomDuration `validate:"max=1000000000"`
+		ParamDurationStringP *CustomDuration `validate:"max=1s"`
+	}
+
+	duration := time.Second
+	customDuration := CustomDuration(duration)
+
+	sv := &Test{
+		ParamInt:             customDuration,
+		ParamDurationString:  customDuration,
+		ParamIntP:            &customDuration,
+		ParamDurationStringP: &customDuration,
+	}
+
+	errs = validate.Struct(sv)
+	Equal(t, errs, nil)
+}
+
 func TestIsEqValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -12264,25 +12291,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
