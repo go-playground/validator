@@ -11064,20 +11064,24 @@ func TestExcludedIf(t *testing.T) {
 		Field *string
 	}
 
+	shouldExclude := "exclude"
+	shouldNotExclude := "dontExclude"
+
 	test1 := struct {
 		FieldE  string  `validate:"omitempty" json:"field_e"`
-		FieldER *string `validate:"excluded_if=FieldE test" json:"field_er"`
+		FieldER *string `validate:"excluded_if=FieldE exclude" json:"field_er"`
 	}{
-		FieldE: "test",
+		FieldE: shouldExclude,
 	}
 	errs := validate.Struct(test1)
 	Equal(t, errs, nil)
 
 	test2 := struct {
 		FieldE  string `validate:"omitempty" json:"field_e"`
-		FieldER string `validate:"excluded_if=FieldE test" json:"field_er"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
 	}{
-		FieldE: "notest",
+		FieldE:  shouldExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
@@ -11085,29 +11089,95 @@ func TestExcludedIf(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
 
-	shouldError := "shouldError"
 	test3 := struct {
-		Inner  *Inner
-		FieldE string `validate:"omitempty" json:"field_e"`
-		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldF  string `validate:"omitempty" json:"field_f"`
+		FieldER string `validate:"excluded_if=FieldE exclude FieldF exclude" json:"field_er"`
 	}{
-		Inner: &Inner{Field: &shouldError},
+		FieldE:  shouldExclude,
+		FieldF:  shouldExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test3)
 	NotEqual(t, errs, nil)
 	ve = errs.(ValidationErrors)
 	Equal(t, len(ve), 1)
-	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_if")
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
 
-	shouldPass := "test"
 	test4 := struct {
-		Inner  *Inner
-		FieldE string `validate:"omitempty" json:"field_e"`
-		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldF  string `validate:"omitempty" json:"field_f"`
+		FieldER string `validate:"excluded_if=FieldE exclude FieldF exclude" json:"field_er"`
 	}{
-		Inner: &Inner{Field: &shouldPass},
+		FieldE:  shouldExclude,
+		FieldF:  shouldNotExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	test5 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
+	}{
+		FieldE: shouldNotExclude,
+	}
+	errs = validate.Struct(test5)
+	Equal(t, errs, nil)
+
+	test6 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
+	}{
+		FieldE:  shouldNotExclude,
+		FieldER: "set",
+	}
+	errs = validate.Struct(test6)
+	Equal(t, errs, nil)
+
+	test7 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldExclude},
+	}
+	errs = validate.Struct(test7)
+	Equal(t, errs, nil)
+
+	test8 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldExclude},
+		Field1: 1,
+	}
+	errs = validate.Struct(test8)
+	NotEqual(t, errs, nil)
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_if")
+
+	test9 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldNotExclude},
+	}
+	errs = validate.Struct(test9)
+	Equal(t, errs, nil)
+
+	test10 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldNotExclude},
+		Field1: 1,
+	}
+	errs = validate.Struct(test10)
 	Equal(t, errs, nil)
 
 	// Checks number of params in struct tag is correct
