@@ -1619,7 +1619,7 @@ func skipUnless(fl FieldLevel) bool {
 	}
 
 	for i := 0; i < len(params); i += 2 {
-		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
 			return true
 		}
 	}
