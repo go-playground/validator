@@ -12286,3 +12286,126 @@ func TestMultiOrOperatorGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestByteLengthMin(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"123", false},      // 3 bytes, len < min
+		{"123456", true},    // 6 bytes, len = min
+		{"123456789", true}, // 9 bytes, len > min
+		{"三", false},        // 3 bytes, len < min
+		{"三六", true},        // 6 bytes, len = min
+		{"三六九", true},       // 9 bytes, len > min
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		// test for byte length >= 6
+		errs := validate.Var(test.param, "byte_len_min=6")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len_min=6 failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len_min=6 failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "byte_len_min" {
+					t.Fatalf("Index: %d byte_len_min=6 failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1, "byte_len_min=6")
+	}, "Bad field type int")
+}
+
+func TestByteLengthMax(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"123", true},        // 3 bytes, len < max
+		{"123456", true},     // 6 bytes, len = max
+		{"123456789", false}, // 9 bytes, len > max
+		{"三", true},          // 3 bytes, len < max
+		{"三六", true},         // 6 bytes, len = max
+		{"三六九", false},       // 9 bytes, len > max
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		// test for byte length >= 6
+		errs := validate.Var(test.param, "byte_len_max=6")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len_max=6 failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len_max=6 failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "byte_len_max" {
+					t.Fatalf("Index: %d byte_len_max=6 failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1, "byte_len_max=6")
+	}, "Bad field type int")
+}
+
+func TestByteLengthEq(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"123", false},       // 3 bytes, len < max
+		{"123456", true},     // 6 bytes, len = max
+		{"123456789", false}, // 9 bytes, len > max
+		{"三", false},         // 3 bytes, len < max
+		{"三六", true},         // 6 bytes, len = max
+		{"三六九", false},       // 9 bytes, len > max
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		// test for byte length >= 6
+		errs := validate.Var(test.param, "byte_len=6")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len=6 failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d byte_len=6 failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "byte_len" {
+					t.Fatalf("Index: %d byte_len=6 failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1, "byte_len=6")
+	}, "Bad field type int")
+}
