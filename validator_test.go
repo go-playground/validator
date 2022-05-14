@@ -12345,7 +12345,7 @@ func TestByteLengthMax(t *testing.T) {
 
 	for i, test := range tests {
 
-		// test for byte length >= 6
+		// test for byte length <= 6
 		errs := validate.Var(test.param, "byte_len_max=6")
 
 		if test.expected {
@@ -12374,19 +12374,19 @@ func TestByteLengthEq(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"123", false},       // 3 bytes, len < max
-		{"123456", true},     // 6 bytes, len = max
-		{"123456789", false}, // 9 bytes, len > max
-		{"三", false},         // 3 bytes, len < max
-		{"三六", true},         // 6 bytes, len = max
-		{"三六九", false},       // 9 bytes, len > max
+		{"123", false},       // 3 bytes, len < value
+		{"123456", true},     // 6 bytes, len = value
+		{"123456789", false}, // 9 bytes, len > value
+		{"三", false},         // 3 bytes, len < value
+		{"三六", true},         // 6 bytes, len = value
+		{"三六九", false},       // 9 bytes, len > value
 	}
 
 	validate := New()
 
 	for i, test := range tests {
 
-		// test for byte length >= 6
+		// test for byte length == 6
 		errs := validate.Var(test.param, "byte_len=6")
 
 		if test.expected {
