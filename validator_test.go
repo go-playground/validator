@@ -2564,19 +2564,26 @@ func TestCIDRv4Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"10.0.0.0/0", true},
-		{"10.0.0.1/8", true},
-		{"172.16.0.1/16", true},
-		{"192.168.0.1/24", true},
-		{"192.168.255.254/24", true},
+		{"0.0.0.0/0", true},
+		{"10.0.0.0/0", false},
+		{"10.0.0.0/8", true},
+		{"10.0.0.1/8", false},
+		{"172.16.0.0/16", true},
+		{"172.16.0.1/16", false},
+		{"192.168.0.0/24", true},
+		{"192.168.0.1/24", false},
+		{"192.168.255.0/24", true},
+		{"192.168.255.254/24", false},
 		{"192.168.255.254/48", false},
 		{"192.168.255.256/24", false},
-		{"172.16.255.254/16", true},
+		{"172.16.0.0/16", true},
+		{"172.16.255.254/16", false},
 		{"172.16.256.255/16", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652/64", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652/256", false},
 		{"2001:cdba:0:0:0:0:3257:9652/32", false},
 		{"2001:cdba::3257:9652/16", false},
+		{"172.56.1.0/16", false},
 	}
 
 	validate := New()
@@ -12264,25 +12271,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
