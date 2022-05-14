@@ -214,6 +214,9 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"byte_len_min":                  hasByteLengthMinOf,
+		"byte_len_max":                  hasByteLengthMaxOf,
+		"byte_len":                      hasByteLengthOf,
 	}
 )
 
@@ -2518,4 +2521,52 @@ func isCreditCard(fl FieldLevel) bool {
 		}
 	}
 	return (sum % 10) == 0
+}
+
+// hasByteLengthMinOf is the validation function for validating if the current field's
+// value is a string with a byte length greater than or equal to the param's value.
+func hasByteLengthMinOf(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	switch field.Kind() {
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(field.Len()) >= p
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// hasByteLengthMaxOf is the validation function for validating if the current field's
+// value is a string with a byte length less than or equal to the param's value.
+func hasByteLengthMaxOf(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	switch field.Kind() {
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(field.Len()) <= p
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// hasByteLengthOf is the validation function for validating if the current field's
+// value is a string with a byte length equal to the param's value.
+func hasByteLengthOf(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	switch field.Kind() {
+	case reflect.String:
+		p := asInt(param)
+
+		return int64(field.Len()) == p
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }

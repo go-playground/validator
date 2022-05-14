@@ -1325,6 +1325,24 @@ This validates that a string value contains a valid credit card number using Luh
 
 Alias Validators and Tags
 
+Byte Length Minimum
+
+This validates that a string value has a byte length greater than or equal to the parameter given.
+
+	Usage: byte_len_min=5
+
+Byte Length Maximum
+
+This validates that a string value has a byte length less than or equal to the parameter given.
+
+	Usage: byte_len_max=5
+
+Byte Length
+
+This validates that a string value has a byte length equal to the parameter given.
+
+	Usage: byte_len=5
+
 NOTE: When returning an error, the tag returned in "FieldError" will be
 the alias tag unless the dive tag is part of the alias. Everything after the
 dive tag is not reported as the alias tag. Also, the "ActualTag" in the before
