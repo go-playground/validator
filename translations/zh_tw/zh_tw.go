@@ -30,6 +30,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
@@ -621,7 +651,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
+
 					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
 					return
 				}
 
@@ -997,6 +1029,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "alphanumunicode",
+			translation: "{0}只能包含字母數字和Unicode字元",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0}只能包含字母和Unicode字元",
+			override:    false,
+		},
+		{
 			tag:         "numeric",
 			translation: "{0}必須是一個有效的數值",
 			override:    false,
@@ -1034,6 +1076,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "hsla",
 			translation: "{0}必須是一個有效的HSLA顏色",
+			override:    false,
+		},
+		{
+			tag:         "e164",
+			translation: "{0}必須是一個有效的E.164手機號",
 			override:    false,
 		},
 		{
@@ -1087,6 +1134,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "containsrune",
+			translation: "{0}必須包含字元'{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "excludes",
 			translation: "{0}不能包含文字'{1}'",
 			override:    false,
@@ -1119,6 +1181,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "excludesrune",
 			translation: "{0}不能包含'{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endswith",
+			translation: "{0}必須以文本'{1}'結尾",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startswith",
+			translation: "{0}必須以文本'{1}'開頭",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1292,6 +1384,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}字段內的值必須唯一",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0}必須是一個有效的顏色",
 			override:    false,
@@ -1310,8 +1407,28 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "json",
+			translation: "{0}必須是一個有效的JSON字符串",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0}必須是一個有效的JWT字符串",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0}必須是小寫字母",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0}必須是大寫字母",
+			override:    false,
+		},
+		{
 			tag:         "datetime",
-			translation: "{0}與{1}格式不匹配",
+			translation: "{0}的格式必須是{1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 
@@ -1323,6 +1440,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0}必須是一個有效的布爾值",
+			override:    false,
 		},
 	}
 

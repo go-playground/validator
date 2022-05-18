@@ -648,7 +648,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -699,7 +698,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					if fe.Type() != reflect.TypeOf(time.Time{}) {
 						err = fmt.Errorf("tag '%s'不能用于struct类型.", fe.Tag())
 					} else {
-
 						t, err = ut.T("gt-datetime", fe.Field())
 					}
 

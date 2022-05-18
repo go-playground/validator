@@ -1,7 +1,6 @@
 package zh
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -724,7 +723,6 @@ func TestTranslations(t *testing.T) {
 			}
 		}
 
-		fmt.Printf("===================\n%v ---\n%v ----\n%v \n", t, tt, fe)
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
