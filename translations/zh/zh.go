@@ -1081,6 +1081,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "e164",
+			translation: "{0}必须是一个有效的E.164手机号",
+			override:    false,
+		},
+		{
 			tag:         "email",
 			translation: "{0}必须是一个有效的邮箱",
 			override:    false,
@@ -1381,6 +1386,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}字段内的值必须唯一",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0}必须是一个有效的颜色",
 			override:    false,
@@ -1400,7 +1410,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "json",
-			translation: "{0}必须是一个JSON字符串",
+			translation: "{0}必须是一个有效的JSON字符串",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0}必须是一个有效的JWT字符串",
 			override:    false,
 		},
 		{
@@ -1427,6 +1442,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0}必须是一个有效的布尔值",
+			override:    false,
 		},
 	}
 
