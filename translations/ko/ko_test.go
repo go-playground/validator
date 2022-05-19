@@ -1,7 +1,6 @@
 package ko
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -722,14 +721,6 @@ func TestTranslations(t *testing.T) {
 				fe = e
 				break
 			}
-		}
-
-		fmt.Printf("==========0000=========\n%v\n", tt)
-		tmp := fe.Translate(trans)
-		if tmp == "" {
-			println("--------nil")
-		} else {
-			fmt.Printf("==========1111=========\n%v ---\n%v ----\n", tt.expected, tmp)
 		}
 
 		NotEqual(t, fe, nil)
