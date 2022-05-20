@@ -5,16 +5,16 @@ import (
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	zhongwen "github.com/go-playground/locales/zh_Hant_TW"
+	chinese "github.com/go-playground/locales/zh_Hant_TW"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
 
-	zh := zhongwen.New()
+	zh := chinese.New()
 	uni := ut.New(zh, zh)
-	trans, _ := uni.GetTranslator("zh")
+	trans, _ := uni.GetTranslator("zh_tw")
 
 	validate := validator.New()
 
@@ -22,12 +22,17 @@ func TestTranslations(t *testing.T) {
 	Equal(t, err, nil)
 
 	type Inner struct {
-		EqCSFieldString  string
-		NeCSFieldString  string
-		GtCSFieldString  string
-		GteCSFieldString string
-		LtCSFieldString  string
-		LteCSFieldString string
+		EqCSFieldString    string
+		NeCSFieldString    string
+		GtCSFieldString    string
+		GteCSFieldString   string
+		LtCSFieldString    string
+		LteCSFieldString   string
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithout    string
+		RequiredWithoutAll string
 	}
 
 	type Test struct {
@@ -35,6 +40,12 @@ func TestTranslations(t *testing.T) {
 		RequiredString        string            `validate:"required"`
 		RequiredNumber        int               `validate:"required"`
 		RequiredMultiple      []string          `validate:"required"`
+		RequiredIf            string            `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless        string            `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith          string            `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll       string            `validate:"required_with_all=Inner.GtCSFieldString Inner.GteCSFieldString"`
+		RequiredWithout       string            `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll    string            `validate:"required_without_all=Inner.RequiredUnless Inner.RequiredWithout"`
 		LenString             string            `validate:"len=1"`
 		LenNumber             float64           `validate:"len=1113.00"`
 		LenMultiple           []string          `validate:"len=7"`
@@ -161,6 +172,9 @@ func TestTranslations(t *testing.T) {
 	test.Inner.EqCSFieldString = "1234"
 	test.Inner.GtCSFieldString = "1234"
 	test.Inner.GteCSFieldString = "1234"
+	test.Inner.RequiredIf = "abcd"
+	test.Inner.RequiredUnless = ""
+	test.Inner.RequiredWith = "abcd"
 
 	test.MaxString = "1234"
 	test.MaxNumber = 2000
@@ -637,6 +651,30 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.RequiredMultiple",
 			expected: "RequiredMultiple為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredIf",
+			expected: "RequiredIf為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredUnless",
+			expected: "RequiredUnless為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWith",
+			expected: "RequiredWith為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithAll",
+			expected: "RequiredWithAll為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithout",
+			expected: "RequiredWithout為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithoutAll",
+			expected: "RequiredWithoutAll為必填欄位",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
