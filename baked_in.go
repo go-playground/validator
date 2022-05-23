@@ -250,11 +250,7 @@ func isHTML(fl FieldLevel) bool {
 	return hTMLRegex.MatchString(fl.Field().String())
 }
 
-func isOneOf(fl FieldLevel) bool {
-	vals := parseOneOfParam2(fl.Param())
-
-	field := fl.Field()
-
+func checkIsOneOf(field reflect.Value, vals []string) bool {
 	var v string
 	switch field.Kind() {
 	case reflect.String:
@@ -266,12 +262,31 @@ func isOneOf(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
+
 	for i := 0; i < len(vals); i++ {
 		if vals[i] == v {
 			return true
 		}
 	}
 	return false
+}
+
+func isOneOf(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	field := fl.Field()
+
+	value, kind, _ := fl.ExtractType(field)
+	if kind == reflect.Slice {
+		for i := 0; i < value.Len(); i++ {
+			if !checkIsOneOf(value.Index(i), vals) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	return checkIsOneOf(field, vals)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique

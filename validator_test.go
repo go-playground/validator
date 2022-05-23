@@ -5493,10 +5493,13 @@ func TestOneOfValidation(t *testing.T) {
 	}{
 		{f: "red", t: "oneof=red green"},
 		{f: "green", t: "oneof=red green"},
+		{f: []string{"red", "green"}, t: "oneof=red green"},
 		{f: "red green", t: "oneof='red green' blue"},
 		{f: "blue", t: "oneof='red green' blue"},
+		{f: []string{"red green", "blue"}, t: "oneof='red green' blue"},
 		{f: 5, t: "oneof=5 6"},
 		{f: 6, t: "oneof=5 6"},
+		{f: []int{6, 5}, t: "oneof=5 6"},
 		{f: int8(6), t: "oneof=5 6"},
 		{f: int16(6), t: "oneof=5 6"},
 		{f: int32(6), t: "oneof=5 6"},
@@ -5521,9 +5524,11 @@ func TestOneOfValidation(t *testing.T) {
 		{f: "", t: "oneof=red green"},
 		{f: "yellow", t: "oneof=red green"},
 		{f: "green", t: "oneof='red green' blue"},
+		{f: []string{"green", "blue"}, t: "oneof='red green' blue"},
 		{f: 5, t: "oneof=red green"},
 		{f: 6, t: "oneof=red green"},
 		{f: 6, t: "oneof=7"},
+		{f: []int{6, 7}, t: "oneof=7"},
 		{f: uint(6), t: "oneof=7"},
 		{f: int8(5), t: "oneof=red green"},
 		{f: int16(5), t: "oneof=red green"},
@@ -12264,25 +12269,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
