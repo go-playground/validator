@@ -1087,6 +1087,12 @@ This validates that a string value contains a valid longitude.
 
 	Usage: longitude
 
+ObjectID
+
+This validate that a string value is a valid ObjectId.
+
+  Usage: objectid
+
 Social Security Number SSN
 
 This validates that a string value contains a valid U.S. Social Security Number.

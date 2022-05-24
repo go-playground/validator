@@ -3811,6 +3811,34 @@ func TestLatitudeValidation(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(true, "latitude") }, "Bad field type bool")
 }
 
+func TestObjectIDValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"abc", false},
+		{"5e95ee5803c6b76b270fd694", true},
+		{"000000000000000000000000", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "objectid")
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index %d ObjectID failed Error: %s", i, errs)
+			}
+		} else {
+			val := getError(errs, "", "")
+			if val.Tag() != "objectid" {
+				t.Fatalf("Index %d ObjectID failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestDataURIValidation(t *testing.T) {
 	tests := []struct {
 		param    string

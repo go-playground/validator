@@ -112,6 +112,7 @@ func TestTranslations(t *testing.T) {
 		DataURI           string            `validate:"datauri"`
 		Latitude          string            `validate:"latitude"`
 		Longitude         string            `validate:"longitude"`
+		ObjectID          string            `validate:"objectid"`
 		SSN               string            `validate:"ssn"`
 		IP                string            `validate:"ip"`
 		IPv4              string            `validate:"ipv4"`
@@ -301,6 +302,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Longitude",
 			expected: "Longitude must contain a valid longitude coordinates",
+		},
+		{
+			ns:       "Test.ObjectID",
+			expected: "ObjectID must be a valid Object ID",
 		},
 		{
 			ns:       "Test.MultiByte",

@@ -1177,6 +1177,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "objectid",
+			translation: "{0} must be a valid Object ID",
+			override:    false,
+		},
+		{
 			tag:         "ssn",
 			translation: "{0} must be a valid SSN number",
 			override:    false,

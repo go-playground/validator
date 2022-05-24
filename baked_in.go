@@ -167,6 +167,7 @@ var (
 		"datauri":                       isDataURI,
 		"latitude":                      isLatitude,
 		"longitude":                     isLongitude,
+		"objectid":                      isObjectID,
 		"ssn":                           isSSN,
 		"ipv4":                          isIPv4,
 		"ipv6":                          isIPv6,
@@ -427,6 +428,22 @@ func isLatitude(fl FieldLevel) bool {
 	}
 
 	return latitudeRegex.MatchString(v)
+}
+
+// isObjectID is the validation function for validating if the field's value is a valid hex-encoded representation of a MongoDB object id.
+func isObjectID(fl FieldLevel) bool {
+	field := fl.Field().String()
+
+	if len(field) != 24 {
+		return false
+	}
+
+	_, err := hex.DecodeString(field)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 // isDataURI is the validation function for validating if the field's value is a valid data URI.

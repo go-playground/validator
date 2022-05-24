@@ -176,6 +176,7 @@ Baked-in Validations
 | jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
 | longitude | Longitude |
+| objectid | ObjectID |
 | postcode_iso3166_alpha2 | Postcode |
 | postcode_iso3166_alpha2_field | Postcode |
 | rgb | RGB String |
