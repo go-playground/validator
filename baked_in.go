@@ -439,11 +439,7 @@ func isObjectID(fl FieldLevel) bool {
 	}
 
 	_, err := hex.DecodeString(field)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 // isDataURI is the validation function for validating if the field's value is a valid data URI.
