@@ -367,6 +367,7 @@ func TestStructLevelInvalidError(t *testing.T) {
 	Equal(t, fe.ActualTag(), "required")
 	Equal(t, fe.Kind(), reflect.Invalid)
 	Equal(t, fe.Type(), reflect.TypeOf(nil))
+	Equal(t, fe.Parent(), reflect.TypeOf(nil))
 }
 
 func TestNameNamespace(t *testing.T) {
@@ -8624,6 +8625,7 @@ func TestStructSliceValidation(t *testing.T) {
 	Equal(t, fe.Param(), "10")
 	Equal(t, fe.Kind(), reflect.Slice)
 	Equal(t, fe.Type(), reflect.TypeOf([]int{}))
+	Equal(t, fe.Parent(), reflect.TypeOf(TestSlice{}))
 
 	_, ok := fe.Value().([]int)
 	Equal(t, ok, true)
@@ -12264,25 +12266,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
