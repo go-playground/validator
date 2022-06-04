@@ -12214,6 +12214,48 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 			},
 			want: 1,
 		},
+
+		{
+			name: "test map with relative rules",
+			args: args{
+				data: map[string]interface{}{
+					"Test_A": "Test_A",
+					"Test_B": "Test_B",
+					"Test_C": "Test_C",
+					"Test_D": "Test_D",
+					"Test_F": "Test_F",
+				},
+				rules: map[string]interface{}{
+					"Test_A": "required_if=[Test_B] Test_B",
+					"Test_B": "required_with=[Test_A]",
+					"Test_C": "required_with_all=[Test_A] [Test_B]",
+					"Test_D": "required_without=[Test_F]",
+					"Test_E": "required_without_all=[Test_D] [Test_F]",
+					"Test_F": "required_unless=[Test_E] Test_E",
+				},
+			},
+			want: 0,
+		},
+
+		{
+			name: "test map err with relative rules",
+			args: args{
+				data: map[string]interface{}{
+					"Test_B": "Test_B",
+					"Test_C": "Test_C",
+					"Test_D": "Test_D",
+				},
+				rules: map[string]interface{}{
+					"Test_A": "required_if=[Test_B] Test_B",
+					"Test_B": "required_with=[Test_A]",
+					"Test_C": "required_with_all=[Test_A] [Test_B]",
+					"Test_D": "required_without=[Test_F]",
+					"Test_E": "required_without_all=[Test_F] [Test_G]",
+					"Test_F": "required_unless=[Test_E] Test_E",
+				},
+			},
+			want: 3,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -12264,25 +12306,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}

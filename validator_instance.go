@@ -172,9 +172,16 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 				errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
 			}
 		} else if ruleStr, ok := rule.(string); ok {
-			err := v.VarCtx(ctx, data[field], ruleStr)
-			if err != nil {
-				errs[field] = err
+			if dataField, ok := data[field]; ok {
+				err := v.VarWithValueCtx(ctx, dataField, data, ruleStr)
+				if err != nil {
+					errs[field] = err
+				}
+			} else {
+				err := v.VarWithValueCtx(ctx, "", data, ruleStr)
+				if err != nil {
+					errs[field] = err
+				}
 			}
 		}
 	}
