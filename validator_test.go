@@ -2230,7 +2230,7 @@ func TestSQLValue2Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "required")
 
 	val.Name = "Valid Name"
-	errs = validate.VarCtx(context.Background(), val, "required")
+	errs = validate.Var(val, "required")
 	Equal(t, errs, nil)
 
 	val.Name = "errorme"
@@ -12264,25 +12264,69 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
+
+func TestValidate_ValidateMapCtxErrorMessage(t *testing.T) {
+	type args struct {
+		data   map[string]interface{}
+		rules  map[string]interface{}
+		errors map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "invalid_email",
+			args: args{
+				data: map[string]interface{}{
+					"email_address": "example.",
+				},
+				rules: map[string]interface{}{
+					"email_address": "omitempty,required,email",
+				},
+				errors: map[string]interface{}{
+					"email_address": "Key: 'email_address' Error:Field validation for 'email_address' failed on the 'email' tag",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			validate := New()
+			got := validate.ValidateMapCtx(context.Background(), test.args.data, test.args.rules)
+			for key, err := range got {
+				fieldErrors, ok := err.(ValidationErrors)
+				if !ok {
+					t.Errorf("failed to get underlying value of interface")
+				}
+				if test.args.errors[key] != fieldErrors[0].Error() {
+					t.Errorf("\nwanted: '%v' \ngot: '%v' \n", test.args.errors[key], err)
+				}
+
+			}
+		})
+	}
+}
