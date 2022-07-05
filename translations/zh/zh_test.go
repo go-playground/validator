@@ -148,6 +148,7 @@ func TestTranslations(t *testing.T) {
 		LowercaseString       string    `validate:"lowercase"`
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
+		Base58                string    `validate:"base58"`
 	}
 
 	var test Test
@@ -205,6 +206,8 @@ func TestTranslations(t *testing.T) {
 	test.UppercaseString = "abcdefg"
 
 	test.Datetime = "20060102"
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -675,6 +678,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime的格式必须是2006-01-02",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58必须是一个有效的Base58字符串",
 		},
 	}
 

@@ -152,6 +152,7 @@ func TestTranslations(t *testing.T) {
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString     string `validate:"boolean"`
+		Base58            string `validate:"base58"`
 	}
 
 	var test Test
@@ -207,6 +208,8 @@ func TestTranslations(t *testing.T) {
 	test.BooleanString = "A"
 
 	test.Inner.RequiredIf = "abcd"
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -689,6 +692,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.BooleanString",
 			expected: "BooleanString must be a valid boolean value",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58 must be a valid Base58 string",
 		},
 	}
 

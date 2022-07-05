@@ -139,6 +139,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		Base58            string    `validate:"base58"`
 	}
 
 	var test Test
@@ -184,6 +185,8 @@ func TestTranslations(t *testing.T) {
 	s := "toolong"
 	test.StrPtrMaxLen = &s
 	test.StrPtrLen = &s
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -618,6 +621,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfIntは[5 63]のうちのいずれかでなければなりません",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58は正しいBase58文字列でなければなりません",
 		},
 	}
 

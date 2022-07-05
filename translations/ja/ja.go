@@ -1372,6 +1372,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "base58",
+			translation: "{0}は正しいBase58文字列でなければなりません",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

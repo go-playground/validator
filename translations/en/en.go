@@ -1356,6 +1356,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} must be a valid boolean value",
 			override:    false,
 		},
+		{
+			tag:         "base58",
+			translation: "{0} must be a valid Base58 string",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

@@ -1321,6 +1321,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "base58",
+			translation: "{0} geçerli bir Base58 karakter dizesi olmalıdır",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

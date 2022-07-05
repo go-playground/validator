@@ -142,6 +142,7 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
+		Base58            string            `validate:"base58"`
 	}
 
 	var test Test
@@ -190,6 +191,8 @@ func TestTranslations(t *testing.T) {
 
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -636,6 +639,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UniqueMap",
 			expected: "UniqueMap benzersiz değerler içermelidir",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58 geçerli bir Base58 karakter dizesi olmalıdır",
 		},
 	}
 

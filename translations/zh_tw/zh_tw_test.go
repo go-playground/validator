@@ -140,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Datetime          string    `validate:"datetime=2006-01-02"`
+		Base58            string    `validate:"base58"`
 	}
 
 	var test Test
@@ -187,6 +188,8 @@ func TestTranslations(t *testing.T) {
 	test.StrPtrLen = &s
 
 	test.Datetime = "2008-Feb-01"
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -625,6 +628,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime與2006-01-02格式不匹配",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58必須是一個有效的Base58字元串",
 		},
 	}
 
