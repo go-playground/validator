@@ -147,6 +147,7 @@ Baked-in Validations
 ### Format:
 | Tag | Description |
 | - | - |
+| base58 | Base58 String |
 | base64 | Base64 String |
 | base64url | Base64URL String |
 | bic | Business Identifier Code (ISO 9362) |

@@ -1341,6 +1341,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return t
 			},
 		},
+		{
+			tag:         "base58",
+			translation: "{0} phải là giá trị chuỗi Base58",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

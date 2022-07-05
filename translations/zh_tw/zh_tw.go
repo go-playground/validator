@@ -1324,6 +1324,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return t
 			},
 		},
+		{
+			tag:         "base58",
+			translation: "{0}必須是一個有效的Base58字元串",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

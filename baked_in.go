@@ -124,6 +124,7 @@ var (
 		"uri":                           isURI,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
+		"base58":                        isBase58,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
 		"contains":                      contains,
@@ -1299,6 +1300,11 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	}
 
 	return reg.MatchString(field.String())
+}
+
+// isBase58 is the validation function for validating if the current field's value is a valid base 58.
+func isBase58(fl FieldLevel) bool {
+	return base58Regex.MatchString(fl.Field().String())
 }
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.

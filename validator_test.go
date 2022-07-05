@@ -12264,25 +12264,62 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
+
+func TestBase58Validation(t *testing.T) {
+	tests := []struct {
+		Value    string `validate:"base58"`
+		Expected bool
+	}{
+		{"kpDDATsPB4AR2WmSDUiNuUz8Y9VFqN3WrDqyZTeC3hL", true},
+		{"", false},
+		{Value: "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI", Expected: false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.Value, "base58")
+		if test.Expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Var() failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Var() failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "base58" {
+					t.Fatalf("Index: %d Var() failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if (test.Expected && errs != nil) || (!test.Expected && errs == nil) {
+			t.Fatalf("Index: %d Struct() failed Error: %s", i, errs)
+		}
+	}
+}

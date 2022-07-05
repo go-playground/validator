@@ -154,6 +154,7 @@ func TestTranslations(t *testing.T) {
 		PostCode            string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry     string
 		PostCodeByField     string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		Base58              string `validate:"base58"`
 	}
 
 	var test Test
@@ -211,6 +212,8 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+
+	test.Base58 = "2TdKEvPTKpDtJo6pwxd79atZFQNWiSUT2T47nF9j5qFI"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -705,6 +708,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.PostCodeByField",
 			expected: "PostCodeByField non corrisponde al formato del codice postale dello stato nel campo PostCodeCountry",
+		},
+		{
+			ns:       "Test.Base58",
+			expected: "Base58 deve essere una stringa Base58 valida",
 		},
 	}
 
