@@ -124,7 +124,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-        
+
 				if err = ut.Add("min-string", "{0} deve essere lungo almeno {1}", false); err != nil {
 					return
 				}
@@ -432,7 +432,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-        
+
 				if err = ut.Add("lte-string", "{0} deve essere lungo al massimo {1}", false); err != nil {
 					return
 				}
