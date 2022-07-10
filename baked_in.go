@@ -1610,6 +1610,21 @@ func requiredUnless(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// skipUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func skipUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for skip_unless %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
 // excludedUnless is the validation function
 // The field under validation must not be present or is empty unless all the other specified fields are equal to the value following with the specified field.
 func excludedUnless(fl FieldLevel) bool {
