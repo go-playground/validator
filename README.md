@@ -202,6 +202,7 @@ Baked-in Validations
 | tiger192 | TIGER192 hash |
 | semver | Semantic Versioning 2.0.0 |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
+| cpf | Registration of Individuals |
 
 ### Comparisons:
 | Tag | Description |
