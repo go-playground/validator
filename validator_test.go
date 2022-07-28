@@ -12264,25 +12264,47 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
+
+type testTag struct {
+	CreatedAt *time.Time `validate:"required" langKey:"test.created_at"`
+	String    string     `validate:"required" langKey:"test.string"`
+	Int       int        `validate:"required" langKey:"test.int"`
+	Uint      uint       `validate:"required" langKey:"test.uint"`
+	Float     float64    `validate:"required" langKey:"test.float"`
+	Array     []string   `validate:"required" langKey:"test.array"`
+}
+
+func TestReflectStructField(t *testing.T) {
+	validate := New()
+	var test testTag
+	err := validate.Struct(test)
+	NotEqual(t, err, nil)
+
+	errs, ok := err.(ValidationErrors)
+	Equal(t, ok, true)
+
+	fe := errs[0]
+	Equal(t, fe.ReflectStructField().Tag.Get("langKey"), "test.created_at")
+}
