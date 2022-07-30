@@ -140,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		BooleanString     string    `validate:"boolean"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -624,6 +625,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.BooleanString",
 			expected: "BooleanString deve ser um valor booleano válido",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image deve ser uma imagen válido",
 		},
 	}
 

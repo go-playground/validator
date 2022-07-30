@@ -873,6 +873,14 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: file
 
+Image path
+
+This validates that a string value contains a valid file path and that
+the file exists on the machine and is an image.
+This is done using os.Stat and github.com/gabriel-vasile/mimetype
+
+	Usage: image
+
 URL String
 
 This validates that a string value contains a valid url

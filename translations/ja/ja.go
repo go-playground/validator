@@ -1372,6 +1372,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "image",
+			translation: "{0} は有効な画像でなければなりません",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

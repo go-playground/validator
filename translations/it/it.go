@@ -1205,6 +1205,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:        false,
 			customTransFunc: customTransFuncV1,
 		},
+		{
+			tag:         "image",
+			translation: "{0} deve essere un'immagine valida",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

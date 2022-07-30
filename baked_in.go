@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
 	"os"
@@ -20,6 +21,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
 
+	"github.com/gabriel-vasile/mimetype"
 	urn "github.com/leodido/go-urn"
 )
 
@@ -136,6 +138,7 @@ var (
 		"endswith":                      endsWith,
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
+		"image":                          isImage,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
@@ -1399,6 +1402,74 @@ func isFile(fl FieldLevel) bool {
 		}
 
 		return !fileInfo.IsDir()
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+func isImage(fl FieldLevel) bool {
+	mimetypes := map[string]bool{
+		"image/bmp": true,
+		"image/cis-cod": true,
+		"image/gif": true,
+		"image/ief": true,
+		"image/jpeg": true, 
+		"image/jp2": true, 
+		"image/jpx": true, 
+		"image/jpm": true, 
+		"image/pipeg": true,
+		"image/png": true, 
+		"image/svg+xml": true,
+		"image/tiff": true,
+		"image/webp": true,
+		"image/x-cmu-raster": true,
+		"image/x-cmx": true,
+		"image/x-icon": true,
+		"image/x-portable-anymap": true,
+		"image/x-portable-bitmap": true,
+		"image/x-portable-graymap": true,
+		"image/x-portable-pixmap": true,
+		"image/x-rgb": true,
+		"image/x-xbitmap": true,
+		"image/x-xpixmap": true,
+		"image/x-xwindowdump": true,
+	}
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+		filePath := field.String()
+		fileInfo, err := os.Stat(filePath)
+
+		if err != nil {
+			return false
+		}
+
+		if fileInfo.IsDir() {
+			return false
+		}
+
+		file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
+		if err != nil {
+			return false
+		}
+		defer file.Close()
+
+		mime, err := mimetype.DetectReader(file)
+		if err != nil {
+			return false
+		}
+
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			panic(fmt.Sprintf("Could not reset seek start for file. Error: %s", err))
+		}
+
+		if _, ok := mimetypes[mime.String()]; ok {
+			return true
+		}
+
+		return false
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))

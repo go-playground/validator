@@ -1428,6 +1428,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return t
 			},
 		},
+		{
+			tag:         "image",
+			translation: "{0} 必须是有效图像",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
