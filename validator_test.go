@@ -11983,6 +11983,50 @@ func TestSemverFormatValidation(t *testing.T) {
 	}
 }
 
+func TestCveFormatValidation(t *testing.T) {
+
+	tests := []struct {
+		value    string `validate:"cve"`
+		tag      string
+		expected bool
+	}{
+		{"CVE-1999-0001", "cve", true},
+		{"CVE-1998-0001", "cve", false},
+		{"CVE-2000-0001", "cve", true},
+		{"CVE-2222-0001", "cve", true},
+		{"2222-0001", "cve", false},
+		{"-2222-0001", "cve", false},
+		{"CVE22220001", "cve", false},
+		{"CVE-2222-000001", "cve", false},
+		{"CVE-2222-100001", "cve", true},
+		{"CVE-2222-99999999999", "cve", true},
+		{"CVE-3000-0001", "cve", false},
+		{"CVE-1999-0000", "cve", false},
+		{"CVE-2099-0000", "cve", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "cve" {
+					t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`
@@ -12264,25 +12308,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}

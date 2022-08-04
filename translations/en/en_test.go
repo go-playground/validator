@@ -152,6 +152,7 @@ func TestTranslations(t *testing.T) {
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString     string `validate:"boolean"`
+		CveString         string `validate:"cve"`
 	}
 
 	var test Test
@@ -205,6 +206,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
 	test.BooleanString = "A"
+	test.CveString = "A"
 
 	test.Inner.RequiredIf = "abcd"
 
@@ -689,6 +691,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.BooleanString",
 			expected: "BooleanString must be a valid boolean value",
+		},
+		{
+			ns:       "Test.CveString",
+			expected: "CveString must be a valid cve identifier",
 		},
 	}
 
