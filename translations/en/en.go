@@ -1356,6 +1356,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} must be a valid boolean value",
 			override:    false,
 		},
+		{
+			tag:         "cve",
+			translation: "{0} must be a valid cve identifier",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
