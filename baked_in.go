@@ -214,6 +214,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"cve":                           isCveFormat,
 	}
 )
 
@@ -2472,6 +2473,13 @@ func isSemverFormat(fl FieldLevel) bool {
 	semverString := fl.Field().String()
 
 	return semverRegex.MatchString(semverString)
+}
+
+// isCveFormat is the validation function for validating if the current field's value is a valid cve id, defined in CVE mitre org
+func isCveFormat(fl FieldLevel) bool {
+	cveString := fl.Field().String()
+
+	return cveRegex.MatchString(cveString)
 }
 
 // isDnsRFC1035LabelFormat is the validation function
