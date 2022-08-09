@@ -214,6 +214,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"cron":                          isCron,
 	}
 )
 
@@ -2518,4 +2519,10 @@ func isCreditCard(fl FieldLevel) bool {
 		}
 	}
 	return (sum % 10) == 0
+}
+
+func isCron(fl FieldLevel) bool {
+	cronString := fl.Field().String()
+
+	return cronRegex.MatchString(cronString)
 }

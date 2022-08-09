@@ -12263,26 +12263,59 @@ func TestCreditCardFormatValidation(t *testing.T) {
 	}
 }
 
+func TestCronFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"cron"`
+		tag      string
+		expected bool
+	}{
+		{"* * * * *", "cron", true},
+		{"23 0-20/2 * * *", "cron", true},
+		{"wrong", "cron", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cron failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cron failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "cron" {
+					t.Fatalf("Index: %d cron failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
