@@ -22,12 +22,24 @@ func TestTranslations(t *testing.T) {
 	Equal(t, err, nil)
 
 	type Inner struct {
-		EqCSFieldString  string
-		NeCSFieldString  string
-		GtCSFieldString  string
-		GteCSFieldString string
-		LtCSFieldString  string
-		LteCSFieldString string
+		EqCSFieldString    string
+		NeCSFieldString    string
+		GtCSFieldString    string
+		GteCSFieldString   string
+		LtCSFieldString    string
+		LteCSFieldString   string
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithAll    string
+		RequiredWithout    string
+		RequiredWithoutAll string
+		ExcludedIf         string
+		ExcludedUnless     string
+		ExcludedWith       string
+		ExcludedWithAll    string
+		ExcludedWithout    string
+		ExcludedWithoutAll string
 	}
 
 	type Test struct {
@@ -35,6 +47,19 @@ func TestTranslations(t *testing.T) {
 		RequiredString        string    `validate:"required"`
 		RequiredNumber        int       `validate:"required"`
 		RequiredMultiple      []string  `validate:"required"`
+		RequiredIf            string    `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless        string    `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith          string    `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll       string    `validate:"required_with_all=Inner.RequiredWith Inner.RequiredWithAll"`
+		RequiredWithout       string    `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll    string    `validate:"required_without_all=Inner.RequiredWithout Inner.RequiredWithoutAll"`
+		ExcludedIf            string    `validate:"excluded_if=Inner.ExcludedIf abcd"`
+		ExcludedUnless        string    `validate:"excluded_unless=Inner.ExcludedUnless abcd"`
+		ExcludedWith          string    `validate:"excluded_with=Inner.ExcludedWith"`
+		ExcludedWithout       string    `validate:"excluded_with_all=Inner.ExcludedWithAll"`
+		ExcludedWithAll       string    `validate:"excluded_without=Inner.ExcludedWithout"`
+		ExcludedWithoutAll    string    `validate:"excluded_without_all=Inner.ExcludedWithoutAll"`
+		IsDefault             string    `validate:"isdefault"`
 		LenString             string    `validate:"len=1"`
 		LenNumber             float64   `validate:"len=1113.00"`
 		LenMultiple           []string  `validate:"len=7"`
@@ -155,6 +180,21 @@ func TestTranslations(t *testing.T) {
 	test.Inner.EqCSFieldString = "1234"
 	test.Inner.GtCSFieldString = "1234"
 	test.Inner.GteCSFieldString = "1234"
+	test.Inner.RequiredIf = "abcd"
+	test.Inner.RequiredUnless = "1234"
+	test.Inner.RequiredWith = "1234"
+	test.Inner.RequiredWithAll = "1234"
+	test.Inner.ExcludedIf = "abcd"
+	test.Inner.ExcludedUnless = "1234"
+	test.Inner.ExcludedWith = "1234"
+	test.Inner.ExcludedWithAll = "1234"
+
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithoutAll = "1234"
 
 	test.MaxString = "1234"
 	test.MaxNumber = 2000
@@ -623,6 +663,50 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.RequiredMultiple",
 			expected: "RequiredMultiple为必填字段",
+		},
+		{
+			ns:       "Test.RequiredUnless",
+			expected: "RequiredUnless为必填字段",
+		},
+		{
+			ns:       "Test.RequiredWith",
+			expected: "RequiredWith为必填字段",
+		},
+		{
+			ns:       "Test.RequiredWithAll",
+			expected: "RequiredWithAll为必填字段",
+		},
+		{
+			ns:       "Test.RequiredWithout",
+			expected: "RequiredWithout为必填字段",
+		},
+		{
+			ns:       "Test.RequiredWithoutAll",
+			expected: "RequiredWithoutAll为必填字段",
+		},
+		{
+			ns:       "Test.ExcludedIf",
+			expected: "ExcludedIf为排除字段",
+		},
+		{
+			ns:       "Test.ExcludedUnless",
+			expected: "ExcludedUnless为排除字段",
+		},
+		{
+			ns:       "Test.ExcludedWith",
+			expected: "ExcludedWith为排除字段",
+		},
+		{
+			ns:       "Test.ExcludedWithAll",
+			expected: "ExcludedWithAll为排除字段",
+		},
+		{
+			ns:       "Test.ExcludedWithout",
+			expected: "ExcludedWithout为排除字段",
+		},
+		{
+			ns:       "Test.ExcludedWithoutAll",
+			expected: "ExcludedWithoutAll为排除字段",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
