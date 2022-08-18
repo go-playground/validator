@@ -8302,6 +8302,43 @@ func TestNumeric(t *testing.T) {
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
 }
+func TestBoolean(t *testing.T) {
+	validate := New()
+
+	b := true
+	errs := validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	b = false
+	errs = validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	s := "true"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "false"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "0"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "1"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "xyz"
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
+
+	s = "1."
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
+}
 
 func TestAlphaNumeric(t *testing.T) {
 	validate := New()
@@ -12264,25 +12301,25 @@ func TestCreditCardFormatValidation(t *testing.T) {
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
- 	tests := []struct {
- 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
- 		expected bool
- 	}{
- 		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
- 	}
+	tests := []struct {
+		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
+		expected bool
+	}{
+		{1, true}, {2, false}, {5, true}, {6, true}, {8, false},
+	}
 
- 	validate := New()
+	validate := New()
 
- 	for i, test := range tests {
- 		errs := validate.Struct(test)
- 		if test.expected {
- 			if !IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
- 			}
- 		} else {
- 			if IsEqual(errs, nil) {
- 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
- 			}
- 		}
- 	}
- }
+	for i, test := range tests {
+		errs := validate.Struct(test)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
