@@ -186,6 +186,7 @@ func TestTranslations(t *testing.T) {
 	s := "toolong"
 	test.StrPtrMaxLen = &s
 	test.StrPtrLen = &s
+	test.HexadecimalString = "xyz"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)

@@ -187,6 +187,7 @@ func TestTranslations(t *testing.T) {
 	test.StrPtrLen = &s
 
 	test.Datetime = "2008-Feb-01"
+	test.HexadecimalString = "xyz"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)

@@ -205,6 +205,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
 	test.BooleanString = "A"
+	test.HexadecimalString = "xyz"
 
 	test.Inner.RequiredIf = "abcd"
 

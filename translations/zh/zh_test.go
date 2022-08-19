@@ -205,6 +205,7 @@ func TestTranslations(t *testing.T) {
 	test.UppercaseString = "abcdefg"
 
 	test.Datetime = "20060102"
+	test.HexadecimalString = "xyz"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)

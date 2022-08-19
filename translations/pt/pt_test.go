@@ -199,6 +199,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.HexadecimalString = "xyz"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
