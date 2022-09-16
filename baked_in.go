@@ -1484,10 +1484,15 @@ func isAlphaUnicode(fl FieldLevel) bool {
 	return alphaUnicodeRegex.MatchString(fl.Field().String())
 }
 
-// isBoolean is the validation function for validating if the current field's value can be safely converted to a boolean.
+// isBoolean is the validation function for validating if the current field's value is a valid boolean value or can be safely converted to a boolean value.
 func isBoolean(fl FieldLevel) bool {
-	_, err := strconv.ParseBool(fl.Field().String())
-	return err == nil
+	switch fl.Field().Kind() {
+	case reflect.Bool:
+		return true
+	default:
+		_, err := strconv.ParseBool(fl.Field().String())
+		return err == nil
+	}
 }
 
 // isDefault is the opposite of required aka hasValue
