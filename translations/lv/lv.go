@@ -212,7 +212,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("max-string", "Lauka '{0}' vērtība pārsniedz maksimālo garumu ({1})", false); err != nil {
+				if err = ut.Add("max-string", "{0} vērtība pārsniedz maksimālo garumu {1} rakstu zīmes", false); err != nil {
 					return
 				}
 
@@ -473,7 +473,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0} jābūt mazākam par šī brīža Datumu un laiku  vai vienādam", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} jābūt mazākam par šī brīža Datumu un laiku vai vienādam", false); err != nil {
 					return
 				}
 
@@ -570,7 +570,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmēm", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -968,7 +968,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0}  jāsatur tikai simboli no alfabēta vai cipari (Alphanumeric)",
+			translation: "{0} jāsatur tikai simboli no alfabēta vai cipari (Alphanumeric)",
 			override:    false,
 		},
 		{
@@ -978,7 +978,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "number",
-			translation: "{0} jāsatur darīgs cipars",
+			translation: "{0} jāsatur derīgs numurs",
 			override:    false,
 		},
 		{
@@ -1158,7 +1158,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0}jāsatur multibyte rakstu zīmes",
+			translation: "{0} jāsatur multibyte rakstu zīmes",
 			override:    false,
 		},
 		{
@@ -1263,7 +1263,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "mac",
-			translation: "{0} must contain a valid MAC address",
+			translation: "{0} jābūt derīgai MAC adresei",
 			override:    false,
 		},
 		{
