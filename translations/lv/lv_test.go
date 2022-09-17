@@ -1,4 +1,4 @@
-package en
+package lv
 
 import (
 	"testing"
@@ -228,15 +228,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr jābūt derīgai IP adresei",
+			expected: "IPAddr jābūt atrisināmai IP adresei",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 jābūt derīgai IPv4 TCP adresei"
+			expected: "IPAddrv4 jābūt atrisināmai IPv4 adresei",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 jābūt derīgai IPv6 TCP adresei"
+			expected: "IPAddrv6 jābūt atrisināmai IPv6 adresei",
 		},
 		{
 			ns:       "Test.UDPAddr",
@@ -356,7 +356,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune  nedrīkst saturēt sekojošo '☻'",
+			expected: "ExcludesRune nedrīkst saturēt sekojošo '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
@@ -428,7 +428,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString jābūt mazākam par MaxString vai vienādam ",
+			expected: "LteFieldString jābūt mazākam par MaxString vai vienādam",
 		},
 		{
 			ns:       "Test.GtFieldString",
@@ -436,7 +436,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldStringjābūt lielākam par MaxString vai vienādam",
+			expected: "GteFieldString jābūt lielākam par MaxString vai vienādam",
 		},
 		{
 			ns:       "Test.NeFieldString",
@@ -444,7 +444,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldStringjābūt mazākam par Inner.LtCSFieldString",
+			expected: "LtCSFieldString jābūt mazākam par Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
@@ -456,7 +456,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString jābūt lielākam par Inner.GteCSFieldString vai vienādam ",
+			expected: "GteCSFieldString jābūt lielākam par Inner.GteCSFieldString vai vienādam",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
@@ -476,7 +476,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber jābūt 5.56 vai lielākam",
+			expected: "GteNumber jābūt 5,56 vai lielākam",
 		},
 		{
 			ns:       "Test.GteMultiple",
@@ -492,7 +492,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber jābūt lielākam par 5.56",
+			expected: "GtNumber jābūt lielākam par 5,56",
 		},
 		{
 			ns:       "Test.GtMultiple",
@@ -508,7 +508,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber jābūt 5.56 vai mazākam",
+			expected: "LteNumber jābūt 5,56 vai mazākam",
 		},
 		{
 			ns:       "Test.LteMultiple",

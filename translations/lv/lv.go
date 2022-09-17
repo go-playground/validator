@@ -1248,17 +1248,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0} jābūt atrisināmai IPv4 address",
+			translation: "{0} jābūt atrisināmai IPv4 adresei",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0} jābūt atrisināmai IPv6 address",
+			translation: "{0} jābūt atrisināmai IPv6 adresei",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0} jābūt atrisināmai UNIX address",
+			translation: "{0} jābūt atrisināmai UNIX adresei",
 			override:    false,
 		},
 		{
