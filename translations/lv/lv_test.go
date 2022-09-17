@@ -524,7 +524,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber jābūt mazākam par 5.56",
+			expected: "LtNumber jābūt mazākam par 5,56",
 		},
 		{
 			ns:       "Test.LtMultiple",
@@ -564,7 +564,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber vērtībai jābūt 1,113.00 vi mazākai",
+			expected: "MaxNumber vērtībai jābūt 1\\u00a113,00 vai mazākai", //ToDo: check how to test against \u00a
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -576,7 +576,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber jābūt 1,113.00 vai lielākam",
+			expected: "MinNumber jābūt 1 113,00 vai lielākam",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -588,7 +588,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber jābūt vienādam ar 1,113.00",
+			expected: "LenNumber jābūt vienādam ar 1 113,00",
 		},
 		{
 			ns:       "Test.LenMultiple",
@@ -704,6 +704,6 @@ func TestTranslations(t *testing.T) {
 		}
 
 		NotEqual(t, fe, nil)
-		Equal(t, tt.expected, fe.Translate(trans))
+		Equal(t, tt.expected, fe.Translate(trans)) // ToDo: check how to test against \u00a (tt.ns == "Test.MaxNumber")
 	}
 }

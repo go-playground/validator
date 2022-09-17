@@ -212,7 +212,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("max-string", "{0} vērtība pārsniedz maksimālo garumu {1} rakstu zīmes", false); err != nil {
+				if err = ut.Add("max-string", "{0} vērtība pārsniedz maksimālo garumu {1}", false); err != nil {
 					return
 				}
 
@@ -336,7 +336,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīmēm", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -352,7 +352,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} elementiem", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
