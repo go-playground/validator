@@ -25,18 +25,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "Lauks {0} ir obligāts",
+			translation: "{0} ir obligāts lauks",
 			override:    false,
 		},
 		{
 			tag:         "required_if",
-			translation: "Lauks {0} ir obligāts",
+			translation: "{0} ir obligāts lauks",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("len-string", "Laukam {0} jāsatur {1} rakstu zīmes", false); err != nil {
+				if err = ut.Add("len-string", "{0} garumam jābūt {1}", false); err != nil {
 					return
 				}
 
@@ -124,11 +124,15 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("min-string", "Lauka '{0}' vērtība nesasniedz minimālo garumu ({1})", false); err != nil {
+				if err = ut.Add("min-string", "{0} garumam jābūt minimums {1}", false); err != nil {
 					return
 				}
 
 				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 
@@ -140,7 +144,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-items", "{0} jāsatur vismaz {1} elementi", false); err != nil {
+				if err = ut.Add("min-items", "{0} jāsatur minimums {1}", false); err != nil {
 					return
 				}
 				if err = ut.AddCardinal("min-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
@@ -217,6 +221,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 
@@ -332,7 +340,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīmi", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -453,6 +461,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
+					return
+				}
+
 				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -562,11 +574,15 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gt-string", "{0} jābūt lielākam par {1}", false); err != nil {
+				if err = ut.Add("gt-string", "{0} ir jābūt garākam par {1}", false); err != nil {
 					return
 				}
 
 				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmēm", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 
@@ -684,6 +700,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
+					return
+				}
+
+				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 
@@ -1052,7 +1072,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0} jāsatur vismaz 1 no rakstu zīmēm '{1}'",
+			translation: "{0} jāsatur minimums 1 no rakstu zīmēm '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())

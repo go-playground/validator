@@ -360,7 +360,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny jāsatur vismaz 1 no rakstu zīmēm '!@#$'",
+			expected: "ContainsAny jāsatur minimums 1 no rakstu zīmēm '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
@@ -488,7 +488,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString jābūt lielākam par 3 rakstu zīmēm",
+			expected: "GtString ir jābūt garākam par 3 rakstu zīmēm",
 		},
 		{
 			ns:       "Test.GtNumber",
@@ -564,7 +564,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber vērtībai jābūt 1\\u00a113,00 vai mazākai", //ToDo: check how to test against \u00a
+			expected: "MaxNumber vērtībai jābūt 1\u00A0113,00 vai mazākai",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -572,11 +572,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString garumam jābūt vismaz 1 rakstu zīme",
+			expected: "MinString garumam jābūt minimums 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber jābūt 1 113,00 vai lielākam",
+			expected: "MinNumber vērtībai jābūt 1\u00A0113,00 vai lielākai",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -588,11 +588,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber jābūt vienādam ar 1 113,00",
+			expected: "LenNumber vērtībai jābūt 1\u00A0113,00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple jāsatur 7 elementi",
+			expected: "LenMultiple vērtībai jāsatur 7 elementi",
 		},
 		{
 			ns:       "Test.RequiredString",
@@ -612,11 +612,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen garumam jābūt vismaz 10 rakstu zīmes",
+			expected: "StrPtrMinLen garumam jābūt minimums 10 rakstu zīmes",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen garums nedrīkst pārsniegt 1 rakstu zīmi",
+			expected: "StrPtrMaxLen vērtība pārsniedz maksimālo garumu 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.StrPtrLen",
@@ -624,7 +624,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt jābūt mazākam par 2 rakstu zīmēm",
+			expected: "StrPtrLt garumam jābūt mazākam par 1 rakstu zīmi",
 		},
 		{
 			ns:       "Test.StrPtrLte",
@@ -632,11 +632,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt garumam jābūt vairāk par 10 rakstu zīmēm",
+			expected: "StrPtrGt ir jābūt garākam par 10 rakstu zīmēm",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte garumam jābūt 10 rakstu zīmēm",
+			expected: "StrPtrGte garumam jābūt minimums 10 rakstu zīmes",
 		},
 		{
 			ns:       "Test.OneOfString",
@@ -704,6 +704,6 @@ func TestTranslations(t *testing.T) {
 		}
 
 		NotEqual(t, fe, nil)
-		Equal(t, tt.expected, fe.Translate(trans)) // ToDo: check how to test against \u00a (tt.ns == "Test.MaxNumber")
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
