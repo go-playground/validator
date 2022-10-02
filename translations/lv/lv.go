@@ -132,10 +132,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
-					return
-				}
-
 				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -221,10 +217,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 
@@ -461,10 +453,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
-					return
-				}
-
 				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -582,10 +570,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmēm", locales.PluralRuleZero, false); err != nil {
-					return
-				}
-
 				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmēm", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -700,10 +684,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīmes", locales.PluralRuleZero, false); err != nil {
 					return
 				}
 

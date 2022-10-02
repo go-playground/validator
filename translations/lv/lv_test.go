@@ -5,15 +5,15 @@ import (
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	latvian "github.com/go-playground/locales/lv"
+	english "github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
-	lat := latvian.New()
-	uni := ut.New(lat, lat)
-	trans, _ := uni.GetTranslator("lv")
+	eng := english.New()
+	uni := ut.New(eng, eng)
+	trans, _ := uni.GetTranslator("en")
 
 	validate := validator.New()
 
@@ -476,7 +476,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber jābūt 5,56 vai lielākam",
+			expected: "GteNumber jābūt 5.56 vai lielākam",
 		},
 		{
 			ns:       "Test.GteMultiple",
@@ -492,7 +492,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber jābūt lielākam par 5,56",
+			expected: "GtNumber jābūt lielākam par 5.56",
 		},
 		{
 			ns:       "Test.GtMultiple",
@@ -508,7 +508,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber jābūt 5,56 vai mazākam",
+			expected: "LteNumber jābūt 5.56 vai mazākam",
 		},
 		{
 			ns:       "Test.LteMultiple",
@@ -524,7 +524,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber jābūt mazākam par 5,56",
+			expected: "LtNumber jābūt mazākam par 5.56",
 		},
 		{
 			ns:       "Test.LtMultiple",
@@ -564,7 +564,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber vērtībai jābūt 1\u00A0113,00 vai mazākai",
+			expected: "MaxNumber vērtībai jābūt 1,113.00 vai mazākai",
 		},
 		{
 			ns:       "Test.MaxMultiple",
@@ -576,7 +576,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber vērtībai jābūt 1\u00A0113,00 vai lielākai",
+			expected: "MinNumber vērtībai jābūt 1,113.00 vai lielākai",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -588,7 +588,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber vērtībai jābūt 1\u00A0113,00",
+			expected: "LenNumber vērtībai jābūt 1,113.00",
 		},
 		{
 			ns:       "Test.LenMultiple",
