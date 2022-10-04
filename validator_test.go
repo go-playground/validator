@@ -12300,6 +12300,51 @@ func TestCreditCardFormatValidation(t *testing.T) {
 	}
 }
 
+func TestLuhnChecksumValidation(t *testing.T) {
+	testsUint := []struct {
+		value    interface{} `validate:"luhn_checksum"` // the type is interface{} because the luhn_checksum works on both strings and numbers
+		tag      string
+		expected bool
+	}{
+		{uint64(586824160825533338), "luhn_checksum", true}, // credit card numbers are just special cases of numbers with luhn checksum
+		{586824160825533338, "luhn_checksum", true},
+		{"586824160825533338", "luhn_checksum", true},
+		{uint64(586824160825533328), "luhn_checksum", false},
+		{586824160825533328, "luhn_checksum", false},
+		{"586824160825533328", "luhn_checksum", false},
+		{10000000116, "luhn_checksum", true}, // but there may be shorter numbers (11 digits)
+		{"10000000116", "luhn_checksum", true},
+		{10000000117, "luhn_checksum", false},
+		{"10000000117", "luhn_checksum", false},
+		{uint64(12345678123456789011), "luhn_checksum", true}, // or longer numbers (19 digits)
+		{"12345678123456789011", "luhn_checksum", true},
+		{1, "luhn_checksum", false}, // single digits (checksum only) are not allowed
+		{"1", "luhn_checksum", false},
+		{-10, "luhn_checksum", false}, // negative ints are not allowed
+		{"abcdefghijklmnop", "luhn_checksum", false},
+	}
+
+	validate := New()
+
+	for i, test := range testsUint {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "luhn_checksum" {
+					t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestMultiOrOperatorGroup(t *testing.T) {
 	tests := []struct {
 		Value    int `validate:"eq=1|gte=5,eq=1|lt=7"`
