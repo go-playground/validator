@@ -214,6 +214,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"luhn_checksum":                 hasLuhnChecksum,
 	}
 )
 
@@ -2529,4 +2530,26 @@ func isCreditCard(fl FieldLevel) bool {
 	}
 
 	return digitsHaveLuhnChecksum(ccDigits)
+}
+
+// hasLuhnChecksum is the validation for validating if the current field's value has a valid Luhn checksum
+func hasLuhnChecksum(fl FieldLevel) bool {
+	field := fl.Field()
+	var str string // convert to a string which will then be split into single digits; easier and more readable than shifting/extracting single digits from a number
+	switch field.Kind() {
+	case reflect.String:
+		str = field.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		str = strconv.FormatInt(field.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		str = strconv.FormatUint(field.Uint(), 10)
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	size := len(str)
+	if size < 2 { // there has to be at least one digit that carries a meaning + the checksum
+		return false
+	}
+	digits := strings.Split(str, "")
+	return digitsHaveLuhnChecksum(digits)
 }
