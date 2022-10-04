@@ -2487,6 +2487,29 @@ func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	return dnsRegexRFC1035Label.MatchString(val)
 }
 
+// digitsHaveLuhnChecksum returns true if and only if the last element of the given digits slice is the Luhn checksum of the previous elements
+func digitsHaveLuhnChecksum(digits []string) bool {
+	size := len(digits)
+	sum := 0
+	for i, digit := range digits {
+		value, err := strconv.Atoi(digit)
+		if err != nil {
+			return false
+		}
+		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
+			v := value * 2
+			if v >= 10 {
+				sum += 1 + (v % 10)
+			} else {
+				sum += v
+			}
+		} else {
+			sum += value
+		}
+	}
+	return (sum % 10) == 0
+}
+
 // isCreditCard is the validation function for validating if the current field's value is a valid credit card number
 func isCreditCard(fl FieldLevel) bool {
 	val := fl.Field().String()
@@ -2505,22 +2528,5 @@ func isCreditCard(fl FieldLevel) bool {
 		return false
 	}
 
-	sum := 0
-	for i, digit := range ccDigits {
-		value, err := strconv.Atoi(digit)
-		if err != nil {
-			return false
-		}
-		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
-			v := value * 2
-			if v >= 10 {
-				sum += 1 + (v % 10)
-			} else {
-				sum += v
-			}
-		} else {
-			sum += value
-		}
-	}
-	return (sum % 10) == 0
+	return digitsHaveLuhnChecksum(ccDigits)
 }
