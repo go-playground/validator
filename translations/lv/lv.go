@@ -1339,7 +1339,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0} neatbilst pasta indeksa formātam valstī, kas norādīts laukā {1}",
+			translation: "{0} neatbilst pasta indeksa formātam valstī, kura norādīta laukā {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())

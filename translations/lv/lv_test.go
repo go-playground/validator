@@ -684,7 +684,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.PostCodeByField",
-			expected: "PostCodeByField neatbilst pasta indeksa formātam valstī, kas norādīts laukā PostCodeCountry",
+			expected: "PostCodeByField neatbilst pasta indeksa formātam valstī, kura norādīta laukā PostCodeCountry",
 		},
 		{
 			ns:       "Test.BooleanString",
