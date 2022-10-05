@@ -973,12 +973,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "numeric",
-			translation: "{0} jāsatur derīga numeric vērtība",
+			translation: "{0} jāsatur tikai cipari",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0} jāsatur derīgs numurs",
+			translation: "{0} jāsatur derīgs skaitlis",
 			override:    false,
 		},
 		{
@@ -1325,7 +1325,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2",
-			translation: "{0} does not match postcode format of {1} country",
+			translation: "{0} neatbilst pasta indeksa formātam valstī {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1339,7 +1339,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0} does not match postcode format of country in {1} field",
+			translation: "{0} neatbilst pasta indeksa formātam valstī, kas norādīts laukā {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())

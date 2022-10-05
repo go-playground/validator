@@ -408,11 +408,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString jāsatur derīgs numurs",
+			expected: "NumberString jāsatur derīgs skaitlis",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString jāsatur derīga numeric vērtība",
+			expected: "NumericString jāsatur tikai cipari",
 		},
 		{
 			ns:       "Test.AlphanumString",
@@ -680,11 +680,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.PostCode",
-			expected: "PostCode does not match postcode format of SG country",
+			expected: "PostCode neatbilst pasta indeksa formātam valstī SG",
 		},
 		{
 			ns:       "Test.PostCodeByField",
-			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+			expected: "PostCodeByField neatbilst pasta indeksa formātam valstī, kas norādīts laukā PostCodeCountry",
 		},
 		{
 			ns:       "Test.BooleanString",
