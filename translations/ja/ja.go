@@ -136,7 +136,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}は{1}より大きくなければなりません", false); err != nil {
+				if err = ut.Add("min-number", "{0}は{1}以上でなければなりません", false); err != nil {
 					return
 				}
 
@@ -227,7 +227,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-number", "{0}は{1}より小さくなければなりません", false); err != nil {
+				if err = ut.Add("max-number", "{0}は{1}以下でなければなりません", false); err != nil {
 					return
 				}
 
@@ -525,7 +525,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0}は{1}より小さくなければなりません", false); err != nil {
+				if err = ut.Add("lte-number", "{0}は{1}以下でなければなりません", false); err != nil {
 					return
 				}
 
@@ -765,7 +765,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}は{1}より大きくなければなりません", false); err != nil {
+				if err = ut.Add("gte-number", "{0}は{1}以上でなければなりません", false); err != nil {
 					return
 				}
 
