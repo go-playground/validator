@@ -30,6 +30,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}は必須フィールドです",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
@@ -1355,6 +1360,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}は一意な値のみを含まなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0}は正しい色でなければなりません",
 			override:    false,
@@ -1371,6 +1381,73 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 				return s
 			},
+		},
+		{
+			tag:         "json",
+			translation: "{0}は正しいJSON文字列でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0}は正しいJWT文字列でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0}は小文字でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0}は大文字でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0}は{1}の書式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0}は国名コード{1}の郵便番号形式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0}は{1}フィールドで指定された国名コードの郵便番号形式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0}は正しいブール値でなければなりません",
+			override:    false,
 		},
 	}
 
