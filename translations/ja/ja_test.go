@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	japanese := ja_locale.New()
 	uni := ut.New(japanese, japanese)
 	trans, _ := uni.GetTranslator("ja")
