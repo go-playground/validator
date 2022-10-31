@@ -8353,6 +8353,43 @@ func TestNumeric(t *testing.T) {
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
 }
+func TestBoolean(t *testing.T) {
+	validate := New()
+
+	b := true
+	errs := validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	b = false
+	errs = validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	s := "true"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "false"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "0"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "1"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "xyz"
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
+
+	s = "1."
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
+}
 
 func TestAlphaNumeric(t *testing.T) {
 	validate := New()
