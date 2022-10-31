@@ -1257,6 +1257,8 @@ This is done using os.Stat, which is a platform independent function.
 This validates that a string value contains a valid directory but does
 not validate the existence of that directory.
 This is done using os.Stat, which is a platform independent function.
+It is safest to suffix the string with os.PathSeparator if the directory
+may not exist at the time of validation.
 
 	Usage: dirpath
 

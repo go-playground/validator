@@ -1419,12 +1419,22 @@ func isFilePath(fl FieldLevel) bool {
 	// If it exists, it obviously is valid.
 	// This is done first to avoid code duplication and unnecessary additional logic.
 	if exists = isFile(fl); exists {
-		return exists
+		return true
 	}
 
 	// It does not exist but may still be a valid filepath.
 	switch field.Kind() {
 	case reflect.String:
+		// Every OS allows for whitespace, but none
+		// let you use a file with no filename (to my knowledge).
+		// Unless you're dealing with raw inodes, but I digress.
+		if strings.TrimSpace(field.String()) == "" {
+			return false
+		}
+		// We make sure it isn't a directory.
+		if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
+			return false
+		}
 		if _, err = os.Stat(field.String()); err != nil {
 			switch t := err.(type) {
 			case *fs.PathError:
@@ -1434,10 +1444,6 @@ func isFilePath(fl FieldLevel) bool {
 				}
 				// It could be a permission error, a does-not-exist error, etc.
 				// Out-of-scope for this validation, though.
-				// Lastly, we make sure it isn't a directory.
-				if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
-					return false
-				}
 				return true
 			default:
 				// Something went *seriously* wrong.
@@ -2350,13 +2356,19 @@ func isDirPath(fl FieldLevel) bool {
 
 	// If it exists, it obviously is valid.
 	// This is done first to avoid code duplication and unnecessary additional logic.
-	if exists = isFile(fl); exists {
-		return exists
+	if exists = isDir(fl); exists {
+		return true
 	}
 
 	// It does not exist but may still be a valid path.
 	switch field.Kind() {
 	case reflect.String:
+		// Every OS allows for whitespace, but none
+		// let you use a dir with no name (to my knowledge).
+		// Unless you're dealing with raw inodes, but I digress.
+		if strings.TrimSpace(field.String()) == "" {
+			return false
+		}
 		if _, err = os.Stat(field.String()); err != nil {
 			switch t := err.(type) {
 			case *fs.PathError:
@@ -2369,8 +2381,9 @@ func isDirPath(fl FieldLevel) bool {
 				// Lastly, we make sure it is a directory.
 				if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
 					return true
+				} else {
+					return false
 				}
-				return false
 			default:
 				// Something went *seriously* wrong.
 				/*
@@ -2379,6 +2392,12 @@ func isDirPath(fl FieldLevel) bool {
 				*/
 				panic(err)
 			}
+		}
+		// We repeat the check here to make sure it is an explicit directory in case the above os.Stat didn't trigger an error.
+		if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
+			return true
+		} else {
+			return false
 		}
 	}
 
