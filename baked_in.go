@@ -214,6 +214,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"mongodb":                       isMongoDB,
 	}
 )
 
@@ -2485,6 +2486,12 @@ func isSemverFormat(fl FieldLevel) bool {
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return dnsRegexRFC1035Label.MatchString(val)
+}
+
+// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
+func isMongoDB(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return mongodbRegex.MatchString(val)
 }
 
 // isCreditCard is the validation function for validating if the current field's value is a valid credit card number

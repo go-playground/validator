@@ -154,6 +154,7 @@ Baked-in Validations
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | credit_card | Credit Card Number |
+| mongodb | MongoDB ObjectID |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
 | email | E-mail String
