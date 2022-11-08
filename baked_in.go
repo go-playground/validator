@@ -54,6 +54,7 @@ var (
 		noStructLevelTag:  {},
 		requiredTag:       {},
 		isdefault:         {},
+		zeroToNilTag:      {},
 	}
 
 	// bakedInAliases is a default mapping of a single validation tag that

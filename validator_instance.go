@@ -40,6 +40,7 @@ const (
 	keysTag               = "keys"
 	endKeysTag            = "endkeys"
 	requiredTag           = "required"
+	zeroToNilTag          = "zerotonil"
 	namespaceSeparator    = "."
 	leftBracket           = "["
 	rightBracket          = "]"
@@ -190,14 +191,14 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 //
 // eg. to use the names which have been specified for JSON representations of structs, rather than normal Go field names:
 //
-//    validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-//        name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-//        // skip if tag key says it should be ignored
-//        if name == "-" {
-//            return ""
-//        }
-//        return name
-//    })
+//	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+//	    name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+//	    // skip if tag key says it should be ignored
+//	    if name == "-" {
+//	        return ""
+//	    }
+//	    return name
+//	})
 func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 	v.tagNameFunc = fn
 	v.hasTagNameFunc = true

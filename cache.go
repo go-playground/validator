@@ -20,6 +20,7 @@ const (
 	typeOr
 	typeKeys
 	typeEndKeys
+	typeZeroToNil
 )
 
 const (
@@ -120,7 +121,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	var fld reflect.StructField
 	var tag string
 	var customName string
-	
+
 	for i := 0; i < numFields; i++ {
 
 		fld = typ.Field(i)
@@ -258,6 +259,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		case noStructLevelTag:
 			current.typeof = typeNoStructLevel
+			continue
+
+		case zeroToNilTag:
+			current.typeof = typeZeroToNil
 			continue
 
 		default:

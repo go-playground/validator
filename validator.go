@@ -106,7 +106,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
-		if ct.typeof == typeOmitEmpty || ct.typeof == typeIsDefault {
+		if ct.typeof == typeOmitEmpty || ct.typeof == typeIsDefault || ct.typeof == typeZeroToNil {
 			return
 		}
 
@@ -240,6 +240,26 @@ OUTER:
 		}
 
 		switch ct.typeof {
+
+		case typeZeroToNil:
+			invalidUsed := false
+			if parent.Kind() == reflect.Struct {
+				field := parent.FieldByName(cf.name)
+				invalidUsed = !field.CanSet()
+				if field.Kind() == reflect.Ptr && !field.IsNil() && field.CanSet() && field.Elem().IsZero() {
+					field.Set(reflect.Zero(field.Type()))
+					return
+				}
+			} else {
+				invalidUsed = true
+			}
+
+			if invalidUsed {
+				panic("zerotonil error! can't used on a non pointer field or struct")
+			}
+
+			ct = ct.next
+			continue
 
 		case typeOmitEmpty:
 

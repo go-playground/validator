@@ -223,6 +223,7 @@ Baked-in Validations
 | max | Maximum |
 | min | Minimum |
 | oneof | One Of |
+| zerotonil | Zero To Nil |
 | required | Required |
 | required_if | Required If |
 | required_unless | Required Unless |

@@ -12323,3 +12323,68 @@ func TestMultiOrOperatorGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestZeroToNilNumber(t *testing.T) {
+	num0 := 0
+	num1 := 1
+	num2 := 2
+	tests := []struct {
+		Value         *int `validate:"zerotonil,gt=1"`
+		ExpectedValue *int
+		expected      bool
+	}{
+		{nil, nil, true}, {&num0, nil, true}, {&num1, &num1, false}, {&num2, &num2, true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Struct(&test)
+		if test.Value != test.ExpectedValue {
+			t.Fatalf("Index: %d zero_to_nil_number failed Error: value %#v is not equal with expected value %#v", i, test.Value, test.ExpectedValue)
+		}
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d zero_to_nil_number failed Error: %s", i, errs)
+			}
+
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d zero_to_nil_number should have errs", i)
+			}
+		}
+	}
+}
+
+func TestZeroToNilString(t *testing.T) {
+	email := "name@domain.com"
+	url := "https://domain.com"
+	blank := ""
+	invalid := "0123456789"
+	tests := []struct {
+		Value         *string `validate:"zerotonil,required,email|url"`
+		ExpectedValue *string
+		expected      bool
+	}{
+		{nil, nil, true}, {&email, &email, true}, {&url, &url, true}, {&blank, nil, true}, {&invalid, &invalid, false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Struct(&test)
+		if test.Value != test.ExpectedValue {
+			t.Fatalf("Index: %d zero_to_nil_string failed Error: value %#v is not equal with expected value %#v", i, test.Value, test.ExpectedValue)
+		}
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d zero_to_nil_string failed Error: %s", i, errs)
+			}
+
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d zero_to_nil_string should have errs", i)
+			}
+		}
+	}
+}
