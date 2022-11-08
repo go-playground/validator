@@ -5617,6 +5617,53 @@ func TestBase64URLValidation(t *testing.T) {
 	}
 }
 
+func TestBase64RawURLValidation(t *testing.T) {
+	validate := New()
+
+	testCases := []struct {
+		decoded, encoded string
+		success          bool
+	}{
+		// empty string, although a valid base64 string, should fail
+		{"", "", false},
+		// invalid length
+		{"", "a", false},
+		// base64 with padding should fail
+		{"f", "Zg==", false},
+		{"fo", "Zm8=", false},
+		// base64 without padding
+		{"foo", "Zm9v", true},
+		{"hello", "aGVsbG8", true},
+		{"", "aGVsb", false},
+		// // base64 URL safe encoding with invalid, special characters '+' and '/'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
+		// // base64 URL safe encoding with valid, special characters '-' and '_'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l-", true},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA_lz", true},
+		// non base64 characters
+		{"", "@mc=", false},
+		{"", "Zm 9", false},
+	}
+	for _, tc := range testCases {
+		err := validate.Var(tc.encoded, "base64rawurl")
+		if tc.success {
+			Equal(t, err, nil)
+			// make sure encoded value is decoded back to the expected value
+			d, innerErr := base64.RawURLEncoding.DecodeString(tc.encoded)
+			Equal(t, innerErr, nil)
+			Equal(t, tc.decoded, string(d))
+		} else {
+			NotEqual(t, err, nil)
+			if len(tc.encoded) > 0 {
+				// make sure that indeed the encoded value was faulty
+				_, err := base64.RawURLEncoding.DecodeString(tc.encoded)
+				NotEqual(t, err, nil)
+			}
+		}
+	}
+}
+
 func TestFileValidation(t *testing.T) {
 	validate := New()
 

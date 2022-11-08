@@ -126,6 +126,7 @@ var (
 		"file":                          isFile,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
+		"base64rawurl":                  isBase64RawURL,
 		"contains":                      contains,
 		"containsany":                   containsAny,
 		"containsrune":                  containsRune,
@@ -1309,6 +1310,11 @@ func isBase64(fl FieldLevel) bool {
 // isBase64URL is the validation function for validating if the current field's value is a valid base64 URL safe string.
 func isBase64URL(fl FieldLevel) bool {
 	return base64URLRegex.MatchString(fl.Field().String())
+}
+
+// isBase64RawURL is the validation function for validating if the current field's value is a valid base64 URL safe string without '=' padding.
+func isBase64RawURL(fl FieldLevel) bool {
+	return base64RawURLRegex.MatchString(fl.Field().String())
 }
 
 // isURI is the validation function for validating if the current field's value is a valid URI.
