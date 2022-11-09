@@ -12362,7 +12362,7 @@ func TestZeroToNilString(t *testing.T) {
 	blank := ""
 	invalid := "0123456789"
 	tests := []struct {
-		Value         *string `validate:"zerotonil,required,email|url"`
+		Value         *string `validate:"zerotonil,email|url"`
 		ExpectedValue *string
 		expected      bool
 	}{
