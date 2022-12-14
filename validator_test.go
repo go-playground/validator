@@ -9881,6 +9881,7 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	}{
 		{A: stringPtr("one"), B: stringPtr("two")},
 		{A: stringPtr("one"), B: stringPtr("three")},
+		{},
 	}
 
 	tests := []struct {

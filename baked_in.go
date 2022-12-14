@@ -307,10 +307,15 @@ func isUnique(fl FieldLevel) bool {
 		}
 
 		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
+		var fieldlen int
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
+			key := reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param))
+			if key.IsValid() {
+				fieldlen++
+				m.SetMapIndex(key, v)
+			}
 		}
-		return field.Len() == m.Len()
+		return fieldlen == m.Len()
 	case reflect.Map:
 		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
 
