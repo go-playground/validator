@@ -12323,3 +12323,37 @@ func TestMultiOrOperatorGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestCronExpressionValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"cron"`
+		tag      string
+		expected bool
+	}{
+		{"0 0 12 * * ?", "cron", true},
+		{"0 15 10 ? * *", "cron", true},
+		{"0 15 10 * * ?", "cron", true},
+		{"0 15 10 * * ? 2005", "cron", true},
+		{"0 15 10 ? * 6L", "cron", true},
+		{"0 15 10 ? * 6L 2002-2005", "cron", true},
+		{"*/20 * * * *", "cron", true},
+		{"0 15 10 ? * MON-FRI", "cron", true},
+		{"0 15 10 ? * 6#3", "cron", true},
+		{"wrong", "cron", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" failed Error: %s`, i, test.value, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" should have errs`, i, test.value)
+			}
+		}
+	}
+}
