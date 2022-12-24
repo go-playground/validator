@@ -7793,6 +7793,74 @@ func TestUrl(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
+func TestHttpUrl(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"https://foobar.com", true},
+		{"foobar.com", false},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", false},
+		{"file:///etc/passwd", false},
+		{"http://user:pass@www.foobar.com/", true},
+		{"http://127.0.0.1/", true},
+		{"http://duckduckgo.com/?q=%2F", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/?foo=bar#baz=qux", true},
+		{"http://foobar.com?foo=bar", true},
+		{"http://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"xyz://foobar.com", false},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", false},
+		{"http://www.foo_bar.com/", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/#baz", true},
+		{"http://foobar.com#baz=qux", true},
+		{"http://foobar.com/t$-_.+!*\\'(),", true},
+		{"http://www.foobar.com/~foobar", true},
+		{"http://www.-foobar.com/", true},
+		{"http://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", false},
+		{"irc://irc.server.org/channel", false},
+		{"irc://#channel@network", false},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
+}
+
 func TestUri(t *testing.T) {
 	tests := []struct {
 		param    string
