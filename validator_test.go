@@ -7808,6 +7808,7 @@ func TestHttpUrl(t *testing.T) {
 		{"http://foobar.org:8080/", true},
 		{"ftp://foobar.ru/", false},
 		{"file:///etc/passwd", false},
+		{"file://C:/windows/win.ini", false},
 		{"http://user:pass@www.foobar.com/", true},
 		{"http://127.0.0.1/", true},
 		{"http://duckduckgo.com/?q=%2F", true},
