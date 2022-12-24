@@ -7800,6 +7800,7 @@ func TestHttpUrl(t *testing.T) {
 	}{
 		{"http://foo.bar#com", true},
 		{"http://foobar.com", true},
+		{"HTTP://foobar.com", true},
 		{"https://foobar.com", true},
 		{"foobar.com", false},
 		{"http://foobar.coffee/", true},
@@ -7817,6 +7818,7 @@ func TestHttpUrl(t *testing.T) {
 		{"http://foobar.com?foo=bar", true},
 		{"http://www.xn--froschgrn-x9a.net/", true},
 		{"", false},
+		{"a://b", false},
 		{"xyz://foobar.com", false},
 		{"invalid.", false},
 		{".com", false},

@@ -1378,11 +1378,10 @@ func isHttpURL(fl FieldLevel) bool {
 	}
 
 	field := fl.Field()
-
 	switch field.Kind() {
 	case reflect.String:
 
-		s := field.String()
+		s := strings.ToLower(field.String())
 		return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 	}
 
