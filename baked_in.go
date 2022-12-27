@@ -319,6 +319,19 @@ func isUnique(fl FieldLevel) bool {
 		}
 		return field.Len() == m.Len()
 	default:
+		if parent := fl.Parent(); parent.Kind() == reflect.Struct {
+			uniqueField := parent.FieldByName(param)
+			if uniqueField == reflect.ValueOf(nil) {
+				panic(fmt.Sprintf("Bad field name provided %s", param))
+			}
+
+			if uniqueField.Kind() != field.Kind() {
+				panic(fmt.Sprintf("Bad field type %T:%T", field.Interface(), uniqueField.Interface()))
+			}
+
+			return field.Interface() != uniqueField.Interface()
+		}
+
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 }
