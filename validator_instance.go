@@ -70,8 +70,8 @@ type CustomTypeFunc func(field reflect.Value) interface{}
 type TagNameFunc func(field reflect.StructField) string
 
 type internalValidationFuncWrapper struct {
-	fn                FuncCtx
-	runValidatinOnNil bool
+	fn                 FuncCtx
+	runValidationOnNil bool
 }
 
 // Validate contains the validator settings and cache
@@ -235,7 +235,7 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
 		panic(fmt.Sprintf(restrictedTagErr, tag))
 	}
-	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidatinOnNil: nilCheckable}
+	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
 	return nil
 }
 
