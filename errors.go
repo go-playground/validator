@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
+	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag with value '%s'"
 )
 
 // ValidationErrorsTranslations is the translation return type
@@ -251,7 +251,7 @@ func (fe *fieldError) Type() reflect.Type {
 
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
-	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag, fe.Value())
 }
 
 // Translate returns the FieldError's translated error
