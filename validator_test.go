@@ -8925,7 +8925,7 @@ func TestTranslations(t *testing.T) {
 	nl := nl.New()
 	uni2 := ut.New(nl, nl)
 	trans2, _ := uni2.GetTranslator("nl")
-	Equal(t, fe.Translate(trans2), "Key: 'Test.Value' Error:Field validation for 'Value' failed on the 'required' tag")
+	Equal(t, fe.Translate(trans2), "Key: 'Test.Value' Error:Field validation for 'Value' failed on the 'required' tag with value '<nil>'")
 
 	terrs := errs.Translate(trans)
 	Equal(t, len(terrs), 1)
@@ -8956,7 +8956,7 @@ func TestTranslations(t *testing.T) {
 	fe = errs[0]
 	Equal(t, fe.Tag(), "gt")
 	Equal(t, fe.Namespace(), "Test2.Value")
-	Equal(t, fe.Translate(trans), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag")
+	Equal(t, fe.Translate(trans), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag with value ''")
 }
 
 func TestTranslationErrors(t *testing.T) {
