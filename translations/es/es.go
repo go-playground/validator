@@ -30,6 +30,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0} es un campo requerido",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
