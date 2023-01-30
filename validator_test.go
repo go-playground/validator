@@ -2038,10 +2038,10 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
 	Equal(t, ok, false)
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
 	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.Map[key3]")
