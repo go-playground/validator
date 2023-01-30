@@ -1267,6 +1267,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "fqdn",
+			translation: "{0} must be a valid FQDN",
+			override:    false,
+		},
+		{
 			tag:         "unique",
 			translation: "{0} must contain unique values",
 			override:    false,
