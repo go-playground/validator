@@ -9805,6 +9805,12 @@ func TestUniqueValidation(t *testing.T) {
 		{map[string]string{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("a")}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("b")}, true},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(1)}, false},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(2)}, true},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.1)}, false},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.2)}, true},
 	}
 
 	validate := New()
