@@ -122,6 +122,7 @@ var (
 		"email":                         isEmail,
 		"url":                           isURL,
 		"uri":                           isURI,
+		"domain":                        isDomain,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
 		"base64":                        isBase64,
@@ -1368,6 +1369,11 @@ func isURL(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isDomain is the validation function for validating if the current field's value is a valid domain.
+func isDomain(fl FieldLevel) bool {
+	return domainRegex.MatchString(fl.Field().String())
 }
 
 // isUrnRFC2141 is the validation function for validating if the current field's value is a valid URN as per RFC 2141.

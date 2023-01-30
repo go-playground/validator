@@ -7793,6 +7793,57 @@ func TestUrl(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
+func TestDomain(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar.com", false},
+		{"foobar.com", true},
+		{"foobar.coffee", true},
+		{"foobar.org", true},
+		{"foobar.ru", true},
+		{"http://user:pass@www.foobar.com/", false},
+		{"http://127.0.0.1/", false},
+		{"duckduckgo.com", true},
+		{"localhost", false},
+		{"http://foobar.com/?foo=bar#baz=qux", false},
+		{"", false},
+		{"a.co", true},
+		{"invalid.", false},
+		{".com", false},
+		{"b.co.il", true},
+		{"hwierd@hotmain.com.gz", false},
+		{"mailto:someone@example.com", false},
+		{"irc.server.org", true},
+		{"#channel@network", false},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "domain")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Domain failed Error: %v", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Domain failed Error: %v", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "domain" {
+					t.Fatalf("Index: %d Domain failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestUri(t *testing.T) {
 	tests := []struct {
 		param    string
