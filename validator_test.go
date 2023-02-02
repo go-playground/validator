@@ -12251,6 +12251,48 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 			},
 			want: 1,
 		},
+
+		{
+			name: "test map with relative rules",
+			args: args{
+				data: map[string]interface{}{
+					"Test_A": "Test_A",
+					"Test_B": "Test_B",
+					"Test_C": "Test_C",
+					"Test_D": "Test_D",
+					"Test_F": "Test_F",
+				},
+				rules: map[string]interface{}{
+					"Test_A": "required_if=[Test_B] Test_B",
+					"Test_B": "required_with=[Test_A]",
+					"Test_C": "required_with_all=[Test_A] [Test_B]",
+					"Test_D": "required_without=[Test_F]",
+					"Test_E": "required_without_all=[Test_D] [Test_F]",
+					"Test_F": "required_unless=[Test_E] Test_E",
+				},
+			},
+			want: 0,
+		},
+
+		{
+			name: "test map err with relative rules",
+			args: args{
+				data: map[string]interface{}{
+					"Test_B": "Test_B",
+					"Test_C": "Test_C",
+					"Test_D": "Test_D",
+				},
+				rules: map[string]interface{}{
+					"Test_A": "required_if=[Test_B] Test_B",
+					"Test_B": "required_with=[Test_A]",
+					"Test_C": "required_with_all=[Test_A] [Test_B]",
+					"Test_D": "required_without=[Test_F]",
+					"Test_E": "required_without_all=[Test_F] [Test_G]",
+					"Test_F": "required_unless=[Test_E] Test_E",
+				},
+			},
+			want: 3,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
