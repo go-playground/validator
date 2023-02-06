@@ -158,6 +158,9 @@ type FieldError interface {
 
 	// Error returns the FieldError's message
 	Error() string
+
+	// Parent returns the Type of the struct that the StructField is contained within
+	Parent() reflect.Type
 }
 
 // compile time interface checks
@@ -179,6 +182,7 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+	parent         reflect.Type
 }
 
 // Tag returns the validation tag that failed.
@@ -252,6 +256,11 @@ func (fe *fieldError) Type() reflect.Type {
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+}
+
+// Parent returns the Type of the struct that the StructField is contained within
+func (fe *fieldError) Parent() reflect.Type {
+	return fe.parent
 }
 
 // Translate returns the FieldError's translated error

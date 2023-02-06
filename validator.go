@@ -154,6 +154,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),
+						parent:         parent.Type(),
 					},
 				)
 				return
@@ -199,6 +200,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
+								parent:         parent.Type(),
 							},
 						)
 						return
@@ -413,6 +415,7 @@ OUTER:
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
+								parent:         parent.Type(),
 							},
 						)
 
@@ -433,6 +436,7 @@ OUTER:
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
+								parent:         parent.Type(),
 							},
 						)
 					}
@@ -474,6 +478,7 @@ OUTER:
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
+						parent:         parent.Type(),
 					},
 				)
 

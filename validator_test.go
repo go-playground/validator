@@ -367,6 +367,7 @@ func TestStructLevelInvalidError(t *testing.T) {
 	Equal(t, fe.ActualTag(), "required")
 	Equal(t, fe.Kind(), reflect.Invalid)
 	Equal(t, fe.Type(), reflect.TypeOf(nil))
+	Equal(t, fe.Parent(), reflect.TypeOf(nil))
 }
 
 func TestNameNamespace(t *testing.T) {
@@ -8661,6 +8662,7 @@ func TestStructSliceValidation(t *testing.T) {
 	Equal(t, fe.Param(), "10")
 	Equal(t, fe.Kind(), reflect.Slice)
 	Equal(t, fe.Type(), reflect.TypeOf([]int{}))
+	Equal(t, fe.Parent(), reflect.TypeOf(TestSlice{}))
 
 	_, ok := fe.Value().([]int)
 	Equal(t, ok, true)
