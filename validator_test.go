@@ -11174,7 +11174,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "notest",
+		FieldE:  "test",
 		FieldER: "filled",
 	}
 	errs := validate.Struct(test)
@@ -11184,7 +11184,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "test",
+		FieldE:  "notest",
 		FieldER: "filled",
 	}
 	errs = validate.Struct(test2)
@@ -11193,7 +11193,7 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_unless")
 
-	shouldError := "test"
+	shouldError := "notest"
 	test3 := struct {
 		Inner  *Inner
 		Field1 string `validate:"excluded_unless=Inner.Field test" json:"field_1"`
@@ -11207,7 +11207,7 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_unless")
 
-	shouldPass := "shouldPass"
+	shouldPass := "test"
 	test4 := struct {
 		Inner  *Inner
 		FieldE string `validate:"omitempty" json:"field_e"`
