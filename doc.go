@@ -232,16 +232,16 @@ require another 'keys' and 'endkeys' tag. These tags are only valid for maps.
 
 Example #1
 
-	map[string]string with validation tag "gt=0,dive,keys,eg=1|eq=2,endkeys,required"
+	map[string]string with validation tag "gt=0,dive,keys,eq=1|eq=2,endkeys,required"
 	// gt=0 will be applied to the map itself
-	// eg=1|eq=2 will be applied to the map keys
+	// eq=1|eq=2 will be applied to the map keys
 	// required will be applied to map values
 
 Example #2
 
 	map[[2]string]string with validation tag "gt=0,dive,keys,dive,eq=1|eq=2,endkeys,required"
 	// gt=0 will be applied to the map itself
-	// eg=1|eq=2 will be applied to each array element in the the map keys
+	// eq=1|eq=2 will be applied to each array element in the the map keys
 	// required will be applied to map values
 
 Required
