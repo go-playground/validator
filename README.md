@@ -207,11 +207,13 @@ Baked-in Validations
 | Tag | Description |
 | - | - |
 | eq | Equals |
+| eqIgnoreCase | Equals ignoring case |
 | gt | Greater than|
 | gte | Greater than or equal |
 | lt | Less Than |
 | lte | Less Than or Equal |
 | ne | Not Equal |
+| neIgnoreCase | Not Equal ignoring case |
 
 ### Other:
 | Tag | Description |
