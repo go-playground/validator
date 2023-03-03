@@ -1278,7 +1278,7 @@ func isEqIgnoreCase(fl FieldLevel) bool {
 	switch field.Kind() {
 
 	case reflect.String:
-		return strings.ToLower(field.String()) == strings.ToLower(param)
+		return strings.EqualFold(field.String(), param)
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
