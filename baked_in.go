@@ -86,7 +86,9 @@ var (
 		"min":                           hasMinOf,
 		"max":                           hasMaxOf,
 		"eq":                            isEq,
+		"eqIgnoreCase":                  isEqIgnoreCase,
 		"ne":                            isNe,
+		"neIgnoreCase":                  isNeIgnoreCase,
 		"lt":                            isLt,
 		"lte":                           isLte,
 		"gt":                            isGt,
@@ -889,6 +891,12 @@ func isNe(fl FieldLevel) bool {
 	return !isEq(fl)
 }
 
+// isNe is the validation function for validating that the field's string value does not equal the
+// provided param value. The comparison is case-insensitive
+func isNeIgnoreCase(fl FieldLevel) bool {
+	return !isEqIgnoreCase(fl)
+}
+
 // isLteCrossStructField is the validation function for validating if the current field's value is less than or equal to the field, within a separate struct, specified by the param's value.
 func isLteCrossStructField(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1260,6 +1268,22 @@ func isEq(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
+// isEqIgnoreCase is the validation function for validating if the current field's string value is
+//equal to the param's value.
+// The comparison is case-insensitive.
+func isEqIgnoreCase(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	switch field.Kind() {
+
+	case reflect.String:
+		return strings.ToLower(field.String()) == strings.ToLower(param)
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
 // isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
 // example: `postcode_iso3166_alpha2=US`
 func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
@@ -1539,7 +1563,9 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 }
 
 // requireCheckFieldValue is a func for check field value
-func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+func requireCheckFieldValue(
+	fl FieldLevel, param string, value string, defaultNotFoundValue bool,
+) bool {
 	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 	if !found {
 		return defaultNotFoundValue
@@ -2316,7 +2342,9 @@ func isHostnamePort(fl FieldLevel) bool {
 		return false
 	}
 	// Port must be a iny <= 65535.
-	if portNum, err := strconv.ParseInt(port, 10, 32); err != nil || portNum > 65535 || portNum < 1 {
+	if portNum, err := strconv.ParseInt(
+		port, 10, 32,
+	); err != nil || portNum > 65535 || portNum < 1 {
 		return false
 	}
 
