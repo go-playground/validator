@@ -190,14 +190,14 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 //
 // eg. to use the names which have been specified for JSON representations of structs, rather than normal Go field names:
 //
-//    validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-//        name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-//        // skip if tag key says it should be ignored
-//        if name == "-" {
-//            return ""
-//        }
-//        return name
-//    })
+//	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+//	    name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+//	    // skip if tag key says it should be ignored
+//	    if name == "-" {
+//	        return ""
+//	    }
+//	    return name
+//	})
 func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 	v.tagNameFunc = fn
 	v.hasTagNameFunc = true
@@ -346,6 +346,27 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	}
 
 	m[tag] = translationFn
+
+	return
+}
+
+// RegisterTranslationsFunc registers translations against the provided tag.
+// This assumes that the tag translations have already been added to the Translator.
+func (v *Validate) RegisterTranslationsFunc(trans ut.Translator, translationsFn map[string]TranslationFunc) (err error) {
+
+	if v.transTagFunc == nil {
+		v.transTagFunc = make(map[ut.Translator]map[string]TranslationFunc)
+	}
+
+	m, ok := v.transTagFunc[trans]
+	if !ok {
+		m = make(map[string]TranslationFunc)
+		v.transTagFunc[trans] = m
+	}
+
+	for tag, fn := range translationsFn {
+		m[tag] = fn
+	}
 
 	return
 }
