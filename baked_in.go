@@ -140,6 +140,7 @@ var (
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
 		"eth_addr":                      isEthereumAddress,
+		"eth_addr_checksum":             isEthereumAddressChecksum,
 		"btc_addr":                      isBitcoinAddress,
 		"btc_addr_bech32":               isBitcoinBech32Address,
 		"uuid":                          isUUID,
@@ -613,14 +614,16 @@ func isISBN10(fl FieldLevel) bool {
 func isEthereumAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
+	return ethAddressRegex.MatchString(address)
+}
+
+// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksumed Ethereum address.
+func isEthereumAddressChecksum(fl FieldLevel) bool {
+	address := fl.Field().String()
+
 	if !ethAddressRegex.MatchString(address) {
 		return false
 	}
-
-	if ethAddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
-		return true
-	}
-
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
 	address = address[2:] // Skip "0x" prefix.
 	h := sha3.NewLegacyKeccak256()

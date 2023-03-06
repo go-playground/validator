@@ -118,8 +118,6 @@ var (
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
 	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	ethAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
-	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
