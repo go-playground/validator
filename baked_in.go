@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net"
 	"net/url"
 	"os"
@@ -14,13 +15,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
 
-	urn "github.com/leodido/go-urn"
+	"github.com/leodido/go-urn"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -86,7 +88,9 @@ var (
 		"min":                           hasMinOf,
 		"max":                           hasMaxOf,
 		"eq":                            isEq,
+		"eq_ignore_case":                isEqIgnoreCase,
 		"ne":                            isNe,
+		"ne_ignore_case":                isNeIgnoreCase,
 		"lt":                            isLt,
 		"lte":                           isLte,
 		"gt":                            isGt,
@@ -121,11 +125,14 @@ var (
 		"e164":                          isE164,
 		"email":                         isEmail,
 		"url":                           isURL,
+		"http_url":                      isHttpURL,
 		"uri":                           isURI,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
+		"filepath":                      isFilePath,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
+		"base64rawurl":                  isBase64RawURL,
 		"contains":                      contains,
 		"containsany":                   containsAny,
 		"containsrune":                  containsRune,
@@ -140,6 +147,7 @@ var (
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
 		"eth_addr":                      isEthereumAddress,
+		"eth_addr_checksum":             isEthereumAddressChecksum,
 		"btc_addr":                      isBitcoinAddress,
 		"btc_addr_bech32":               isBitcoinBech32Address,
 		"uuid":                          isUUID,
@@ -194,6 +202,7 @@ var (
 		"html_encoded":                  isHTMLEncoded,
 		"url_encoded":                   isURLEncoded,
 		"dir":                           isDir,
+		"dirpath":                       isDirPath,
 		"json":                          isJSON,
 		"jwt":                           isJWT,
 		"hostname_port":                 isHostnamePort,
@@ -215,6 +224,8 @@ var (
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
 		"luhn_checksum":                 hasLuhnChecksum,
+		"mongodb":                       isMongoDB,
+		"cron":                          isCron,
 	}
 )
 
@@ -308,18 +319,42 @@ func isUnique(fl FieldLevel) bool {
 		}
 
 		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
+		var fieldlen int
 		for i := 0; i < field.Len(); i++ {
-			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
+			key := reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param))
+			if key.IsValid() {
+				fieldlen++
+				m.SetMapIndex(key, v)
+			}
 		}
-		return field.Len() == m.Len()
+		return fieldlen == m.Len()
 	case reflect.Map:
-		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+		var m reflect.Value
+		if field.Type().Elem().Kind() == reflect.Ptr {
+			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem().Elem(), v.Type()))
+		} else {
+			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+		}
 
 		for _, k := range field.MapKeys() {
-			m.SetMapIndex(field.MapIndex(k), v)
+			m.SetMapIndex(reflect.Indirect(field.MapIndex(k)), v)
 		}
+
 		return field.Len() == m.Len()
 	default:
+		if parent := fl.Parent(); parent.Kind() == reflect.Struct {
+			uniqueField := parent.FieldByName(param)
+			if uniqueField == reflect.ValueOf(nil) {
+				panic(fmt.Sprintf("Bad field name provided %s", param))
+			}
+
+			if uniqueField.Kind() != field.Kind() {
+				panic(fmt.Sprintf("Bad field type %T:%T", field.Interface(), uniqueField.Interface()))
+			}
+
+			return field.Interface() != uniqueField.Interface()
+		}
+
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 }
@@ -614,14 +649,16 @@ func isISBN10(fl FieldLevel) bool {
 func isEthereumAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
+	return ethAddressRegex.MatchString(address)
+}
+
+// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksumed Ethereum address.
+func isEthereumAddressChecksum(fl FieldLevel) bool {
+	address := fl.Field().String()
+
 	if !ethAddressRegex.MatchString(address) {
 		return false
 	}
-
-	if ethAddressRegexUpper.MatchString(address) || ethAddressRegexLower.MatchString(address) {
-		return true
-	}
-
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
 	address = address[2:] // Skip "0x" prefix.
 	h := sha3.NewLegacyKeccak256()
@@ -888,6 +925,12 @@ func isNeField(fl FieldLevel) bool {
 // isNe is the validation function for validating that the field's value does not equal the provided param value.
 func isNe(fl FieldLevel) bool {
 	return !isEq(fl)
+}
+
+// isNe is the validation function for validating that the field's string value does not equal the
+// provided param value. The comparison is case-insensitive
+func isNeIgnoreCase(fl FieldLevel) bool {
+	return !isEqIgnoreCase(fl)
 }
 
 // isLteCrossStructField is the validation function for validating if the current field's value is less than or equal to the field, within a separate struct, specified by the param's value.
@@ -1261,6 +1304,22 @@ func isEq(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
+// isEqIgnoreCase is the validation function for validating if the current field's string value is
+// equal to the param's value.
+// The comparison is case-insensitive.
+func isEqIgnoreCase(fl FieldLevel) bool {
+	field := fl.Field()
+	param := fl.Param()
+
+	switch field.Kind() {
+
+	case reflect.String:
+		return strings.EqualFold(field.String(), param)
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
 // isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
 // example: `postcode_iso3166_alpha2=US`
 func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
@@ -1310,6 +1369,11 @@ func isBase64(fl FieldLevel) bool {
 // isBase64URL is the validation function for validating if the current field's value is a valid base64 URL safe string.
 func isBase64URL(fl FieldLevel) bool {
 	return base64URLRegex.MatchString(fl.Field().String())
+}
+
+// isBase64RawURL is the validation function for validating if the current field's value is a valid base64 URL safe string without '=' padding.
+func isBase64RawURL(fl FieldLevel) bool {
+	return base64RawURLRegex.MatchString(fl.Field().String())
 }
 
 // isURI is the validation function for validating if the current field's value is a valid URI.
@@ -1371,6 +1435,23 @@ func isURL(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
+// isHttpURL is the validation function for validating if the current field's value is a valid HTTP(s) URL.
+func isHttpURL(fl FieldLevel) bool {
+	if !isURL(fl) {
+		return false
+	}
+
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.String:
+
+		s := strings.ToLower(field.String())
+		return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
 // isUrnRFC2141 is the validation function for validating if the current field's value is a valid URN as per RFC 2141.
 func isUrnRFC2141(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1388,7 +1469,7 @@ func isUrnRFC2141(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// isFile is the validation function for validating if the current field's value is a valid file path.
+// isFile is the validation function for validating if the current field's value is a valid existing file path.
 func isFile(fl FieldLevel) bool {
 	field := fl.Field()
 
@@ -1400,6 +1481,57 @@ func isFile(fl FieldLevel) bool {
 		}
 
 		return !fileInfo.IsDir()
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isFilePath is the validation function for validating if the current field's value is a valid file path.
+func isFilePath(fl FieldLevel) bool {
+
+	var exists bool
+	var err error
+
+	field := fl.Field()
+
+	// If it exists, it obviously is valid.
+	// This is done first to avoid code duplication and unnecessary additional logic.
+	if exists = isFile(fl); exists {
+		return true
+	}
+
+	// It does not exist but may still be a valid filepath.
+	switch field.Kind() {
+	case reflect.String:
+		// Every OS allows for whitespace, but none
+		// let you use a file with no filename (to my knowledge).
+		// Unless you're dealing with raw inodes, but I digress.
+		if strings.TrimSpace(field.String()) == "" {
+			return false
+		}
+		// We make sure it isn't a directory.
+		if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
+			return false
+		}
+		if _, err = os.Stat(field.String()); err != nil {
+			switch t := err.(type) {
+			case *fs.PathError:
+				if t.Err == syscall.EINVAL {
+					// It's definitely an invalid character in the filepath.
+					return false
+				}
+				// It could be a permission error, a does-not-exist error, etc.
+				// Out-of-scope for this validation, though.
+				return true
+			default:
+				// Something went *seriously* wrong.
+				/*
+					Per https://pkg.go.dev/os#Stat:
+						"If there is an error, it will be of type *PathError."
+				*/
+				panic(err)
+			}
+		}
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
@@ -1540,7 +1672,9 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 }
 
 // requireCheckFieldValue is a func for check field value
-func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+func requireCheckFieldValue(
+	fl FieldLevel, param string, value string, defaultNotFoundValue bool,
+) bool {
 	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 	if !found {
 		return defaultNotFoundValue
@@ -1624,10 +1758,10 @@ func excludedUnless(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
-			return true
+			return !hasValue(fl)
 		}
 	}
-	return !hasValue(fl)
+	return true
 }
 
 // excludedWith is the validation function
@@ -2276,7 +2410,7 @@ func isFQDN(fl FieldLevel) bool {
 	return fqdnRegexRFC1123.MatchString(val)
 }
 
-// isDir is the validation function for validating if the current field's value is a valid directory.
+// isDir is the validation function for validating if the current field's value is a valid existing directory.
 func isDir(fl FieldLevel) bool {
 	field := fl.Field()
 
@@ -2287,6 +2421,64 @@ func isDir(fl FieldLevel) bool {
 		}
 
 		return fileInfo.IsDir()
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isDirPath is the validation function for validating if the current field's value is a valid directory.
+func isDirPath(fl FieldLevel) bool {
+
+	var exists bool
+	var err error
+
+	field := fl.Field()
+
+	// If it exists, it obviously is valid.
+	// This is done first to avoid code duplication and unnecessary additional logic.
+	if exists = isDir(fl); exists {
+		return true
+	}
+
+	// It does not exist but may still be a valid path.
+	switch field.Kind() {
+	case reflect.String:
+		// Every OS allows for whitespace, but none
+		// let you use a dir with no name (to my knowledge).
+		// Unless you're dealing with raw inodes, but I digress.
+		if strings.TrimSpace(field.String()) == "" {
+			return false
+		}
+		if _, err = os.Stat(field.String()); err != nil {
+			switch t := err.(type) {
+			case *fs.PathError:
+				if t.Err == syscall.EINVAL {
+					// It's definitely an invalid character in the path.
+					return false
+				}
+				// It could be a permission error, a does-not-exist error, etc.
+				// Out-of-scope for this validation, though.
+				// Lastly, we make sure it is a directory.
+				if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
+					return true
+				} else {
+					return false
+				}
+			default:
+				// Something went *seriously* wrong.
+				/*
+					Per https://pkg.go.dev/os#Stat:
+						"If there is an error, it will be of type *PathError."
+				*/
+				panic(err)
+			}
+		}
+		// We repeat the check here to make sure it is an explicit directory in case the above os.Stat didn't trigger an error.
+		if strings.HasSuffix(field.String(), string(os.PathSeparator)) {
+			return true
+		} else {
+			return false
+		}
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
@@ -2317,7 +2509,9 @@ func isHostnamePort(fl FieldLevel) bool {
 		return false
 	}
 	// Port must be a iny <= 65535.
-	if portNum, err := strconv.ParseInt(port, 10, 32); err != nil || portNum > 65535 || portNum < 1 {
+	if portNum, err := strconv.ParseInt(
+		port, 10, 32,
+	); err != nil || portNum > 65535 || portNum < 1 {
 		return false
 	}
 
@@ -2511,6 +2705,12 @@ func digitsHaveLuhnChecksum(digits []string) bool {
 	return (sum % 10) == 0
 }
 
+// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
+func isMongoDB(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return mongodbRegex.MatchString(val)
+}
+
 // isCreditCard is the validation function for validating if the current field's value is a valid credit card number
 func isCreditCard(fl FieldLevel) bool {
 	val := fl.Field().String()
@@ -2552,4 +2752,10 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 	}
 	digits := strings.Split(str, "")
 	return digitsHaveLuhnChecksum(digits)
+}
+
+// isCron is the validation function for validating if the current field's value is a valid cron expression
+func isCron(fl FieldLevel) bool {
+	cronString := fl.Field().String()
+	return cronRegex.MatchString(cronString)
 }
