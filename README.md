@@ -150,6 +150,7 @@ Baked-in Validations
 | - | - |
 | base64 | Base64 String |
 | base64url | Base64URL String |
+| base64rawurl | Base64RawURL String |
 | bic | Business Identifier Code (ISO 9362) |
 | bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
