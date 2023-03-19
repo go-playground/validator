@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -3819,12 +3820,14 @@ func TestDataURIValidation(t *testing.T) {
 		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
 		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
 		{"image/gif;base64,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
-		{"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
-			"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
-			"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
-			"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
-			"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
-			"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true},
+		{
+			"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
+				"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
+				"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
+				"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
+				"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
+				"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true,
+		},
 		{"data:image/png;base64,12345", false},
 		{"", false},
 		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
@@ -5729,6 +5732,39 @@ func TestFileValidation(t *testing.T) {
 
 	PanicMatches(t, func() {
 		_ = validate.Var(6, "file")
+	}, "Bad field type int")
+}
+
+func TestFilePathValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty filepath", "", false},
+		{"valid filepath", filepath.Join("testdata", "a.go"), true},
+		{"invalid filepath", filepath.Join("testdata", "no\000.go"), false},
+		{"directory, not a filepath", "testdata" + string(os.PathSeparator), false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "filepath")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "filepath")
 	}, "Bad field type int")
 }
 
@@ -10569,6 +10605,40 @@ func TestDirValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestDirPathValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty dirpath", "", false},
+		{"valid dirpath - exists", "testdata", true},
+		{"valid dirpath - explicit", "testdatanoexist" + string(os.PathSeparator), true},
+		{"invalid dirpath", "testdata\000" + string(os.PathSeparator), false},
+		{"file, not a dirpath", filepath.Join("testdata", "a.go"), false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "dirpath")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "filepath")
+	}, "Bad field type int")
+}
+
 func TestStartsWithValidation(t *testing.T) {
 	tests := []struct {
 		Value       string `validate:"startswith=(/^ヮ^)/*:・ﾟ✧"`
@@ -12361,10 +12431,12 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"00803", true},
 			{"1234567", false},
 		},
-		"LC": { // not support regexp for post code
+		"LC": {
+			// not support regexp for post code
 			{"123456", false},
 		},
-		"XX": { // not support country
+		"XX": {
+			// not support country
 			{"123456", false},
 		},
 	}

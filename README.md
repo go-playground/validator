@@ -222,8 +222,10 @@ Baked-in Validations
 ### Other:
 | Tag | Description |
 | - | - |
-| dir | Directory |
-| file | File path |
+| dir | Existing Directory |
+| dirpath | Directory Path |
+| file | Existing File |
+| filepath | File Path |
 | isdefault | Is Default |
 | len | Length |
 | max | Maximum |

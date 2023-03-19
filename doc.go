@@ -863,13 +863,24 @@ This validates that a string value is a valid JWT
 
 	Usage: jwt
 
-# File path
+
+# File
 
 This validates that a string value contains a valid file path and that
 the file exists on the machine.
 This is done using os.Stat, which is a platform independent function.
 
 	Usage: file
+
+
+# File Path
+
+This validates that a string value contains a valid file path but does not
+validate the existence of that file.
+This is done using os.Stat, which is a platform independent function.
+
+	Usage: filepath
+
 
 # URL String
 
@@ -912,6 +923,7 @@ you can use this with the omitempty tag.
 
 	Usage: base64url
 
+
 # Base64RawURL String
 
 This validates that a string value contains a valid base64 URL safe value,
@@ -921,6 +933,7 @@ an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
 
 	Usage: base64url
+
 
 # Bitcoin Address
 
@@ -1253,6 +1266,18 @@ it exists on the machine.
 This is done using os.Stat, which is a platform independent function.
 
 	Usage: dir
+
+
+# Directory Path
+
+This validates that a string value contains a valid directory but does
+not validate the existence of that directory.
+This is done using os.Stat, which is a platform independent function.
+It is safest to suffix the string with os.PathSeparator if the directory
+may not exist at the time of validation.
+
+	Usage: dirpath
+
 
 # HostPort
 
