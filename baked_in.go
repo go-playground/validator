@@ -1652,10 +1652,10 @@ func excludedUnless(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
-			return true
+			return !hasValue(fl)
 		}
 	}
-	return !hasValue(fl)
+	return true
 }
 
 // excludedWith is the validation function
