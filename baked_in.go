@@ -223,6 +223,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"luhn_checksum":                 hasLuhnChecksum,
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
 	}
@@ -2681,6 +2682,29 @@ func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	return dnsRegexRFC1035Label.MatchString(val)
 }
 
+// digitsHaveLuhnChecksum returns true if and only if the last element of the given digits slice is the Luhn checksum of the previous elements
+func digitsHaveLuhnChecksum(digits []string) bool {
+	size := len(digits)
+	sum := 0
+	for i, digit := range digits {
+		value, err := strconv.Atoi(digit)
+		if err != nil {
+			return false
+		}
+		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
+			v := value * 2
+			if v >= 10 {
+				sum += 1 + (v % 10)
+			} else {
+				sum += v
+			}
+		} else {
+			sum += value
+		}
+	}
+	return (sum % 10) == 0
+}
+
 // isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
 func isMongoDB(fl FieldLevel) bool {
 	val := fl.Field().String()
@@ -2705,24 +2729,29 @@ func isCreditCard(fl FieldLevel) bool {
 		return false
 	}
 
-	sum := 0
-	for i, digit := range ccDigits {
-		value, err := strconv.Atoi(digit)
-		if err != nil {
-			return false
-		}
-		if size%2 == 0 && i%2 == 0 || size%2 == 1 && i%2 == 1 {
-			v := value * 2
-			if v >= 10 {
-				sum += 1 + (v % 10)
-			} else {
-				sum += v
-			}
-		} else {
-			sum += value
-		}
+	return digitsHaveLuhnChecksum(ccDigits)
+}
+
+// hasLuhnChecksum is the validation for validating if the current field's value has a valid Luhn checksum
+func hasLuhnChecksum(fl FieldLevel) bool {
+	field := fl.Field()
+	var str string // convert to a string which will then be split into single digits; easier and more readable than shifting/extracting single digits from a number
+	switch field.Kind() {
+	case reflect.String:
+		str = field.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		str = strconv.FormatInt(field.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		str = strconv.FormatUint(field.Uint(), 10)
+	default:
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
-	return (sum % 10) == 0
+	size := len(str)
+	if size < 2 { // there has to be at least one digit that carries a meaning + the checksum
+		return false
+	}
+	digits := strings.Split(str, "")
+	return digitsHaveLuhnChecksum(digits)
 }
 
 // isCron is the validation function for validating if the current field's value is a valid cron expression

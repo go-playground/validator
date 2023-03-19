@@ -1357,6 +1357,13 @@ This validates that a string value contains a valid credit card number using Luh
 	Usage: credit_card
 
 
+# Luhn Checksum
+
+  	Usage: luhn_checksum
+
+This validates that a string or (u)int value contains a valid checksum using the Luhn algorithm.
+
+
 #MongoDb ObjectID
 
 This validates that a string is a valid 24 character hexadecimal string.
@@ -1372,6 +1379,7 @@ This validates that a string value contains a valid cron expression.
 
 Alias Validators and Tags
 
+Alias Validators and Tags
 NOTE: When returning an error, the tag returned in "FieldError" will be
 the alias tag unless the dive tag is part of the alias. Everything after the
 dive tag is not reported as the alias tag. Also, the "ActualTag" in the before
