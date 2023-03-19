@@ -12546,6 +12546,42 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 	}
 }
 
+func TestMongoDBObjectIDFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"mongodb"`
+		tag      string
+		expected bool
+	}{
+		{"507f191e810c19729de860ea", "mongodb", true},
+		{"507f191e810c19729de860eG", "mongodb", false},
+		{"M07f191e810c19729de860eG", "mongodb", false},
+		{"07f191e810c19729de860ea", "mongodb", false},
+		{"507f191e810c19729de860e", "mongodb", false},
+		{"507f191e810c19729de860ea4", "mongodb", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "mongodb" {
+					t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestCreditCardFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"credit_card"`

@@ -1332,6 +1332,13 @@ This validates that a string value contains a valid credit card number using Luh
 	Usage: credit_card
 
 
+#MongoDb ObjectID
+
+This validates that a string is a valid 24 character hexadecimal string.
+
+  Usage: mongodb
+
+
 # Cron
 
 This validates that a string value contains a valid cron expression.
