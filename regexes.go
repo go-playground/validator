@@ -65,6 +65,7 @@ const (
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
+	cronRegexString                  = `(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
 )
 
 var (
@@ -120,8 +121,6 @@ var (
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
 	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	ethAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
-	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
@@ -130,4 +129,5 @@ var (
 	bicRegex                   = regexp.MustCompile(bicRegexString)
 	semverRegex                = regexp.MustCompile(semverRegexString)
 	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
+	cronRegex                  = regexp.MustCompile(cronRegexString)
 )
