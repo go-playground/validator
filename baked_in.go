@@ -86,9 +86,9 @@ var (
 		"min":                           hasMinOf,
 		"max":                           hasMaxOf,
 		"eq":                            isEq,
-		"eqIgnoreCase":                  isEqIgnoreCase,
+		"eq_ignore_case":                isEqIgnoreCase,
 		"ne":                            isNe,
-		"neIgnoreCase":                  isNeIgnoreCase,
+		"ne_ignore_case":                isNeIgnoreCase,
 		"lt":                            isLt,
 		"lte":                           isLte,
 		"gt":                            isGt,
@@ -1272,7 +1272,7 @@ func isEq(fl FieldLevel) bool {
 }
 
 // isEqIgnoreCase is the validation function for validating if the current field's string value is
-//equal to the param's value.
+// equal to the param's value.
 // The comparison is case-insensitive.
 func isEqIgnoreCase(fl FieldLevel) bool {
 	field := fl.Field()

@@ -5213,15 +5213,15 @@ func TestIsNeIgnoreCaseValidation(t *testing.T) {
 	s := "abcd"
 	now := time.Now()
 
-	errs = validate.Var(s, "neIgnoreCase=efgh")
+	errs = validate.Var(s, "ne_ignore_case=efgh")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(s, "neIgnoreCase=AbCd")
+	errs = validate.Var(s, "ne_ignore_case=AbCd")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "neIgnoreCase")
+	AssertError(t, errs, "", "", "", "", "ne_ignore_case")
 
 	PanicMatches(
-		t, func() { _ = validate.Var(now, "eqIgnoreCase=abcd") }, "Bad field type time.Time",
+		t, func() { _ = validate.Var(now, "ne_ignore_case=abcd") }, "Bad field type time.Time",
 	)
 }
 
@@ -5508,14 +5508,14 @@ func TestIsEqIgnoreCaseValidation(t *testing.T) {
 	s := "abcd"
 	now := time.Now()
 
-	errs = validate.Var(s, "eqIgnoreCase=abcd")
+	errs = validate.Var(s, "eq_ignore_case=abcd")
 	Equal(t, errs, nil)
 
-	errs = validate.Var(s, "eqIgnoreCase=AbCd")
+	errs = validate.Var(s, "eq_ignore_case=AbCd")
 	Equal(t, errs, nil)
 
 	PanicMatches(
-		t, func() { _ = validate.Var(now, "eqIgnoreCase=abcd") }, "Bad field type time.Time",
+		t, func() { _ = validate.Var(now, "eq_ignore_case=abcd") }, "Bad field type time.Time",
 	)
 }
 
