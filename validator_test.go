@@ -2038,10 +2038,10 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
 	Equal(t, ok, false)
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
 	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.Map[key3]")
@@ -5207,6 +5207,24 @@ func TestIsNeValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsNeIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "ne_ignore_case=efgh")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "ne_ignore_case=AbCd")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "ne_ignore_case")
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "ne_ignore_case=abcd") }, "Bad field type time.Time",
+	)
+}
+
 func TestIsEqFieldValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -5484,6 +5502,23 @@ func TestIsEqValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsEqIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "eq_ignore_case=abcd")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "eq_ignore_case=AbCd")
+	Equal(t, errs, nil)
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "eq_ignore_case=abcd") }, "Bad field type time.Time",
+	)
+}
+
 func TestOneOfValidation(t *testing.T) {
 	validate := New()
 
@@ -5617,6 +5652,53 @@ func TestBase64URLValidation(t *testing.T) {
 	}
 }
 
+func TestBase64RawURLValidation(t *testing.T) {
+	validate := New()
+
+	testCases := []struct {
+		decoded, encoded string
+		success          bool
+	}{
+		// empty string, although a valid base64 string, should fail
+		{"", "", false},
+		// invalid length
+		{"", "a", false},
+		// base64 with padding should fail
+		{"f", "Zg==", false},
+		{"fo", "Zm8=", false},
+		// base64 without padding
+		{"foo", "Zm9v", true},
+		{"hello", "aGVsbG8", true},
+		{"", "aGVsb", false},
+		// // base64 URL safe encoding with invalid, special characters '+' and '/'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
+		// // base64 URL safe encoding with valid, special characters '-' and '_'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l-", true},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA_lz", true},
+		// non base64 characters
+		{"", "@mc=", false},
+		{"", "Zm 9", false},
+	}
+	for _, tc := range testCases {
+		err := validate.Var(tc.encoded, "base64rawurl")
+		if tc.success {
+			Equal(t, err, nil)
+			// make sure encoded value is decoded back to the expected value
+			d, innerErr := base64.RawURLEncoding.DecodeString(tc.encoded)
+			Equal(t, innerErr, nil)
+			Equal(t, tc.decoded, string(d))
+		} else {
+			NotEqual(t, err, nil)
+			if len(tc.encoded) > 0 {
+				// make sure that indeed the encoded value was faulty
+				_, err := base64.RawURLEncoding.DecodeString(tc.encoded)
+				NotEqual(t, err, nil)
+			}
+		}
+	}
+}
+
 func TestFileValidation(t *testing.T) {
 	validate := New()
 
@@ -5672,7 +5754,7 @@ func TestEthereumAddressValidation(t *testing.T) {
 		{"0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359", true},
 		{"0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB", true},
 		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
-		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", true}, // Invalid checksum, but valid address.
 
 		// Other.
 		{"", false},
@@ -5696,6 +5778,56 @@ func TestEthereumAddressValidation(t *testing.T) {
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestEthereumAddressChecksumValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		// All caps.
+		{"0x52908400098527886E0F7030069857D2E4169EE7", true},
+		{"0x8617E340B3D01FA5F11F306F4090FD50E238070D", true},
+
+		// All lower.
+		{"0x27b1fdb04752bbc536007a920d24acb045561c26", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+
+		// Mixed case: runs checksum validation.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dead", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dEaD", true},  // Valid checksum.
+
+		// Other.
+		{"", false},
+		{"D1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", false},    // Missing "0x" prefix.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDbc", false}, // More than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aD", false},   // Less than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDw", false},  // Invalid hex digit "w".
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr_checksum")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr_checksum" {
 					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 				}
 			}
@@ -7793,6 +7925,77 @@ func TestUrl(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
+func TestHttpUrl(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"HTTP://foobar.com", true},
+		{"https://foobar.com", true},
+		{"foobar.com", false},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", false},
+		{"file:///etc/passwd", false},
+		{"file://C:/windows/win.ini", false},
+		{"http://user:pass@www.foobar.com/", true},
+		{"http://127.0.0.1/", true},
+		{"http://duckduckgo.com/?q=%2F", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/?foo=bar#baz=qux", true},
+		{"http://foobar.com?foo=bar", true},
+		{"http://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"a://b", false},
+		{"xyz://foobar.com", false},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", false},
+		{"http://www.foo_bar.com/", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/#baz", true},
+		{"http://foobar.com#baz=qux", true},
+		{"http://foobar.com/t$-_.+!*\\'(),", true},
+		{"http://www.foobar.com/~foobar", true},
+		{"http://www.-foobar.com/", true},
+		{"http://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", false},
+		{"irc://irc.server.org/channel", false},
+		{"irc://#channel@network", false},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
+}
+
 func TestUri(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -9805,6 +10008,12 @@ func TestUniqueValidation(t *testing.T) {
 		{map[string]string{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("a")}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("b")}, true},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(1)}, false},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(2)}, true},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.1)}, false},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.2)}, true},
 	}
 
 	validate := New()
@@ -9829,6 +10038,41 @@ func TestUniqueValidation(t *testing.T) {
 		}
 	}
 	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
+
+	t.Run("struct", func(t *testing.T) {
+		tests := []struct {
+			param    interface{}
+			expected bool
+		}{
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "bcd"}, true},
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "abc"}, false},
+		}
+		validate := New()
+
+		for i, test := range tests {
+			errs := validate.Struct(test.param)
+			if test.expected {
+				if !IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			} else {
+				if IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				} else {
+					val := getError(errs, "A", "A")
+					if val.Tag() != "unique" {
+						t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+					}
+				}
+			}
+		}
+	})
 }
 
 func TestUniqueValidationStructSlice(t *testing.T) {
@@ -9881,6 +10125,7 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	}{
 		{A: stringPtr("one"), B: stringPtr("two")},
 		{A: stringPtr("one"), B: stringPtr("three")},
+		{},
 	}
 
 	tests := []struct {
@@ -11174,7 +11419,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "notest",
+		FieldE:  "test",
 		FieldER: "filled",
 	}
 	errs := validate.Struct(test)
@@ -11184,7 +11429,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "test",
+		FieldE:  "notest",
 		FieldER: "filled",
 	}
 	errs = validate.Struct(test2)
@@ -11193,7 +11438,26 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_unless")
 
-	shouldError := "test"
+	// test5 and test6: excluded_unless has no effect if FieldER is left blank
+	test5 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test5)
+	Equal(t, errs, nil)
+
+	test6 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE: "notest",
+	}
+	errs = validate.Struct(test6)
+	Equal(t, errs, nil)
+
+	shouldError := "notest"
 	test3 := struct {
 		Inner  *Inner
 		Field1 string `validate:"excluded_unless=Inner.Field test" json:"field_1"`
@@ -11207,7 +11471,7 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_unless")
 
-	shouldPass := "shouldPass"
+	shouldPass := "test"
 	test4 := struct {
 		Inner  *Inner
 		FieldE string `validate:"omitempty" json:"field_e"`
@@ -11217,6 +11481,26 @@ func TestExcludedUnless(t *testing.T) {
 		Field1: "filled",
 	}
 	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	// test7 and test8: excluded_unless has no effect if FieldER is left blank
+	test7 := struct {
+		Inner   *Inner
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=Inner.Field test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test7)
+	Equal(t, errs, nil)
+
+	test8 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=Inner.Field test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test8)
 	Equal(t, errs, nil)
 
 	// Checks number of params in struct tag is correct
@@ -12355,6 +12639,40 @@ func TestMultiOrOperatorGroup(t *testing.T) {
 		} else {
 			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d multi_group_of_OR_operators should have errs", i)
+			}
+		}
+	}
+}
+
+func TestCronExpressionValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"cron"`
+		tag      string
+		expected bool
+	}{
+		{"0 0 12 * * ?", "cron", true},
+		{"0 15 10 ? * *", "cron", true},
+		{"0 15 10 * * ?", "cron", true},
+		{"0 15 10 * * ? 2005", "cron", true},
+		{"0 15 10 ? * 6L", "cron", true},
+		{"0 15 10 ? * 6L 2002-2005", "cron", true},
+		{"*/20 * * * *", "cron", true},
+		{"0 15 10 ? * MON-FRI", "cron", true},
+		{"0 15 10 ? * 6#3", "cron", true},
+		{"wrong", "cron", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" failed Error: %s`, i, test.value, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" should have errs`, i, test.value)
 			}
 		}
 	}
