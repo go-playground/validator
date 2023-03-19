@@ -1350,6 +1350,15 @@ More information on https://semver.org/
 
 	Usage: semver
 
+
+# CVE Identifier
+
+This validates that a string value is a valid cve id, defined in cve mitre.
+More information on https://cve.mitre.org/
+
+	Usage: cve
+
+
 # Credit Card
 
 This validates that a string value contains a valid credit card number using Luhn algoritm.
