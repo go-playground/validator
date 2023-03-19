@@ -5207,6 +5207,24 @@ func TestIsNeValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsNeIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "neIgnoreCase=efgh")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "neIgnoreCase=AbCd")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "neIgnoreCase")
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "eqIgnoreCase=abcd") }, "Bad field type time.Time",
+	)
+}
+
 func TestIsEqFieldValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -5482,6 +5500,23 @@ func TestIsEqValidation(t *testing.T) {
 	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
 	Equal(t, errs, nil)
+}
+
+func TestIsEqIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "eqIgnoreCase=abcd")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "eqIgnoreCase=AbCd")
+	Equal(t, errs, nil)
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "eqIgnoreCase=abcd") }, "Bad field type time.Time",
+	)
 }
 
 func TestOneOfValidation(t *testing.T) {
