@@ -5672,7 +5672,7 @@ func TestEthereumAddressValidation(t *testing.T) {
 		{"0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359", true},
 		{"0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB", true},
 		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
-		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", true}, // Invalid checksum, but valid address.
 
 		// Other.
 		{"", false},
@@ -5696,6 +5696,56 @@ func TestEthereumAddressValidation(t *testing.T) {
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestEthereumAddressChecksumValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		// All caps.
+		{"0x52908400098527886E0F7030069857D2E4169EE7", true},
+		{"0x8617E340B3D01FA5F11F306F4090FD50E238070D", true},
+
+		// All lower.
+		{"0x27b1fdb04752bbc536007a920d24acb045561c26", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+
+		// Mixed case: runs checksum validation.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dead", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dEaD", true},  // Valid checksum.
+
+		// Other.
+		{"", false},
+		{"D1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", false},    // Missing "0x" prefix.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDbc", false}, // More than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aD", false},   // Less than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDw", false},  // Invalid hex digit "w".
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr_checksum")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr_checksum" {
 					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 				}
 			}
