@@ -315,11 +315,17 @@ func isUnique(fl FieldLevel) bool {
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
-		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+		var m reflect.Value
+		if field.Type().Elem().Kind() == reflect.Ptr {
+			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem().Elem(), v.Type()))
+		} else {
+			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
+		}
 
 		for _, k := range field.MapKeys() {
-			m.SetMapIndex(field.MapIndex(k), v)
+			m.SetMapIndex(reflect.Indirect(field.MapIndex(k)), v)
 		}
+
 		return field.Len() == m.Len()
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
