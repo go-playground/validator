@@ -1323,6 +1323,12 @@ This validates that a string value contains a valid credit card number using Luh
 
 	Usage: credit_card
 
+Cron
+
+This validates that a string value contains a valid cron expression.
+
+	Usage: cron
+
 Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be

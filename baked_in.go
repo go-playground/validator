@@ -218,6 +218,7 @@ var (
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
+		"cron":                          isCron,
 	}
 )
 
@@ -2578,4 +2579,10 @@ func isCreditCard(fl FieldLevel) bool {
 		}
 	}
 	return (sum % 10) == 0
+}
+
+// isCron is the validation function for validating if the current field's value is a valid cron expression
+func isCron(fl FieldLevel) bool {
+	cronString := fl.Field().String()
+	return cronRegex.MatchString(cronString)
 }
