@@ -19,6 +19,7 @@ const (
 	e164RegexString                  = "^\\+[1-9]?[0-9]{7,14}$"
 	base64RegexString                = "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$"
 	base64URLRegexString             = "^(?:[A-Za-z0-9-_]{4})*(?:[A-Za-z0-9-_]{2}==|[A-Za-z0-9-_]{3}=|[A-Za-z0-9-_]{4})$"
+	base64RawURLRegexString          = "^(?:[A-Za-z0-9-_]{4})*(?:[A-Za-z0-9-_]{2,4})$"
 	iSBN10RegexString                = "^(?:[0-9]{9}X|[0-9]{10})$"
 	iSBN13RegexString                = "^(?:(?:97(?:8|9))[0-9]{10})$"
 	uUID3RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$"
@@ -64,6 +65,8 @@ const (
 	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
+	mongodbRegexString               = "^[a-f\\d]{24}$"
+	cronRegexString                  = `(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
 )
 
 var (
@@ -83,6 +86,7 @@ var (
 	emailRegex                 = regexp.MustCompile(emailRegexString)
 	base64Regex                = regexp.MustCompile(base64RegexString)
 	base64URLRegex             = regexp.MustCompile(base64URLRegexString)
+	base64RawURLRegex          = regexp.MustCompile(base64RawURLRegexString)
 	iSBN10Regex                = regexp.MustCompile(iSBN10RegexString)
 	iSBN13Regex                = regexp.MustCompile(iSBN13RegexString)
 	uUID3Regex                 = regexp.MustCompile(uUID3RegexString)
@@ -118,8 +122,6 @@ var (
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
 	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	ethAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
-	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
@@ -128,4 +130,6 @@ var (
 	bicRegex                   = regexp.MustCompile(bicRegexString)
 	semverRegex                = regexp.MustCompile(semverRegexString)
 	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
+	mongodbRegex               = regexp.MustCompile(mongodbRegexString)
+	cronRegex                  = regexp.MustCompile(cronRegexString)
 )

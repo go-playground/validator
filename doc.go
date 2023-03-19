@@ -230,16 +230,16 @@ require another 'keys' and 'endkeys' tag. These tags are only valid for maps.
 
 Example #1
 
-	map[string]string with validation tag "gt=0,dive,keys,eg=1|eq=2,endkeys,required"
+	map[string]string with validation tag "gt=0,dive,keys,eq=1|eq=2,endkeys,required"
 	// gt=0 will be applied to the map itself
-	// eg=1|eq=2 will be applied to the map keys
+	// eq=1|eq=2 will be applied to the map keys
 	// required will be applied to map values
 
 Example #2
 
 	map[[2]string]string with validation tag "gt=0,dive,keys,dive,eq=1|eq=2,endkeys,required"
 	// gt=0 will be applied to the map itself
-	// eg=1|eq=2 will be applied to each array element in the the map keys
+	// eq=1|eq=2 will be applied to each array element in the the map keys
 	// required will be applied to map values
 
 # Required
@@ -863,6 +863,7 @@ This validates that a string value is a valid JWT
 
 	Usage: jwt
 
+
 # File
 
 This validates that a string value contains a valid file path and that
@@ -871,6 +872,7 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: file
 
+
 # File Path
 
 This validates that a string value contains a valid file path but does not
@@ -878,6 +880,7 @@ validate the existence of that file.
 This is done using os.Stat, which is a platform independent function.
 
 	Usage: filepath
+
 
 # URL String
 
@@ -919,6 +922,18 @@ an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
 
 	Usage: base64url
+
+
+# Base64RawURL String
+
+This validates that a string value contains a valid base64 URL safe value,
+but without = padding, according the the RFC4648 spec, section 3.2.
+Although an empty string is a valid base64 URL safe value, this will report
+an empty string as an error, if you wish to accept an empty string as valid
+you can use this with the omitempty tag.
+
+	Usage: base64url
+
 
 # Bitcoin Address
 
@@ -1252,6 +1267,7 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: dir
 
+
 # Directory Path
 
 This validates that a string value contains a valid directory but does
@@ -1261,6 +1277,7 @@ It is safest to suffix the string with os.PathSeparator if the directory
 may not exist at the time of validation.
 
 	Usage: dirpath
+
 
 # HostPort
 
@@ -1339,7 +1356,21 @@ This validates that a string value contains a valid credit card number using Luh
 
 	Usage: credit_card
 
-# Alias Validators and Tags
+
+#MongoDb ObjectID
+
+This validates that a string is a valid 24 character hexadecimal string.
+
+  Usage: mongodb
+
+
+# Cron
+
+This validates that a string value contains a valid cron expression.
+
+	Usage: cron
+
+Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
 the alias tag unless the dive tag is part of the alias. Everything after the
