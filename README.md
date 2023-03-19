@@ -73,8 +73,8 @@ Baked-in Validations
 | - | - |
 | eqcsfield | Field Equals Another Field (relative)|
 | eqfield | Field Equals Another Field |
-| fieldcontains | NOT DOCUMENTED IN doc.go |
-| fieldexcludes | NOT DOCUMENTED IN doc.go |
+| fieldcontains | Check the indicated characters are present in the Field |
+| fieldexcludes | Check the indicated characters are not present in the field |
 | gtcsfield | Field Greater Than Another Relative Field |
 | gtecsfield | Field Greater Than or Equal To Another Relative Field |
 | gtefield | Field Greater Than or Equal To Another Field |
@@ -130,14 +130,14 @@ Baked-in Validations
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
-| endsnotwith | Ends Not With |
+| ends\with | Ends Not With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
 | excludesrune | Excludes Rune |
 | lowercase | Lowercase |
 | multibyte | Multi-Byte Characters |
-| number | NOT DOCUMENTED IN doc.go |
+| number | Number |
 | numeric | Numeric |
 | printascii | Printable ASCII |
 | startsnotwith | Starts Not With |
