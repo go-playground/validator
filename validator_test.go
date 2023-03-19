@@ -9991,6 +9991,41 @@ func TestUniqueValidation(t *testing.T) {
 		}
 	}
 	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
+
+	t.Run("struct", func(t *testing.T) {
+		tests := []struct {
+			param    interface{}
+			expected bool
+		}{
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "bcd"}, true},
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "abc"}, false},
+		}
+		validate := New()
+
+		for i, test := range tests {
+			errs := validate.Struct(test.param)
+			if test.expected {
+				if !IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			} else {
+				if IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				} else {
+					val := getError(errs, "A", "A")
+					if val.Tag() != "unique" {
+						t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+					}
+				}
+			}
+		}
+	})
 }
 
 func TestUniqueValidationStructSlice(t *testing.T) {
