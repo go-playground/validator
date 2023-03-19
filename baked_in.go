@@ -123,6 +123,7 @@ var (
 		"e164":                          isE164,
 		"email":                         isEmail,
 		"url":                           isURL,
+		"http_url":                      isHttpURL,
 		"uri":                           isURI,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
@@ -1398,6 +1399,23 @@ func isURL(fl FieldLevel) bool {
 		}
 
 		return true
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isHttpURL is the validation function for validating if the current field's value is a valid HTTP(s) URL.
+func isHttpURL(fl FieldLevel) bool {
+	if !isURL(fl) {
+		return false
+	}
+
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.String:
+
+		s := strings.ToLower(field.String())
+		return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
