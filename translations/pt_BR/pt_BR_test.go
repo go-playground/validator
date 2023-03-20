@@ -577,15 +577,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString é um campo requerido",
+			expected: "RequiredString é um campo obrigatório",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber é um campo requerido",
+			expected: "RequiredNumber é um campo obrigatório",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple é um campo requerido",
+			expected: "RequiredMultiple é um campo obrigatório",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
