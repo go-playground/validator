@@ -1,20 +1,19 @@
-package es
+package lv
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	spanish "github.com/go-playground/locales/es"
+	english "github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
-
-	spa := spanish.New()
-	uni := ut.New(spa, spa)
-	trans, _ := uni.GetTranslator("es")
+	eng := english.New()
+	uni := ut.New(eng, eng)
+	trans, _ := uni.GetTranslator("en")
 
 	validate := validator.New()
 
@@ -28,6 +27,7 @@ func TestTranslations(t *testing.T) {
 		GteCSFieldString string
 		LtCSFieldString  string
 		LteCSFieldString string
+		RequiredIf       string
 	}
 
 	type Test struct {
@@ -143,7 +143,15 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
-		Image			  string			`validate:"image"`
+		JSONString        string            `validate:"json"`
+		JWTString         string            `validate:"jwt"`
+		LowercaseString   string            `validate:"lowercase"`
+		UppercaseString   string            `validate:"uppercase"`
+		Datetime          string            `validate:"datetime=2006-01-02"`
+		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry   string
+		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString     string `validate:"boolean"`
 	}
 
 	var test Test
@@ -186,12 +194,19 @@ func TestTranslations(t *testing.T) {
 
 	test.MultiByte = "1234feerf"
 
+	test.LowercaseString = "ABCDEFG"
+	test.UppercaseString = "abcdefg"
+
 	s := "toolong"
 	test.StrPtrMaxLen = &s
 	test.StrPtrLen = &s
 
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
+	test.Datetime = "2008-Feb-01"
+	test.BooleanString = "A"
+
+	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -205,443 +220,475 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor debe ser un color válido",
+			expected: "IsColor jābūt derīgai krāsai",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC debe contener una dirección MAC válida",
+			expected: "MAC jābūt derīgai MAC adresei",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr debe ser una dirección IP resoluble",
+			expected: "IPAddr jābūt atrisināmai IP adresei",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 debe ser una dirección IPv4 resoluble",
+			expected: "IPAddrv4 jābūt atrisināmai IPv4 adresei",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 debe ser una dirección IPv6 resoluble",
+			expected: "IPAddrv6 jābūt atrisināmai IPv6 adresei",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr debe ser una dirección UDP válida",
+			expected: "UDPAddr jābūt derīgai UDP adresei",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 debe ser una dirección IPv4 UDP válida",
+			expected: "UDPAddrv4 jābūt derīgai IPv4 UDP adresei",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 debe ser una dirección IPv6 UDP válida",
+			expected: "UDPAddrv6 jābūt derīgai IPv6 UDP adresei",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr debe ser una dirección TCP válida",
+			expected: "TCPAddr jābūt derīgai TCP adresei",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 debe ser una dirección IPv4 TCP válida",
+			expected: "TCPAddrv4 jābūt derīgai IPv4 TCP adresei",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 debe ser una dirección IPv6 TCP válida",
+			expected: "TCPAddrv6 jābūt derīgai IPv6 TCP adresei",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR debe contener una anotación válida del CIDR",
+			expected: "CIDR jāsatur derīgu CIDR notāciju",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 debe contener una notación CIDR válida para una dirección IPv4",
+			expected: "CIDRv4 jāsatur derīgu CIDR notāciju IPv4 adresei",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 debe contener una notación CIDR válida para una dirección IPv6",
+			expected: "CIDRv6 jāsatur derīgu CIDR notāciju IPv6 adresei",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN debe ser un número válido de SSN",
+			expected: "SSN jābūt derīgam SSN numuram",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP debe ser una dirección IP válida",
+			expected: "IP jābūt derīgai IP adresei",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 debe ser una dirección IPv4 válida",
+			expected: "IPv4 jābūt derīgai IPv4 adresei",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 debe ser una dirección IPv6 válida",
+			expected: "IPv6 jābūt derīgai IPv6 adresei",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI debe contener un URI de datos válido",
+			expected: "DataURI jāsatur derīgs Data URI",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude debe contener coordenadas de latitud válidas",
+			expected: "Latitude jāsatur derīgus platuma grādus",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude debe contener unas coordenadas de longitud válidas",
+			expected: "Longitude jāsatur derīgus garuma grādus",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte debe contener caracteres multibyte",
+			expected: "MultiByte jāsatur multibyte rakstu zīmes",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII debe contener sólo caracteres ascii",
+			expected: "ASCII jāsatur tikai ascii rakstu zīmes",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII debe contener sólo caracteres ASCII imprimibles",
+			expected: "PrintableASCII jāsatur tikai drukājamas ascii rakstu zīmes",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID debe ser un UUID válido",
+			expected: "UUID jābūt derīgam UUID",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 debe ser una versión válida 3 UUID",
+			expected: "UUID3 jābūt derīgam 3. versijas UUID",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 debe ser una versión válida 4 UUID",
+			expected: "UUID4 jābūt derīgam 4. versijas UUID",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 debe ser una versión válida 5 UUID",
+			expected: "UUID5 jābūt derīgam 5. versijas UUID",
 		},
 		{
 			ns:       "Test.ULID",
-			expected: "ULID debe ser un ULID válido",
+			expected: "ULID jābūt derīgam ULID",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN debe ser un número ISBN válido",
+			expected: "ISBN jābūt derīgam ISBN numuram",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 debe ser un número ISBN-10 válido",
+			expected: "ISBN10 jābūt derīgam ISBN-10 numuram",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 debe ser un número ISBN-13 válido",
+			expected: "ISBN13 jābūt derīgam ISBN-13 numuram",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes no puede contener el texto 'text'",
+			expected: "Excludes nedrīkst saturēt tekstu 'text'",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll no puede contener ninguno de los siguientes caracteres '!@#$'",
+			expected: "ExcludesAll nedrīkst saturēt nevienu no sekojošām rakstu zīmēm '!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune no puede contener lo siguiente '☻'",
+			expected: "ExcludesRune nedrīkst saturēt sekojošo '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny debe contener al menos uno de los siguientes caracteres '!@#$'",
+			expected: "ContainsAny jāsatur minimums 1 no rakstu zīmēm '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains debe contener el texto 'purpose'",
+			expected: "Contains jāsatur teksts 'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 debe ser una cadena de Base64 válida",
+			expected: "Base64 jābūt derīgai Base64 virknei",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email debe ser una dirección de correo electrónico válida",
+			expected: "Email jābūt derīgai e-pasta adresei",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL debe ser un URL válido",
+			expected: "URL jābūt derīgam URL",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI debe ser una URI válida",
+			expected: "URI jābūt derīgam URI",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString debe ser un color RGB válido",
+			expected: "RGBColorString jābūt derīgai RGB krāsai",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString debe ser un color RGBA válido",
+			expected: "RGBAColorString jābūt derīgai RGBA krāsai",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString debe ser un color HSL válido",
+			expected: "HSLColorString jābūt derīgai HSL krāsai",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString debe ser un color HSL válido",
+			expected: "HSLAColorString jābūt derīgai HSLA krāsai",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString debe ser un hexadecimal válido",
+			expected: "HexadecimalString jābūt heksadecimālam skaitlim",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString debe ser un color HEX válido",
+			expected: "HexColorString jābūt derīgai HEX krāsai",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString debe ser un número válido",
+			expected: "NumberString jāsatur derīgs skaitlis",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString debe ser un valor numérico válido",
+			expected: "NumericString jāsatur tikai cipari",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString sólo puede contener caracteres alfanuméricos",
+			expected: "AlphanumString jāsatur tikai simboli no alfabēta vai cipari (Alphanumeric)",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString sólo puede contener caracteres alfabéticos",
+			expected: "AlphaString jāsatur tikai simboli no alfabēta",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString debe ser menor que MaxString",
+			expected: "LtFieldString jābūt mazākam par MaxString",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString debe ser menor o igual a MaxString",
+			expected: "LteFieldString jābūt mazākam par MaxString vai vienādam",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString debe ser mayor que MaxString",
+			expected: "GtFieldString jābūt lielākam par MaxString",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString debe ser mayor o igual a MaxString",
+			expected: "GteFieldString jābūt lielākam par MaxString vai vienādam",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString no puede ser igual a EqFieldString",
+			expected: "NeFieldString nedrīkst būt vienāds ar EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString debe ser menor que Inner.LtCSFieldString",
+			expected: "LtCSFieldString jābūt mazākam par Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString debe ser menor o igual a Inner.LteCSFieldString",
+			expected: "LteCSFieldString jābūt mazākam par Inner.LteCSFieldString vai vienādam",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString debe ser mayor que Inner.GtCSFieldString",
+			expected: "GtCSFieldString jābūt lielākam par Inner.GtCSFieldString",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString debe ser mayor o igual a Inner.GteCSFieldString",
+			expected: "GteCSFieldString jābūt lielākam par Inner.GteCSFieldString vai vienādam",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString no puede ser igual a Inner.NeCSFieldString",
+			expected: "NeCSFieldString nedrīkst būt vienāds ar Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString debe ser igual a Inner.EqCSFieldString",
+			expected: "EqCSFieldString jābūt vienādam ar Inner.EqCSFieldString",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString debe ser igual a MaxString",
+			expected: "EqFieldString jābūt vienādam ar MaxString",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString debe tener al menos 3 caracteres de longitud",
+			expected: "GteString garumam jābūt minimums 3 rakstu zīmes",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber debe ser 5,56 o mayor",
+			expected: "GteNumber jābūt 5.56 vai lielākam",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple debe contener al menos 2 elementos",
+			expected: "GteMultiple jāsatur minimums 2 elementi",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime debe ser después o durante la fecha y hora actuales",
+			expected: "GteTime jābūt lielākam par šī brīža Datumu un laiku vai vienādam",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString debe ser mayor que 3 caracteres en longitud",
+			expected: "GtString ir jābūt garākam par 3 rakstu zīmēm",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber debe ser mayor que 5,56",
+			expected: "GtNumber jābūt lielākam par 5.56",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple debe contener más de 2 elementos",
+			expected: "GtMultiple jāsatur vairāk par 2 elementiem",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime debe ser después de la fecha y hora actual",
+			expected: "GtTime jābūt lielākam par šī brīža Datumu un laiku",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString debe tener un máximo de 3 caracteres de longitud",
+			expected: "LteString garumam jābūt maksimums 3 rakstu zīmes",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber debe ser 5,56 o menos",
+			expected: "LteNumber jābūt 5.56 vai mazākam",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple debe contener como máximo 2 elementos",
+			expected: "LteMultiple jāsatur maksimums 2 elementi",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime debe ser antes o durante la fecha y hora actual",
+			expected: "LteTime jābūt mazākam par šī brīža Datumu un laiku vai vienādam",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString debe tener menos de 3 caracteres de longitud",
+			expected: "LtString garumam jābūt mazākam par 3 rakstu zīmēm",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber debe ser menos de 5,56",
+			expected: "LtNumber jābūt mazākam par 5.56",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple debe contener menos de 2 elementos",
+			expected: "LtMultiple jāsatur mazāk par 2 elementiem",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime debe ser antes de la fecha y hora actual",
+			expected: "LtTime jābūt mazākam par šī brīža Datumu un laiku",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString no debería ser igual a ",
+			expected: "NeString nedrīkst būt vienāds ar ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber no debería ser igual a 0.00",
+			expected: "NeNumber nedrīkst būt vienāds ar 0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple no debería ser igual a 0",
+			expected: "NeMultiple nedrīkst būt vienāds ar 0",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString no es igual a 3",
+			expected: "EqString nav vienāds ar 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber no es igual a 2.33",
+			expected: "EqNumber nav vienāds ar 2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple no es igual a 7",
+			expected: "EqMultiple nav vienāds ar 7",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString debe tener un máximo de 3 caracteres de longitud",
+			expected: "MaxString vērtība pārsniedz maksimālo garumu 3 rakstu zīmes",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber debe ser 1.113,00 o menos",
+			expected: "MaxNumber vērtībai jābūt 1,113.00 vai mazākai",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple debe contener como máximo 7 elementos",
+			expected: "MaxMultiple jāsatur maksimums 7 elementi",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString debe tener al menos 1 carácter de longitud",
+			expected: "MinString garumam jābūt minimums 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber debe ser 1.113,00 o más",
+			expected: "MinNumber vērtībai jābūt 1,113.00 vai lielākai",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple debe contener al menos 7 elementos",
+			expected: "MinMultiple jāsatur minimums 7 elementi",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString debe tener 1 carácter de longitud",
+			expected: "LenString garumam jābūt 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber debe ser igual a 1.113,00",
+			expected: "LenNumber vērtībai jābūt 1,113.00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple debe contener 7 elementos",
+			expected: "LenMultiple vērtībai jāsatur 7 elementi",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString es un campo requerido",
+			expected: "RequiredString ir obligāts lauks",
+		},
+		{
+			ns:       "Test.RequiredIf",
+			expected: "RequiredIf ir obligāts lauks",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber es un campo requerido",
+			expected: "RequiredNumber ir obligāts lauks",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple es un campo requerido",
+			expected: "RequiredMultiple ir obligāts lauks",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen debe tener al menos 10 caracteres de longitud",
+			expected: "StrPtrMinLen garumam jābūt minimums 10 rakstu zīmes",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen debe tener un máximo de 1 carácter de longitud",
+			expected: "StrPtrMaxLen vērtība pārsniedz maksimālo garumu 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen debe tener 2 caracteres de longitud",
+			expected: "StrPtrLen garumam jābūt 2 rakstu zīmes",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt debe tener menos de 1 carácter de longitud",
+			expected: "StrPtrLt garumam jābūt mazākam par 1 rakstu zīmi",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte debe tener un máximo de 1 carácter de longitud",
+			expected: "StrPtrLte garumam jābūt maksimums 1 rakstu zīme",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt debe ser mayor que 10 caracteres en longitud",
+			expected: "StrPtrGt ir jābūt garākam par 10 rakstu zīmēm",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte debe tener al menos 10 caracteres de longitud",
+			expected: "StrPtrGte garumam jābūt minimums 10 rakstu zīmes",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString debe ser uno de [red green]",
+			expected: "OneOfString jābūt vienam no [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt debe ser uno de [5 63]",
+			expected: "OneOfInt jābūt vienam no [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice debe contener valores únicos",
+			expected: "UniqueSlice jāsatur unikālas vērtības",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray debe contener valores únicos",
+			expected: "UniqueArray jāsatur unikālas vērtības",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap debe contener valores únicos",
+			expected: "UniqueMap jāsatur unikālas vērtības",
 		},
 		{
-			ns: "Test.Image",
-			expected: "Image debe ser una imagen válida",
+			ns:       "Test.JSONString",
+			expected: "JSONString jābūt derīgai json virknei",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString jābūt derīgai jwt virknei",
+		},
+		{
+			ns:       "Test.LowercaseString",
+			expected: "LowercaseString jābūt mazo burtu virknei",
+		},
+		{
+			ns:       "Test.UppercaseString",
+			expected: "UppercaseString jābūt lielo burtu virknei",
+		},
+		{
+			ns:       "Test.Datetime",
+			expected: "Datetime neatbilst formātam 2006-01-02",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode neatbilst pasta indeksa formātam valstī SG",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField neatbilst pasta indeksa formātam valstī, kura norādīta laukā PostCodeCountry",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString jābūt derīgai boolean vērtībai",
 		},
 	}
 
@@ -659,5 +706,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

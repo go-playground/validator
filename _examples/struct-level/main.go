@@ -1,12 +1,43 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
+
+type validationError struct {
+	Namespace       string `json:"namespace"` // can differ when a custom TagNameFunc is registered or
+	Field           string `json:"field"`     // by passing alt name to ReportError like below
+	StructNamespace string `json:"structNamespace"`
+	StructField     string `json:"structField"`
+	Tag             string `json:"tag"`
+	ActualTag       string `json:"actualTag"`
+	Kind            string `json:"kind"`
+	Type            string `json:"type"`
+	Value           string `json:"value"`
+	Param           string `json:"param"`
+	Message         string `json:"message"`
+}
+
+type Gender uint
+
+const (
+	Male Gender = iota + 1
+	Female
+	Intersex
+)
+
+func (gender Gender) String() string {
+	terms := []string{"Male", "Female", "Intersex"}
+	if gender < Male || gender > Intersex {
+		return "unknown"
+	}
+	return terms[gender]
+}
 
 // User contains user information
 type User struct {
@@ -16,6 +47,7 @@ type User struct {
 	Email          string     `json:"e-mail" validate:"required,email"`
 	FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
+	Gender         Gender     `json:"gender" validate:"required,gender_custom_validation"`
 }
 
 // Address houses a users address information
@@ -47,6 +79,17 @@ func main() {
 	// internally dereferences during it's type checks.
 	validate.RegisterStructValidation(UserStructLevelValidation, User{})
 
+	// register a custom validation for user genre on a line
+	// validates that an enum is within the interval
+	err := validate.RegisterValidation("gender_custom_validation", func(fl validator.FieldLevel) bool {
+		value := fl.Field().Interface().(Gender)
+		return value.String() != "unknown"
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	// build 'User' info, normally posted data etc...
 	address := &Address{
 		Street: "Eavesdown Docks",
@@ -65,7 +108,7 @@ func main() {
 	}
 
 	// returns InvalidValidationError for bad validation input, nil or ValidationErrors ( []FieldError )
-	err := validate.Struct(user)
+	err = validate.Struct(user)
 	if err != nil {
 
 		// this check is only needed when your code could produce
@@ -77,18 +120,27 @@ func main() {
 		}
 
 		for _, err := range err.(validator.ValidationErrors) {
+			e := validationError{
+				Namespace:       err.Namespace(),
+				Field:           err.Field(),
+				StructNamespace: err.StructNamespace(),
+				StructField:     err.StructField(),
+				Tag:             err.Tag(),
+				ActualTag:       err.ActualTag(),
+				Kind:            fmt.Sprintf("%v", err.Kind()),
+				Type:            fmt.Sprintf("%v", err.Type()),
+				Value:           fmt.Sprintf("%v", err.Value()),
+				Param:           err.Param(),
+				Message:         err.Error(),
+			}
 
-			fmt.Println(err.Namespace()) // can differ when a custom TagNameFunc is registered or
-			fmt.Println(err.Field())     // by passing alt name to ReportError like below
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println()
+			indent, err := json.MarshalIndent(e, "", "  ")
+			if err != nil {
+				fmt.Println(err)
+				panic(err)
+			}
+
+			fmt.Println(string(indent))
 		}
 
 		// from here you can create your own error messages in whatever language you wish
