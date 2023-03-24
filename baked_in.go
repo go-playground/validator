@@ -1490,7 +1490,7 @@ func isFile(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// isImage is the validation funciton for validating if the current field's value contains the path to a valid image file
+// isImage is the validation function for validating if the current field's value contains the path to a valid image file
 func isImage(fl FieldLevel) bool {
 	mimetypes := map[string]bool{
 		"image/bmp":                true,
@@ -1533,7 +1533,7 @@ func isImage(fl FieldLevel) bool {
 			return false
 		}
 
-		file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
+		file, err := os.Open(filePath)
 		if err != nil {
 			return false
 		}
@@ -1552,9 +1552,8 @@ func isImage(fl FieldLevel) bool {
 		if _, ok := mimetypes[mime.String()]; ok {
 			return true
 		}
-
-		return false
 	}
+	return false
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
