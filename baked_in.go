@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,8 +22,6 @@ import (
 
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
-
-	"github.com/leodido/go-urn"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -1453,6 +1452,9 @@ func isHttpURL(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
+var rfc2141Regex = regexp.MustCompile(`(?i)urn:[A-Za-z0-9][A-Za-z0-9-]{0,31}:([A-Za-z0-9()+,\-.:=@;$_!*']|%[0-9A-Fa-f]{2})+`)
+var whitespacePresent = regexp.MustCompile(`\s+`)
+
 // isUrnRFC2141 is the validation function for validating if the current field's value is a valid URN as per RFC 2141.
 func isUrnRFC2141(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1462,9 +1464,18 @@ func isUrnRFC2141(fl FieldLevel) bool {
 
 		str := field.String()
 
-		_, match := urn.Parse([]byte(str))
+		if whitespacePresent.MatchString(str) {
+			return false
+		}
 
-		return match
+		match := rfc2141Regex.FindString(str)
+		tokens := strings.Split(match, ":")
+		if len(tokens) > 1 {
+			if strings.ToLower(tokens[1]) == "urn" {
+				return false
+			}
+		}
+		return match != ""
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
