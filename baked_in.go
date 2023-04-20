@@ -928,7 +928,7 @@ func isNe(fl FieldLevel) bool {
 	return !isEq(fl)
 }
 
-// isNe is the validation function for validating that the field's string value does not equal the
+// isNeIgnoreCase is the validation function for validating that the field's string value does not equal the
 // provided param value. The comparison is case-insensitive
 func isNeIgnoreCase(fl FieldLevel) bool {
 	return !isEqIgnoreCase(fl)
@@ -1648,7 +1648,7 @@ func hasValue(fl FieldLevel) bool {
 	}
 }
 
-// requireCheckField is a func for check field kind
+// requireCheckFieldKind is a func for check field kind
 func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
 	field := fl.Field()
 	kind := field.Kind()
@@ -2593,13 +2593,13 @@ func isIso3166Alpha2(fl FieldLevel) bool {
 	return iso3166_1_alpha2[val]
 }
 
-// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
+// isIso3166Alpha3 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
 func isIso3166Alpha3(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return iso3166_1_alpha3[val]
 }
 
-// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
+// isIso3166AlphaNumeric is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
 func isIso3166AlphaNumeric(fl FieldLevel) bool {
 	field := fl.Field()
 
