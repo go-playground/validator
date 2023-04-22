@@ -24,7 +24,7 @@ func TestNotBlank(t *testing.T) {
 	// Errors
 	var x *int
 	invalid := test{
-		String:    " ",
+		String:    " \x1c\x1d\x1e\x1f\r\n",
 		Array:     []int{},
 		Pointer:   x,
 		Number:    0,

@@ -35,6 +35,7 @@ func TestTranslations(t *testing.T) {
 		RequiredString    string            `validate:"required"`
 		RequiredNumber    int               `validate:"required"`
 		RequiredMultiple  []string          `validate:"required"`
+		RequiredIf        string            `validate:"required_if=Inner.RequiredIf abcd"`
 		LenString         string            `validate:"len=1"`
 		LenNumber         float64           `validate:"len=1113.00"`
 		LenMultiple       []string          `validate:"len=7"`

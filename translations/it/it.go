@@ -1133,6 +1133,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "cron",
+			translation: "{0} deve essere una stringa cron valida",
+			override:    false,
+		},
+		{
 			tag:             "oneof",
 			translation:     "{0} deve essere uno di [{1}]",
 			override:        false,
