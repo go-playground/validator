@@ -10844,6 +10844,82 @@ func TestRequiredUnless(t *testing.T) {
 	_ = validate.Struct(test3)
 }
 
+func TestSkipUnless(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
+
+	fieldVal := "test1"
+	test := struct {
+		Inner   *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"skip_unless=FieldE test" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"skip_unless=Field1 test" json:"field_2"`
+		Field3  map[string]string `validate:"skip_unless=Field2 test" json:"field_3"`
+		Field4  interface{}       `validate:"skip_unless=Field3 1" json:"field_4"`
+		Field5  int               `validate:"skip_unless=Inner.Field test" json:"field_5"`
+		Field6  uint              `validate:"skip_unless=Field5 2" json:"field_6"`
+		Field7  float32           `validate:"skip_unless=Field6 1" json:"field_7"`
+		Field8  float64           `validate:"skip_unless=Field7 1.0" json:"field_8"`
+		Field9  bool              `validate:"omitempty" json:"field_9"`
+		Field10 string            `validate:"skip_unless=Field9 false" json:"field_10"`
+	}{
+		FieldE: "test1",
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: 3,
+		Field9: true,
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"skip_unless=FieldE test" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"skip_unless=Field1 test" json:"field_2"`
+		Field3  map[string]string `validate:"skip_unless=Field2 test" json:"field_3"`
+		Field4  interface{}       `validate:"skip_unless=Field2 test" json:"field_4"`
+		Field5  string            `validate:"skip_unless=Field3 0" json:"field_5"`
+		Field6  string            `validate:"skip_unless=Inner.Field test" json:"field_6"`
+		Field7  string            `validate:"skip_unless=Inner2.Field test" json:"field_7"`
+		Field8  bool              `validate:"omitempty" json:"field_8"`
+		Field9  string            `validate:"skip_unless=Field8 true" json:"field_9"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		FieldE: "test1",
+		Field1: "test1",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "skip_unless")
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("test3 should have panicked!")
+		}
+	}()
+
+	test3 := struct {
+		Inner  *Inner
+		Field1 string `validate:"skip_unless=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	_ = validate.Struct(test3)
+}
+
 func TestRequiredWith(t *testing.T) {
 	type Inner struct {
 		Field *string
