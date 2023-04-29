@@ -10905,19 +10905,28 @@ func TestSkipUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "skip_unless")
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("test3 should have panicked!")
-		}
-	}()
-
 	test3 := struct {
 		Inner  *Inner
 		Field1 string `validate:"skip_unless=Inner.Field" json:"field_1"`
 	}{
 		Inner: &Inner{Field: &fieldVal},
 	}
-	_ = validate.Struct(test3)
+	PanicMatches(t, func() {
+		_ = validate.Struct(test3)
+	}, "Bad param number for skip_unless Field1")
+
+	test4 := struct {
+		Inner  *Inner
+		Field1 string `validate:"skip_unless=Inner.Field test1" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "skip_unless")
 }
 
 func TestRequiredWith(t *testing.T) {
