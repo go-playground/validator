@@ -1372,8 +1372,7 @@ This validates that a string value contains a valid credit card number using Luh
 
 This validates that a string or (u)int value contains a valid checksum using the Luhn algorithm.
 
-
-#MongoDb ObjectID
+# MongoDb ObjectID
 
 This validates that a string is a valid 24 character hexadecimal string.
 
