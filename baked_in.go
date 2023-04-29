@@ -33,7 +33,7 @@ type Func func(fl FieldLevel) bool
 // validation needs. The return value should be true when validation succeeds.
 type FuncCtx func(ctx context.Context, fl FieldLevel) bool
 
-// wrapFunc wraps noramal Func makes it compatible with FuncCtx
+// wrapFunc wraps normal Func makes it compatible with FuncCtx
 func wrapFunc(fn Func) FuncCtx {
 	if fn == nil {
 		return nil // be sure not to wrap a bad function.
