@@ -73,6 +73,7 @@ var (
 		"required":                      hasValue,
 		"required_if":                   requiredIf,
 		"required_unless":               requiredUnless,
+		"skip_unless":                   skipUnless,
 		"required_with":                 requiredWith,
 		"required_with_all":             requiredWithAll,
 		"required_without":              requiredWithout,
@@ -1728,10 +1729,10 @@ func excludedIf(fl FieldLevel) bool {
 
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
-			return false
+			return true
 		}
 	}
-	return true
+	return !hasValue(fl)
 }
 
 // requiredUnless is the validation function
@@ -1744,6 +1745,21 @@ func requiredUnless(fl FieldLevel) bool {
 
 	for i := 0; i < len(params); i += 2 {
 		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// skipUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func skipUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for skip_unless %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
 			return true
 		}
 	}
