@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/fs"
 	"net"
 	"net/url"
@@ -1542,11 +1541,6 @@ func isImage(fl FieldLevel) bool {
 		mime, err := mimetype.DetectReader(file)
 		if err != nil {
 			return false
-		}
-
-		_, err = file.Seek(0, io.SeekStart)
-		if err != nil {
-			panic(fmt.Sprintf("Could not reset seek start for file. Error: %s", err))
 		}
 
 		if _, ok := mimetypes[mime.String()]; ok {
