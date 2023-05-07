@@ -1,20 +1,20 @@
-package zh
+package ko
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	chinese "github.com/go-playground/locales/zh"
+	korean "github.com/go-playground/locales/ko"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
 
-	zh := chinese.New()
-	uni := ut.New(zh, zh)
-	trans, _ := uni.GetTranslator("zh")
+	kor := korean.New()
+	uni := ut.New(kor, kor)
+	trans, _ := uni.GetTranslator("ko")
 
 	validate := validator.New()
 
@@ -240,514 +240,513 @@ func TestTranslations(t *testing.T) {
 		ns       string
 		expected string
 	}{
-
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor必须是一个有效的颜色",
+			expected: "IsColor은효과적인색상이어야합니다",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC必须是一个有效的MAC地址",
+			expected: "MAC은효과적인MAC주소여야합니다",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr必须是一个有效的IP地址",
+			expected: "IPAddr은효과적인IP주소여야합니다",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4必须是一个有效的IPv4地址",
+			expected: "IPAddrv4은효과적인IPv4주소여야합니다",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6必须是一个有效的IPv6地址",
+			expected: "IPAddrv6은효과적인IPv6주소여야합니다",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr必须是一个有效的UDP地址",
+			expected: "UDPAddr은효과적인UDP주소여야합니다",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4必须是一个有效的IPv4 UDP地址",
+			expected: "UDPAddrv4은효과적인IPv4 UDP주소여야합니다",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6必须是一个有效的IPv6 UDP地址",
+			expected: "UDPAddrv6은효과적인IPv6 UDP주소여야합니다",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr必须是一个有效的TCP地址",
+			expected: "TCPAddr은효과적인TCP주소여야합니다",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4必须是一个有效的IPv4 TCP地址",
+			expected: "TCPAddrv4은효과적인IPv4 TCP주소여야합니다",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6必须是一个有效的IPv6 TCP地址",
+			expected: "TCPAddrv6은효과적인IPv6 TCP주소여야합니다",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR必须是一个有效的无类别域间路由(CIDR)",
+			expected: "CIDR은효과적인CIDR이어야합니다",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4必须是一个包含IPv4地址的有效无类别域间路由(CIDR)",
+			expected: "CIDRv4은IPv4를포함하는CIDR이어야합니다",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6必须是一个包含IPv6地址的有效无类别域间路由(CIDR)",
+			expected: "CIDRv6은IPv6를포함하는CIDR이어야합니다",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN必须是一个有效的社会安全号码(SSN)",
+			expected: "SSN은효과적인사회보장번호(SSN)여야합니다",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP必须是一个有效的IP地址",
+			expected: "IP은효과적인IP주소여야합니다",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4必须是一个有效的IPv4地址",
+			expected: "IPv4은효과적인IPv4주소여야합니다",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6必须是一个有效的IPv6地址",
+			expected: "IPv6은효과적인IPv6주소여야합니다",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI必须包含有效的数据URI",
+			expected: "DataURI에는효과적인데이터URI가포함되어야합니다",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude必须包含有效的纬度坐标",
+			expected: "Latitude에는효과적인위도좌표가포함되어야합니다",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude必须包含有效的经度坐标",
+			expected: "Longitude에는효과적인종방향좌표가포함되어야합니다",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte必须包含多字节字符",
+			expected: "MultiByte에는멀티바이트문자가포함되어야합니다",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII必须只包含ascii字符",
+			expected: "ASCII에는ASCII문자만포함해야합니다",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII必须只包含可打印的ascii字符",
+			expected: "PrintableASCII에는인쇄가능한ASCII문자만포함해야합니다",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID必须是一个有效的UUID",
+			expected: "UUID은효과적인UUID여야합니다",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3必须是一个有效的V3 UUID",
+			expected: "UUID3은효과적인V3 UUID여야합니다",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4必须是一个有效的V4 UUID",
+			expected: "UUID4은효과적인V4 UUID여야합니다",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5必须是一个有效的V5 UUID",
+			expected: "UUID5은효과적인V5 UUID여야합니다",
 		},
 		{
 			ns:       "Test.ULID",
-			expected: "ULID必须是一个有效的ULID",
+			expected: "ULID은효과적인ULID여야합니다",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN必须是一个有效的ISBN编号",
+			expected: "ISBN은유효ISBN번호여야합니다",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10必须是一个有效的ISBN-10编号",
+			expected: "ISBN10은효과적인ISBN-10번호여야합니다",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13必须是一个有效的ISBN-13编号",
+			expected: "ISBN13은효과적인ISBN-13번호여야합니다",
 		},
 		{
 			ns:       "Test.EndsWith",
-			expected: "EndsWith必须以文本'end'结尾",
+			expected: "EndsWith텍스트'end'으로끝나야합니다",
 		},
 		{
 			ns:       "Test.StartsWith",
-			expected: "StartsWith必须以文本'start'开头",
+			expected: "StartsWith텍스트'start'으로시작해야합니다",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes不能包含文本'text'",
+			expected: "Excludes은텍스트를포함할수없습니다'text'",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll不能包含以下任何字符'!@#$'",
+			expected: "ExcludesAll은다음문자중하나를포함할수없습니다'!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune不能包含'☻'",
+			expected: "ExcludesRune은'☻'을포함할수없습니다",
 		},
 		{
 			ns:       "Test.ContainsRune",
-			expected: "ContainsRune必须包含字符'☻'",
+			expected: "ContainsRune은문자를포함해야합니다'☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny必须包含至少一个以下字符'!@#$'",
+			expected: "ContainsAny은하나이상의문자를포함해야합니다'!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains必须包含文本'purpose'",
+			expected: "Contains은텍스트를포함해야합니다'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64必须是一个有效的Base64字符串",
+			expected: "Base64은효과적인Base64문자열이어야합니다",
 		},
 		{
 			ns:       "Test.E164",
-			expected: "E164必须是一个有效的E.164手机号",
+			expected: "E164은효과적인E.164휴대폰번호여야합니다",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email必须是一个有效的邮箱",
+			expected: "Email은효과적인사서함이어야합니다",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL必须是一个有效的URL",
+			expected: "URL은효과적인URL이어야합니다",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI必须是一个有效的URI",
+			expected: "URI은효과적인URI여야합니다",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString必须是一个有效的RGB颜色",
+			expected: "RGBColorString은효과적인RGB색상이어야합니다",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString必须是一个有效的RGBA颜色",
+			expected: "RGBAColorString은효과적인RGBA색상이어야합니다",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString必须是一个有效的HSL颜色",
+			expected: "HSLColorString은효과적인HSL색상이어야합니다",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString必须是一个有效的HSLA颜色",
+			expected: "HSLAColorString은효과적인HSLA색상이어야합니다",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString必须是一个有效的十六进制",
+			expected: "HexadecimalString은효과적인16진수여야합니다",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString必须是一个有效的十六进制颜色",
+			expected: "HexColorString은효과적인16진수색상이어야합니다",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString必须是一个有效的数字",
+			expected: "NumberString은유효숫자여야합니다",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString必须是一个有效的数值",
+			expected: "NumericString은유효숫자값이어야합니다",
 		},
 		{
 			ns:       "Test.AlphaUnicodeString",
-			expected: "AlphaUnicodeString只能包含字母和Unicode字符",
+			expected: "AlphaUnicodeString은문자와Unicode문자만포함할수있습니다",
 		},
 		{
 			ns:       "Test.AlphanumUnicodeString",
-			expected: "AlphanumUnicodeString只能包含字母数字和Unicode字符",
+			expected: "AlphanumUnicodeString은문자,숫자및Unicode문자만포함할수있습니다",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString只能包含字母和数字",
+			expected: "AlphanumString에는문자와숫자만포함할수있습니다",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString只能包含字母",
+			expected: "AlphaString에는문자만포함할수있습니다",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString必须小于MaxString",
+			expected: "LtFieldString은MaxString보다작아야합니다",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString必须小于或等于MaxString",
+			expected: "LteFieldString은MaxString보다작거나같아야합니다",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString必须大于MaxString",
+			expected: "GtFieldString은MaxString보다커야합니다",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString必须大于或等于MaxString",
+			expected: "GteFieldString은MaxString보다크거나같아야합니다",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString不能等于EqFieldString",
+			expected: "NeFieldString은EqFieldString과같지않아야합니다",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString必须小于Inner.LtCSFieldString",
+			expected: "LtCSFieldString은Inner.LtCSFieldString보다작아야합니다",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString必须小于或等于Inner.LteCSFieldString",
+			expected: "LteCSFieldString은Inner.LteCSFieldString보다작거나같아야합니다",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString必须大于Inner.GtCSFieldString",
+			expected: "GtCSFieldString은Inner.GtCSFieldString보다커야합니다",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString必须大于或等于Inner.GteCSFieldString",
+			expected: "GteCSFieldString은Inner.GteCSFieldString보다크거나같아야합니다",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString不能等于Inner.NeCSFieldString",
+			expected: "NeCSFieldString은Inner.NeCSFieldString과같지않아야합니다",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString必须等于Inner.EqCSFieldString",
+			expected: "EqCSFieldString은Inner.EqCSFieldString과같아야합니다",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString必须等于MaxString",
+			expected: "EqFieldString은MaxString과같아야합니다",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString长度必须至少为3个字符",
+			expected: "GteString길이는3자이상이어야합니다",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber必须大于或等于5.56",
+			expected: "GteNumber은5.56보다크거나같아야합니다",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple必须至少包含2项",
+			expected: "GteMultiple은적어도2항목을포함해야합니다",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime必须大于或等于当前日期和时间",
+			expected: "GteTime은현재날짜및시간보다크거나동일해야합니다",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString长度必须大于3个字符",
+			expected: "GtString길이는3자보다커야합니다",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber必须大于5.56",
+			expected: "GtNumber은5.56보다커야합니다",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple必须大于2项",
+			expected: "GtMultiple은2항목보다커야합니다",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime必须大于当前日期和时间",
+			expected: "GtTime은현재날짜와시간보다커야합니다",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString长度不能超过3个字符",
+			expected: "LteString길이는3자을초과할수없습니다",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber必须小于或等于5.56",
+			expected: "LteNumber은5.56보다작거나같아야합니다",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple最多只能包含2项",
+			expected: "LteMultiple은최대2항목만포함할수있습니다",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime必须小于或等于当前日期和时间",
+			expected: "LteTime은현재날짜및시간보다작거나동일해야합니다",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString长度必须小于3个字符",
+			expected: "LtString길이는3자보다작아야합니다",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber必须小于5.56",
+			expected: "LtNumber은5.56보다작아야합니다",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple必须包含少于2项",
+			expected: "LtMultiple은2항목미만을포함해야합니다",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime必须小于当前日期和时间",
+			expected: "LtTime은현재날짜와시간보다작아야합니다",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString不能等于",
+			expected: "NeString은과같지않아야합니다",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber不能等于0.00",
+			expected: "NeNumber은0.00과같지않아야합니다",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple不能等于0",
+			expected: "NeMultiple은0과같지않아야합니다",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString不等于3",
+			expected: "EqString은3과같지않습니다",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber不等于2.33",
+			expected: "EqNumber은2.33과같지않습니다",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple不等于7",
+			expected: "EqMultiple은7과같지않습니다",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString长度不能超过3个字符",
+			expected: "MaxString길이는3자을초과할수없습니다",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber必须小于或等于1,113.00",
+			expected: "MaxNumber은1,113.00보다작거나같아야합니다",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple最多只能包含7项",
+			expected: "MaxMultiple은최대7항목만포함할수있습니다",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString长度必须至少为1个字符",
+			expected: "MinString길이는1자이상이어야합니다",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber最小只能为1,113.00",
+			expected: "MinNumber는1,113.00이상이어야합니다",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple必须至少包含7项",
+			expected: "MinMultiple은적어도7항목을포함해야합니다",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString长度必须是1个字符",
+			expected: "LenString길이는1자이어야합니다",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber必须等于1,113.00",
+			expected: "LenNumber은1,113.00과같아야합니다",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple必须包含7项",
+			expected: "LenMultiple은7항목을포함해야합니다",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString为必填字段",
+			expected: "RequiredString필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber为必填字段",
+			expected: "RequiredNumber필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple为必填字段",
+			expected: "RequiredMultiple필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredIf",
-			expected: "RequiredIf为必填字段",
+			expected: "RequiredIf필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredUnless",
-			expected: "RequiredUnless为必填字段",
+			expected: "RequiredUnless필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredWith",
-			expected: "RequiredWith为必填字段",
+			expected: "RequiredWith필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredWithAll",
-			expected: "RequiredWithAll为必填字段",
+			expected: "RequiredWithAll필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredWithout",
-			expected: "RequiredWithout为必填字段",
+			expected: "RequiredWithout필요한필드입니다",
 		},
 		{
 			ns:       "Test.RequiredWithoutAll",
-			expected: "RequiredWithoutAll为必填字段",
+			expected: "RequiredWithoutAll필요한필드입니다",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen长度必须至少为10个字符",
+			expected: "StrPtrMinLen길이는10자이상이어야합니다",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen长度不能超过1个字符",
+			expected: "StrPtrMaxLen길이는1자을초과할수없습니다",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen长度必须是2个字符",
+			expected: "StrPtrLen길이는2자이어야합니다",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt长度必须小于1个字符",
+			expected: "StrPtrLt길이는1자보다작아야합니다",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte长度不能超过1个字符",
+			expected: "StrPtrLte길이는1자을초과할수없습니다",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt长度必须大于10个字符",
+			expected: "StrPtrGt길이는10자보다커야합니다",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte长度必须至少为10个字符",
+			expected: "StrPtrGte길이는10자이상이어야합니다",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString必须是[red green]中的一个",
+			expected: "OneOfString은[red green]중하나여야합니다",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt必须是[5 63]中的一个",
+			expected: "OneOfInt은[5 63]중하나여야합니다",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice字段内的值必须唯一",
+			expected: "UniqueSlice필드의값은독특해야합니다",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray字段内的值必须唯一",
+			expected: "UniqueArray필드의값은독특해야합니다",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap字段内的值必须唯一",
+			expected: "UniqueMap필드의값은독특해야합니다",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString必须是一个有效的JSON字符串",
+			expected: "JSONString은효과적인JSON문자열이어야합니다",
 		},
 		{
 			ns:       "Test.JWTString",
-			expected: "JWTString必须是一个有效的JWT字符串",
+			expected: "JWTString은효과적인JWT문자열이어야합니다",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString必须是小写字母",
+			expected: "LowercaseString은소문자여야합니다",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString必须是大写字母",
+			expected: "UppercaseString은대문자여야합니다",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime的格式必须是2006-01-02",
+			expected: "Datetime의형식은2006-01-02이어야합니다",
 		},
 		{
 			ns:       "Test.BooleanString",
-			expected: "BooleanString必须是一个有效的布尔值",
+			expected: "BooleanString은효과적인부울값이어야합니다",
 		},
 	}
 

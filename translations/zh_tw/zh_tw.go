@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -30,9 +29,38 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0}為必填欄位",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("len-string", "{0}長度必須為{1}", false); err != nil {
 					return
 				}
@@ -61,10 +89,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -123,7 +149,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("min-string", "{0}長度必須至少為{1}", false); err != nil {
 					return
 				}
@@ -152,10 +177,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -178,7 +201,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				switch kind {
 				case reflect.String:
-
 					var c string
 
 					c, err = ut.C("min-string-character", f64, digits, ut.FmtNumber(f64, digits))
@@ -214,7 +236,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("max-string", "{0}長度不能超過{1}", false); err != nil {
 					return
 				}
@@ -243,10 +264,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -303,39 +322,20 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eq",
-			translation: "{0}不等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq",
+			translation:     "{0}不等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ne",
-			translation: "{0}不能等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne",
+			translation:     "{0}不能等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lt-string", "{0}長度必須小於{1}", false); err != nil {
 					return
 				}
@@ -369,10 +369,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -380,7 +378,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -455,7 +452,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lte-string", "{0}長度不能超過{1}", false); err != nil {
 					return
 				}
@@ -499,7 +495,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -574,7 +569,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gt-string", "{0}長度必須大於{1}", false); err != nil {
 					return
 				}
@@ -610,7 +604,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -621,7 +614,9 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
+
 					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
 					return
 				}
 
@@ -690,7 +685,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gte-string", "{0}長度必須至少為{1}", false); err != nil {
 					return
 				}
@@ -726,7 +720,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -734,7 +727,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -807,184 +799,76 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eqfield",
-			translation: "{0}必須等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqfield",
+			translation:     "{0}必須等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "eqcsfield",
-			translation: "{0}必須等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqcsfield",
+			translation:     "{0}必須等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "necsfield",
-			translation: "{0}不能等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "necsfield",
+			translation:     "{0}不能等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtcsfield",
-			translation: "{0}必須大於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtcsfield",
+			translation:     "{0}必須大於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtecsfield",
-			translation: "{0}必須大於或等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtecsfield",
+			translation:     "{0}必須大於或等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltcsfield",
-			translation: "{0}必須小於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltcsfield",
+			translation:     "{0}必須小於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltecsfield",
-			translation: "{0}必須小於或等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltecsfield",
+			translation:     "{0}必須小於或等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "nefield",
-			translation: "{0}不能等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "nefield",
+			translation:     "{0}不能等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtfield",
-			translation: "{0}必須大於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtfield",
+			translation:     "{0}必須大於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "gtefield",
-			translation: "{0}必須大於或等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtefield",
+			translation:     "{0}必須大於或等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltfield",
-			translation: "{0}必須小於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltfield",
+			translation:     "{0}必須小於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "ltefield",
-			translation: "{0}必須小於或等於{1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltefield",
+			translation:     "{0}必須小於或等於{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag:         "alpha",
@@ -994,6 +878,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "alphanum",
 			translation: "{0}只能包含字母和數字",
+			override:    false,
+		},
+		{
+			tag:         "alphanumunicode",
+			translation: "{0}只能包含字母數字和Unicode字元",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0}只能包含字母和Unicode字元",
 			override:    false,
 		},
 		{
@@ -1037,6 +931,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "e164",
+			translation: "{0}必須是一個有效的E.164手機號",
+			override:    false,
+		},
+		{
 			tag:         "email",
 			translation: "{0}必須是一個有效的信箱",
 			override:    false,
@@ -1057,79 +956,52 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "contains",
-			translation: "{0}必須包含文字'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "contains",
+			translation:     "{0}必須包含文字'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "containsany",
-			translation: "{0}必須包含至少一個以下字元'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsany",
+			translation:     "{0}必須包含至少一個以下字元'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludes",
-			translation: "{0}不能包含文字'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsrune",
+			translation:     "{0}必須包含字元'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludesall",
-			translation: "{0}不能包含以下任何字元'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludes",
+			translation:     "{0}不能包含文字'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "excludesrune",
-			translation: "{0}不能包含'{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesall",
+			translation:     "{0}不能包含以下任何字元'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "excludesrune",
+			translation:     "{0}不能包含'{1}'",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "endswith",
+			translation:     "{0}必須以文本'{1}'結尾",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:             "startswith",
+			translation:     "{0}必須以文本'{1}'開頭",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
 			tag:         "isbn",
@@ -1292,42 +1164,55 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}字段內的值必須唯一",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0}必須是一個有效的顏色",
 			override:    false,
 		},
 		{
-			tag:         "oneof",
-			translation: "{0}必須是[{1}]中的一個",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-				return s
-			},
+			tag:             "oneof",
+			translation:     "{0}必須是[{1}]中的一個",
+			override:        false,
+			customTransFunc: customTransFuncV1,
 		},
 		{
-			tag:         "datetime",
-			translation: "{0}與{1}格式不匹配",
+			tag:         "json",
+			translation: "{0}必須是一個有效的JSON字符串",
 			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+		},
+		{
+			tag:         "jwt",
+			translation: "{0}必須是一個有效的JWT字符串",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0}必須是小寫字母",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0}必須是大寫字母",
+			override:    false,
+		},
+		{
+			tag:             "datetime",
+			translation:     "{0}的格式必須是{1}",
+			override:        false,
+			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:         "boolean",
+			translation: "{0}必須是一個有效的布爾值",
+			override:    false,
 		},
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
 
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
@@ -1353,26 +1238,28 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
-
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
 		log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
 		return fe.(error).Error()
 	}
-
 	return t
+}
+
+func customTransFuncV1(ut ut.Translator, fe validator.FieldError) string {
+	s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+	if err != nil {
+		log.Printf("警告: 翻譯欄位錯誤: %#v", fe)
+		return fe.(error).Error()
+	}
+	return s
 }
