@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -32,7 +31,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("len-string", "panjang {0} harus {1}", false); err != nil {
 					return
 				}
@@ -61,10 +59,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -123,7 +119,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("min-string", "panjang minimal {0} adalah {1}", false); err != nil {
 					return
 				}
@@ -152,10 +147,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -214,7 +207,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("max-string", "panjang maksimal {0} adalah {1}", false); err != nil {
 					return
 				}
@@ -243,10 +235,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -307,7 +297,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %#v", fe)
@@ -322,7 +311,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %#v", fe)
@@ -335,7 +323,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lt-string", "panjang {0} harus kurang dari {1}", false); err != nil {
 					return
 				}
@@ -369,10 +356,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -380,7 +365,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -456,7 +440,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lte-string", "panjang maksimal {0} adalah {1}", false); err != nil {
 					return
 				}
@@ -492,7 +475,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -500,7 +482,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -576,7 +557,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gt-string", "panjang {0} harus lebih dari {1}", false); err != nil {
 					return
 				}
@@ -612,7 +592,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -620,7 +599,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -696,7 +674,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gte-string", "panjang minimal {0} adalah {1}", false); err != nil {
 					return
 				}
@@ -732,7 +709,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -740,7 +716,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -818,7 +793,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -833,7 +807,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -848,7 +821,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -863,7 +835,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus lebih besar dari {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -878,7 +849,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus lebih besar dari atau sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -893,7 +863,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus kurang dari {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -908,7 +877,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus kurang dari atau sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -923,7 +891,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -938,7 +905,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus lebih besar dari {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -953,7 +919,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus lebih besar dari atau sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -968,7 +933,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus kurang dari {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -983,7 +947,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus kurang dari atau sama dengan {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1044,6 +1007,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "e164",
+			translation: "{0} harus berupa nomor telepon dengan format E.164 yang valid",
+			override:    false,
+		},
+		{
 			tag:         "email",
 			translation: "{0} harus berupa alamat email yang valid",
 			override:    false,
@@ -1068,7 +1036,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus berisi teks '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1083,7 +1050,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1098,7 +1064,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak boleh berisi teks '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1113,7 +1078,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak boleh berisi salah satu karakter berikut '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1128,7 +1092,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} tidak boleh berisi '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1280,22 +1243,27 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0} harus berupa alamat IPv4 yang dapat diatasi",
+			translation: "{0} harus berupa alamat IPv4 yang dapat dipecahkan",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0} harus berupa alamat IPv6 yang dapat diatasi",
+			translation: "{0} harus berupa alamat IPv6 yang dapat dipecahkan",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0} harus berupa alamat UNIX yang dapat diatasi",
+			translation: "{0} harus berupa alamat UNIX yang dapat dipecahkan",
 			override:    false,
 		},
 		{
 			tag:         "mac",
 			translation: "{0} harus berisi alamat MAC yang valid",
+			override:    false,
+		},
+		{
+			tag:         "unique",
+			translation: "{0} harus berisi nilai yang unik",
 			override:    false,
 		},
 		{
@@ -1316,22 +1284,78 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "json",
+			translation: "{0} harus berupa string json yang valid",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0} harus berupa string jwt yang valid",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0} harus berupa string huruf kecil",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0} harus berupa string huruf besar",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0} tidak sesuai dengan format {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0} tidak sesuai dengan format kode pos dari negara {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0} tidak sesuai dengan format kode pos dari negara di {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
 	}
 
 	for _, t := range translations {
 
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
-
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
-
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), t.customTransFunc)
-
 		} else if t.customTransFunc == nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, translateFunc)
-
 		} else {
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		}
@@ -1345,21 +1369,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
 
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
 		log.Printf("warning: error translating FieldError: %#v", fe)
