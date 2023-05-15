@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -5579,10 +5580,11 @@ func TestOneOfValidation(t *testing.T) {
 		errs := validate.Var(spec.f, spec.t)
 		AssertError(t, errs, "", "", "", "", "oneof")
 	}
-
+	f := 3.14
+	_, frac := math.Modf(f)
 	PanicMatches(t, func() {
-		_ = validate.Var(3.14, "oneof=red green")
-	}, "Bad field type float64")
+		_ = validate.Var(f, "oneof=red green")
+	}, fmt.Sprintf("The float %v has a fractional part of %v.\n", f, frac))
 }
 
 func TestBase64Validation(t *testing.T) {
