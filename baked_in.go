@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"math"
 	"net"
 	"net/url"
 	"os"
@@ -277,6 +278,8 @@ func isOneOf(fl FieldLevel) bool {
 		v = strconv.FormatInt(field.Int(), 10)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = strconv.FormatUint(field.Uint(), 10)
+	case reflect.Float32, reflect.Float64:
+		v = decimal2String(field.Float())
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
@@ -286,6 +289,13 @@ func isOneOf(fl FieldLevel) bool {
 		}
 	}
 	return false
+}
+func decimal2String(f float64) string {
+	_, frac := math.Modf(f)
+	if frac != 0 {
+		panic(fmt.Sprintf("The float %v has a fractional part of %v.\n", f, frac))
+	}
+	return strconv.FormatFloat(f, 'f', 0, 64)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
