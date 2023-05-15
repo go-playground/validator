@@ -5586,6 +5586,11 @@ func TestOneOfValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(f, "oneof=red green")
 	}, fmt.Sprintf("The float %v has a fractional part of %v.\n", f, frac))
+
+	flag := true
+	PanicMatches(t, func() {
+		_ = validate.Var(flag, "oneof=red green")
+	}, fmt.Sprintf("Bad field type %T", flag))
 }
 
 func TestBase64Validation(t *testing.T) {

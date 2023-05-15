@@ -1075,7 +1075,8 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 }
 
 type TestOneof struct {
-	Color string `validate:"oneof=red green"`
+	Color  string  `validate:"oneof=red green"`
+	Number float64 `validate:"oneof=1 2 3"`
 }
 
 func BenchmarkOneof(b *testing.B) {
@@ -1087,13 +1088,23 @@ func BenchmarkOneof(b *testing.B) {
 }
 
 func BenchmarkOneofParallel(b *testing.B) {
-	w := &TestOneof{Color: "green"}
+	w := &TestOneof{Color: "green", Number: 1.00}
 	val := New()
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = val.Struct(w)
+		}
+	})
+}
+
+func BenchmarkDecimal2String(b *testing.B) {
+	f1 := 3.00
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = decimal2String(f1)
 		}
 	})
 }
