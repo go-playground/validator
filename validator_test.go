@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"os"
 	"path/filepath"
@@ -12994,4 +12995,14 @@ func TestCronExpressionValidation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDecimal2String(t *testing.T) {
+	f1 := 3.00
+	f2 := 3.14
+	_, frac := math.Modf(f2)
+	assert.Equal(t, decimal2String(f1), "3")
+	PanicMatches(t, func() {
+		decimal2String(f2)
+	}, fmt.Sprintf("The float %v has a fractional part of %v.\n", f2, frac))
 }
