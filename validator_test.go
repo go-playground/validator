@@ -8,6 +8,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -5579,10 +5581,16 @@ func TestOneOfValidation(t *testing.T) {
 		errs := validate.Var(spec.f, spec.t)
 		AssertError(t, errs, "", "", "", "", "oneof")
 	}
-
+	f := 3.14
+	_, frac := math.Modf(f)
 	PanicMatches(t, func() {
-		_ = validate.Var(3.14, "oneof=red green")
-	}, "Bad field type float64")
+		_ = validate.Var(f, "oneof=red green")
+	}, fmt.Sprintf("The float %v has a fractional part of %v.\n", f, frac))
+
+	flag := true
+	PanicMatches(t, func() {
+		_ = validate.Var(flag, "oneof=red green")
+	}, fmt.Sprintf("Bad field type %T", flag))
 }
 
 func TestBase64Validation(t *testing.T) {
@@ -12992,4 +13000,14 @@ func TestCronExpressionValidation(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDecimal2String(t *testing.T) {
+	f1 := 3.00
+	f2 := 3.14
+	_, frac := math.Modf(f2)
+	assert.Equal(t, decimal2String(f1), "3")
+	PanicMatches(t, func() {
+		decimal2String(f2)
+	}, fmt.Sprintf("The float %v has a fractional part of %v.\n", f2, frac))
 }
