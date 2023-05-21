@@ -863,7 +863,6 @@ This validates that a string value is a valid JWT
 
 	Usage: jwt
 
-
 # File
 
 This validates that a string value contains a valid file path and that
@@ -872,6 +871,15 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: file
 
+# Image path
+
+This validates that a string value contains a valid file path and that
+the file exists on the machine and is an image.
+This is done using os.Stat and github.com/gabriel-vasile/mimetype
+
+	Usage: image
+
+# URL String
 
 # File Path
 
@@ -880,7 +888,6 @@ validate the existence of that file.
 This is done using os.Stat, which is a platform independent function.
 
 	Usage: filepath
-
 
 # URL String
 
@@ -923,7 +930,6 @@ you can use this with the omitempty tag.
 
 	Usage: base64url
 
-
 # Base64RawURL String
 
 This validates that a string value contains a valid base64 URL safe value,
@@ -933,7 +939,6 @@ an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
 
 	Usage: base64url
-
 
 # Bitcoin Address
 
@@ -1267,7 +1272,6 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: dir
 
-
 # Directory Path
 
 This validates that a string value contains a valid directory but does
@@ -1277,7 +1281,6 @@ It is safest to suffix the string with os.PathSeparator if the directory
 may not exist at the time of validation.
 
 	Usage: dirpath
-
 
 # HostPort
 
@@ -1350,7 +1353,6 @@ More information on https://semver.org/
 
 	Usage: semver
 
-
 # CVE Identifier
 
 This validates that a string value is a valid cve id, defined in cve mitre.
@@ -1358,17 +1360,15 @@ More information on https://cve.mitre.org/
 
 	Usage: cve
 
-
 # Credit Card
 
 This validates that a string value contains a valid credit card number using Luhn algorithm.
 
 	Usage: credit_card
 
-
 # Luhn Checksum
 
-  	Usage: luhn_checksum
+	Usage: luhn_checksum
 
 This validates that a string or (u)int value contains a valid checksum using the Luhn algorithm.
 
@@ -1376,8 +1376,7 @@ This validates that a string or (u)int value contains a valid checksum using the
 
 This validates that a string is a valid 24 character hexadecimal string.
 
-  Usage: mongodb
-
+	Usage: mongodb
 
 # Cron
 
@@ -1385,7 +1384,7 @@ This validates that a string value contains a valid cron expression.
 
 	Usage: cron
 
-Alias Validators and Tags
+# Alias Validators and Tags
 
 Alias Validators and Tags
 NOTE: When returning an error, the tag returned in "FieldError" will be

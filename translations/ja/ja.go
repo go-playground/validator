@@ -1355,6 +1355,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "image",
+			translation: "{0} は有効な画像でなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "json",
 			translation: "{0}は正しいJSON文字列でなければなりません",
 			override:    false,

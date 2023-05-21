@@ -1321,6 +1321,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "image",
+			translation: "{0} geçerli bir resim olmalıdır",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

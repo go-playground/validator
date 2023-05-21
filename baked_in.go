@@ -22,6 +22,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/leodido/go-urn"
 )
 
@@ -144,6 +145,7 @@ var (
 		"endswith":                      endsWith,
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
+		"image":                         isImage,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
@@ -1486,6 +1488,67 @@ func isFile(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isImage is the validation function for validating if the current field's value contains the path to a valid image file
+func isImage(fl FieldLevel) bool {
+	mimetypes := map[string]bool{
+		"image/bmp":                true,
+		"image/cis-cod":            true,
+		"image/gif":                true,
+		"image/ief":                true,
+		"image/jpeg":               true,
+		"image/jp2":                true,
+		"image/jpx":                true,
+		"image/jpm":                true,
+		"image/pipeg":              true,
+		"image/png":                true,
+		"image/svg+xml":            true,
+		"image/tiff":               true,
+		"image/webp":               true,
+		"image/x-cmu-raster":       true,
+		"image/x-cmx":              true,
+		"image/x-icon":             true,
+		"image/x-portable-anymap":  true,
+		"image/x-portable-bitmap":  true,
+		"image/x-portable-graymap": true,
+		"image/x-portable-pixmap":  true,
+		"image/x-rgb":              true,
+		"image/x-xbitmap":          true,
+		"image/x-xpixmap":          true,
+		"image/x-xwindowdump":      true,
+	}
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+		filePath := field.String()
+		fileInfo, err := os.Stat(filePath)
+
+		if err != nil {
+			return false
+		}
+
+		if fileInfo.IsDir() {
+			return false
+		}
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return false
+		}
+		defer file.Close()
+
+		mime, err := mimetype.DetectReader(file)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := mimetypes[mime.String()]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.

@@ -1135,7 +1135,7 @@ var iso3166_2 = map[string]bool{
 	"VN-69": true, "VN-70": true, "VN-71": true, "VN-72": true, "VN-73": true,
 	"VN-CT": true, "VN-DN": true, "VN-HN": true, "VN-HP": true, "VN-SG": true,
 	"VU-MAP": true, "VU-PAM": true, "VU-SAM": true, "VU-SEE": true, "VU-TAE": true,
-	"VU-TOB": true, "WF-SG": true,"WF-UV": true,  "WS-AA": true, "WS-AL": true, "WS-AT": true, "WS-FA": true,
+	"VU-TOB": true, "WF-SG": true, "WF-UV": true, "WS-AA": true, "WS-AL": true, "WS-AT": true, "WS-FA": true,
 	"WS-GE": true, "WS-GI": true, "WS-PA": true, "WS-SA": true, "WS-TU": true,
 	"WS-VF": true, "WS-VS": true, "YE-AB": true, "YE-AD": true, "YE-AM": true,
 	"YE-BA": true, "YE-DA": true, "YE-DH": true, "YE-HD": true, "YE-HJ": true, "YE-HU": true,

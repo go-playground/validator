@@ -228,6 +228,7 @@ Baked-in Validations
 | dirpath | Directory Path |
 | file | Existing File |
 | filepath | File Path |
+| image | Image |
 | isdefault | Is Default |
 | len | Length |
 | max | Maximum |

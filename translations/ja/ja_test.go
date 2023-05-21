@@ -152,6 +152,7 @@ func TestTranslations(t *testing.T) {
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString     string `validate:"boolean"`
+		Image             string `validate:"image"`
 	}
 
 	var test Test
@@ -645,6 +646,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfIntは[5 63]のうちのいずれかでなければなりません",
+		},
+		{
+			ns:       "Test.Image",
+			expected: "Image は有効な画像でなければなりません",
 		},
 		{
 			ns:       "Test.UniqueSlice",

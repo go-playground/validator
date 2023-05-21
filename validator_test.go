@@ -8,6 +8,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -5735,6 +5738,108 @@ func TestFileValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestImageValidation(t *testing.T) {
+	validate := New()
+
+	paths := map[string]string{
+		"empty":     "",
+		"directory": "testdata",
+		"missing":   filepath.Join("testdata", "none.png"),
+		"png":       filepath.Join("testdata", "image.png"),
+		"jpeg":      filepath.Join("testdata", "image.jpg"),
+		"mp3":       filepath.Join("testdata", "music.mp3"),
+	}
+
+	tests := []struct {
+		title        string
+		param        string
+		expected     bool
+		createImage  func()
+		destroyImage func()
+	}{
+		{
+			"empty path",
+			paths["empty"], false,
+			func() {},
+			func() {},
+		},
+		{
+			"directory, not a file",
+			paths["directory"],
+			false,
+			func() {},
+			func() {},
+		},
+		{
+			"missing file",
+			paths["missing"],
+			false,
+			func() {},
+			func() {},
+		},
+		{
+			"valid png",
+			paths["png"],
+			true,
+			func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, _ := os.Create(paths["png"])
+				err := png.Encode(f, img)
+				if err != nil {
+					panic(fmt.Sprintf("Could not encode file in PNG. Error: %s", err))
+				}
+			},
+			func() {
+				os.Remove(paths["png"])
+			},
+		},
+		{
+			"valid jpeg",
+			paths["jpeg"],
+			true,
+			func() {
+				var opt jpeg.Options
+				img := image.NewGray(image.Rect(0, 0, 10, 10))
+				f, _ := os.Create(paths["jpeg"])
+				err := jpeg.Encode(f, img, &opt)
+				if err != nil {
+					panic(fmt.Sprintf("Could not encode file in JPEG. Error: %s", err))
+				}
+			},
+			func() {
+				os.Remove(paths["jpeg"])
+			},
+		},
+		{
+			"valid mp3",
+			paths["mp3"],
+			false,
+			func() {},
+			func() {},
+		},
+	}
+
+	for _, test := range tests {
+		test.createImage()
+		errs := validate.Var(test.param, "image")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+		test.destroyImage()
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "file")
+	}, "Bad field type int")
+}
+
 func TestFilePathValidation(t *testing.T) {
 	validate := New()
 
@@ -5761,6 +5866,7 @@ func TestFilePathValidation(t *testing.T) {
 				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
 			}
 		}
+
 	}
 
 	PanicMatches(t, func() {

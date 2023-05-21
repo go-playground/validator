@@ -143,6 +143,7 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice       []string          `validate:"unique"`
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -637,6 +638,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UniqueMap",
 			expected: "UniqueMap debe contener valores únicos",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image debe ser una imagen válida",
 		},
 	}
 
