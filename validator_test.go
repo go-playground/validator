@@ -12867,6 +12867,8 @@ func TestCreditCardFormatValidation(t *testing.T) {
 		{"378282146310005", "credit_card", false},
 		{"4624 7482 3324 9780", "credit_card", true},
 		{"4624 7482 3324  9780", "credit_card", false},
+		{"4624 7482 3324 978A", "credit_card", false},
+		{"4624 7482 332", "credit_card", false},
 	}
 
 	validate := New()
