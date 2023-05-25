@@ -11958,7 +11958,7 @@ func TestGetTag(t *testing.T) {
 
 func TestJSONValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{`foo`, false},
@@ -11975,6 +11975,34 @@ func TestJSONValidation(t *testing.T) {
 		{`true`, true},
 		{`null`, true},
 		{`"null"`, true},
+		{json.RawMessage(`foo`), false},
+		{json.RawMessage(`}{`), false},
+		{json.RawMessage(`{]`), false},
+		{json.RawMessage(`{}`), true},
+		{json.RawMessage(`{"foo":"bar"}`), true},
+		{json.RawMessage(`{"foo":"bar","bar":{"baz":["qux"]}}`), true},
+		{json.RawMessage(`{"foo": 3 "bar": 4}`), false},
+		{json.RawMessage(`{"foo": 3 ,"bar": 4`), false},
+		{json.RawMessage(`{foo": 3, "bar": 4}`), false},
+		{json.RawMessage(`foo`), false},
+		{json.RawMessage(`1`), true},
+		{json.RawMessage(`true`), true},
+		{json.RawMessage(`null`), true},
+		{json.RawMessage(`"null"`), true},
+		{[]byte(`foo`), false},
+		{[]byte(`}{`), false},
+		{[]byte(`{]`), false},
+		{[]byte(`{}`), true},
+		{[]byte(`{"foo":"bar"}`), true},
+		{[]byte(`{"foo":"bar","bar":{"baz":["qux"]}}`), true},
+		{[]byte(`{"foo": 3 "bar": 4}`), false},
+		{[]byte(`{"foo": 3 ,"bar": 4`), false},
+		{[]byte(`{foo": 3, "bar": 4}`), false},
+		{[]byte(`foo`), false},
+		{[]byte(`1`), true},
+		{[]byte(`true`), true},
+		{[]byte(`null`), true},
+		{[]byte(`"null"`), true},
 	}
 
 	validate := New()
