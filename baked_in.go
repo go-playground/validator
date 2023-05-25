@@ -2575,11 +2575,6 @@ func isJSON(fl FieldLevel) bool {
 	case reflect.Slice:
 		fieldType := field.Type()
 
-		if fieldType.ConvertibleTo(jsonRawMessageType) {
-			rawMsg := field.Convert(jsonRawMessageType).Interface().(json.RawMessage)
-			return json.Valid(rawMsg)
-		}
-
 		if fieldType.ConvertibleTo(byteSliceType) {
 			b := field.Convert(byteSliceType).Interface().([]byte)
 			return json.Valid(b)

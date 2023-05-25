@@ -2,7 +2,6 @@ package validator
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -54,8 +53,7 @@ var (
 	timeDurationType = reflect.TypeOf(time.Duration(0))
 	timeType         = reflect.TypeOf(time.Time{})
 
-	jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
-	byteSliceType      = reflect.TypeOf([]byte{})
+	byteSliceType = reflect.TypeOf([]byte{})
 
 	defaultCField = &cField{namesEqual: true}
 )
