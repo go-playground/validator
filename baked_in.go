@@ -1414,22 +1414,18 @@ func isURL(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.String:
 
-		var i int
 		s := field.String()
-
-		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
-		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
-		if i = strings.Index(s, "#"); i > -1 {
-			s = s[:i]
-		}
 
 		if len(s) == 0 {
 			return false
 		}
 
-		url, err := url.ParseRequestURI(s)
-
+		url, err := url.Parse(s)
 		if err != nil || url.Scheme == "" {
+			return false
+		}
+
+		if url.Host == "" && url.Fragment == "" && url.Opaque == "" {
 			return false
 		}
 
@@ -1450,7 +1446,13 @@ func isHttpURL(fl FieldLevel) bool {
 	case reflect.String:
 
 		s := strings.ToLower(field.String())
-		return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
+
+		url, err := url.Parse(s)
+		if err != nil || url.Host == "" {
+			return false
+		}
+
+		return url.Scheme == "http" || url.Scheme == "https"
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
