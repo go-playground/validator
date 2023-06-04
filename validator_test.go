@@ -8039,6 +8039,8 @@ func TestUrl(t *testing.T) {
 		{"irc://#channel@network", true},
 		{"/abs/test/dir", false},
 		{"./rel/test/dir", false},
+		{"irc:", false},
+		{"http://", false},
 	}
 
 	validate := New()
@@ -8110,6 +8112,10 @@ func TestHttpUrl(t *testing.T) {
 		{"irc://#channel@network", false},
 		{"/abs/test/dir", false},
 		{"./rel/test/dir", false},
+		{"http:", false},
+		{"http://", false},
+		{"http://#invalid", false},
+		{"https://1.1.1.1", true},
 	}
 
 	validate := New()
