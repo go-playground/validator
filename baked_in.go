@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,7 +24,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/leodido/go-urn"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -71,6 +71,7 @@ var (
 	// you can add, remove or even replace items to suite your needs,
 	// or even disregard and use your own map if so desired.
 	bakedInValidators = map[string]Func{
+		"regex":                         hasValidRegex,
 		"required":                      hasValue,
 		"required_if":                   requiredIf,
 		"required_unless":               requiredUnless,
@@ -252,6 +253,28 @@ func parseOneOfParam2(s string) []string {
 		oneofValsCacheRWLock.Unlock()
 	}
 	return vals
+}
+
+// hasValidRegex checks if a field value matches a regular expression pattern.
+func hasValidRegex(fl FieldLevel) bool {
+	// Retrieve the regular expression pattern from the validation tag parameter
+	// using fl.Param().
+	regexPattern := fl.Param()
+
+	// Create a regular expression object using the pattern obtained.
+	re, err := regexp.Compile(regexPattern)
+	if err != nil {
+		panic(fmt.Sprintf("Bad field type %T", fl.Field().Interface()))
+		return false
+	}
+
+	// Get the field value as a string using fl.Field().String().
+	fieldValue := fl.Field().String()
+
+	// Use the regular expression object to match the field value string.
+	// Return true if there is a match, indicating the field value is valid
+	// according to the regular expression.
+	return re.MatchString(fieldValue)
 }
 
 func isURLEncoded(fl FieldLevel) bool {

@@ -242,6 +242,14 @@ Example #2
 	// eq=1|eq=2 will be applied to each array element in the map keys
 	// required will be applied to map values
 
+# Regex
+This validates regex the field value with any regex pattern provided with tags
+	Usage: regex
+
+Examples:
+	// this regular expression ensures that the string it is applied to contain exactly 10 consecutive digits (0-9) from start to end.
+	Usage: regex=^[0-9]{10}$
+
 # Required
 
 This validates that the value is not the data types default zero value.
