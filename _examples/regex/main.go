@@ -8,7 +8,7 @@ import (
 
 type User struct {
 	Email string `validate:"required,email"`
-	Phone string `validate:"required,regex=^[0-9]{10}$"`
+	Phone string `validate:"required,regex=^[0-9]{9}$"`
 }
 
 func main() {

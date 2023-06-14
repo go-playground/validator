@@ -30,6 +30,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "regex",
+			translation: "{0}的值无效。",
+			override:    false,
+		},
+		{
 			tag:         "required_if",
 			translation: "{0}为必填字段",
 			override:    false,
