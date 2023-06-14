@@ -266,7 +266,6 @@ func hasValidRegex(fl FieldLevel) bool {
 	re, err := regexp.Compile(regexPattern)
 	if err != nil {
 		panic(fmt.Sprintf("Bad field type %T", fl.Field().Interface()))
-		return false
 	}
 
 	// Get the field value as a string using fl.Field().String().
