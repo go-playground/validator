@@ -2217,9 +2217,40 @@ func hasLengthOf(fl FieldLevel) bool {
 		p := asFloat64(param)
 
 		return field.Float() == p
+
+	case reflect.Pointer:
+		if !field.IsNil() {
+			switch field.Elem().Kind() {
+			case reflect.String:
+				p := asInt(param)
+
+				return int64(utf8.RuneCountInString(field.String())) == p
+
+			case reflect.Slice, reflect.Map, reflect.Array:
+				p := asInt(param)
+
+				return int64(field.Len()) == p
+
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				p := asIntFromType(field.Type(), param)
+
+				return field.Int() == p
+
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				p := asUint(param)
+
+				return field.Uint() == p
+
+			case reflect.Float32, reflect.Float64:
+				p := asFloat(param)
+
+				return field.Float() == p
+			}
+		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	//panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	return false
 }
 
 // hasMinOf is the validation function for validating if the current field's value is greater than or equal to the param's value.
