@@ -280,7 +280,7 @@ func isOneOf(fl FieldLevel) bool {
 		v = strconv.FormatInt(field.Int(), 10)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = strconv.FormatUint(field.Uint(), 10)
-	case reflect.Float32:
+	case reflect.Float32, reflect.Float64:
 		v = strconv.FormatFloat(math.Round(field.Float()), 'f', 0, 64)
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))

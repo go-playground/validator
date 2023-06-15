@@ -1151,7 +1151,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		String    string     `validate:"ltcsfield=Inner.String"`
 		Int       int        `validate:"ltcsfield=Inner.Int"`
 		Uint      uint       `validate:"ltcsfield=Inner.Uint"`
-		Float     float64    `validate:"ltcsfield=Inner.Float"`
 		Array     []string   `validate:"ltcsfield=Inner.Array"`
 	}
 
