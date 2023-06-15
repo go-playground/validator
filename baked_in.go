@@ -292,6 +292,11 @@ func isOneOf(fl FieldLevel) bool {
 	return false
 }
 
+func decimal2String(f float64) string {
+	rounded := math.Round(f)
+	return strconv.FormatFloat(rounded, 'f', 0, 64)
+}
+
 // isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
