@@ -5575,6 +5575,7 @@ func TestOneOfValidation(t *testing.T) {
 		{f: uint32(5), t: "oneof=red green"},
 		{f: uint64(5), t: "oneof=red green"},
 		{f: float64(3.14), t: "oneof=red green"},
+		{f: float32(3.14), t: "oneof=red green"},
 	}
 
 	for _, spec := range failSpecs {
