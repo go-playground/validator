@@ -5546,8 +5546,6 @@ func TestOneOfValidation(t *testing.T) {
 		{f: uint8(6), t: "oneof=5 6"},
 		{f: uint16(6), t: "oneof=5 6"},
 		{f: uint32(6), t: "oneof=5 6"},
-		{f: float64(3.14), t: "oneof=5 6"},
-		{f: float32(3.14), t: "oneof=5 6"},
 	}
 
 	for _, spec := range passSpecs {
@@ -5585,7 +5583,9 @@ func TestOneOfValidation(t *testing.T) {
 		errs := validate.Var(spec.f, spec.t)
 		AssertError(t, errs, "", "", "", "", "oneof")
 	}
-
+	PanicMatches(t, func() {
+		_ = validate.Var(complex64(1+2i), "oneof=red green")
+	}, "Bad field type complex64")
 }
 
 func TestBase64Validation(t *testing.T) {
