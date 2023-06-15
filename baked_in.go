@@ -24,6 +24,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/leodido/go-urn"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -290,11 +291,6 @@ func isOneOf(fl FieldLevel) bool {
 		}
 	}
 	return false
-}
-
-func decimal2String(f float64) string {
-	rounded := math.Round(f)
-	return strconv.FormatFloat(rounded, 'f', 0, 64)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
