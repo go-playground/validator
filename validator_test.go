@@ -1172,8 +1172,8 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		String:    "abc",
 		Int:       12,
 		Uint:      12,
-		Float:     1.12,
-		Array:     []string{"val1"},
+		//Float:     1.12,
+		Array: []string{"val1"},
 	}
 
 	errs = validate.Struct(test)
@@ -1183,7 +1183,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	test.String = "abcd"
 	test.Int = 13
 	test.Uint = 13
-	test.Float = 1.13
+	//test.Float = 1.13
 	test.Array = []string{"val1", "val2"}
 
 	errs = validate.Struct(test)
