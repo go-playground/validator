@@ -11516,7 +11516,7 @@ func TestExcludedWithoutAll(t *testing.T) {
 	ve = errs.(ValidationErrors)
 	Equal(t, len(ve), 1)
 
-	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_with_all")
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_without_all")
 }
 
 func TestRequiredWithAll(t *testing.T) {
