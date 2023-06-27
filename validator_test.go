@@ -11182,6 +11182,24 @@ func TestExcludedWith(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	test4 := struct {
+		Inner  *Inner `validate:"excluded_with=Inner2"`
+		Inner2 *Inner
+	}{
+		Inner:  &Inner{FieldE: "populated"},
+		Inner2: &Inner{FieldE: "populated"},
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_with")
 }
 
 func TestExcludedWithout(t *testing.T) {
@@ -11266,6 +11284,23 @@ func TestExcludedWithout(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	test4 := struct {
+		Inner  *Inner `validate:"excluded_without=Inner2"`
+		Inner2 *Inner
+	}{
+		Inner: &Inner{FieldE: "populated"},
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_without")
 }
 
 func TestExcludedWithAll(t *testing.T) {
@@ -11357,6 +11392,26 @@ func TestExcludedWithAll(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	test4 := struct {
+		Inner  *Inner `validate:"excluded_with_all=Inner2 Inner3"`
+		Inner2 *Inner
+		Inner3 *Inner
+	}{
+		Inner:  &Inner{FieldE: "populated"},
+		Inner2: &Inner{FieldE: "populated"},
+		Inner3: &Inner{FieldE: "populated"},
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_with_all")
 }
 
 func TestExcludedWithoutAll(t *testing.T) {
@@ -11444,6 +11499,24 @@ func TestExcludedWithoutAll(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	test4 := struct {
+		Inner  *Inner `validate:"excluded_without_all=Inner2 Inner3"`
+		Inner2 *Inner
+		Inner3 *Inner
+	}{
+		Inner: &Inner{FieldE: "populated"},
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_without_all")
 }
 
 func TestRequiredWithAll(t *testing.T) {
@@ -11729,6 +11802,26 @@ func TestExcludedIf(t *testing.T) {
 	errs = validate.Struct(test10)
 	Equal(t, errs, nil)
 
+	test11 := struct {
+		Inner  *Inner `validate:"excluded_if=Inner2.Field exclude"`
+		Inner2 *Inner
+	}{
+		Inner: &Inner{},
+		Inner2: &Inner{
+			Field: &shouldExclude,
+		},
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test11)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_if")
+
 	// Checks number of params in struct tag is correct
 	defer func() {
 		if r := recover(); r == nil {
@@ -11839,6 +11932,24 @@ func TestExcludedUnless(t *testing.T) {
 	}
 	errs = validate.Struct(test8)
 	Equal(t, errs, nil)
+
+	test9 := struct {
+		Inner *Inner `validate:"excluded_unless=Field exclude"`
+		Field string `validate:"omitempty" json:"field"`
+	}{
+		Inner: &Inner{},
+		Field: "test",
+	}
+
+	validate = New()
+
+	errs = validate.Struct(test9)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+
+	AssertError(t, errs, "Inner", "Inner", "Inner", "Inner", "excluded_unless")
 
 	// Checks number of params in struct tag is correct
 	defer func() {

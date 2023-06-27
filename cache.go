@@ -14,6 +14,7 @@ const (
 	typeDefault tagType = iota
 	typeOmitEmpty
 	typeIsDefault
+	typeExcluded
 	typeNoStructLevel
 	typeStructOnly
 	typeDive
@@ -263,6 +264,8 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		default:
 			if t == isdefault {
 				current.typeof = typeIsDefault
+			} else if len(t) >= 8 && t[:8] == "excluded" {
+				current.typeof = typeExcluded
 			}
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 			orVals := strings.Split(t, orSeparator)
