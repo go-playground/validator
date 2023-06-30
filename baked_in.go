@@ -22,6 +22,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/leodido/go-urn"
 )
 
@@ -33,7 +34,7 @@ type Func func(fl FieldLevel) bool
 // validation needs. The return value should be true when validation succeeds.
 type FuncCtx func(ctx context.Context, fl FieldLevel) bool
 
-// wrapFunc wraps noramal Func makes it compatible with FuncCtx
+// wrapFunc wraps normal Func makes it compatible with FuncCtx
 func wrapFunc(fn Func) FuncCtx {
 	if fn == nil {
 		return nil // be sure not to wrap a bad function.
@@ -73,6 +74,7 @@ var (
 		"required":                      hasValue,
 		"required_if":                   requiredIf,
 		"required_unless":               requiredUnless,
+		"skip_unless":                   skipUnless,
 		"required_with":                 requiredWith,
 		"required_with_all":             requiredWithAll,
 		"required_without":              requiredWithout,
@@ -143,6 +145,7 @@ var (
 		"endswith":                      endsWith,
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
+		"image":                         isImage,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
@@ -928,7 +931,7 @@ func isNe(fl FieldLevel) bool {
 	return !isEq(fl)
 }
 
-// isNe is the validation function for validating that the field's string value does not equal the
+// isNeIgnoreCase is the validation function for validating that the field's string value does not equal the
 // provided param value. The comparison is case-insensitive
 func isNeIgnoreCase(fl FieldLevel) bool {
 	return !isEqIgnoreCase(fl)
@@ -1411,22 +1414,18 @@ func isURL(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.String:
 
-		var i int
 		s := field.String()
-
-		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
-		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
-		if i = strings.Index(s, "#"); i > -1 {
-			s = s[:i]
-		}
 
 		if len(s) == 0 {
 			return false
 		}
 
-		url, err := url.ParseRequestURI(s)
-
+		url, err := url.Parse(s)
 		if err != nil || url.Scheme == "" {
+			return false
+		}
+
+		if url.Host == "" && url.Fragment == "" && url.Opaque == "" {
 			return false
 		}
 
@@ -1447,7 +1446,13 @@ func isHttpURL(fl FieldLevel) bool {
 	case reflect.String:
 
 		s := strings.ToLower(field.String())
-		return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
+
+		url, err := url.Parse(s)
+		if err != nil || url.Host == "" {
+			return false
+		}
+
+		return url.Scheme == "http" || url.Scheme == "https"
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
@@ -1485,6 +1490,67 @@ func isFile(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isImage is the validation function for validating if the current field's value contains the path to a valid image file
+func isImage(fl FieldLevel) bool {
+	mimetypes := map[string]bool{
+		"image/bmp":                true,
+		"image/cis-cod":            true,
+		"image/gif":                true,
+		"image/ief":                true,
+		"image/jpeg":               true,
+		"image/jp2":                true,
+		"image/jpx":                true,
+		"image/jpm":                true,
+		"image/pipeg":              true,
+		"image/png":                true,
+		"image/svg+xml":            true,
+		"image/tiff":               true,
+		"image/webp":               true,
+		"image/x-cmu-raster":       true,
+		"image/x-cmx":              true,
+		"image/x-icon":             true,
+		"image/x-portable-anymap":  true,
+		"image/x-portable-bitmap":  true,
+		"image/x-portable-graymap": true,
+		"image/x-portable-pixmap":  true,
+		"image/x-rgb":              true,
+		"image/x-xbitmap":          true,
+		"image/x-xpixmap":          true,
+		"image/x-xwindowdump":      true,
+	}
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+		filePath := field.String()
+		fileInfo, err := os.Stat(filePath)
+
+		if err != nil {
+			return false
+		}
+
+		if fileInfo.IsDir() {
+			return false
+		}
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return false
+		}
+		defer file.Close()
+
+		mime, err := mimetype.DetectReader(file)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := mimetypes[mime.String()]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
@@ -1648,7 +1714,7 @@ func hasValue(fl FieldLevel) bool {
 	}
 }
 
-// requireCheckField is a func for check field kind
+// requireCheckFieldKind is a func for check field kind
 func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
 	field := fl.Field()
 	kind := field.Kind()
@@ -1728,10 +1794,10 @@ func excludedIf(fl FieldLevel) bool {
 
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
-			return false
+			return true
 		}
 	}
-	return true
+	return !hasValue(fl)
 }
 
 // requiredUnless is the validation function
@@ -1744,6 +1810,21 @@ func requiredUnless(fl FieldLevel) bool {
 
 	for i := 0; i < len(params); i += 2 {
 		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
+// skipUnless is the validation function
+// The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
+func skipUnless(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for skip_unless %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
 			return true
 		}
 	}
@@ -2489,9 +2570,17 @@ func isDirPath(fl FieldLevel) bool {
 func isJSON(fl FieldLevel) bool {
 	field := fl.Field()
 
-	if field.Kind() == reflect.String {
+	switch field.Kind() {
+	case reflect.String:
 		val := field.String()
 		return json.Valid([]byte(val))
+	case reflect.Slice:
+		fieldType := field.Type()
+
+		if fieldType.ConvertibleTo(byteSliceType) {
+			b := field.Convert(byteSliceType).Interface().([]byte)
+			return json.Valid(b)
+		}
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
@@ -2593,13 +2682,13 @@ func isIso3166Alpha2(fl FieldLevel) bool {
 	return iso3166_1_alpha2[val]
 }
 
-// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
+// isIso3166Alpha3 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
 func isIso3166Alpha3(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return iso3166_1_alpha3[val]
 }
 
-// isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
+// isIso3166AlphaNumeric is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
 func isIso3166AlphaNumeric(fl FieldLevel) bool {
 	field := fl.Field()
 

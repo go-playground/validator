@@ -140,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Datetime          string    `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -625,6 +626,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime與2006-01-02格式不匹配",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image 必須是有效圖像",
 		},
 	}
 

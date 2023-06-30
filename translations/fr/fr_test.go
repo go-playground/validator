@@ -139,6 +139,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -618,6 +619,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfInt doit être l'un des choix suivants [5 63]",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image doit être une image valide",
 		},
 	}
 

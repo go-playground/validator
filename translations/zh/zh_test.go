@@ -148,6 +148,7 @@ func TestTranslations(t *testing.T) {
 		LowercaseString       string    `validate:"lowercase"`
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -675,6 +676,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime的格式必须是2006-01-02",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image 必须是有效图像",
 		},
 	}
 

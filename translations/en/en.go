@@ -1367,6 +1367,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "image",
+			translation: "{0} must be a valid image",
+			override:    false,
+		},
+		{
 			tag:         "cve",
 			translation: "{0} must be a valid cve identifier",
 			override:    false,

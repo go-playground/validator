@@ -153,6 +153,7 @@ func TestTranslations(t *testing.T) {
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString     string `validate:"boolean"`
+		Image             string `validate:"image"`
 		CveString         string `validate:"cve"`
 	}
 
@@ -696,6 +697,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.BooleanString",
 			expected: "BooleanString must be a valid boolean value",
+		},
+		{
+			ns:       "Test.Image",
+			expected: "Image must be a valid image",
 		},
 		{
 			ns:       "Test.CveString",
