@@ -41,7 +41,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
 
