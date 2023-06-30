@@ -1920,7 +1920,7 @@ func hasValue(fl FieldLevel) bool {
 
 	field := fl.Field()
 
-	fmt.Printf("field Kind %s", field.Kind())
+	fmt.Printf("field Kind %s : value |%s|", field.Kind(), field.String())
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
