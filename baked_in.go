@@ -1921,7 +1921,7 @@ func hasValue(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	case reflect.Struct:
-		fmt.Printf("got zero??? %t", field.IsZero())
+		fmt.Printf("got zero??? %t\n", field.IsZero())
 		return !field.IsZero()
 	default:
 		if fl.(*validate).fldIsPointer && field.Interface() != nil {
