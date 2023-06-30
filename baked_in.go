@@ -1866,7 +1866,11 @@ func isDefault(fl FieldLevel) bool {
 // hasValue is the validation function for validating if the current field's value is not the default static value.
 func hasValue(fl FieldLevel) bool {
 	fmt.Println("in hasValue")
+
 	field := fl.Field()
+
+	fmt.Printf("field Kind %s", field.Kind())
+
 	switch field.Kind() {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
