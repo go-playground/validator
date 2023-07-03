@@ -13136,7 +13136,7 @@ func TestCronExpressionValidation(t *testing.T) {
 	}
 }
 
-func TestStructTopLevelValidation(t *testing.T) {
+func TestNestedStructValidation(t *testing.T) {
 	type (
 		veggyBasket struct {
 			Root   string
