@@ -13135,3 +13135,124 @@ func TestCronExpressionValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestStructTopLevelValidation(t *testing.T) {
+	type (
+		veggyBasket struct {
+			Root   string
+			Squash string `validate:"required"`
+		}
+		testErr struct {
+			nsKey,
+			structNsKey,
+			field,
+			structField,
+			expectedTag string
+		}
+	)
+
+	validator := New()
+
+	if err := validator.RegisterValidation("veggy", func(f FieldLevel) bool {
+		v, ok := f.Field().Interface().(veggyBasket)
+		if !ok || v.Root != "potato" {
+			return false
+		}
+		return true
+	}); err != nil {
+		t.Fatal(fmt.Errorf("failed to register potato tag: %w", err))
+	}
+
+	tests := []struct {
+		name    string
+		testErr *testErr
+		value   veggyBasket
+	}{
+		{
+			name:  "valid",
+			value: veggyBasket{"potato", "zucchini"},
+		}, {
+			name:  "failedVeggyTag",
+			value: veggyBasket{"zucchini", "potato"},
+			testErr: &testErr{
+				nsKey:       "topLevel.VeggyBasket",
+				structNsKey: "topLevel.VeggyBasket",
+				field:       "VeggyBasket",
+				structField: "VeggyBasket",
+				expectedTag: "veggy",
+			},
+		}, {
+			name:  "failedRequiredTag",
+			value: veggyBasket{"potato", ""},
+			testErr: &testErr{
+				nsKey:       "topLevel.VeggyBasket.Squash",
+				structNsKey: "topLevel.VeggyBasket.Squash",
+				field:       "Squash",
+				structField: "Squash",
+				expectedTag: "required",
+			},
+		}, {
+			name:  "failedVeggyTagPriorityCheck",
+			value: veggyBasket{"zucchini", ""},
+			testErr: &testErr{
+				nsKey:       "topLevel.VeggyBasket",
+				structNsKey: "topLevel.VeggyBasket",
+				field:       "VeggyBasket",
+				structField: "VeggyBasket",
+				expectedTag: "veggy",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		type topLevel struct {
+			VeggyBasket veggyBasket `validate:"veggy"`
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			errs := validator.Struct(topLevel{tt.value})
+
+			if tt.testErr != nil && errs != nil {
+				AssertError(t, errs, tt.testErr.nsKey, tt.testErr.structNsKey, tt.testErr.field, tt.testErr.structField, tt.testErr.expectedTag)
+			}
+
+			var validationErrs ValidationErrors
+			if errs != nil {
+				validationErrs = errs.(ValidationErrors)
+			}
+
+			shouldFail := tt.testErr != nil
+			hasFailed := validationErrs != nil
+			if shouldFail != hasFailed {
+				t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, validationErrs)
+			}
+		})
+	}
+
+	// Also test on struct pointers
+	for _, tt := range tests {
+		type topLevel struct {
+			VeggyBasket *veggyBasket `validate:"veggy"`
+		}
+
+		t.Run(tt.name+"Ptr", func(t *testing.T) {
+			errs := validator.Struct(topLevel{&tt.value})
+
+			t.Log(errs)
+			if tt.testErr != nil && errs != nil {
+				AssertError(t, errs, tt.testErr.nsKey, tt.testErr.structNsKey, tt.testErr.field, tt.testErr.structField, tt.testErr.expectedTag)
+			}
+
+			var validationErrs ValidationErrors
+			if errs != nil {
+				validationErrs = errs.(ValidationErrors)
+			}
+
+			shouldFail := tt.testErr != nil
+			hasFailed := validationErrs != nil
+			if shouldFail != hasFailed {
+				t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, validationErrs)
+			}
+		})
+	}
+}
