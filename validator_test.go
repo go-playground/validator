@@ -13149,6 +13149,11 @@ func TestStructTopLevelValidation(t *testing.T) {
 			structField,
 			expectedTag string
 		}
+		test struct {
+			name    string
+			testErr *testErr
+			value   veggyBasket
+		}
 	)
 
 	validator := New()
@@ -13163,11 +13168,7 @@ func TestStructTopLevelValidation(t *testing.T) {
 		t.Fatal(fmt.Errorf("failed to register potato tag: %w", err))
 	}
 
-	tests := []struct {
-		name    string
-		testErr *testErr
-		value   veggyBasket
-	}{
+	tests := []test{
 		{
 			name:  "valid",
 			value: veggyBasket{"potato", "zucchini"},
@@ -13204,28 +13205,30 @@ func TestStructTopLevelValidation(t *testing.T) {
 		},
 	}
 
+	var evaluateTest = func(tt test, errs error) {
+		if tt.testErr != nil && errs != nil {
+			AssertError(t, errs, tt.testErr.nsKey, tt.testErr.structNsKey, tt.testErr.field, tt.testErr.structField, tt.testErr.expectedTag)
+		}
+
+		var validationErrs ValidationErrors
+		if errs != nil {
+			validationErrs = errs.(ValidationErrors)
+		}
+
+		shouldFail := tt.testErr != nil
+		hasFailed := validationErrs != nil
+		if shouldFail != hasFailed {
+			t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, validationErrs)
+		}
+	}
+
 	for _, tt := range tests {
 		type topLevel struct {
 			VeggyBasket veggyBasket `validate:"veggy"`
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			errs := validator.Struct(topLevel{tt.value})
-
-			if tt.testErr != nil && errs != nil {
-				AssertError(t, errs, tt.testErr.nsKey, tt.testErr.structNsKey, tt.testErr.field, tt.testErr.structField, tt.testErr.expectedTag)
-			}
-
-			var validationErrs ValidationErrors
-			if errs != nil {
-				validationErrs = errs.(ValidationErrors)
-			}
-
-			shouldFail := tt.testErr != nil
-			hasFailed := validationErrs != nil
-			if shouldFail != hasFailed {
-				t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, validationErrs)
-			}
+			evaluateTest(tt, validator.Struct(topLevel{tt.value}))
 		})
 	}
 
@@ -13236,23 +13239,7 @@ func TestStructTopLevelValidation(t *testing.T) {
 		}
 
 		t.Run(tt.name+"Ptr", func(t *testing.T) {
-			errs := validator.Struct(topLevel{&tt.value})
-
-			t.Log(errs)
-			if tt.testErr != nil && errs != nil {
-				AssertError(t, errs, tt.testErr.nsKey, tt.testErr.structNsKey, tt.testErr.field, tt.testErr.structField, tt.testErr.expectedTag)
-			}
-
-			var validationErrs ValidationErrors
-			if errs != nil {
-				validationErrs = errs.(ValidationErrors)
-			}
-
-			shouldFail := tt.testErr != nil
-			hasFailed := validationErrs != nil
-			if shouldFail != hasFailed {
-				t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, validationErrs)
-			}
+			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
 		})
 	}
 }
