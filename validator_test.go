@@ -13243,3 +13243,19 @@ func TestNestedStructValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestRequiredStruct(t *testing.T) {
+	type value struct {
+		Field []string
+	}
+	type topLevel struct {
+		Value value `validate:"required"`
+	}
+
+	validator := New()
+	errs := validator.Struct(topLevel{})
+	AssertError(t, errs, "topLevel.Value", "topLevel.Value", "Value", "Value", "required")
+
+	errs = validator.Struct(topLevel{value{[]string{}}})
+	Equal(t, errs, nil)
+}
