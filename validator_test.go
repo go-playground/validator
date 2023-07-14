@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/go-playground/assert/v2"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/fr"
 	"github.com/go-playground/locales/nl"
