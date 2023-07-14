@@ -230,6 +230,7 @@ var (
 		"luhn_checksum":                 hasLuhnChecksum,
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
+		"spicedb":                       isSpiceDB,
 	}
 )
 
@@ -2806,6 +2807,23 @@ func digitsHaveLuhnChecksum(digits []string) bool {
 func isMongoDB(fl FieldLevel) bool {
 	val := fl.Field().String()
 	return mongodbRegex.MatchString(val)
+}
+
+// isSpiceDB is the validation function for validating if the current field's value is valid for use with Authzed SpiceDB in the indicated way
+func isSpiceDB(fl FieldLevel) bool {
+	val := fl.Field().String()
+	param := fl.Param()
+
+	switch param {
+	case "permission":
+		return spicedbPermissionRegex.MatchString(val)
+	case "type":
+		return spicedbTypeRegex.MatchString(val)
+	case "id", "":
+		return spicedbIDRegex.MatchString(val)
+	}
+
+	panic("Unrecognized parameter: " + param)
 }
 
 // isCreditCard is the validation function for validating if the current field's value is a valid credit card number

@@ -1384,6 +1384,12 @@ This validates that a string value contains a valid cron expression.
 
 	Usage: cron
 
+# SpiceDb ObjectID/Permission/Object Type
+
+This validates that a string is valid for use with SpiceDb for the indicated purpose. If no purpose is given, a purpose of 'id' is assumed.
+
+	Usage: spicedb=id|permission|type
+
 # Alias Validators and Tags
 
 Alias Validators and Tags

@@ -158,6 +158,7 @@ Baked-in Validations
 | credit_card | Credit Card Number |
 | mongodb | MongoDB ObjectID |
 | cron | Cron |
+| spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
 | email | E-mail String

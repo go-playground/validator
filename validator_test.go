@@ -12993,6 +12993,80 @@ func TestMongoDBObjectIDFormatValidation(t *testing.T) {
 	}
 }
 
+func TestSpiceDBValueFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string
+		tag      string
+		expected bool
+	}{
+		//Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
+		{"*", "spicedb=id", true},
+		{`azAZ09_|/-=+`, "spicedb=id", true},
+		{`a*`, "spicedb=id", false},
+		{`/`, "spicedb=id", true},
+		{"*", "spicedb", true},
+
+		//Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
+		{"a", "spicedb=permission", false},
+		{"1", "spicedb=permission", false},
+		{"a1", "spicedb=permission", false},
+		{"a_b", "spicedb=permission", true},
+		{"A_b", "spicedb=permission", false},
+		{"a_B", "spicedb=permission", false},
+		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", true},
+		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", false},
+
+		//Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
+		{"a", "spicedb=type", false},
+		{"1", "spicedb=type", false},
+		{"a1", "spicedb=type", false},
+		{"a_b", "spicedb=type", true},
+		{"A_b", "spicedb=type", false},
+		{"a_B", "spicedb=type", false},
+		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=type", true},
+		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=type", false},
+
+		{`a_b/a`, "spicedb=type", false},
+		{`a_b/1`, "spicedb=type", false},
+		{`a_b/a1`, "spicedb=type", false},
+		{`a_b/a_b`, "spicedb=type", true},
+		{`a_b/A_b`, "spicedb=type", false},
+		{`a_b/a_B`, "spicedb=type", false},
+		{`a_b/abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz`, "spicedb=type", true},
+		{`a_b/abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz`, "spicedb=type", false},
+
+		{`a/a_b`, "spicedb=type", false},
+		{`1/a_b`, "spicedb=type", false},
+		{`a1/a_b`, "spicedb=type", false},
+		{`a_b/a_b`, "spicedb=type", true},
+		{`A_b/a_b`, "spicedb=type", false},
+		{`a_B/a_b`, "spicedb=type", false},
+		{`abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxy/a_b`, "spicedb=type", true},
+		{`abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz/a_b`, "spicedb=type", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d spicedb failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d spicedb - expected error but there was none.", i)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "spicedb" {
+					t.Fatalf("Index: %d spicedb failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestCreditCardFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"credit_card"`
