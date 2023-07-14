@@ -168,8 +168,10 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 			for ct != nil {
 
-				if ct.typeof == typeStructOnly || ct.typeof == typeNoStructLevel {
+				if ct.typeof == typeStructOnly {
 					goto CONTINUE
+				} else if ct.typeof == typeNoStructLevel {
+					break
 				} else if ct.typeof == typeIsDefault || ct.typeof == typeDefault && ct.runValidationWhenNil && v.fldIsPointer {
 					// set Field Level fields
 					v.slflParent = parent
