@@ -166,11 +166,11 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 		if !typ.ConvertibleTo(timeType) {
 
-			if ct != nil {
+			for ct != nil {
 
-				if ct.typeof == typeStructOnly {
+				if ct.typeof == typeStructOnly || ct.typeof == typeNoStructLevel {
 					goto CONTINUE
-				} else if ct.typeof == typeIsDefault {
+				} else if ct.typeof == typeIsDefault || ct.typeof == typeDefault && ct.runValidationWhenNil && v.fldIsPointer {
 					// set Field Level fields
 					v.slflParent = parent
 					v.flField = current
