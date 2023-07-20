@@ -190,7 +190,7 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 	return v.ValidateMapCtx(context.Background(), data, rules)
 }
 
-// RegisterTagNameFunc registers a function to get alternate names for StructFields.
+// RegisterTagNameFunc registers a function to get alternate names (other than sturct field names) from FieldName.
 //
 // eg. to use the names which have been specified for JSON representations of structs, rather than normal Go field names:
 //
