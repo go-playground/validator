@@ -5852,6 +5852,7 @@ func TestFilePathValidation(t *testing.T) {
 		{"valid filepath", filepath.Join("testdata", "a.go"), true},
 		{"invalid filepath", filepath.Join("testdata", "no\000.go"), false},
 		{"directory, not a filepath", "testdata" + string(os.PathSeparator), false},
+		{"directory", "testdata", false},
 	}
 
 	for _, test := range tests {

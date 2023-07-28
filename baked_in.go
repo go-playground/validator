@@ -1561,6 +1561,10 @@ func isFilePath(fl FieldLevel) bool {
 
 	field := fl.Field()
 
+	// Not valid if it is a directory.
+	if isDir(fl) {
+		return false
+	}
 	// If it exists, it obviously is valid.
 	// This is done first to avoid code duplication and unnecessary additional logic.
 	if exists = isFile(fl); exists {
