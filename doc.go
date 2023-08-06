@@ -879,8 +879,6 @@ This is done using os.Stat and github.com/gabriel-vasile/mimetype
 
 	Usage: image
 
-# URL String
-
 # File Path
 
 This validates that a string value contains a valid file path but does not
