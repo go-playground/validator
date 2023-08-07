@@ -13487,3 +13487,42 @@ func TestNestedStructValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestIsYamlValidation(t *testing.T) {
+
+	rawLiteral := `
+- first_element: element name
+  a: true
+  b:
+    - inner_element: Only element of the inner list.
+      c:
+        d: "This string is on the deepest level"`
+
+	tests := []struct {
+		value    string `validate:"yaml"`
+		tag      string
+		expected bool
+	}{
+		{"singleline: one line", "yaml", true},
+		{"multiline: A\nb: B\n", "yaml", true},
+		{"mixedtype: 1\nb: True\nc: [ 1, 1, 2, 3, 5]", "yaml", true},
+		{rawLiteral, "yaml", true},
+		{"a: ?", "yaml", false},
+		{"...", "yaml", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d yaml "%s" failed Error: %s`, i, test.value, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d yaml "%s" should have errs`, i, test.value)
+			}
+		}
+	}
+}

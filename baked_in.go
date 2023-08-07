@@ -21,6 +21,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/language"
+	"gopkg.in/yaml.v3"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/leodido/go-urn"
@@ -231,6 +232,7 @@ var (
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"yaml":                          isYaml,
 	}
 )
 
@@ -2877,4 +2879,13 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex.MatchString(cronString)
+}
+
+// isYaml is the validation for validating if the the current fields value is a valid yaml document
+func isYaml(f1 FieldLevel) bool {
+	document := f1.Field().String()
+	var parsedDoc interface{}
+	err := yaml.Unmarshal([]byte(document), &parsedDoc)
+
+	return err == nil
 }
