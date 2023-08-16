@@ -3,6 +3,7 @@ package validator
 import (
 	"context"
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 )
@@ -73,8 +74,14 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 					}
 				}
 			}
-
-			v.traverseField(ctx, current, current.Field(f.idx), ns, structNs, f, f.cTags)
+			field := current.Field(f.idx)
+			// add floating-point precision to four decimal places.
+			switch field.Kind() {
+			case reflect.Float32, reflect.Float64:
+				rounded := math.Round(field.Float()*1000) / 1000
+				field = reflect.ValueOf(rounded)
+			}
+			v.traverseField(ctx, current, field, ns, structNs, f, f.cTags)
 		}
 	}
 
