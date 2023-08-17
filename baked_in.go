@@ -1295,8 +1295,13 @@ func isEq(fl FieldLevel) bool {
 
 		return field.Uint() == p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
+
+		return field.Float() == p
+
+	case reflect.Float64:
+		p := asFloat64(param)
 
 		return field.Float() == p
 
@@ -1760,8 +1765,11 @@ func requireCheckFieldValue(
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return field.Uint() == asUint(value)
 
-	case reflect.Float32, reflect.Float64:
-		return field.Float() == asFloat(value)
+	case reflect.Float32:
+		return field.Float() == asFloat32(value)
+
+	case reflect.Float64:
+		return field.Float() == asFloat64(value)
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		return int64(field.Len()) == asInt(value)
@@ -2060,8 +2068,13 @@ func isGte(fl FieldLevel) bool {
 
 		return field.Uint() >= p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
+
+		return field.Float() >= p
+
+	case reflect.Float64:
+		p := asFloat64(param)
 
 		return field.Float() >= p
 
@@ -2106,10 +2119,16 @@ func isGt(fl FieldLevel) bool {
 
 		return field.Uint() > p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
 
 		return field.Float() > p
+
+	case reflect.Float64:
+		p := asFloat64(param)
+
+		return field.Float() > p
+
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
@@ -2148,8 +2167,13 @@ func hasLengthOf(fl FieldLevel) bool {
 
 		return field.Uint() == p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
+
+		return field.Float() == p
+
+	case reflect.Float64:
+		p := asFloat64(param)
 
 		return field.Float() == p
 	}
@@ -2281,8 +2305,13 @@ func isLte(fl FieldLevel) bool {
 
 		return field.Uint() <= p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
+
+		return field.Float() <= p
+
+	case reflect.Float64:
+		p := asFloat64(param)
 
 		return field.Float() <= p
 
@@ -2327,8 +2356,13 @@ func isLt(fl FieldLevel) bool {
 
 		return field.Uint() < p
 
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
+	case reflect.Float32:
+		p := asFloat32(param)
+
+		return field.Float() < p
+
+	case reflect.Float64:
+		p := asFloat64(param)
 
 		return field.Float() < p
 
