@@ -3150,7 +3150,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
+		Errs map[int]interface{} `validate:"gt=0,dive,required"`
 	}
 
 	mip := map[int]interface{}{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
@@ -3162,7 +3162,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "required")
 
 	type TestMultiDimensionalStructs struct {
 		Errs [][]interface{} `validate:"gt=0,dive,dive"`
