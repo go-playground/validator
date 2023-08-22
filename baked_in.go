@@ -1720,7 +1720,7 @@ func hasValue(fl FieldLevel) bool {
 		if fl.(*validate).fldIsPointer && field.Interface() != nil {
 			return true
 		}
-		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
+		return field.IsValid() && !field.IsZero()
 	}
 }
 
@@ -1744,7 +1744,7 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 		if nullable && field.Interface() != nil {
 			return false
 		}
-		return field.IsValid() && field.Interface() == reflect.Zero(field.Type()).Interface()
+		return field.IsValid() && field.IsZero()
 	}
 }
 
