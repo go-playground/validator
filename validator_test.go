@@ -6143,13 +6143,11 @@ func TestNoStructLevelValidation(t *testing.T) {
 	}
 
 	type Outer struct {
-		InnerStruct    Inner  `validate:"required,nostructlevel"`
-		InnerStructPtr *Inner `validate:"required,nostructlevel"`
+		InnerStruct *Inner `validate:"required,nostructlevel"`
 	}
 
 	outer := &Outer{
-		InnerStructPtr: nil,
-		InnerStruct:    Inner{},
+		InnerStruct: nil,
 	}
 
 	validate := New()
@@ -6157,15 +6155,13 @@ func TestNoStructLevelValidation(t *testing.T) {
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
-	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
 
-	inner := Inner{
+	inner := &Inner{
 		Test: "1234",
 	}
 
 	outer = &Outer{
-		InnerStruct:    inner,
-		InnerStructPtr: &inner,
+		InnerStruct: inner,
 	}
 
 	errs = validate.Struct(outer)
@@ -6178,13 +6174,11 @@ func TestStructOnlyValidation(t *testing.T) {
 	}
 
 	type Outer struct {
-		InnerStruct    Inner  `validate:"required,structonly"`
-		InnerStructPtr *Inner `validate:"required,structonly"`
+		InnerStruct *Inner `validate:"required,structonly"`
 	}
 
 	outer := &Outer{
-		InnerStruct:    Inner{},
-		InnerStructPtr: nil,
+		InnerStruct: nil,
 	}
 
 	validate := New()
@@ -6192,15 +6186,13 @@ func TestStructOnlyValidation(t *testing.T) {
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
-	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
 
-	inner := Inner{
+	inner := &Inner{
 		Test: "1234",
 	}
 
 	outer = &Outer{
-		InnerStruct:    inner,
-		InnerStructPtr: &inner,
+		InnerStruct: inner,
 	}
 
 	errs = validate.Struct(outer)
@@ -10832,8 +10824,6 @@ func TestRequiredIf(t *testing.T) {
 		Field6  uint              `validate:"required_if=Field5 1" json:"field_6"`
 		Field7  float32           `validate:"required_if=Field6 1" json:"field_7"`
 		Field8  float64           `validate:"required_if=Field7 1.0" json:"field_8"`
-		Field9  Inner             `validate:"required_if=Field1 test" json:"field_9"`
-		Field10 *Inner            `validate:"required_if=Field1 test" json:"field_10"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10859,8 +10849,6 @@ func TestRequiredIf(t *testing.T) {
 		Field5  string            `validate:"required_if=Field3 1" json:"field_5"`
 		Field6  string            `validate:"required_if=Inner.Field test" json:"field_6"`
 		Field7  string            `validate:"required_if=Inner2.Field test" json:"field_7"`
-		Field8  Inner             `validate:"required_if=Field2 test" json:"field_8"`
-		Field9  *Inner            `validate:"required_if=Field2 test" json:"field_9"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10870,12 +10858,10 @@ func TestRequiredIf(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 5)
+	Equal(t, len(ve), 3)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_if")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_if")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_if")
-	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_if")
-	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_if")
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -10912,8 +10898,6 @@ func TestRequiredUnless(t *testing.T) {
 		Field8  float64           `validate:"required_unless=Field7 0.0" json:"field_8"`
 		Field9  bool              `validate:"omitempty" json:"field_9"`
 		Field10 string            `validate:"required_unless=Field9 true" json:"field_10"`
-		Field11 Inner             `validate:"required_unless=Field9 true" json:"field_11"`
-		Field12 *Inner            `validate:"required_unless=Field9 true" json:"field_12"`
 	}{
 		FieldE: "test",
 		Field2: &fieldVal,
@@ -10942,8 +10926,6 @@ func TestRequiredUnless(t *testing.T) {
 		Field7  string            `validate:"required_unless=Inner2.Field test" json:"field_7"`
 		Field8  bool              `validate:"omitempty" json:"field_8"`
 		Field9  string            `validate:"required_unless=Field8 true" json:"field_9"`
-		Field10 Inner             `validate:"required_unless=Field9 true" json:"field_10"`
-		Field11 *Inner            `validate:"required_unless=Field9 true" json:"field_11"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		FieldE: "test",
@@ -10954,13 +10936,11 @@ func TestRequiredUnless(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 6)
+	Equal(t, len(ve), 4)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_unless")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_unless")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_unless")
 	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_unless")
-	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "required_unless")
-	AssertError(t, errs, "Field11", "Field11", "Field11", "Field11", "required_unless")
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -10997,8 +10977,6 @@ func TestSkipUnless(t *testing.T) {
 		Field8  float64           `validate:"skip_unless=Field7 1.0" json:"field_8"`
 		Field9  bool              `validate:"omitempty" json:"field_9"`
 		Field10 string            `validate:"skip_unless=Field9 false" json:"field_10"`
-		Field11 Inner             `validate:"skip_unless=Field9 false" json:"field_11"`
-		Field12 *Inner            `validate:"skip_unless=Field9 false" json:"field_12"`
 	}{
 		FieldE: "test1",
 		Field2: &fieldVal,
@@ -11027,8 +11005,6 @@ func TestSkipUnless(t *testing.T) {
 		Field7  string            `validate:"skip_unless=Inner2.Field test" json:"field_7"`
 		Field8  bool              `validate:"omitempty" json:"field_8"`
 		Field9  string            `validate:"skip_unless=Field8 true" json:"field_9"`
-		Field10 Inner             `validate:"skip_unless=Field8 false" json:"field_10"`
-		Field11 *Inner            `validate:"skip_unless=Field8 false" json:"field_11"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		FieldE: "test1",
@@ -11039,10 +11015,8 @@ func TestSkipUnless(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 3)
+	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "skip_unless")
-	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "skip_unless")
-	AssertError(t, errs, "Field11", "Field11", "Field11", "Field11", "skip_unless")
 
 	test3 := struct {
 		Inner  *Inner
@@ -11082,17 +11056,13 @@ func TestRequiredWith(t *testing.T) {
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with=Field" json:"field_5"`
-		Field6  Inner             `validate:"required_with=Field2" json:"field_6"`
-		Field7  *Inner            `validate:"required_with=Field2" json:"field_7"`
+		Field5  string            `validate:"required_with=Inner.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: Inner{Field: &fieldVal},
-		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -11112,8 +11082,6 @@ func TestRequiredWith(t *testing.T) {
 		Field5  string            `validate:"required_with=Field3" json:"field_5"`
 		Field6  string            `validate:"required_with=Inner.Field" json:"field_6"`
 		Field7  string            `validate:"required_with=Inner2.Field" json:"field_7"`
-		Field8  Inner             `validate:"required_with=Field2" json:"field_8"`
-		Field9  *Inner            `validate:"required_with=Field2" json:"field_9"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -11123,12 +11091,10 @@ func TestRequiredWith(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 5)
+	Equal(t, len(ve), 3)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_with")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_with")
-	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_with")
-	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_with")
 }
 
 func TestExcludedWith(t *testing.T) {
@@ -11149,8 +11115,6 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with=FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -11177,8 +11141,6 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.Field" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with=Field" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with=Field" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -11188,15 +11150,13 @@ func TestExcludedWith(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
-		Field7: Inner{FieldE: "potato"},
-		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 7)
+	Equal(t, len(ve), 5)
 	for i := 1; i <= 5; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with")
@@ -11213,8 +11173,6 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with=FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{FieldE: "populated"},
 		Inner2: &Inner{FieldE: "populated"},
@@ -11244,8 +11202,6 @@ func TestExcludedWithout(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
-		Field6 Inner             `validate:"excluded_without=Field" json:"field_6"`
-		Field7 *Inner            `validate:"excluded_without=Field" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -11254,8 +11210,6 @@ func TestExcludedWithout(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: Inner{FieldE: "potato"},
-		Field7: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -11274,8 +11228,6 @@ func TestExcludedWithout(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_without=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_without=FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_without=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -11284,15 +11236,13 @@ func TestExcludedWithout(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
-		Field7: Inner{FieldE: "potato"},
-		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 8)
+	Equal(t, len(ve), 6)
 	for i := 1; i <= 6; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without")
@@ -11308,8 +11258,6 @@ func TestExcludedWithout(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
-		Field6 Inner             `validate:"excluded_without=Field" json:"field_6"`
-		Field7 *Inner            `validate:"excluded_without=Field" json:"field_7"`
 	}{
 		Inner: &Inner{Field: &fieldVal},
 		Field: "populated",
@@ -11339,8 +11287,6 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with_all=FieldE Field" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with_all=FieldE Field" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  fieldVal,
@@ -11350,8 +11296,6 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
-		Field7: Inner{FieldE: "potato"},
-		Field8: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -11370,8 +11314,6 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.Field" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with_all=Field FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -11382,15 +11324,13 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
-		Field7: Inner{FieldE: "potato"},
-		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 7)
+	Equal(t, len(ve), 5)
 	for i := 1; i <= 5; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with_all")
@@ -11407,8 +11347,6 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_with_all=Field FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_with_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{FieldE: "populated"},
 		Inner2: &Inner{FieldE: "populated"},
@@ -11439,8 +11377,6 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
-		Field6 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_6"`
-		Field7 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Inner2: &Inner{Field: &fieldVal},
@@ -11450,8 +11386,6 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: Inner{FieldE: "potato"},
-		Field7: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -11470,8 +11404,6 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_without_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without_all=Inner2.FieldE" json:"field_6"`
-		Field7 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_7"`
-		Field8 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -11480,15 +11412,13 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
-		Field7: Inner{FieldE: "potato"},
-		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 8)
+	Equal(t, len(ve), 6)
 	for i := 1; i <= 6; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without_all")
@@ -11504,8 +11434,6 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
-		Field6 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_6"`
-		Field7 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Inner2: &Inner{Field: &fieldVal},
@@ -11534,8 +11462,6 @@ func TestRequiredWithAll(t *testing.T) {
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with_all=Field3" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field" json:"field_5"`
-		Field6  Inner             `validate:"required_with_all=Field1 Field2" json:"field_6"`
-		Field7  *Inner            `validate:"required_with_all=Field1 Field2" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: "test_field1",
@@ -11543,8 +11469,6 @@ func TestRequiredWithAll(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: Inner{Field: &fieldVal},
-		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -11563,8 +11487,6 @@ func TestRequiredWithAll(t *testing.T) {
 		Field4  interface{}       `validate:"required_with_all=Field1 FieldE" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field Field2" json:"field_5"`
 		Field6  string            `validate:"required_with_all=Inner2.Field Field2" json:"field_6"`
-		Field7  Inner             `validate:"required_with_all=Inner.Field Field2" json:"field_7"`
-		Field8  *Inner            `validate:"required_with_all=Inner.Field Field2" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -11574,11 +11496,9 @@ func TestRequiredWithAll(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 4)
+	Equal(t, len(ve), 2)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with_all")
 	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "required_with_all")
-	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_with_all")
-	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_with_all")
 }
 
 func TestRequiredWithout(t *testing.T) {
@@ -11594,16 +11514,12 @@ func TestRequiredWithout(t *testing.T) {
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
-		Field6 Inner             `validate:"required_without=Field1" json:"field_6"`
-		Field7 *Inner            `validate:"required_without=Field1" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: Inner{Field: &fieldVal},
-		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -11612,18 +11528,16 @@ func TestRequiredWithout(t *testing.T) {
 	Equal(t, errs, nil)
 
 	test2 := struct {
-		Inner   *Inner
-		Inner2  *Inner
-		Field1  string            `json:"field_1"`
-		Field2  *string           `validate:"required_without=Field1" json:"field_2"`
-		Field3  map[string]string `validate:"required_without=Field2" json:"field_3"`
-		Field4  interface{}       `validate:"required_without=Field3" json:"field_4"`
-		Field5  string            `validate:"required_without=Field3" json:"field_5"`
-		Field6  string            `validate:"required_without=Field1" json:"field_6"`
-		Field7  string            `validate:"required_without=Inner.Field" json:"field_7"`
-		Field8  string            `validate:"required_without=Inner.Field" json:"field_8"`
-		Field9  Inner             `validate:"required_without=Field1" json:"field_9"`
-		Field10 *Inner            `validate:"required_without=Field1" json:"field_10"`
+		Inner  *Inner
+		Inner2 *Inner
+		Field1 string            `json:"field_1"`
+		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
+		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
+		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
+		Field5 string            `validate:"required_without=Field3" json:"field_5"`
+		Field6 string            `validate:"required_without=Field1" json:"field_6"`
+		Field7 string            `validate:"required_without=Inner.Field" json:"field_7"`
+		Field8 string            `validate:"required_without=Inner.Field" json:"field_8"`
 	}{
 		Inner:  &Inner{},
 		Field3: map[string]string{"key": "val"},
@@ -11635,13 +11549,11 @@ func TestRequiredWithout(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 6)
+	Equal(t, len(ve), 4)
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_without")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without")
 	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
-	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_without")
-	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "required_without")
 
 	test3 := struct {
 		Field1 *string `validate:"required_without=Field2,omitempty,min=1" json:"field_1"`
@@ -11655,10 +11567,6 @@ func TestRequiredWithout(t *testing.T) {
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
-	type nested struct {
-		value string
-	}
-
 	fieldVal := "test"
 	test := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -11666,16 +11574,12 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
-		Field6 nested            `validate:"required_without_all=Field1" json:"field_6"`
-		Field7 *nested           `validate:"required_without_all=Field1" json:"field_7"`
 	}{
 		Field1: "",
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
-		Field6: nested{"potato"},
-		Field7: &nested{"potato"},
 	}
 
 	validate := New()
@@ -11690,8 +11594,6 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without_all=Field1 Field3" json:"field_6"`
-		Field7 nested            `validate:"required_without_all=Field1" json:"field_7"`
-		Field8 *nested           `validate:"required_without_all=Field1" json:"field_8"`
 	}{
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -11702,10 +11604,8 @@ func TestRequiredWithoutAll(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 3)
+	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
-	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without_all")
-	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without_all")
 }
 
 func TestExcludedIf(t *testing.T) {
@@ -13308,182 +13208,5 @@ func TestCronExpressionValidation(t *testing.T) {
 				t.Fatalf(`Index: %d cron "%s" should have errs`, i, test.value)
 			}
 		}
-	}
-}
-
-func TestNestedStructValidation(t *testing.T) {
-	validator := New()
-
-	t.Run("required", func(t *testing.T) {
-		type (
-			value struct {
-				Field string
-			}
-			topLevel struct {
-				Nested value `validate:"required"`
-			}
-		)
-
-		var validationErrs ValidationErrors
-		if errs := validator.Struct(topLevel{}); errs != nil {
-			validationErrs = errs.(ValidationErrors)
-		}
-
-		Equal(t, 1, len(validationErrs))
-		AssertError(t, validationErrs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "required")
-
-		Equal(t, validator.Struct(topLevel{value{"potato"}}), nil)
-	})
-
-	t.Run("omitempty", func(t *testing.T) {
-		type (
-			value struct {
-				Field string
-			}
-			topLevel struct {
-				Nested value `validate:"omitempty,required"`
-			}
-		)
-
-		errs := validator.Struct(topLevel{})
-		Equal(t, errs, nil)
-	})
-
-	t.Run("excluded_if", func(t *testing.T) {
-		type (
-			value struct {
-				Field string
-			}
-			topLevel struct {
-				Field  string
-				Nested value `validate:"excluded_if=Field potato"`
-			}
-		)
-
-		errs := validator.Struct(topLevel{Field: "test", Nested: value{"potato"}})
-		Equal(t, errs, nil)
-
-		errs = validator.Struct(topLevel{Field: "potato"})
-		Equal(t, errs, nil)
-
-		errs = validator.Struct(topLevel{Field: "potato", Nested: value{"potato"}})
-		AssertError(t, errs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "excluded_if")
-	})
-
-	t.Run("excluded_unless", func(t *testing.T) {
-		type (
-			value struct {
-				Field string
-			}
-			topLevel struct {
-				Field  string
-				Nested value `validate:"excluded_unless=Field potato"`
-			}
-		)
-
-		errs := validator.Struct(topLevel{Field: "test"})
-		Equal(t, errs, nil)
-
-		errs = validator.Struct(topLevel{Field: "potato", Nested: value{"potato"}})
-		Equal(t, errs, nil)
-
-		errs = validator.Struct(topLevel{Field: "test", Nested: value{"potato"}})
-		AssertError(t, errs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "excluded_unless")
-	})
-
-	t.Run("nonComparableField", func(t *testing.T) {
-		type (
-			value struct {
-				Field []string
-			}
-			topLevel struct {
-				Nested value `validate:"required"`
-			}
-		)
-
-		errs := validator.Struct(topLevel{value{[]string{}}})
-		Equal(t, errs, nil)
-	})
-
-	type (
-		veggyBasket struct {
-			Root   string
-			Squash string `validate:"required"`
-		}
-		testErr struct {
-			path string
-			tag  string
-		}
-		test struct {
-			name  string
-			err   testErr
-			value veggyBasket
-		}
-	)
-
-	if err := validator.RegisterValidation("veggy", func(f FieldLevel) bool {
-		v, ok := f.Field().Interface().(veggyBasket)
-		if !ok || v.Root != "potato" {
-			return false
-		}
-		return true
-	}); err != nil {
-		t.Fatal(fmt.Errorf("failed to register potato tag: %w", err))
-	}
-
-	tests := []test{
-		{
-			name:  "valid",
-			value: veggyBasket{"potato", "zucchini"},
-		}, {
-			name:  "failedCustomTag",
-			value: veggyBasket{"zucchini", "potato"},
-			err:   testErr{"topLevel.VeggyBasket", "veggy"},
-		}, {
-			name:  "failedInnerField",
-			value: veggyBasket{"potato", ""},
-			err:   testErr{"topLevel.VeggyBasket.Squash", "required"},
-		}, {
-			name:  "customTagFailurePriorityCheck",
-			value: veggyBasket{"zucchini", ""},
-			err:   testErr{"topLevel.VeggyBasket", "veggy"},
-		},
-	}
-
-	var evaluateTest = func(tt test, errs error) {
-		if tt.err != (testErr{}) && errs != nil {
-			Equal(t, len(errs.(ValidationErrors)), 1)
-
-			segments := strings.Split(tt.err.path, ".")
-			fieldName := segments[len(segments)-1]
-			AssertError(t, errs, tt.err.path, tt.err.path, fieldName, fieldName, tt.err.tag)
-		}
-
-		shouldFail := tt.err != (testErr{})
-		hasFailed := errs != nil
-		if shouldFail != hasFailed {
-			t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, errs)
-		}
-	}
-
-	for _, tt := range tests {
-		type topLevel struct {
-			VeggyBasket veggyBasket `validate:"veggy"`
-		}
-
-		t.Run(tt.name, func(t *testing.T) {
-			evaluateTest(tt, validator.Struct(topLevel{tt.value}))
-		})
-	}
-
-	// Also test on struct pointers
-	for _, tt := range tests {
-		type topLevel struct {
-			VeggyBasket *veggyBasket `validate:"veggy"`
-		}
-
-		t.Run(tt.name+"Ptr", func(t *testing.T) {
-			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
-		})
 	}
 }

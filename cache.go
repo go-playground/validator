@@ -20,7 +20,6 @@ const (
 	typeOr
 	typeKeys
 	typeEndKeys
-	typeNestedStructLevel
 )
 
 const (
@@ -153,7 +152,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		// and so only struct level caching can be used instead of combined with Field tag caching
 
 		if len(tag) > 0 {
-			ctag, _ = v.parseFieldTagsRecursive(tag, fld, "", false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, fld.Name, "", false)
 		} else {
 			// even if field doesn't have validations need cTag for traversing to potential inner/nested
 			// elements of the field.
@@ -172,7 +171,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	return cs
 }
 
-func (v *Validate) parseFieldTagsRecursive(tag string, field reflect.StructField, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
+func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
 	var t string
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
@@ -186,9 +185,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, field reflect.StructField
 		// check map for alias and process new tags, otherwise process as usual
 		if tagsVal, found := v.aliases[t]; found {
 			if i == 0 {
-				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, field, t, true)
+				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
 			} else {
-				next, curr := v.parseFieldTagsRecursive(tagsVal, field, t, true)
+				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
 				current.next, current = next, curr
 
 			}
@@ -236,7 +235,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, field reflect.StructField
 				}
 			}
 
-			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), field, "", false)
+			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false)
 			continue
 
 		case endKeysTag:
@@ -285,18 +284,14 @@ func (v *Validate) parseFieldTagsRecursive(tag string, field reflect.StructField
 
 				current.tag = vals[0]
 				if len(current.tag) == 0 {
-					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, field.Name)))
+					panic(strings.TrimSpace(fmt.Sprintf(invalidValidation, fieldName)))
 				}
 
 				if wrapper, ok := v.validations[current.tag]; ok {
 					current.fn = wrapper.fn
 					current.runValidationWhenNil = wrapper.runValidatinOnNil
 				} else {
-					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, field.Name)))
-				}
-
-				if current.typeof == typeDefault && isNestedStructOrStructPtr(field) {
-					current.typeof = typeNestedStructLevel
+					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}
 
 				if len(orVals) > 1 {
@@ -324,7 +319,7 @@ func (v *Validate) fetchCacheTag(tag string) *cTag {
 		// isn't parsed again.
 		ctag, found = v.tagCache.Get(tag)
 		if !found {
-			ctag, _ = v.parseFieldTagsRecursive(tag, reflect.StructField{}, "", false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
 			v.tagCache.Set(tag, ctag)
 		}
 	}

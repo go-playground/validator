@@ -170,7 +170,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 				if ct.typeof == typeStructOnly {
 					goto CONTINUE
-				} else if ct.typeof == typeIsDefault || ct.typeof == typeNestedStructLevel {
+				} else if ct.typeof == typeIsDefault {
 					// set Field Level fields
 					v.slflParent = parent
 					v.flField = current
