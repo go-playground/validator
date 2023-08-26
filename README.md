@@ -67,6 +67,12 @@ Please see https://pkg.go.dev/github.com/go-playground/validator/v10 for detaile
 Baked-in Validations
 ------
 
+### Special Notes:
+- If new to using validator it is highly recommended to initialize it using the `WithRequiredStructEnabled` option which is opt-in to new behaviour that will become the default behaviour in v11+. See documentation for more details.
+```go
+validate := validator.New(validator.WithRequiredStructEnabled())
+```
+
 ### Fields:
 
 | Tag | Description |
