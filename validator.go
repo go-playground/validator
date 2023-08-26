@@ -200,16 +200,18 @@ OUTER:
 			return
 
 		case typeStructOnly:
-			// if len == 0 then validating using 'Var' or 'VarWithValue'
-			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
-			// VarWithField - this allows for validating against each field within the struct against a specific value
-			//                pretty handy in certain situations
-			if len(cf.name) > 0 {
-				ns = append(append(ns, cf.altName...), '.')
-				structNs = append(append(structNs, cf.name...), '.')
-			}
+			if isNestedStruct {
+				// if len == 0 then validating using 'Var' or 'VarWithValue'
+				// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
+				// VarWithField - this allows for validating against each field within the struct against a specific value
+				//                pretty handy in certain situations
+				if len(cf.name) > 0 {
+					ns = append(append(ns, cf.altName...), '.')
+					structNs = append(append(structNs, cf.name...), '.')
+				}
 
-			v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
+				v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
+			}
 			return
 
 		case typeOmitEmpty:
