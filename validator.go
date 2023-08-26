@@ -169,7 +169,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		// structs. Since it's basically nonsensical to use `required` with a non-pointer struct
 		// are explicitly skipping the required validation for it. This WILL be removed in the
 		// next major version.
-		if ct != nil && ct.tag == requiredTag {
+		if !v.v.requiredStructEnabled && ct != nil && ct.tag == requiredTag {
 			ct = ct.next
 		}
 	}
