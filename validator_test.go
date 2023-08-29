@@ -3150,7 +3150,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
+		Errs map[int]interface{} `validate:"gt=0,dive,required"`
 	}
 
 	mip := map[int]interface{}{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
@@ -3162,7 +3162,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "required")
 
 	type TestMultiDimensionalStructs struct {
 		Errs [][]interface{} `validate:"gt=0,dive,dive"`
@@ -6152,7 +6152,8 @@ func TestNoStructLevelValidation(t *testing.T) {
 		InnerStruct:    Inner{},
 	}
 
-	validate := New()
+	// test with struct required failing on
+	validate := New(WithRequiredStructEnabled())
 
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
@@ -6160,6 +6161,30 @@ func TestNoStructLevelValidation(t *testing.T) {
 	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
 
 	inner := Inner{
+		Test: "1234",
+	}
+
+	outer = &Outer{
+		InnerStruct:    inner,
+		InnerStructPtr: &inner,
+	}
+
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	// test with struct required failing off
+
+	outer = &Outer{
+		InnerStructPtr: nil,
+		InnerStruct:    Inner{},
+	}
+	validate = New()
+
+	errs = validate.Struct(outer)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
+
+	inner = Inner{
 		Test: "1234",
 	}
 
@@ -6187,9 +6212,17 @@ func TestStructOnlyValidation(t *testing.T) {
 		InnerStructPtr: nil,
 	}
 
+	// without required struct on
 	validate := New()
 
 	errs := validate.Struct(outer)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
+
+	// with required struct on
+	validate.requiredStructEnabled = true
+
+	errs = validate.Struct(outer)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
 	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
@@ -11197,7 +11230,11 @@ func TestExcludedWith(t *testing.T) {
 
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 7)
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 7; i++ {
+		// accounting for field 7 & 8 failures, 6 skipped because no failure
+		if i > 5 {
+			i++
+		}
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with")
 	}
@@ -11293,7 +11330,7 @@ func TestExcludedWithout(t *testing.T) {
 
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 8)
-	for i := 1; i <= 6; i++ {
+	for i := 1; i <= 8; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without")
 	}
@@ -11391,7 +11428,11 @@ func TestExcludedWithAll(t *testing.T) {
 
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 7)
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 7; i++ {
+		// accounting for no err for field 6
+		if i > 5 {
+			i++
+		}
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with_all")
 	}
@@ -11489,7 +11530,7 @@ func TestExcludedWithoutAll(t *testing.T) {
 
 	ve := errs.(ValidationErrors)
 	Equal(t, len(ve), 8)
-	for i := 1; i <= 6; i++ {
+	for i := 1; i <= 8; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without_all")
 	}
@@ -11658,7 +11699,6 @@ func TestRequiredWithoutAll(t *testing.T) {
 	type nested struct {
 		value string
 	}
-
 	fieldVal := "test"
 	test := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -13312,7 +13352,7 @@ func TestCronExpressionValidation(t *testing.T) {
 }
 
 func TestNestedStructValidation(t *testing.T) {
-	validator := New()
+	validator := New(WithRequiredStructEnabled())
 
 	t.Run("required", func(t *testing.T) {
 		type (

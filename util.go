@@ -292,11 +292,3 @@ func panicIf(err error) {
 		panic(err.Error())
 	}
 }
-
-func isNestedStructOrStructPtr(v reflect.StructField) bool {
-	if v.Type == nil {
-		return false
-	}
-	kind := v.Type.Kind()
-	return kind == reflect.Struct || kind == reflect.Ptr && v.Type.Elem().Kind() == reflect.Struct
-}

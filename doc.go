@@ -247,7 +247,7 @@ Example #2
 This validates that the value is not the data types default zero value.
 For numbers ensures value is not zero. For strings ensures value is
 not "". For slices, maps, pointers, interfaces, channels and functions
-ensures the value is not nil. For structs ensures value is not the zero value.
+ensures the value is not nil. For structs ensures value is not the zero value when using WithRequiredStructEnabled.
 
 	Usage: required
 
