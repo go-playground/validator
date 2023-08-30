@@ -2317,6 +2317,13 @@ func TestSQLValueValidation(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 2)
 	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "CustomMadeUpStruct.MadeUp", "MadeUp", "MadeUp", "required")
 	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "OverriddenInt", "gt")
+
+	// Test for empty field on structs without tags
+	type InvalidValuePanicSafetyTest struct {
+		V valuer
+	}
+	errs = validate.Struct(InvalidValuePanicSafetyTest{})
+	Equal(t, errs, nil)
 }
 
 func TestMACValidation(t *testing.T) {
