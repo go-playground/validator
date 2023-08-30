@@ -162,6 +162,10 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			}
 		}
 
+		if kind == reflect.Invalid {
+			return
+		}
+
 	case reflect.Struct:
 		isNestedStruct = !current.Type().ConvertibleTo(timeType)
 		// For backward compatibility before struct level validation tags were supported
