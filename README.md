@@ -215,6 +215,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | semver | Semantic Versioning 2.0.0 |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 | cve | Common Vulnerabilities and Exposures Identifier (CVE id) |
+| yaml | Yaml document |
 
 ### Comparisons:
 | Tag | Description |
