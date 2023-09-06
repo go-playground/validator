@@ -674,7 +674,7 @@ func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string
 }
 
 // VarWithValueCtx validates a single variable, against another variable/field's value using tag style validation and
-// allows passing of contextual validation validation information via context.Context.
+// allows passing of contextual validation information via context.Context.
 // eg.
 // s1 := "abcd"
 // s2 := "abcd"

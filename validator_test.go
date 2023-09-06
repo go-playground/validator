@@ -799,7 +799,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial, p2...)
 	Equal(t, errs, nil)
 
-	// this isn't really a robust test, but is ment to illustrate the ANON CASE below
+	// this isn't really a robust test, but is meant to illustrate the ANON CASE below
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	Equal(t, errs, nil)
 
@@ -809,7 +809,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructExcept(tPartial, p2...)
 	Equal(t, errs, nil)
 
-	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	// mod tPartial for required field and re-test making sure invalid fields are NOT required:
 	tPartial.Required = ""
 
 	errs = validate.StructExcept(tPartial, p1...)
@@ -841,7 +841,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructExcept(tPartial.Anonymous, p4...)
 	Equal(t, errs, nil)
 
-	// will fail as unset feild is tested
+	// will fail as unset field is tested
 	errs = validate.StructPartial(tPartial, p2...)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestPartial.Anonymous.A", "TestPartial.Anonymous.A", "A", "A", "required")
@@ -893,7 +893,7 @@ func TestStructPartial(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 1)
 	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "TestPartial.SubSlice[0].Test", "Test", "Test", "required")
 
-	// reset struct in slice, and unset struct in slice in unset posistion
+	// reset struct in slice, and unset struct in slice in unset position
 	tPartial.SubSlice[0].Test = "Required"
 
 	// these will pass as the unset item is NOT tested
