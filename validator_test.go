@@ -13534,3 +13534,26 @@ func TestNestedStructValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestTimeRequired(t *testing.T) {
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type TestTime struct {
+		Time time.Time `validate:"required"`
+	}
+
+	var testTime TestTime
+
+	err := validate.Struct(&testTime)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "TestTime.Time", "TestTime.Time", "Time", "Time", "required")
+}
