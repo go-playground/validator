@@ -178,6 +178,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | isbn | International Standard Book Number |
 | isbn10 | International Standard Book Number 10 |
 | isbn13 | International Standard Book Number 13 |
+| issn | International Standard Serial Number |
 | iso3166_1_alpha2 | Two-letter country code (ISO 3166-1 alpha-2) |
 | iso3166_1_alpha3 | Three-letter country code (ISO 3166-1 alpha-3) |
 | iso3166_1_alpha_numeric | Numeric country code (ISO 3166-1 numeric) |

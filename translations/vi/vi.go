@@ -1117,6 +1117,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0} phải là số ISSN",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} phải là giá trị UUID",
 			override:    false,

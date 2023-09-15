@@ -4800,6 +4800,42 @@ func TestISBN10Validation(t *testing.T) {
 	}
 }
 
+func TestISSNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"20519990", false},
+		{"2051-9991", false},
+		{"2051-999X", false},
+		{"1050-124X", true},
+		{"0317-8471", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "issn")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "issn" {
+					t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestExcludesRuneValidation(t *testing.T) {
 	tests := []struct {
 		Value       string `validate:"excludesrune=☻"`
