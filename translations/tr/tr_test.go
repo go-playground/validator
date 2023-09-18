@@ -404,8 +404,8 @@ func TestTranslations(t *testing.T) {
 			expected: "AlphanumString yalnızca alfanümerik karakterler içerebilir",
 		},
 		{
-			ns:       "Test.AlphaunicodeString",
-			expected: "AlphaunicodeString yalnızca alfabetik unicode karakterler içerebilir",
+			ns:       "Test.AlphaUnicodeString",
+			expected: "AlphaUnicodeString yalnızca alfabetik unicode karakterler içerebilir",
 		},
 		{
 			ns:       "Test.AlphaString",
