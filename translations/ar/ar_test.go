@@ -149,6 +149,7 @@ func TestTranslations(t *testing.T) {
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -675,6 +676,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.PostCodeByField",
 			expected: "لا يتطابق PostCodeByField مع تنسيق الرمز البريدي للبلد في حقل PostCodeCountry",
+		},
+		{
+			ns: "Test.Image",
+			expected: "يجب أن تكون Image صورة صالحة",
 		},
 	}
 

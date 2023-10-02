@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -30,9 +29,13 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0}は必須フィールドです",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("len-string", "{0}の長さは{1}でなければなりません", false); err != nil {
 					return
 				}
@@ -64,7 +67,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -123,7 +125,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("min-string", "{0}の長さは少なくとも{1}はなければなりません", false); err != nil {
 					return
 				}
@@ -136,7 +137,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}は{1}より大きくなければなりません", false); err != nil {
+				if err = ut.Add("min-number", "{0}は{1}以上でなければなりません", false); err != nil {
 					return
 				}
 
@@ -155,7 +156,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -214,7 +214,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("max-string", "{0}の長さは最大でも{1}でなければなりません", false); err != nil {
 					return
 				}
@@ -227,7 +226,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-number", "{0}は{1}より小さくなければなりません", false); err != nil {
+				if err = ut.Add("max-number", "{0}は{1}以下でなければなりません", false); err != nil {
 					return
 				}
 
@@ -307,7 +306,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}と等しくありません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %#v", fe)
@@ -391,7 +389,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lt-string", "{0}の長さは{1}よりも少なくなければなりません", false); err != nil {
 					return
 				}
@@ -512,7 +509,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lte-string", "{0}の長さは最大でも{1}でなければなりません", false); err != nil {
 					return
 				}
@@ -525,7 +521,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0}は{1}より小さくなければなりません", false); err != nil {
+				if err = ut.Add("lte-number", "{0}は{1}以下でなければなりません", false); err != nil {
 					return
 				}
 
@@ -632,7 +628,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gt-string", "{0}の長さは{1}よりも多くなければなりません", false); err != nil {
 					return
 				}
@@ -752,7 +747,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gte-string", "{0}の長さは少なくとも{1}以上はなければなりません", false); err != nil {
 					return
 				}
@@ -765,7 +759,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}は{1}より大きくなければなりません", false); err != nil {
+				if err = ut.Add("gte-number", "{0}は{1}以上でなければなりません", false); err != nil {
 					return
 				}
 
@@ -874,7 +868,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}と等しくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -889,7 +882,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}と等しくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -904,7 +896,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}とは異ならなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -919,7 +910,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}よりも大きくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -934,7 +924,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}以上でなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -949,7 +938,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}よりも小さくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -964,7 +952,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}以下でなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -979,7 +966,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}とは異ならなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -994,7 +980,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}よりも大きくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1009,7 +994,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}以上でなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1024,7 +1008,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}よりも小さくなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1039,7 +1022,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は{1}以下でなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1124,7 +1106,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は'{1}'を含まなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1139,7 +1120,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}は'{1}'の少なくとも1つを含まなければなりません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1154,7 +1134,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}には'{1}'というテキストを含むことはできません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1169,7 +1148,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}には'{1}'のどれも含めることはできません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1184,7 +1162,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0}には'{1}'を含めることはできません",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1355,6 +1332,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}は一意な値のみを含まなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "iscolor",
 			translation: "{0}は正しい色でなければなりません",
 			override:    false,
@@ -1372,22 +1354,88 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return s
 			},
 		},
+		{
+			tag:         "image",
+			translation: "{0} は有効な画像でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "json",
+			translation: "{0}は正しいJSON文字列でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0}は正しいJWT文字列でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0}は小文字でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0}は大文字でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0}は{1}の書式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0}は国名コード{1}の郵便番号形式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0}は{1}フィールドで指定された国名コードの郵便番号形式と一致しません",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0}は正しいブール値でなければなりません",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
 
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
-
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
-
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), t.customTransFunc)
-
 		} else if t.customTransFunc == nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, translateFunc)
-
 		} else {
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		}
@@ -1401,9 +1449,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
@@ -1415,7 +1461,6 @@ func registrationFunc(tag string, translation string, override bool) validator.R
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
 		log.Printf("warning: error translating FieldError: %#v", fe)

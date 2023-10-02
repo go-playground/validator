@@ -1,4 +1,4 @@
-package ar
+package lv
 
 import (
 	"fmt"
@@ -25,36 +25,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "حقل {0} مطلوب",
+			translation: "{0} ir obligāts lauks",
+			override:    false,
+		},
+		{
+			tag:         "required_if",
+			translation: "{0} ir obligāts lauks",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("len-string", "يجب أن يكون طول {0} مساويا ل {1}", false); err != nil {
+				if err = ut.Add("len-string", "{0} garumam jābūt {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-number", "يجب أن يكون {0} مساويا ل {1}", false); err != nil {
+				if err = ut.Add("len-number", "{0} vērtībai jābūt {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-items", "يجب أن يحتوي {0} على {1}", false); err != nil {
+				if err = ut.Add("len-items", "{0} vērtībai jāsatur {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("len-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -119,30 +124,30 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("min-string", "{0} يجب أن يكون {1} أو اقل", false); err != nil {
+				if err = ut.Add("min-string", "{0} garumam jābūt minimums {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-number", "{0} يجب أن يكون {1} أو اقل", false); err != nil {
+				if err = ut.Add("min-number", "{0} vērtībai jābūt {1} vai lielākai", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "يجب أن يحتوي {0} على {1} على الأقل", false); err != nil {
+				if err = ut.Add("min-items", "{0} jāsatur minimums {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("min-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -207,30 +212,30 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("max-string", "يجب أن يكون طول {0} بحد أقصى {1}", false); err != nil {
+				if err = ut.Add("max-string", "{0} vērtība pārsniedz maksimālo garumu {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-number", "{0} يجب أن يكون {1} أو اقل", false); err != nil {
+				if err = ut.Add("max-number", "{0} vērtībai jābūt {1} vai mazākai", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-items", "يجب أن يحتوي {0} على {1} كحد أقصى", false); err != nil {
+				if err = ut.Add("max-items", "{0} jāsatur maksimums {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("max-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -294,7 +299,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0} لا يساوي {1}",
+			translation: "{0} nav vienāds ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -308,7 +313,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ne",
-			translation: "{0} يجب ألا يساوي {1}",
+			translation: "{0} nedrīkst būt vienāds ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -323,35 +328,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lt-string", "يجب أن يكون طول {0} أقل من {1}", false); err != nil {
+				if err = ut.Add("lt-string", "{0} garumam jābūt mazākam par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīmi", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} rakstu zīmēm", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-number", "يجب أن يكون {0} أقل من {1}", false); err != nil {
+				if err = ut.Add("lt-number", "{0} jābūt mazākam par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "يجب أن يحتوي {0} على أقل من {1}", false); err != nil {
+				if err = ut.Add("lt-items", "{0} jāsatur mazāk par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} elementiem", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "يجب أن يكون {0} أقل من التاريخ والوقت الحاليين", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} jābūt mazākam par šī brīža Datumu un laiku", false); err != nil {
 					return
 				}
 
@@ -440,35 +445,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lte-string", "يجب أن يكون طول {0} كحد أقصى {1}", false); err != nil {
+				if err = ut.Add("lte-string", "{0} garumam jābūt maksimums {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0} يجب أن يكون {1} أو اقل", false); err != nil {
+				if err = ut.Add("lte-number", "{0} jābūt {1} vai mazākam", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "يجب أن يحتوي {0} على {1} كحد أقصى", false); err != nil {
+				if err = ut.Add("lte-items", "{0} jāsatur maksimums {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "يجب أن يكون {0} أقل من أو يساوي التاريخ والوقت الحاليين", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} jābūt mazākam par šī brīža Datumu un laiku vai vienādam", false); err != nil {
 					return
 				}
 
@@ -557,35 +562,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gt-string", "يجب أن يكون طول {0} أكبر من {1}", false); err != nil {
+				if err = ut.Add("gt-string", "{0} ir jābūt garākam par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} rakstu zīmēm", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-number", "يجب أن يكون {0} أكبر من {1}", false); err != nil {
+				if err = ut.Add("gt-number", "{0} jābūt lielākam par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "يجب أن يحتوي {0} على أكثر من {1}", false); err != nil {
+				if err = ut.Add("gt-items", "{0} jāsatur vairāk par {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0}عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} elementiem", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "يجب أن يكون {0} أكبر من التاريخ والوقت الحاليين", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} jābūt lielākam par šī brīža Datumu un laiku", false); err != nil {
 					return
 				}
 
@@ -674,35 +679,35 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gte-string", "يجب أن يكون طول {0} على الأقل {1}", false); err != nil {
+				if err = ut.Add("gte-string", "{0} garumam jābūt minimums {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} حرف", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīme", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} أحرف", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} rakstu zīmes", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0} يجب أن يكون {1} أو أكبر", false); err != nil {
+				if err = ut.Add("gte-number", "{0} jābūt {1} vai lielākam", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "يجب أن يحتوي {0} على {1} على الأقل", false); err != nil {
+				if err = ut.Add("gte-items", "{0} jāsatur minimums {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} عنصر", locales.PluralRuleOne, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} elements", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} عناصر", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "يجب أن يكون {0} أكبر من أو يساوي التاريخ والوقت الحاليين", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} jābūt lielākam par šī brīža Datumu un laiku vai vienādam", false); err != nil {
 					return
 				}
 
@@ -790,7 +795,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "يجب أن يكون {0} مساويا ل {1}",
+			translation: "{0} jābūt vienādam ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -804,7 +809,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "يجب أن يكون {0} مساويا ل {1}",
+			translation: "{0} jābūt vienādam ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -818,7 +823,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0} لا يمكن أن يساوي {1}",
+			translation: "{0} nedrīkst būt vienāds ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -832,7 +837,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtcsfield",
-			translation: "يجب أن يكون {0} أكبر من {1}",
+			translation: "{0} jābūt lielākam par {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -846,7 +851,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "يجب أن يكون {0} أكبر من أو يساوي {1}",
+			translation: "{0} jābūt lielākam par {1} vai vienādam",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -860,7 +865,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltcsfield",
-			translation: "يجب أن يكون {0} أصغر من {1}",
+			translation: "{0} jābūt mazākam par {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -874,7 +879,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "يجب أن يكون {0} أصغر من أو يساوي {1}",
+			translation: "{0} jābūt mazākam par {1} vai vienādam",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -888,7 +893,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0} لا يمكن أن يساوي {1}",
+			translation: "{0} nedrīkst būt vienāds ar {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -902,7 +907,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtfield",
-			translation: "يجب أن يكون {0} أكبر من {1}",
+			translation: "{0} jābūt lielākam par {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -916,7 +921,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "يجب أن يكون {0} أكبر من أو يساوي {1}",
+			translation: "{0} jābūt lielākam par {1} vai vienādam",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -930,7 +935,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltfield",
-			translation: "يجب أن يكون {0} أصغر من {1}",
+			translation: "{0} jābūt mazākam par {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -944,7 +949,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "يجب أن يكون {0} أصغر من أو يساوي {1}",
+			translation: "{0} jābūt mazākam par {1} vai vienādam",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -958,82 +963,82 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "يمكن أن يحتوي {0} على أحرف أبجدية فقط",
+			translation: "{0} jāsatur tikai simboli no alfabēta",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "يمكن أن يحتوي {0} على أحرف أبجدية رقمية فقط",
+			translation: "{0} jāsatur tikai simboli no alfabēta vai cipari (Alphanumeric)",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "يجب أن يكون {0} قيمة رقمية صالحة",
+			translation: "{0} jāsatur tikai cipari",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "يجب أن يكون {0} رقم صالح",
+			translation: "{0} jāsatur derīgs skaitlis",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "يجب أن يكون {0} عددًا سداسيًا عشريًا صالحاً",
+			translation: "{0} jābūt heksadecimālam skaitlim",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "يجب أن يكون {0} لون HEX صالح",
+			translation: "{0} jābūt derīgai HEX krāsai",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "يجب أن يكون {0} لون RGB صالح",
+			translation: "{0} jābūt derīgai RGB krāsai",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "يجب أن يكون {0} لون RGBA صالح",
+			translation: "{0} jābūt derīgai RGBA krāsai",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "يجب أن يكون {0} لون HSL صالح",
+			translation: "{0} jābūt derīgai HSL krāsai",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "يجب أن يكون {0} لون HSLA صالح",
+			translation: "{0} jābūt derīgai HSLA krāsai",
 			override:    false,
 		},
 		{
 			tag:         "e164",
-			translation: "يجب أن يكون {0} رقم هاتف صالح بتنسيق E.164",
+			translation: "{0} jābūt derīgam, pēc E.164 formatētam talruņa numuram",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "يجب أن يكون {0} عنوان بريد إلكتروني صالح",
+			translation: "{0} jābūt derīgai e-pasta adresei",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "يجب أن يكون {0} رابط إنترنت صالح",
+			translation: "{0} jābūt derīgam URL",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "يجب أن يكون {0} URI صالح",
+			translation: "{0} jābūt derīgam URI",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "يجب أن يكون {0} سلسلة Base64 صالحة",
+			translation: "{0} jābūt derīgai Base64 virknei",
 			override:    false,
 		},
 		{
 			tag:         "contains",
-			translation: "يجب أن يحتوي {0} على النص '{1}'",
+			translation: "{0} jāsatur teksts '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1047,7 +1052,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "يجب أن يحتوي {0} على حرف واحد على الأقل من الأحرف التالية '{1}'",
+			translation: "{0} jāsatur minimums 1 no rakstu zīmēm '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1061,7 +1066,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludes",
-			translation: "لا يمكن أن يحتوي {0} على النص '{1}'",
+			translation: "{0} nedrīkst saturēt tekstu '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1075,7 +1080,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesall",
-			translation: "لا يمكن أن يحتوي {0} على أي من الأحرف التالية '{1}'",
+			translation: "{0} nedrīkst saturēt nevienu no sekojošām rakstu zīmēm '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1089,7 +1094,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesrune",
-			translation: "لا يمكن أن يحتوي {0} على التالي '{1}'",
+			translation: "{0} nedrīkst saturēt sekojošo '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1103,177 +1108,177 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "يجب أن يكون {0} رقم ISBN صالح",
+			translation: "{0} jābūt derīgam ISBN numuram",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "يجب أن يكون {0} رقم ISBN-10 صالح",
+			translation: "{0} jābūt derīgam ISBN-10 numuram",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "يجب أن يكون {0} رقم ISBN-13 صالح",
+			translation: "{0} jābūt derīgam ISBN-13 numuram",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "يجب أن يكون {0} UUID صالح",
+			translation: "{0} jābūt derīgam UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "يجب أن يكون {0} UUID صالح من النسخة 3",
+			translation: "{0} jābūt derīgam 3. versijas UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "يجب أن يكون {0} UUID صالح من النسخة 4",
+			translation: "{0} jābūt derīgam 4. versijas UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "يجب أن يكون {0} UUID صالح من النسخة 5",
+			translation: "{0} jābūt derīgam 5. versijas UUID",
 			override:    false,
 		},
 		{
 			tag:         "ulid",
-			translation: "يجب أن يكون {0} ULID صالح من نسخة",
+			translation: "{0} jābūt derīgam ULID",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "يجب أن يحتوي {0} على أحرف ascii فقط",
+			translation: "{0} jāsatur tikai ascii rakstu zīmes",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "يجب أن يحتوي {0} على أحرف ascii قابلة للطباعة فقط",
+			translation: "{0} jāsatur tikai drukājamas ascii rakstu zīmes",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "يجب أن يحتوي {0} على أحرف متعددة البايت",
+			translation: "{0} jāsatur multibyte rakstu zīmes",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "يجب أن يحتوي {0} على URI صالح للبيانات",
+			translation: "{0} jāsatur derīgs Data URI",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "يجب أن يحتوي {0} على إحداثيات خط عرض صالحة",
+			translation: "{0} jāsatur derīgus platuma grādus",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "يجب أن يحتوي {0} على إحداثيات خط طول صالحة",
+			translation: "{0} jāsatur derīgus garuma grādus",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "يجب أن يكون {0} رقم SSN صالح",
+			translation: "{0} jābūt derīgam SSN numuram",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "يجب أن يكون {0} عنوان IPv4 صالح",
+			translation: "{0} jābūt derīgai IPv4 adresei",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "يجب أن يكون {0} عنوان IPv6 صالح",
+			translation: "{0} jābūt derīgai IPv6 adresei",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "يجب أن يكون {0} عنوان IP صالح",
+			translation: "{0} jābūt derīgai IP adresei",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "يجب أن يحتوي {0} على علامة CIDR صالحة",
+			translation: "{0} jāsatur derīgu CIDR notāciju",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "يجب أن يحتوي {0} على علامة CIDR صالحة لعنوان IPv4",
+			translation: "{0} jāsatur derīgu CIDR notāciju IPv4 adresei",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "يجب أن يحتوي {0} على علامة CIDR صالحة لعنوان IPv6",
+			translation: "{0} jāsatur derīgu CIDR notāciju IPv6 adresei",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "يجب أن يكون {0} عنوان TCP صالح",
+			translation: "{0} jābūt derīgai TCP adresei",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "يجب أن يكون {0} عنوان IPv4 TCP صالح",
+			translation: "{0} jābūt derīgai IPv4 TCP adresei",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "يجب أن يكون {0} عنوان IPv6 TCP صالح",
+			translation: "{0} jābūt derīgai IPv6 TCP adresei",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "يجب أن يكون {0} عنوان UDP صالح",
+			translation: "{0} jābūt derīgai UDP adresei",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "يجب أن يكون {0} عنوان IPv4 UDP صالح",
+			translation: "{0} jābūt derīgai IPv4 UDP adresei",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "يجب أن يكون {0} عنوان IPv6 UDP صالح",
+			translation: "{0} jābūt derīgai IPv6 UDP adresei",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "يجب أن يكون {0} عنوان IP قابل للحل",
+			translation: "{0} jābūt atrisināmai IP adresei",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "يجب أن يكون {0} عنوان IP قابل للحل",
+			translation: "{0} jābūt atrisināmai IPv4 adresei",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "يجب أن يكون {0} عنوان IPv6 قابل للحل",
+			translation: "{0} jābūt atrisināmai IPv6 adresei",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "يجب أن يكون {0} عنوان UNIX قابل للحل",
+			translation: "{0} jābūt atrisināmai UNIX adresei",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "يجب أن يحتوي {0} على عنوان MAC صالح",
+			translation: "{0} jābūt derīgai MAC adresei",
 			override:    false,
 		},
 		{
 			tag:         "unique",
-			translation: "يجب أن يحتوي {0} على قيم فريدة",
+			translation: "{0} jāsatur unikālas vērtības",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "يجب أن يكون {0} لون صالح",
+			translation: "{0} jābūt derīgai krāsai",
 			override:    false,
 		},
 		{
 			tag:         "oneof",
-			translation: "يجب أن يكون {0} واحدا من [{1}]",
+			translation: "{0} jābūt vienam no [{1}]",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1286,27 +1291,27 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "json",
-			translation: "يجب أن يكون {0} نص json صالح",
+			translation: "{0} jābūt derīgai json virknei",
 			override:    false,
 		},
 		{
 			tag:         "jwt",
-			translation: "يجب أن يكون {0} نص jwt صالح",
+			translation: "{0} jābūt derīgai jwt virknei",
 			override:    false,
 		},
 		{
 			tag:         "lowercase",
-			translation: "يجب أن يكون {0} نص حروف صغيرة",
+			translation: "{0} jābūt mazo burtu virknei",
 			override:    false,
 		},
 		{
 			tag:         "uppercase",
-			translation: "يجب أن يكون {0} نص حروف كبيرة",
+			translation: "{0} jābūt lielo burtu virknei",
 			override:    false,
 		},
 		{
 			tag:         "datetime",
-			translation: "لا يتطابق {0} مع تنسيق {1}",
+			translation: "{0} neatbilst formātam {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1320,7 +1325,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2",
-			translation: "لا يتطابق {0} مع تنسيق الرمز البريدي للبلد {1}",
+			translation: "{0} neatbilst pasta indeksa formātam valstī {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1334,7 +1339,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2_field",
-			translation: "لا يتطابق {0} مع تنسيق الرمز البريدي للبلد في حقل {1}",
+			translation: "{0} neatbilst pasta indeksa formātam valstī, kura norādīta laukā {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1347,8 +1352,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "image",
-			translation: "يجب أن تكون {0} صورة صالحة",
+			tag:         "boolean",
+			translation: "{0} jābūt derīgai boolean vērtībai",
 			override:    false,
 		},
 	}

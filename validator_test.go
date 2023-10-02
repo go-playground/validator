@@ -8,6 +8,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -2038,10 +2042,10 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, kind, reflect.String)
 	Equal(t, current.String(), "val2")
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.CrazyNonExistantField")
 	Equal(t, ok, false)
 
-	current, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
+	_, _, _, ok = v.getStructFieldOKInternal(val, "Inner.Slice[101]")
 	Equal(t, ok, false)
 
 	current, kind, _, ok = v.getStructFieldOKInternal(val, "Inner.Map[key3]")
@@ -2313,6 +2317,13 @@ func TestSQLValueValidation(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 2)
 	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "CustomMadeUpStruct.MadeUp", "MadeUp", "MadeUp", "required")
 	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "OverriddenInt", "gt")
+
+	// Test for empty field on structs without tags
+	type InvalidValuePanicSafetyTest struct {
+		V valuer
+	}
+	errs = validate.Struct(InvalidValuePanicSafetyTest{})
+	Equal(t, errs, nil)
 }
 
 func TestMACValidation(t *testing.T) {
@@ -3153,7 +3164,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
+		Errs map[int]interface{} `validate:"gt=0,dive,required"`
 	}
 
 	mip := map[int]interface{}{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
@@ -3165,7 +3176,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(msp)
 	NotEqual(t, errs, nil)
 	Equal(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
+	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "required")
 
 	type TestMultiDimensionalStructs struct {
 		Errs [][]interface{} `validate:"gt=0,dive,dive"`
@@ -3826,12 +3837,14 @@ func TestDataURIValidation(t *testing.T) {
 		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
 		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
 		{"image/gif;base64,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
-		{"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
-			"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
-			"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
-			"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
-			"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
-			"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true},
+		{
+			"data:image/gif;base64,MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMPNS1Ufof9EW/M98FNw" +
+				"UAKrwflsqVxaxQjBQnHQmiI7Vac40t8x7pIb8gLGV6wL7sBTJiPovJ0V7y7oc0Ye" +
+				"rhKh0Rm4skP2z/jHwwZICgGzBvA0rH8xlhUiTvcwDCJ0kc+fh35hNt8srZQM4619" +
+				"FTgB66Xmp4EtVyhpQV+t02g6NzK72oZI0vnAvqhpkxLeLiMCyrI416wHm5Tkukhx" +
+				"QmcL2a6hNOyu0ixX/x2kSFXApEnVrJ+/IxGyfyw8kf4N2IZpW5nEP847lpfj0SZZ" +
+				"Fwrd1mnfnDbYohX2zRptLy2ZUn06Qo9pkG5ntvFEPo9bfZeULtjYzIl6K8gJ2uGZ" + "HQIDAQAB", true,
+		},
 		{"data:image/png;base64,12345", false},
 		{"", false},
 		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
@@ -5214,6 +5227,24 @@ func TestIsNeValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsNeIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "ne_ignore_case=efgh")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "ne_ignore_case=AbCd")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "ne_ignore_case")
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "ne_ignore_case=abcd") }, "Bad field type time.Time",
+	)
+}
+
 func TestIsEqFieldValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -5491,6 +5522,23 @@ func TestIsEqValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestIsEqIgnoreCaseValidation(t *testing.T) {
+	var errs error
+	validate := New()
+	s := "abcd"
+	now := time.Now()
+
+	errs = validate.Var(s, "eq_ignore_case=abcd")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(s, "eq_ignore_case=AbCd")
+	Equal(t, errs, nil)
+
+	PanicMatches(
+		t, func() { _ = validate.Var(now, "eq_ignore_case=abcd") }, "Bad field type time.Time",
+	)
+}
+
 func TestOneOfValidation(t *testing.T) {
 	validate := New()
 
@@ -5624,6 +5672,53 @@ func TestBase64URLValidation(t *testing.T) {
 	}
 }
 
+func TestBase64RawURLValidation(t *testing.T) {
+	validate := New()
+
+	testCases := []struct {
+		decoded, encoded string
+		success          bool
+	}{
+		// empty string, although a valid base64 string, should fail
+		{"", "", false},
+		// invalid length
+		{"", "a", false},
+		// base64 with padding should fail
+		{"f", "Zg==", false},
+		{"fo", "Zm8=", false},
+		// base64 without padding
+		{"foo", "Zm9v", true},
+		{"hello", "aGVsbG8", true},
+		{"", "aGVsb", false},
+		// // base64 URL safe encoding with invalid, special characters '+' and '/'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
+		// // base64 URL safe encoding with valid, special characters '-' and '_'
+		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l-", true},
+		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA_lz", true},
+		// non base64 characters
+		{"", "@mc=", false},
+		{"", "Zm 9", false},
+	}
+	for _, tc := range testCases {
+		err := validate.Var(tc.encoded, "base64rawurl")
+		if tc.success {
+			Equal(t, err, nil)
+			// make sure encoded value is decoded back to the expected value
+			d, innerErr := base64.RawURLEncoding.DecodeString(tc.encoded)
+			Equal(t, innerErr, nil)
+			Equal(t, tc.decoded, string(d))
+		} else {
+			NotEqual(t, err, nil)
+			if len(tc.encoded) > 0 {
+				// make sure that indeed the encoded value was faulty
+				_, err := base64.RawURLEncoding.DecodeString(tc.encoded)
+				NotEqual(t, err, nil)
+			}
+		}
+	}
+}
+
 func TestFileValidation(t *testing.T) {
 	validate := New()
 
@@ -5657,6 +5752,143 @@ func TestFileValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestImageValidation(t *testing.T) {
+	validate := New()
+
+	paths := map[string]string{
+		"empty":     "",
+		"directory": "testdata",
+		"missing":   filepath.Join("testdata", "none.png"),
+		"png":       filepath.Join("testdata", "image.png"),
+		"jpeg":      filepath.Join("testdata", "image.jpg"),
+		"mp3":       filepath.Join("testdata", "music.mp3"),
+	}
+
+	tests := []struct {
+		title        string
+		param        string
+		expected     bool
+		createImage  func()
+		destroyImage func()
+	}{
+		{
+			"empty path",
+			paths["empty"], false,
+			func() {},
+			func() {},
+		},
+		{
+			"directory, not a file",
+			paths["directory"],
+			false,
+			func() {},
+			func() {},
+		},
+		{
+			"missing file",
+			paths["missing"],
+			false,
+			func() {},
+			func() {},
+		},
+		{
+			"valid png",
+			paths["png"],
+			true,
+			func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, _ := os.Create(paths["png"])
+				err := png.Encode(f, img)
+				if err != nil {
+					panic(fmt.Sprintf("Could not encode file in PNG. Error: %s", err))
+				}
+			},
+			func() {
+				os.Remove(paths["png"])
+			},
+		},
+		{
+			"valid jpeg",
+			paths["jpeg"],
+			true,
+			func() {
+				var opt jpeg.Options
+				img := image.NewGray(image.Rect(0, 0, 10, 10))
+				f, _ := os.Create(paths["jpeg"])
+				err := jpeg.Encode(f, img, &opt)
+				if err != nil {
+					panic(fmt.Sprintf("Could not encode file in JPEG. Error: %s", err))
+				}
+			},
+			func() {
+				os.Remove(paths["jpeg"])
+			},
+		},
+		{
+			"valid mp3",
+			paths["mp3"],
+			false,
+			func() {},
+			func() {},
+		},
+	}
+
+	for _, test := range tests {
+		test.createImage()
+		errs := validate.Var(test.param, "image")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+		test.destroyImage()
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "file")
+	}, "Bad field type int")
+}
+
+func TestFilePathValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty filepath", "", false},
+		{"valid filepath", filepath.Join("testdata", "a.go"), true},
+		{"invalid filepath", filepath.Join("testdata", "no\000.go"), false},
+		{"directory, not a filepath", "testdata" + string(os.PathSeparator), false},
+		{"directory", "testdata", false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "filepath")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "filepath")
+	}, "Bad field type int")
+}
+
 func TestEthereumAddressValidation(t *testing.T) {
 	validate := New()
 
@@ -5679,7 +5911,7 @@ func TestEthereumAddressValidation(t *testing.T) {
 		{"0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359", true},
 		{"0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB", true},
 		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
-		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", true}, // Invalid checksum, but valid address.
 
 		// Other.
 		{"", false},
@@ -5703,6 +5935,56 @@ func TestEthereumAddressValidation(t *testing.T) {
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "eth_addr" {
+					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestEthereumAddressChecksumValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		// All caps.
+		{"0x52908400098527886E0F7030069857D2E4169EE7", true},
+		{"0x8617E340B3D01FA5F11F306F4090FD50E238070D", true},
+
+		// All lower.
+		{"0x27b1fdb04752bbc536007a920d24acb045561c26", true},
+		{"0x123f681646d4a755815f9cb19e1acc8565a0c2ac", false},
+
+		// Mixed case: runs checksum validation.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", true},
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDB", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dead", false}, // Invalid checksum.
+		{"0x000000000000000000000000000000000000dEaD", true},  // Valid checksum.
+
+		// Other.
+		{"", false},
+		{"D1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb", false},    // Missing "0x" prefix.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDbc", false}, // More than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aD", false},   // Less than 40 hex digits.
+		{"0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDw", false},  // Invalid hex digit "w".
+	}
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "eth_addr_checksum")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eth_addr_checksum failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "eth_addr_checksum" {
 					t.Fatalf("Index: %d Latitude failed Error: %s", i, errs)
 				}
 			}
@@ -5875,25 +6157,54 @@ func TestNoStructLevelValidation(t *testing.T) {
 	}
 
 	type Outer struct {
-		InnerStruct *Inner `validate:"required,nostructlevel"`
+		InnerStruct    Inner  `validate:"required,nostructlevel"`
+		InnerStructPtr *Inner `validate:"required,nostructlevel"`
 	}
 
 	outer := &Outer{
-		InnerStruct: nil,
+		InnerStructPtr: nil,
+		InnerStruct:    Inner{},
 	}
 
-	validate := New()
+	// test with struct required failing on
+	validate := New(WithRequiredStructEnabled())
 
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
 
-	inner := &Inner{
+	inner := Inner{
 		Test: "1234",
 	}
 
 	outer = &Outer{
-		InnerStruct: inner,
+		InnerStruct:    inner,
+		InnerStructPtr: &inner,
+	}
+
+	errs = validate.Struct(outer)
+	Equal(t, errs, nil)
+
+	// test with struct required failing off
+
+	outer = &Outer{
+		InnerStructPtr: nil,
+		InnerStruct:    Inner{},
+	}
+	validate = New()
+
+	errs = validate.Struct(outer)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
+
+	inner = Inner{
+		Test: "1234",
+	}
+
+	outer = &Outer{
+		InnerStruct:    inner,
+		InnerStructPtr: &inner,
 	}
 
 	errs = validate.Struct(outer)
@@ -5906,25 +6217,37 @@ func TestStructOnlyValidation(t *testing.T) {
 	}
 
 	type Outer struct {
-		InnerStruct *Inner `validate:"required,structonly"`
+		InnerStruct    Inner  `validate:"required,structonly"`
+		InnerStructPtr *Inner `validate:"required,structonly"`
 	}
 
 	outer := &Outer{
-		InnerStruct: nil,
+		InnerStruct:    Inner{},
+		InnerStructPtr: nil,
 	}
 
+	// without required struct on
 	validate := New()
 
 	errs := validate.Struct(outer)
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
 
-	inner := &Inner{
+	// with required struct on
+	validate.requiredStructEnabled = true
+
+	errs = validate.Struct(outer)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Outer.InnerStruct", "Outer.InnerStruct", "InnerStruct", "InnerStruct", "required")
+	AssertError(t, errs, "Outer.InnerStructPtr", "Outer.InnerStructPtr", "InnerStructPtr", "InnerStructPtr", "required")
+
+	inner := Inner{
 		Test: "1234",
 	}
 
 	outer = &Outer{
-		InnerStruct: inner,
+		InnerStruct:    inner,
+		InnerStructPtr: &inner,
 	}
 
 	errs = validate.Struct(outer)
@@ -7772,6 +8095,8 @@ func TestUrl(t *testing.T) {
 		{"irc://#channel@network", true},
 		{"/abs/test/dir", false},
 		{"./rel/test/dir", false},
+		{"irc:", false},
+		{"http://", false},
 	}
 
 	validate := New()
@@ -7798,6 +8123,81 @@ func TestUrl(t *testing.T) {
 
 	i := 1
 	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
+}
+
+func TestHttpUrl(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"HTTP://foobar.com", true},
+		{"https://foobar.com", true},
+		{"foobar.com", false},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", false},
+		{"file:///etc/passwd", false},
+		{"file://C:/windows/win.ini", false},
+		{"http://user:pass@www.foobar.com/", true},
+		{"http://127.0.0.1/", true},
+		{"http://duckduckgo.com/?q=%2F", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/?foo=bar#baz=qux", true},
+		{"http://foobar.com?foo=bar", true},
+		{"http://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"a://b", false},
+		{"xyz://foobar.com", false},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", false},
+		{"http://www.foo_bar.com/", true},
+		{"http://localhost:3000/", true},
+		{"http://foobar.com/#baz", true},
+		{"http://foobar.com#baz=qux", true},
+		{"http://foobar.com/t$-_.+!*\\'(),", true},
+		{"http://www.foobar.com/~foobar", true},
+		{"http://www.-foobar.com/", true},
+		{"http://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", false},
+		{"irc://irc.server.org/channel", false},
+		{"irc://#channel@network", false},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+		{"http:", false},
+		{"http://", false},
+		{"http://#invalid", false},
+		{"https://1.1.1.1", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
 }
 
 func TestUri(t *testing.T) {
@@ -8308,6 +8708,43 @@ func TestNumeric(t *testing.T) {
 	i := 1
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
+}
+func TestBoolean(t *testing.T) {
+	validate := New()
+
+	b := true
+	errs := validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	b = false
+	errs = validate.Var(b, "boolean")
+	Equal(t, errs, nil)
+
+	s := "true"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "false"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "0"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "1"
+	errs = validate.Var(s, "boolean")
+	Equal(t, errs, nil)
+
+	s = "xyz"
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
+
+	s = "1."
+	errs = validate.Var(s, "boolean")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "boolean")
 }
 
 func TestAlphaNumeric(t *testing.T) {
@@ -9050,11 +9487,11 @@ func TestStructFiltered(t *testing.T) {
 	errs = validate.StructFiltered(tPartial, p2)
 	Equal(t, errs, nil)
 
-	// this isn't really a robust test, but is ment to illustrate the ANON CASE below
+	// this isn't really a robust test, but is meant to illustrate the ANON CASE below
 	errs = validate.StructFiltered(tPartial.SubSlice[0], p3)
 	Equal(t, errs, nil)
 
-	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	// mod tParial for required field and re-test making sure invalid fields are NOT required:
 	tPartial.Required = ""
 
 	// inversion and retesting Partial to generate failures:
@@ -9070,7 +9507,7 @@ func TestStructFiltered(t *testing.T) {
 	errs = validate.StructFiltered(tPartial, p1)
 	Equal(t, errs, nil)
 
-	// will fail as unset feild is tested
+	// will fail as unset field is tested
 	errs = validate.StructFiltered(tPartial, p2)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestPartial.Anonymous.A", "TestPartial.Anonymous.A", "A", "A", "required")
@@ -9099,7 +9536,7 @@ func TestStructFiltered(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 1)
 	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "TestPartial.SubSlice[0].Test", "Test", "Test", "required")
 
-	// reset struct in slice, and unset struct in slice in unset posistion
+	// reset struct in slice, and unset struct in slice in unset position
 	tPartial.SubSlice[0].Test = "Required"
 
 	// these will pass as the unset item is NOT tested
@@ -9775,6 +10212,12 @@ func TestUniqueValidation(t *testing.T) {
 		{map[string]string{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": "a"}, false},
 		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("a")}, false},
+		{map[string]*string{"one": stringPtr("a"), "two": stringPtr("b")}, true},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(1)}, false},
+		{map[string]*int{"one": intPtr(1), "two": intPtr(2)}, true},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.1)}, false},
+		{map[string]*float64{"one": float64Ptr(1.1), "two": float64Ptr(1.2)}, true},
 	}
 
 	validate := New()
@@ -9799,6 +10242,41 @@ func TestUniqueValidation(t *testing.T) {
 		}
 	}
 	PanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
+
+	t.Run("struct", func(t *testing.T) {
+		tests := []struct {
+			param    interface{}
+			expected bool
+		}{
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "bcd"}, true},
+			{struct {
+				A string `validate:"unique=B"`
+				B string
+			}{A: "abc", B: "abc"}, false},
+		}
+		validate := New()
+
+		for i, test := range tests {
+			errs := validate.Struct(test.param)
+			if test.expected {
+				if !IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				}
+			} else {
+				if IsEqual(errs, nil) {
+					t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+				} else {
+					val := getError(errs, "A", "A")
+					if val.Tag() != "unique" {
+						t.Fatalf("Index: %d unique failed Error: %v", i, errs)
+					}
+				}
+			}
+		}
+	})
 }
 
 func TestUniqueValidationStructSlice(t *testing.T) {
@@ -9851,6 +10329,7 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	}{
 		{A: stringPtr("one"), B: stringPtr("two")},
 		{A: stringPtr("one"), B: stringPtr("three")},
+		{},
 	}
 
 	tests := []struct {
@@ -10294,6 +10773,40 @@ func TestDirValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestDirPathValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty dirpath", "", false},
+		{"valid dirpath - exists", "testdata", true},
+		{"valid dirpath - explicit", "testdatanoexist" + string(os.PathSeparator), true},
+		{"invalid dirpath", "testdata\000" + string(os.PathSeparator), false},
+		{"file, not a dirpath", filepath.Join("testdata", "a.go"), false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "dirpath")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "filepath")
+	}, "Bad field type int")
+}
+
 func TestStartsWithValidation(t *testing.T) {
 	tests := []struct {
 		Value       string `validate:"startswith=(/^ヮ^)/*:・ﾟ✧"`
@@ -10366,6 +10879,8 @@ func TestRequiredIf(t *testing.T) {
 		Field6  uint              `validate:"required_if=Field5 1" json:"field_6"`
 		Field7  float32           `validate:"required_if=Field6 1" json:"field_7"`
 		Field8  float64           `validate:"required_if=Field7 1.0" json:"field_8"`
+		Field9  Inner             `validate:"required_if=Field1 test" json:"field_9"`
+		Field10 *Inner            `validate:"required_if=Field1 test" json:"field_10"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10391,6 +10906,8 @@ func TestRequiredIf(t *testing.T) {
 		Field5  string            `validate:"required_if=Field3 1" json:"field_5"`
 		Field6  string            `validate:"required_if=Inner.Field test" json:"field_6"`
 		Field7  string            `validate:"required_if=Inner2.Field test" json:"field_7"`
+		Field8  Inner             `validate:"required_if=Field2 test" json:"field_8"`
+		Field9  *Inner            `validate:"required_if=Field2 test" json:"field_9"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10400,10 +10917,12 @@ func TestRequiredIf(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 3)
+	Equal(t, len(ve), 5)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_if")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_if")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_if")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_if")
+	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_if")
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -10440,6 +10959,8 @@ func TestRequiredUnless(t *testing.T) {
 		Field8  float64           `validate:"required_unless=Field7 0.0" json:"field_8"`
 		Field9  bool              `validate:"omitempty" json:"field_9"`
 		Field10 string            `validate:"required_unless=Field9 true" json:"field_10"`
+		Field11 Inner             `validate:"required_unless=Field9 true" json:"field_11"`
+		Field12 *Inner            `validate:"required_unless=Field9 true" json:"field_12"`
 	}{
 		FieldE: "test",
 		Field2: &fieldVal,
@@ -10468,6 +10989,8 @@ func TestRequiredUnless(t *testing.T) {
 		Field7  string            `validate:"required_unless=Inner2.Field test" json:"field_7"`
 		Field8  bool              `validate:"omitempty" json:"field_8"`
 		Field9  string            `validate:"required_unless=Field8 true" json:"field_9"`
+		Field10 Inner             `validate:"required_unless=Field9 true" json:"field_10"`
+		Field11 *Inner            `validate:"required_unless=Field9 true" json:"field_11"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		FieldE: "test",
@@ -10478,11 +11001,13 @@ func TestRequiredUnless(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 4)
+	Equal(t, len(ve), 6)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_unless")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_unless")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_unless")
 	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_unless")
+	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "required_unless")
+	AssertError(t, errs, "Field11", "Field11", "Field11", "Field11", "required_unless")
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -10499,6 +11024,97 @@ func TestRequiredUnless(t *testing.T) {
 	_ = validate.Struct(test3)
 }
 
+func TestSkipUnless(t *testing.T) {
+	type Inner struct {
+		Field *string
+	}
+
+	fieldVal := "test1"
+	test := struct {
+		Inner   *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"skip_unless=FieldE test" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"skip_unless=Field1 test" json:"field_2"`
+		Field3  map[string]string `validate:"skip_unless=Field2 test" json:"field_3"`
+		Field4  interface{}       `validate:"skip_unless=Field3 1" json:"field_4"`
+		Field5  int               `validate:"skip_unless=Inner.Field test" json:"field_5"`
+		Field6  uint              `validate:"skip_unless=Field5 2" json:"field_6"`
+		Field7  float32           `validate:"skip_unless=Field6 1" json:"field_7"`
+		Field8  float64           `validate:"skip_unless=Field7 1.0" json:"field_8"`
+		Field9  bool              `validate:"omitempty" json:"field_9"`
+		Field10 string            `validate:"skip_unless=Field9 false" json:"field_10"`
+		Field11 Inner             `validate:"skip_unless=Field9 false" json:"field_11"`
+		Field12 *Inner            `validate:"skip_unless=Field9 false" json:"field_12"`
+	}{
+		FieldE: "test1",
+		Field2: &fieldVal,
+		Field3: map[string]string{"key": "val"},
+		Field4: "test",
+		Field5: 3,
+		Field9: true,
+	}
+
+	validate := New()
+
+	errs := validate.Struct(test)
+	Equal(t, errs, nil)
+
+	test2 := struct {
+		Inner   *Inner
+		Inner2  *Inner
+		FieldE  string            `validate:"omitempty" json:"field_e"`
+		FieldER string            `validate:"skip_unless=FieldE test" json:"field_er"`
+		Field1  string            `validate:"omitempty" json:"field_1"`
+		Field2  *string           `validate:"skip_unless=Field1 test" json:"field_2"`
+		Field3  map[string]string `validate:"skip_unless=Field2 test" json:"field_3"`
+		Field4  interface{}       `validate:"skip_unless=Field2 test" json:"field_4"`
+		Field5  string            `validate:"skip_unless=Field3 0" json:"field_5"`
+		Field6  string            `validate:"skip_unless=Inner.Field test" json:"field_6"`
+		Field7  string            `validate:"skip_unless=Inner2.Field test" json:"field_7"`
+		Field8  bool              `validate:"omitempty" json:"field_8"`
+		Field9  string            `validate:"skip_unless=Field8 true" json:"field_9"`
+		Field10 Inner             `validate:"skip_unless=Field8 false" json:"field_10"`
+		Field11 *Inner            `validate:"skip_unless=Field8 false" json:"field_11"`
+	}{
+		Inner:  &Inner{Field: &fieldVal},
+		FieldE: "test1",
+		Field1: "test1",
+	}
+
+	errs = validate.Struct(test2)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 3)
+	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "skip_unless")
+	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "skip_unless")
+	AssertError(t, errs, "Field11", "Field11", "Field11", "Field11", "skip_unless")
+
+	test3 := struct {
+		Inner  *Inner
+		Field1 string `validate:"skip_unless=Inner.Field" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	PanicMatches(t, func() {
+		_ = validate.Struct(test3)
+	}, "Bad param number for skip_unless Field1")
+
+	test4 := struct {
+		Inner  *Inner
+		Field1 string `validate:"skip_unless=Inner.Field test1" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &fieldVal},
+	}
+	errs = validate.Struct(test4)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "skip_unless")
+}
+
 func TestRequiredWith(t *testing.T) {
 	type Inner struct {
 		Field *string
@@ -10513,13 +11129,17 @@ func TestRequiredWith(t *testing.T) {
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with=Field3" json:"field_4"`
-		Field5  string            `validate:"required_with=Inner.Field" json:"field_5"`
+		Field5  string            `validate:"required_with=Field" json:"field_5"`
+		Field6  Inner             `validate:"required_with=Field2" json:"field_6"`
+		Field7  *Inner            `validate:"required_with=Field2" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: Inner{Field: &fieldVal},
+		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -10539,6 +11159,8 @@ func TestRequiredWith(t *testing.T) {
 		Field5  string            `validate:"required_with=Field3" json:"field_5"`
 		Field6  string            `validate:"required_with=Inner.Field" json:"field_6"`
 		Field7  string            `validate:"required_with=Inner2.Field" json:"field_7"`
+		Field8  Inner             `validate:"required_with=Field2" json:"field_8"`
+		Field9  *Inner            `validate:"required_with=Field2" json:"field_9"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10548,10 +11170,12 @@ func TestRequiredWith(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 3)
+	Equal(t, len(ve), 5)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with")
 	AssertError(t, errs, "Field4", "Field4", "Field4", "Field4", "required_with")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_with")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_with")
+	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_with")
 }
 
 func TestExcludedWith(t *testing.T) {
@@ -10572,6 +11196,8 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with=FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -10598,6 +11224,8 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.Field" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with=Field" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with=Field" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -10607,14 +11235,20 @@ func TestExcludedWith(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
+		Field7: Inner{FieldE: "potato"},
+		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 5)
-	for i := 1; i <= 5; i++ {
+	Equal(t, len(ve), 7)
+	for i := 1; i <= 7; i++ {
+		// accounting for field 7 & 8 failures, 6 skipped because no failure
+		if i > 5 {
+			i++
+		}
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with")
 	}
@@ -10630,6 +11264,8 @@ func TestExcludedWith(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with=FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{FieldE: "populated"},
 		Inner2: &Inner{FieldE: "populated"},
@@ -10659,6 +11295,8 @@ func TestExcludedWithout(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
+		Field6 Inner             `validate:"excluded_without=Field" json:"field_6"`
+		Field7 *Inner            `validate:"excluded_without=Field" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -10667,6 +11305,8 @@ func TestExcludedWithout(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: Inner{FieldE: "potato"},
+		Field7: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -10685,6 +11325,8 @@ func TestExcludedWithout(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_without=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_without=FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_without=FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -10693,14 +11335,16 @@ func TestExcludedWithout(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
+		Field7: Inner{FieldE: "potato"},
+		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 6)
-	for i := 1; i <= 6; i++ {
+	Equal(t, len(ve), 8)
+	for i := 1; i <= 8; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without")
 	}
@@ -10715,6 +11359,8 @@ func TestExcludedWithout(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
+		Field6 Inner             `validate:"excluded_without=Field" json:"field_6"`
+		Field7 *Inner            `validate:"excluded_without=Field" json:"field_7"`
 	}{
 		Inner: &Inner{Field: &fieldVal},
 		Field: "populated",
@@ -10744,6 +11390,8 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with_all=FieldE Field" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with_all=FieldE Field" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  fieldVal,
@@ -10753,6 +11401,8 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
+		Field7: Inner{FieldE: "potato"},
+		Field8: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -10771,6 +11421,8 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.Field" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with_all=Field FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field:  "populated",
@@ -10781,14 +11433,20 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
+		Field7: Inner{FieldE: "potato"},
+		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 5)
-	for i := 1; i <= 5; i++ {
+	Equal(t, len(ve), 7)
+	for i := 1; i <= 7; i++ {
+		// accounting for no err for field 6
+		if i > 5 {
+			i++
+		}
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_with_all")
 	}
@@ -10804,6 +11462,8 @@ func TestExcludedWithAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_with_all=Field FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_with_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{FieldE: "populated"},
 		Inner2: &Inner{FieldE: "populated"},
@@ -10834,6 +11494,8 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
+		Field6 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_6"`
+		Field7 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Inner2: &Inner{Field: &fieldVal},
@@ -10843,6 +11505,8 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: Inner{FieldE: "potato"},
+		Field7: &Inner{FieldE: "potato"},
 	}
 
 	validate := New()
@@ -10861,6 +11525,8 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field4 interface{}       `validate:"excluded_without_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without_all=Inner2.FieldE" json:"field_6"`
+		Field7 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_7"`
+		Field8 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: fieldVal,
@@ -10869,14 +11535,16 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field4: "test",
 		Field5: "test",
 		Field6: "test",
+		Field7: Inner{FieldE: "potato"},
+		Field8: &Inner{FieldE: "potato"},
 	}
 
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 6)
-	for i := 1; i <= 6; i++ {
+	Equal(t, len(ve), 8)
+	for i := 1; i <= 8; i++ {
 		name := fmt.Sprintf("Field%d", i)
 		AssertError(t, errs, name, name, name, name, "excluded_without_all")
 	}
@@ -10891,6 +11559,8 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
 		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
+		Field6 Inner             `validate:"excluded_without_all=Field FieldE" json:"field_6"`
+		Field7 *Inner            `validate:"excluded_without_all=Field FieldE" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Inner2: &Inner{Field: &fieldVal},
@@ -10919,6 +11589,8 @@ func TestRequiredWithAll(t *testing.T) {
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
 		Field4  interface{}       `validate:"required_with_all=Field3" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field" json:"field_5"`
+		Field6  Inner             `validate:"required_with_all=Field1 Field2" json:"field_6"`
+		Field7  *Inner            `validate:"required_with_all=Field1 Field2" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field1: "test_field1",
@@ -10926,6 +11598,8 @@ func TestRequiredWithAll(t *testing.T) {
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: Inner{Field: &fieldVal},
+		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -10944,6 +11618,8 @@ func TestRequiredWithAll(t *testing.T) {
 		Field4  interface{}       `validate:"required_with_all=Field1 FieldE" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field Field2" json:"field_5"`
 		Field6  string            `validate:"required_with_all=Inner2.Field Field2" json:"field_6"`
+		Field7  Inner             `validate:"required_with_all=Inner.Field Field2" json:"field_7"`
+		Field8  *Inner            `validate:"required_with_all=Inner.Field Field2" json:"field_8"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
@@ -10953,9 +11629,11 @@ func TestRequiredWithAll(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 2)
+	Equal(t, len(ve), 4)
 	AssertError(t, errs, "Field3", "Field3", "Field3", "Field3", "required_with_all")
 	AssertError(t, errs, "Field5", "Field5", "Field5", "Field5", "required_with_all")
+	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_with_all")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_with_all")
 }
 
 func TestRequiredWithout(t *testing.T) {
@@ -10971,12 +11649,16 @@ func TestRequiredWithout(t *testing.T) {
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
+		Field6 Inner             `validate:"required_without=Field1" json:"field_6"`
+		Field7 *Inner            `validate:"required_without=Field1" json:"field_7"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: Inner{Field: &fieldVal},
+		Field7: &Inner{Field: &fieldVal},
 	}
 
 	validate := New()
@@ -10985,16 +11667,18 @@ func TestRequiredWithout(t *testing.T) {
 	Equal(t, errs, nil)
 
 	test2 := struct {
-		Inner  *Inner
-		Inner2 *Inner
-		Field1 string            `json:"field_1"`
-		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
-		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
-		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
-		Field5 string            `validate:"required_without=Field3" json:"field_5"`
-		Field6 string            `validate:"required_without=Field1" json:"field_6"`
-		Field7 string            `validate:"required_without=Inner.Field" json:"field_7"`
-		Field8 string            `validate:"required_without=Inner.Field" json:"field_8"`
+		Inner   *Inner
+		Inner2  *Inner
+		Field1  string            `json:"field_1"`
+		Field2  *string           `validate:"required_without=Field1" json:"field_2"`
+		Field3  map[string]string `validate:"required_without=Field2" json:"field_3"`
+		Field4  interface{}       `validate:"required_without=Field3" json:"field_4"`
+		Field5  string            `validate:"required_without=Field3" json:"field_5"`
+		Field6  string            `validate:"required_without=Field1" json:"field_6"`
+		Field7  string            `validate:"required_without=Inner.Field" json:"field_7"`
+		Field8  string            `validate:"required_without=Inner.Field" json:"field_8"`
+		Field9  Inner             `validate:"required_without=Field1" json:"field_9"`
+		Field10 *Inner            `validate:"required_without=Field1" json:"field_10"`
 	}{
 		Inner:  &Inner{},
 		Field3: map[string]string{"key": "val"},
@@ -11006,11 +11690,13 @@ func TestRequiredWithout(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 4)
+	Equal(t, len(ve), 6)
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without")
 	AssertError(t, errs, "Field6", "Field6", "Field6", "Field6", "required_without")
 	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without")
 	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
+	AssertError(t, errs, "Field9", "Field9", "Field9", "Field9", "required_without")
+	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "required_without")
 
 	test3 := struct {
 		Field1 *string `validate:"required_without=Field2,omitempty,min=1" json:"field_1"`
@@ -11024,6 +11710,9 @@ func TestRequiredWithout(t *testing.T) {
 }
 
 func TestRequiredWithoutAll(t *testing.T) {
+	type nested struct {
+		value string
+	}
 	fieldVal := "test"
 	test := struct {
 		Field1 string            `validate:"omitempty" json:"field_1"`
@@ -11031,12 +11720,16 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
+		Field6 nested            `validate:"required_without_all=Field1" json:"field_6"`
+		Field7 *nested           `validate:"required_without_all=Field1" json:"field_7"`
 	}{
 		Field1: "",
 		Field2: &fieldVal,
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
 		Field5: "test",
+		Field6: nested{"potato"},
+		Field7: &nested{"potato"},
 	}
 
 	validate := New()
@@ -11051,6 +11744,8 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without_all=Field1 Field3" json:"field_6"`
+		Field7 nested            `validate:"required_without_all=Field1" json:"field_7"`
+		Field8 *nested           `validate:"required_without_all=Field1" json:"field_8"`
 	}{
 		Field3: map[string]string{"key": "val"},
 		Field4: "test",
@@ -11061,8 +11756,10 @@ func TestRequiredWithoutAll(t *testing.T) {
 	NotEqual(t, errs, nil)
 
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 1)
+	Equal(t, len(ve), 3)
 	AssertError(t, errs, "Field2", "Field2", "Field2", "Field2", "required_without_all")
+	AssertError(t, errs, "Field7", "Field7", "Field7", "Field7", "required_without_all")
+	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without_all")
 }
 
 func TestExcludedIf(t *testing.T) {
@@ -11071,20 +11768,24 @@ func TestExcludedIf(t *testing.T) {
 		Field *string
 	}
 
+	shouldExclude := "exclude"
+	shouldNotExclude := "dontExclude"
+
 	test1 := struct {
 		FieldE  string  `validate:"omitempty" json:"field_e"`
-		FieldER *string `validate:"excluded_if=FieldE test" json:"field_er"`
+		FieldER *string `validate:"excluded_if=FieldE exclude" json:"field_er"`
 	}{
-		FieldE: "test",
+		FieldE: shouldExclude,
 	}
 	errs := validate.Struct(test1)
 	Equal(t, errs, nil)
 
 	test2 := struct {
 		FieldE  string `validate:"omitempty" json:"field_e"`
-		FieldER string `validate:"excluded_if=FieldE test" json:"field_er"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
 	}{
-		FieldE: "notest",
+		FieldE:  shouldExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test2)
 	NotEqual(t, errs, nil)
@@ -11092,29 +11793,95 @@ func TestExcludedIf(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
 
-	shouldError := "shouldError"
 	test3 := struct {
-		Inner  *Inner
-		FieldE string `validate:"omitempty" json:"field_e"`
-		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldF  string `validate:"omitempty" json:"field_f"`
+		FieldER string `validate:"excluded_if=FieldE exclude FieldF exclude" json:"field_er"`
 	}{
-		Inner: &Inner{Field: &shouldError},
+		FieldE:  shouldExclude,
+		FieldF:  shouldExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test3)
 	NotEqual(t, errs, nil)
 	ve = errs.(ValidationErrors)
 	Equal(t, len(ve), 1)
-	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_if")
+	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_if")
 
-	shouldPass := "test"
 	test4 := struct {
-		Inner  *Inner
-		FieldE string `validate:"omitempty" json:"field_e"`
-		Field1 int    `validate:"excluded_if=Inner.Field test" json:"field_1"`
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldF  string `validate:"omitempty" json:"field_f"`
+		FieldER string `validate:"excluded_if=FieldE exclude FieldF exclude" json:"field_er"`
 	}{
-		Inner: &Inner{Field: &shouldPass},
+		FieldE:  shouldExclude,
+		FieldF:  shouldNotExclude,
+		FieldER: "set",
 	}
 	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	test5 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
+	}{
+		FieldE: shouldNotExclude,
+	}
+	errs = validate.Struct(test5)
+	Equal(t, errs, nil)
+
+	test6 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_if=FieldE exclude" json:"field_er"`
+	}{
+		FieldE:  shouldNotExclude,
+		FieldER: "set",
+	}
+	errs = validate.Struct(test6)
+	Equal(t, errs, nil)
+
+	test7 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldExclude},
+	}
+	errs = validate.Struct(test7)
+	Equal(t, errs, nil)
+
+	test8 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldExclude},
+		Field1: 1,
+	}
+	errs = validate.Struct(test8)
+	NotEqual(t, errs, nil)
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_if")
+
+	test9 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner: &Inner{Field: &shouldNotExclude},
+	}
+	errs = validate.Struct(test9)
+	Equal(t, errs, nil)
+
+	test10 := struct {
+		Inner  *Inner
+		FieldE string `validate:"omitempty" json:"field_e"`
+		Field1 int    `validate:"excluded_if=Inner.Field exclude" json:"field_1"`
+	}{
+		Inner:  &Inner{Field: &shouldNotExclude},
+		Field1: 1,
+	}
+	errs = validate.Struct(test10)
 	Equal(t, errs, nil)
 
 	// Checks number of params in struct tag is correct
@@ -11144,7 +11911,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "notest",
+		FieldE:  "test",
 		FieldER: "filled",
 	}
 	errs := validate.Struct(test)
@@ -11154,7 +11921,7 @@ func TestExcludedUnless(t *testing.T) {
 		FieldE  string `validate:"omitempty" json:"field_e"`
 		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
 	}{
-		FieldE:  "test",
+		FieldE:  "notest",
 		FieldER: "filled",
 	}
 	errs = validate.Struct(test2)
@@ -11163,7 +11930,26 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "FieldER", "FieldER", "FieldER", "FieldER", "excluded_unless")
 
-	shouldError := "test"
+	// test5 and test6: excluded_unless has no effect if FieldER is left blank
+	test5 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test5)
+	Equal(t, errs, nil)
+
+	test6 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=FieldE test" json:"field_er"`
+	}{
+		FieldE: "notest",
+	}
+	errs = validate.Struct(test6)
+	Equal(t, errs, nil)
+
+	shouldError := "notest"
 	test3 := struct {
 		Inner  *Inner
 		Field1 string `validate:"excluded_unless=Inner.Field test" json:"field_1"`
@@ -11177,7 +11963,7 @@ func TestExcludedUnless(t *testing.T) {
 	Equal(t, len(ve), 1)
 	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_unless")
 
-	shouldPass := "shouldPass"
+	shouldPass := "test"
 	test4 := struct {
 		Inner  *Inner
 		FieldE string `validate:"omitempty" json:"field_e"`
@@ -11187,6 +11973,26 @@ func TestExcludedUnless(t *testing.T) {
 		Field1: "filled",
 	}
 	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	// test7 and test8: excluded_unless has no effect if FieldER is left blank
+	test7 := struct {
+		Inner   *Inner
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=Inner.Field test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test7)
+	Equal(t, errs, nil)
+
+	test8 := struct {
+		FieldE  string `validate:"omitempty" json:"field_e"`
+		FieldER string `validate:"excluded_unless=Inner.Field test" json:"field_er"`
+	}{
+		FieldE: "test",
+	}
+	errs = validate.Struct(test8)
 	Equal(t, errs, nil)
 
 	// Checks number of params in struct tag is correct
@@ -11313,7 +12119,7 @@ func TestGetTag(t *testing.T) {
 
 func TestJSONValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{`foo`, false},
@@ -11330,6 +12136,34 @@ func TestJSONValidation(t *testing.T) {
 		{`true`, true},
 		{`null`, true},
 		{`"null"`, true},
+		{json.RawMessage(`foo`), false},
+		{json.RawMessage(`}{`), false},
+		{json.RawMessage(`{]`), false},
+		{json.RawMessage(`{}`), true},
+		{json.RawMessage(`{"foo":"bar"}`), true},
+		{json.RawMessage(`{"foo":"bar","bar":{"baz":["qux"]}}`), true},
+		{json.RawMessage(`{"foo": 3 "bar": 4}`), false},
+		{json.RawMessage(`{"foo": 3 ,"bar": 4`), false},
+		{json.RawMessage(`{foo": 3, "bar": 4}`), false},
+		{json.RawMessage(`foo`), false},
+		{json.RawMessage(`1`), true},
+		{json.RawMessage(`true`), true},
+		{json.RawMessage(`null`), true},
+		{json.RawMessage(`"null"`), true},
+		{[]byte(`foo`), false},
+		{[]byte(`}{`), false},
+		{[]byte(`{]`), false},
+		{[]byte(`{}`), true},
+		{[]byte(`{"foo":"bar"}`), true},
+		{[]byte(`{"foo":"bar","bar":{"baz":["qux"]}}`), true},
+		{[]byte(`{"foo": 3 "bar": 4}`), false},
+		{[]byte(`{"foo": 3 ,"bar": 4`), false},
+		{[]byte(`{foo": 3, "bar": 4}`), false},
+		{[]byte(`foo`), false},
+		{[]byte(`1`), true},
+		{[]byte(`true`), true},
+		{[]byte(`null`), true},
+		{[]byte(`"null"`), true},
 	}
 
 	validate := New()
@@ -11990,6 +12824,50 @@ func TestSemverFormatValidation(t *testing.T) {
 	}
 }
 
+func TestCveFormatValidation(t *testing.T) {
+
+	tests := []struct {
+		value    string `validate:"cve"`
+		tag      string
+		expected bool
+	}{
+		{"CVE-1999-0001", "cve", true},
+		{"CVE-1998-0001", "cve", false},
+		{"CVE-2000-0001", "cve", true},
+		{"CVE-2222-0001", "cve", true},
+		{"2222-0001", "cve", false},
+		{"-2222-0001", "cve", false},
+		{"CVE22220001", "cve", false},
+		{"CVE-2222-000001", "cve", false},
+		{"CVE-2222-100001", "cve", true},
+		{"CVE-2222-99999999999", "cve", true},
+		{"CVE-3000-0001", "cve", false},
+		{"CVE-1999-0000", "cve", false},
+		{"CVE-2099-0000", "cve", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "cve" {
+					t.Fatalf("Index: %d cve failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestRFC1035LabelFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"dns_rfc1035_label"`
@@ -12047,10 +12925,12 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"00803", true},
 			{"1234567", false},
 		},
-		"LC": { // not support regexp for post code
+		"LC": {
+			// not support regexp for post code
 			{"123456", false},
 		},
-		"XX": { // not support country
+		"XX": {
+			// not support country
 			{"123456", false},
 		},
 	}
@@ -12232,6 +13112,116 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 	}
 }
 
+func TestMongoDBObjectIDFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"mongodb"`
+		tag      string
+		expected bool
+	}{
+		{"507f191e810c19729de860ea", "mongodb", true},
+		{"507f191e810c19729de860eG", "mongodb", false},
+		{"M07f191e810c19729de860eG", "mongodb", false},
+		{"07f191e810c19729de860ea", "mongodb", false},
+		{"507f191e810c19729de860e", "mongodb", false},
+		{"507f191e810c19729de860ea4", "mongodb", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "mongodb" {
+					t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestSpiceDBValueFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string
+		tag      string
+		expected bool
+	}{
+		//Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
+		{"*", "spicedb=id", true},
+		{`azAZ09_|/-=+`, "spicedb=id", true},
+		{`a*`, "spicedb=id", false},
+		{`/`, "spicedb=id", true},
+		{"*", "spicedb", true},
+
+		//Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
+		{"a", "spicedb=permission", false},
+		{"1", "spicedb=permission", false},
+		{"a1", "spicedb=permission", false},
+		{"a_b", "spicedb=permission", true},
+		{"A_b", "spicedb=permission", false},
+		{"a_B", "spicedb=permission", false},
+		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", true},
+		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", false},
+
+		//Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
+		{"a", "spicedb=type", false},
+		{"1", "spicedb=type", false},
+		{"a1", "spicedb=type", false},
+		{"a_b", "spicedb=type", true},
+		{"A_b", "spicedb=type", false},
+		{"a_B", "spicedb=type", false},
+		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=type", true},
+		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=type", false},
+
+		{`a_b/a`, "spicedb=type", false},
+		{`a_b/1`, "spicedb=type", false},
+		{`a_b/a1`, "spicedb=type", false},
+		{`a_b/a_b`, "spicedb=type", true},
+		{`a_b/A_b`, "spicedb=type", false},
+		{`a_b/a_B`, "spicedb=type", false},
+		{`a_b/abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz`, "spicedb=type", true},
+		{`a_b/abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz`, "spicedb=type", false},
+
+		{`a/a_b`, "spicedb=type", false},
+		{`1/a_b`, "spicedb=type", false},
+		{`a1/a_b`, "spicedb=type", false},
+		{`a_b/a_b`, "spicedb=type", true},
+		{`A_b/a_b`, "spicedb=type", false},
+		{`a_B/a_b`, "spicedb=type", false},
+		{`abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxy/a_b`, "spicedb=type", true},
+		{`abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz/a_b`, "spicedb=type", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d spicedb failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d spicedb - expected error but there was none.", i)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "spicedb" {
+					t.Fatalf("Index: %d spicedb failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestCreditCardFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"credit_card"`
@@ -12246,6 +13236,8 @@ func TestCreditCardFormatValidation(t *testing.T) {
 		{"378282146310005", "credit_card", false},
 		{"4624 7482 3324 9780", "credit_card", true},
 		{"4624 7482 3324  9780", "credit_card", false},
+		{"4624 7482 3324 978A", "credit_card", false},
+		{"4624 7482 332", "credit_card", false},
 	}
 
 	validate := New()
@@ -12264,6 +13256,51 @@ func TestCreditCardFormatValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "credit_card" {
 					t.Fatalf("Index: %d credit_card failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestLuhnChecksumValidation(t *testing.T) {
+	testsUint := []struct {
+		value    interface{} `validate:"luhn_checksum"` // the type is interface{} because the luhn_checksum works on both strings and numbers
+		tag      string
+		expected bool
+	}{
+		{uint64(586824160825533338), "luhn_checksum", true}, // credit card numbers are just special cases of numbers with luhn checksum
+		{586824160825533338, "luhn_checksum", true},
+		{"586824160825533338", "luhn_checksum", true},
+		{uint64(586824160825533328), "luhn_checksum", false},
+		{586824160825533328, "luhn_checksum", false},
+		{"586824160825533328", "luhn_checksum", false},
+		{10000000116, "luhn_checksum", true}, // but there may be shorter numbers (11 digits)
+		{"10000000116", "luhn_checksum", true},
+		{10000000117, "luhn_checksum", false},
+		{"10000000117", "luhn_checksum", false},
+		{uint64(12345678123456789011), "luhn_checksum", true}, // or longer numbers (19 digits)
+		{"12345678123456789011", "luhn_checksum", true},
+		{1, "luhn_checksum", false}, // single digits (checksum only) are not allowed
+		{"1", "luhn_checksum", false},
+		{-10, "luhn_checksum", false}, // negative ints are not allowed
+		{"abcdefghijklmnop", "luhn_checksum", false},
+	}
+
+	validate := New()
+
+	for i, test := range testsUint {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "luhn_checksum" {
+					t.Fatalf("Index: %d luhn_checksum failed Error: %s", i, errs)
 				}
 			}
 		}
@@ -12292,4 +13329,238 @@ func TestMultiOrOperatorGroup(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestCronExpressionValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"cron"`
+		tag      string
+		expected bool
+	}{
+		{"0 0 12 * * ?", "cron", true},
+		{"0 15 10 ? * *", "cron", true},
+		{"0 15 10 * * ?", "cron", true},
+		{"0 15 10 * * ? 2005", "cron", true},
+		{"0 15 10 ? * 6L", "cron", true},
+		{"0 15 10 ? * 6L 2002-2005", "cron", true},
+		{"*/20 * * * *", "cron", true},
+		{"0 15 10 ? * MON-FRI", "cron", true},
+		{"0 15 10 ? * 6#3", "cron", true},
+		{"wrong", "cron", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" failed Error: %s`, i, test.value, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf(`Index: %d cron "%s" should have errs`, i, test.value)
+			}
+		}
+	}
+}
+
+func TestNestedStructValidation(t *testing.T) {
+	validator := New(WithRequiredStructEnabled())
+
+	t.Run("required", func(t *testing.T) {
+		type (
+			value struct {
+				Field string
+			}
+			topLevel struct {
+				Nested value `validate:"required"`
+			}
+		)
+
+		var validationErrs ValidationErrors
+		if errs := validator.Struct(topLevel{}); errs != nil {
+			validationErrs = errs.(ValidationErrors)
+		}
+
+		Equal(t, 1, len(validationErrs))
+		AssertError(t, validationErrs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "required")
+
+		Equal(t, validator.Struct(topLevel{value{"potato"}}), nil)
+	})
+
+	t.Run("omitempty", func(t *testing.T) {
+		type (
+			value struct {
+				Field string
+			}
+			topLevel struct {
+				Nested value `validate:"omitempty,required"`
+			}
+		)
+
+		errs := validator.Struct(topLevel{})
+		Equal(t, errs, nil)
+	})
+
+	t.Run("excluded_if", func(t *testing.T) {
+		type (
+			value struct {
+				Field string
+			}
+			topLevel struct {
+				Field  string
+				Nested value `validate:"excluded_if=Field potato"`
+			}
+		)
+
+		errs := validator.Struct(topLevel{Field: "test", Nested: value{"potato"}})
+		Equal(t, errs, nil)
+
+		errs = validator.Struct(topLevel{Field: "potato"})
+		Equal(t, errs, nil)
+
+		errs = validator.Struct(topLevel{Field: "potato", Nested: value{"potato"}})
+		AssertError(t, errs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "excluded_if")
+	})
+
+	t.Run("excluded_unless", func(t *testing.T) {
+		type (
+			value struct {
+				Field string
+			}
+			topLevel struct {
+				Field  string
+				Nested value `validate:"excluded_unless=Field potato"`
+			}
+		)
+
+		errs := validator.Struct(topLevel{Field: "test"})
+		Equal(t, errs, nil)
+
+		errs = validator.Struct(topLevel{Field: "potato", Nested: value{"potato"}})
+		Equal(t, errs, nil)
+
+		errs = validator.Struct(topLevel{Field: "test", Nested: value{"potato"}})
+		AssertError(t, errs, "topLevel.Nested", "topLevel.Nested", "Nested", "Nested", "excluded_unless")
+	})
+
+	t.Run("nonComparableField", func(t *testing.T) {
+		type (
+			value struct {
+				Field []string
+			}
+			topLevel struct {
+				Nested value `validate:"required"`
+			}
+		)
+
+		errs := validator.Struct(topLevel{value{[]string{}}})
+		Equal(t, errs, nil)
+	})
+
+	type (
+		veggyBasket struct {
+			Root   string
+			Squash string `validate:"required"`
+		}
+		testErr struct {
+			path string
+			tag  string
+		}
+		test struct {
+			name  string
+			err   testErr
+			value veggyBasket
+		}
+	)
+
+	if err := validator.RegisterValidation("veggy", func(f FieldLevel) bool {
+		v, ok := f.Field().Interface().(veggyBasket)
+		if !ok || v.Root != "potato" {
+			return false
+		}
+		return true
+	}); err != nil {
+		t.Fatal(fmt.Errorf("failed to register potato tag: %w", err))
+	}
+
+	tests := []test{
+		{
+			name:  "valid",
+			value: veggyBasket{"potato", "zucchini"},
+		}, {
+			name:  "failedCustomTag",
+			value: veggyBasket{"zucchini", "potato"},
+			err:   testErr{"topLevel.VeggyBasket", "veggy"},
+		}, {
+			name:  "failedInnerField",
+			value: veggyBasket{"potato", ""},
+			err:   testErr{"topLevel.VeggyBasket.Squash", "required"},
+		}, {
+			name:  "customTagFailurePriorityCheck",
+			value: veggyBasket{"zucchini", ""},
+			err:   testErr{"topLevel.VeggyBasket", "veggy"},
+		},
+	}
+
+	var evaluateTest = func(tt test, errs error) {
+		if tt.err != (testErr{}) && errs != nil {
+			Equal(t, len(errs.(ValidationErrors)), 1)
+
+			segments := strings.Split(tt.err.path, ".")
+			fieldName := segments[len(segments)-1]
+			AssertError(t, errs, tt.err.path, tt.err.path, fieldName, fieldName, tt.err.tag)
+		}
+
+		shouldFail := tt.err != (testErr{})
+		hasFailed := errs != nil
+		if shouldFail != hasFailed {
+			t.Fatalf("expected failure %v, got: %v with errs: %v", shouldFail, hasFailed, errs)
+		}
+	}
+
+	for _, tt := range tests {
+		type topLevel struct {
+			VeggyBasket veggyBasket `validate:"veggy"`
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			evaluateTest(tt, validator.Struct(topLevel{tt.value}))
+		})
+	}
+
+	// Also test on struct pointers
+	for _, tt := range tests {
+		type topLevel struct {
+			VeggyBasket *veggyBasket `validate:"veggy"`
+		}
+
+		t.Run(tt.name+"Ptr", func(t *testing.T) {
+			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
+		})
+	}
+}
+
+func TestTimeRequired(t *testing.T) {
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type TestTime struct {
+		Time time.Time `validate:"required"`
+	}
+
+	var testTime TestTime
+
+	err := validate.Struct(&testTime)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "TestTime.Time", "TestTime.Time", "Time", "Time", "required")
 }

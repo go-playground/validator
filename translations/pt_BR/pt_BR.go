@@ -26,7 +26,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0} é um campo requerido",
+			translation: "{0} é um campo obrigatório",
 			override:    false,
 		},
 		{
@@ -1319,6 +1319,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "boolean",
 			translation: "{0} deve ser um valor booleano válido",
+			override:    false,
+		},
+		{
+			tag:         "image",
+			translation: "{0} deve ser uma imagen válido",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0} deve ser um identificador cve válido",
 			override:    false,
 		},
 	}

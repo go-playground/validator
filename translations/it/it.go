@@ -124,7 +124,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-        
+
 				if err = ut.Add("min-string", "{0} deve essere lungo almeno {1}", false); err != nil {
 					return
 				}
@@ -432,7 +432,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-        
+
 				if err = ut.Add("lte-string", "{0} deve essere lungo al massimo {1}", false); err != nil {
 					return
 				}
@@ -1133,6 +1133,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "cron",
+			translation: "{0} deve essere una stringa cron valida",
+			override:    false,
+		},
+		{
 			tag:             "oneof",
 			translation:     "{0} deve essere uno di [{1}]",
 			override:        false,
@@ -1204,6 +1209,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation:     "{0} non corrisponde al formato del codice postale dello stato nel campo {1}",
 			override:        false,
 			customTransFunc: customTransFuncV1,
+		},
+		{
+			tag:         "image",
+			translation: "{0} deve essere un'immagine valida",
+			override:    false,
 		},
 	}
 

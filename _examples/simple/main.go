@@ -12,6 +12,7 @@ type User struct {
 	LastName       string     `validate:"required"`
 	Age            uint8      `validate:"gte=0,lte=130"`
 	Email          string     `validate:"required,email"`
+	Gender         string     `validate:"oneof=male female prefer_not_to`
 	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla'
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 }
@@ -29,7 +30,7 @@ var validate *validator.Validate
 
 func main() {
 
-	validate = validator.New()
+	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	validateStruct()
 	validateVariable()
@@ -47,6 +48,7 @@ func validateStruct() {
 		FirstName:      "Badger",
 		LastName:       "Smith",
 		Age:            135,
+		Gender:         "male",
 		Email:          "Badger.Smith@gmail.com",
 		FavouriteColor: "#000-",
 		Addresses:      []*Address{address},

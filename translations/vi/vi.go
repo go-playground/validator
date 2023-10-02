@@ -1341,6 +1341,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return t
 			},
 		},
+		{
+			tag:         "image",
+			translation: "{0} phải là một hình ảnh hợp lệ",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
