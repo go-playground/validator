@@ -373,9 +373,9 @@ func isMAC(fl FieldLevel) bool {
 
 // isCIDRv4 is the validation function for validating if the field's value is a valid v4 CIDR address.
 func isCIDRv4(fl FieldLevel) bool {
-	ip, _, err := net.ParseCIDR(fl.Field().String())
+	ip, net, err := net.ParseCIDR(fl.Field().String())
 
-	return err == nil && ip.To4() != nil
+	return err == nil && ip.To4() != nil && net.IP.Equal(ip)
 }
 
 // isCIDRv6 is the validation function for validating if the field's value is a valid v6 CIDR address.
