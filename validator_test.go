@@ -673,7 +673,7 @@ type TestCustomErrMsgStruct struct {
 	LastName  string `json:"lname" validate:"required"`
 	Age       uint8  `validate:"gte=0,lte=130" msg:"Age must be between 0 and 130, inclusive"`
 	Email     string `json:"email" validate:"required,email" msg:"Email is invalid"`
-	Addr11    string `json:"addr1sdf"`
+	Addr1     string `json:"addr1"`
 	Addr2     string
 	Addr3     string `json:"addr3"`
 }
@@ -681,8 +681,8 @@ type TestCustomErrMsgStruct struct {
 func StructValidationTestStructCustomErrorMessage(sl StructLevel) {
 	st := sl.Current().Interface().(TestCustomErrMsgStruct)
 
-	if st.Addr11 == "" && st.Addr2 == "" && st.Addr3 == "" {
-		sl.ReportErrorWithMsg(st.Addr11, "addr1", "Addr1", "addr1oraddr2oraddr3", "",
+	if st.Addr1 == "" && st.Addr2 == "" && st.Addr3 == "" {
+		sl.ReportErrorWithMsg(st.Addr1, "addr1", "Addr1", "addr1oraddr2oraddr3", "",
 			"Any one of Addr1 or Addr2 or Addr3 must be provided")
 		sl.ReportErrorWithMsg(st.Addr2, "Addr2", "Addr2", "addr1oraddr2oraddr3", "",
 			"Any one of Addr1 or Addr2 or Addr3 must be provided")
