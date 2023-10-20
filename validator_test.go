@@ -112,6 +112,24 @@ type TestSlice struct {
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
 }
 
+func AssertCustomErrorMessage(t *testing.T, err error, nsKey, structNsKey, msg string) {
+	errs := err.(ValidationErrors)
+
+	found := false
+	var fe FieldError
+
+	for i := 0; i < len(errs); i++ {
+		if errs[i].Namespace() == nsKey && errs[i].StructNamespace() == structNsKey {
+			found = true
+			fe = errs[i]
+			break
+		}
+	}
+
+	EqualSkip(t, 2, found, true)
+	EqualSkip(t, 2, fe.Msg(), msg)
+}
+
 func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag string) {
 	errs := err.(ValidationErrors)
 
@@ -647,6 +665,105 @@ func TestStructLevelValidations(t *testing.T) {
 	v4.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
 	errs = v4.Struct(tst)
+	Equal(t, errs, nil)
+}
+
+type TestCustomErrMsgStruct struct {
+	FirstName string `json:"fname" validate:"min=3,max=30" msg:"Length of first name must be between 3 and 30, inclusive"`
+	LastName  string `json:"lname" validate:"required"`
+	Age       uint8  `validate:"gte=0,lte=130" msg:"Age must be between 0 and 130, inclusive"`
+	Email     string `json:"email" validate:"required,email" msg:"Email is invalid"`
+	Addr11    string `json:"addr1sdf"`
+	Addr2     string
+	Addr3     string `json:"addr3"`
+}
+
+func StructValidationTestStructCustomErrorMessage(sl StructLevel) {
+	st := sl.Current().Interface().(TestCustomErrMsgStruct)
+
+	if st.Addr11 == "" && st.Addr2 == "" && st.Addr3 == "" {
+		sl.ReportErrorWithMsg(st.Addr11, "addr1", "Addr1", "addr1oraddr2oraddr3", "",
+			"Any one of Addr1 or Addr2 or Addr3 must be provided")
+		sl.ReportErrorWithMsg(st.Addr2, "Addr2", "Addr2", "addr1oraddr2oraddr3", "",
+			"Any one of Addr1 or Addr2 or Addr3 must be provided")
+		// without custom error message
+		sl.ReportError(st.Addr3, "addr3", "Addr3", "addr1oraddr2oraddr3", "")
+	}
+}
+
+func TestCustomErrorMessages(t *testing.T) {
+	// struct fields
+	v1 := New()
+	v1.RegisterErrMsgFunc(func(fld reflect.StructField) string {
+		return fld.Tag.Get("msg")
+	})
+	v1.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
+	// test 1
+	tst := &TestCustomErrMsgStruct{
+		Age:   200,
+		Email: "myemail@email",
+	}
+
+	errs := v1.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.fname", "TestCustomErrMsgStruct.FirstName",
+		"Length of first name must be between 3 and 30, inclusive")
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.lname", "TestCustomErrMsgStruct.LastName",
+		"")
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.Age", "TestCustomErrMsgStruct.Age",
+		"Age must be between 0 and 130, inclusive")
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.email", "TestCustomErrMsgStruct.Email",
+		"Email is invalid")
+
+	// test 2
+	tst = &TestCustomErrMsgStruct{
+		FirstName: "Myfirst",
+		LastName:  "Mylast",
+		Age:       50,
+		Email:     "myemail@email.com",
+	}
+
+	errs = v1.Struct(tst)
+	Equal(t, errs, nil)
+
+	// struct level
+	v2 := New()
+	v2.RegisterStructValidation(StructValidationTestStructCustomErrorMessage, TestCustomErrMsgStruct{})
+
+	// test 3
+	tst = &TestCustomErrMsgStruct{
+		FirstName: "Myfirst",
+		LastName:  "Mylast",
+		Age:       50,
+		Email:     "myemail@email.com",
+	}
+
+	errs = v2.Struct(tst)
+	NotEqual(t, errs, nil)
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.addr1", "TestCustomErrMsgStruct.Addr1",
+		"Any one of Addr1 or Addr2 or Addr3 must be provided")
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.Addr2", "TestCustomErrMsgStruct.Addr2",
+		"Any one of Addr1 or Addr2 or Addr3 must be provided")
+	AssertCustomErrorMessage(t, errs, "TestCustomErrMsgStruct.addr3", "TestCustomErrMsgStruct.Addr3",
+		"")
+
+	// test 4
+	tst = &TestCustomErrMsgStruct{
+		FirstName: "Myfirst",
+		LastName:  "Mylast",
+		Age:       50,
+		Email:     "myemail@email.com",
+		Addr2:     "Myaddr2",
+	}
+
+	errs = v2.Struct(tst)
 	Equal(t, errs, nil)
 }
 

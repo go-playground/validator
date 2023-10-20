@@ -82,6 +82,7 @@ type Validate struct {
 	tagName               string
 	pool                  *sync.Pool
 	tagNameFunc           TagNameFunc
+	errMsgFunc            TagNameFunc
 	structLevelFuncs      map[reflect.Type]StructLevelFuncCtx
 	customFuncs           map[reflect.Type]CustomTypeFunc
 	aliases               map[string]string
@@ -92,6 +93,7 @@ type Validate struct {
 	structCache           *structCache
 	hasCustomFuncs        bool
 	hasTagNameFunc        bool
+	hasErrMsgFunc         bool
 	requiredStructEnabled bool
 }
 
@@ -209,6 +211,18 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 	v.tagNameFunc = fn
 	v.hasTagNameFunc = true
+}
+
+// RegisterErrMsgFunc registers a function to get custom error message for StructFields.
+//
+// eg. to use custom error messages for struct fields:
+//
+//	validate.RegisterErrMsgFunc(func(fld reflect.StructField) string {
+//	    return fld.Tag.Get("msg")
+//	})
+func (v *Validate) RegisterErrMsgFunc(fn TagNameFunc) {
+	v.errMsgFunc = fn
+	v.hasErrMsgFunc = true
 }
 
 // RegisterValidation adds a validation with the given tag
