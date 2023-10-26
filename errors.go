@@ -130,7 +130,7 @@ type FieldError interface {
 
 	// Value returns the actual field's value in case needed for creating the error
 	// message
-	Value() interface{}
+	Value() any
 
 	// Param returns the param value, in string form for comparison; this will also
 	// help with generating an error message
@@ -172,7 +172,7 @@ type fieldError struct {
 	structNs       string
 	fieldLen       uint8
 	structfieldLen uint8
-	value          interface{}
+	value          any
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
@@ -226,7 +226,7 @@ func (fe *fieldError) StructField() string {
 
 // Value returns the actual field's value in case needed for creating the error
 // message
-func (fe *fieldError) Value() interface{} {
+func (fe *fieldError) Value() any {
 	return fe.value
 }
 
