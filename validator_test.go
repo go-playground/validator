@@ -13567,31 +13567,37 @@ func TestTimeRequired(t *testing.T) {
 
 func TestOmitNil(t *testing.T) {
 	type S struct {
-		Int    int  `validate:"required,omitnil,min=10"`
-		IntPtr *int `validate:"required,omitnil,min=10"`
+		Str    string  `validate:"omitnil,required,min=10"`
+		StrPtr *string `validate:"omitnil,required,min=10"`
 	}
 
 	var (
 		validate = New(WithRequiredStructEnabled())
-		invalid  = 9
-		valid    = 10
+		invalid  = "too short"
+		valid    = "this is the long string to pass the validation rule"
+		// zeroStr  string
 	)
 
 	t.Run("fully valid", func(t *testing.T) {
-		Equal(t, validate.Struct(S{Int: valid, IntPtr: &valid}), nil)
+		Equal(t, validate.Struct(S{Str: valid, StrPtr: &valid}), nil)
 	})
 
-	t.Run("invalid value in the ptr-field", func(t *testing.T) {
-		err := validate.Struct(S{Int: valid, IntPtr: &invalid})
-		AssertError(t, err.(ValidationErrors), "S.IntPtr", "S.IntPtr", "IntPtr", "IntPtr", "min")
+	t.Run("invalid value in the ptr-field only", func(t *testing.T) {
+		err := validate.Struct(S{Str: valid, StrPtr: &invalid})
+		AssertError(t, err, "S.StrPtr", "S.StrPtr", "StrPtr", "StrPtr", "min")
 	})
 
-	t.Run("invalid value in the non-ptr field", func(t *testing.T) {
-		err := validate.Struct(&S{Int: invalid, IntPtr: &valid})
-		AssertError(t, err.(ValidationErrors), "S.Int", "S.Int", "Int", "Int", "min")
+	t.Run("invalid value in the non-ptr field only", func(t *testing.T) {
+		err := validate.Struct(&S{Str: invalid, StrPtr: &valid})
+		AssertError(t, err, "S.Str", "S.Str", "Str", "Str", "min")
 	})
 
 	t.Run("empty ptr field is ignored", func(t *testing.T) {
-		Equal(t, validate.Struct(S{Int: valid}), nil)
+		Equal(t, validate.Struct(S{Str: valid}), nil)
+	})
+
+	t.Run("fully defaults (using omitempty no error will occur)", func(t *testing.T) {
+		err := validate.Struct(S{})
+		AssertError(t, err, "S.Str", "S.Str", "Str", "Str", "required")
 	})
 }
