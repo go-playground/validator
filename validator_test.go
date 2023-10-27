@@ -13154,14 +13154,14 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		tag      string
 		expected bool
 	}{
-		//Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
+		// Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
 		{"*", "spicedb=id", true},
 		{`azAZ09_|/-=+`, "spicedb=id", true},
 		{`a*`, "spicedb=id", false},
 		{`/`, "spicedb=id", true},
 		{"*", "spicedb", true},
 
-		//Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
+		// Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
 		{"a", "spicedb=permission", false},
 		{"1", "spicedb=permission", false},
 		{"a1", "spicedb=permission", false},
@@ -13171,7 +13171,7 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", true},
 		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", false},
 
-		//Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
+		// Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
 		{"a", "spicedb=type", false},
 		{"1", "spicedb=type", false},
 		{"a1", "spicedb=type", false},
@@ -13563,4 +13563,35 @@ func TestTimeRequired(t *testing.T) {
 	err := validate.Struct(&testTime)
 	NotEqual(t, err, nil)
 	AssertError(t, err.(ValidationErrors), "TestTime.Time", "TestTime.Time", "Time", "Time", "required")
+}
+
+func TestOmitNil(t *testing.T) {
+	type S struct {
+		Int    int  `validate:"required,omitnil,min=10"`
+		IntPtr *int `validate:"required,omitnil,min=10"`
+	}
+
+	var (
+		validate = New(WithRequiredStructEnabled())
+		invalid  = 9
+		valid    = 10
+	)
+
+	t.Run("fully valid", func(t *testing.T) {
+		Equal(t, validate.Struct(S{Int: valid, IntPtr: &valid}), nil)
+	})
+
+	t.Run("invalid value in the ptr-field", func(t *testing.T) {
+		err := validate.Struct(S{Int: valid, IntPtr: &invalid})
+		AssertError(t, err.(ValidationErrors), "S.IntPtr", "S.IntPtr", "IntPtr", "IntPtr", "min")
+	})
+
+	t.Run("invalid value in the non-ptr field", func(t *testing.T) {
+		err := validate.Struct(&S{Int: invalid, IntPtr: &valid})
+		AssertError(t, err.(ValidationErrors), "S.Int", "S.Int", "Int", "Int", "min")
+	})
+
+	t.Run("empty ptr field is ignored", func(t *testing.T) {
+		Equal(t, validate.Struct(S{Int: valid}), nil)
+	})
 }
