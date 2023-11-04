@@ -13196,14 +13196,14 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		tag      string
 		expected bool
 	}{
-		//Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
+		// Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
 		{"*", "spicedb=id", true},
 		{`azAZ09_|/-=+`, "spicedb=id", true},
 		{`a*`, "spicedb=id", false},
 		{`/`, "spicedb=id", true},
 		{"*", "spicedb", true},
 
-		//Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
+		// Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
 		{"a", "spicedb=permission", false},
 		{"1", "spicedb=permission", false},
 		{"a1", "spicedb=permission", false},
@@ -13213,7 +13213,7 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", true},
 		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", false},
 
-		//Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
+		// Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
 		{"a", "spicedb=type", false},
 		{"1", "spicedb=type", false},
 		{"a1", "spicedb=type", false},
@@ -13605,4 +13605,48 @@ func TestTimeRequired(t *testing.T) {
 	err := validate.Struct(&testTime)
 	NotEqual(t, err, nil)
 	AssertError(t, err.(ValidationErrors), "TestTime.Time", "TestTime.Time", "Time", "Time", "required")
+}
+
+func TestOmitNilAndRequired(t *testing.T) {
+	type (
+		OmitEmpty struct {
+			Str    string  `validate:"omitempty,required,min=10"`
+			StrPtr *string `validate:"omitempty,required,min=10"`
+			Inner  *OmitEmpty
+		}
+		OmitNil struct {
+			Str    string  `validate:"omitnil,required,min=10"`
+			StrPtr *string `validate:"omitnil,required,min=10"`
+			Inner  *OmitNil
+		}
+	)
+
+	var (
+		validate = New(WithRequiredStructEnabled())
+		valid    = "this is the long string to pass the validation rule"
+	)
+
+	t.Run("compare using valid data", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{Str: valid, StrPtr: &valid, Inner: &OmitEmpty{Str: valid, StrPtr: &valid}})
+		err2 := validate.Struct(OmitNil{Str: valid, StrPtr: &valid, Inner: &OmitNil{Str: valid, StrPtr: &valid}})
+
+		Equal(t, err1, nil)
+		Equal(t, err2, nil)
+	})
+
+	t.Run("compare fully empty omitempty and omitnil", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{})
+		err2 := validate.Struct(OmitNil{})
+
+		Equal(t, err1, nil)
+		AssertError(t, err2, "OmitNil.Str", "OmitNil.Str", "Str", "Str", "required")
+	})
+
+	t.Run("validate in deep", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{Str: valid, Inner: &OmitEmpty{}})
+		err2 := validate.Struct(OmitNil{Str: valid, Inner: &OmitNil{}})
+
+		Equal(t, err1, nil)
+		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
+	})
 }

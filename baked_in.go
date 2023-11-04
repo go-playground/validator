@@ -51,6 +51,7 @@ var (
 		endKeysTag:        {},
 		structOnlyTag:     {},
 		omitempty:         {},
+		omitnil:           {},
 		skipValidationTag: {},
 		utf8HexComma:      {},
 		utf8Pipe:          {},
