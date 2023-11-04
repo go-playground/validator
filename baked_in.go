@@ -150,6 +150,7 @@ var (
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
+		"issn":                          isISSN,
 		"eth_addr":                      isEthereumAddress,
 		"eth_addr_checksum":             isEthereumAddressChecksum,
 		"btc_addr":                      isBitcoinAddress,
@@ -646,6 +647,32 @@ func isISBN10(fl FieldLevel) bool {
 		checksum += 10 * 10
 	} else {
 		checksum += 10 * int32(s[9]-'0')
+	}
+
+	return checksum%11 == 0
+}
+
+// isISSN is the validation function for validating if the field's value is a valid ISSN.
+func isISSN(fl FieldLevel) bool {
+	s := fl.Field().String()
+
+	if !iSSNRegex.MatchString(s) {
+		return false
+	}
+	s = strings.ReplaceAll(s, "-", "")
+
+	pos := 8
+	checksum := 0
+
+	for i := 0; i < 7; i++ {
+		checksum += pos * int(s[i]-'0')
+		pos--
+	}
+
+	if s[7] == 'X' {
+		checksum += 10
+	} else {
+		checksum += int(s[7] - '0')
 	}
 
 	return checksum%11 == 0

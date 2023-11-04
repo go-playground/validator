@@ -1117,6 +1117,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0} باید یک شابک(ISSN) معتبر باشد",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} باید یک UUID معتبر باشد",
 			override:    false,

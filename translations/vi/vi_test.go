@@ -99,6 +99,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string            `validate:"isbn"`
 		ISBN10            string            `validate:"isbn10"`
 		ISBN13            string            `validate:"isbn13"`
+		ISSN              string            `validate:"issn"`
 		UUID              string            `validate:"uuid"`
 		UUID3             string            `validate:"uuid3"`
 		UUID4             string            `validate:"uuid4"`
@@ -335,6 +336,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13 phải là số ISBN-13",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN phải là số ISSN",
 		},
 		{
 			ns:       "Test.Excludes",
