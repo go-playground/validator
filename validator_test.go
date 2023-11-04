@@ -4113,7 +4113,14 @@ func (u uuidTestType) String() string {
 	return u.val
 }
 
+type uuidAlias string
+
+func (u uuidAlias) String() string {
+	return "This is a UUID " + string(u)
+}
+
 var _ fmt.Stringer = uuidTestType{}
+var _ fmt.Stringer = uuidAlias("")
 
 func TestUUIDValidation(t *testing.T) {
 	tests := []struct {
@@ -4169,6 +4176,12 @@ func TestUUIDValidation(t *testing.T) {
 	}
 	if err := validate.Struct(structWithInvalidUUID); err == nil {
 		t.Fatal("UUID failed Error expected but received nil")
+	}
+
+	// Test on Alias type with Stringer interface.
+	alias := uuidAlias("a987fbc9-4bed-3078-cf07-9141ba07c9f3")
+	if err := validate.Var(alias, "uuid"); err != nil {
+		t.Fatalf("UUID failed Error: %s", err)
 	}
 }
 
