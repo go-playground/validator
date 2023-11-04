@@ -1414,6 +1414,15 @@ func isURI(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
+// isFileURL is the helper function for validating if the `path` valid file URL as per RFC8089
+func isFileURL(path string) bool {
+	if !strings.HasPrefix(path, "file:/") {
+		return false
+	}
+	_, err := url.ParseRequestURI(path)
+	return err == nil
+}
+
 // isURL is the validation function for validating if the current field's value is a valid URL.
 func isURL(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1421,10 +1430,14 @@ func isURL(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.String:
 
-		s := field.String()
+		s := strings.ToLower(field.String())
 
 		if len(s) == 0 {
 			return false
+		}
+
+		if isFileURL(s) {
+			return true
 		}
 
 		url, err := url.Parse(s)

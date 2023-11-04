@@ -8139,6 +8139,12 @@ func TestUrl(t *testing.T) {
 		{"./rel/test/dir", false},
 		{"irc:", false},
 		{"http://", false},
+		{"file://path/to/file.txt", true},
+		{"file:///c:/Windows/file.txt", true},
+		{"file://localhost/path/to/file.txt", true},
+		{"file://localhost/c:/WINDOWS/file.txt", true},
+		{"file://", true},
+		{"file:////remotehost/path/file.txt", true},
 	}
 
 	validate := New()
