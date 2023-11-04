@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -291,4 +293,13 @@ func panicIf(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+// Checks if field value matches regex. If fl.Field can be cast to Stringer, it uses the Stringer interfaces
+// String() return value. Otherwise, it uses fl.Field's String() value.
+func fieldMatchesRegexByStringerValOrString(regex *regexp.Regexp, fl FieldLevel) bool {
+	if stringer, ok := fl.Field().Interface().(fmt.Stringer); ok {
+		return regex.MatchString(stringer.String())
+	}
+	return regex.MatchString(fl.Field().String())
 }

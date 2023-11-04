@@ -4105,6 +4105,16 @@ func TestUUID3Validation(t *testing.T) {
 	}
 }
 
+type uuidTestType struct {
+	val string
+}
+
+func (u uuidTestType) String() string {
+	return u.val
+}
+
+var _ fmt.Stringer = uuidTestType{}
+
 func TestUUIDValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -4140,6 +4150,25 @@ func TestUUIDValidation(t *testing.T) {
 				}
 			}
 		}
+	}
+
+	// Test UUID validation on uuid structs type that implements Stringer interface.
+	structWithValidUUID := struct {
+		UUID uuidTestType `validate:"uuid"`
+	}{
+		UUID: uuidTestType{val: "a987fbc9-4bed-3078-cf07-9141ba07c9f3"},
+	}
+	structWithInvalidUUID := struct {
+		UUID uuidTestType `validate:"uuid"`
+	}{
+		UUID: uuidTestType{val: "934859"},
+	}
+
+	if err := validate.Struct(structWithValidUUID); err != nil {
+		t.Fatalf("UUID failed Error: %s", err)
+	}
+	if err := validate.Struct(structWithInvalidUUID); err == nil {
+		t.Fatal("UUID failed Error expected but received nil")
 	}
 }
 
