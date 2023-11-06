@@ -262,10 +262,15 @@ func hasValidRegex(fl FieldLevel) bool {
 	// using fl.Param().
 	regexPattern := fl.Param()
 
+	// Replace any escaped backslashes before commas with a placeholder to avoid escaping.
+	// We'll replace them back later after compiling the regex pattern.
+	regexPattern = strings.ReplaceAll(regexPattern, `__comma__`, ",")
+
 	// Create a regular expression object using the pattern obtained.
 	re, err := regexp.Compile(regexPattern)
 	if err != nil {
 		panic(fmt.Sprintf("Bad field type %T", fl.Field().Interface()))
+		return false
 	}
 
 	// Get the field value as a string using fl.Field().String().
@@ -274,7 +279,12 @@ func hasValidRegex(fl FieldLevel) bool {
 	// Use the regular expression object to match the field value string.
 	// Return true if there is a match, indicating the field value is valid
 	// according to the regular expression.
-	return re.MatchString(fieldValue)
+	match := re.MatchString(fieldValue)
+
+	// Replace the placeholder "__comma__" with an escaped comma "," in the regex pattern.
+	regexPattern = strings.ReplaceAll(regexPattern, ",", "__comma__")
+
+	return match
 }
 
 func isURLEncoded(fl FieldLevel) bool {
