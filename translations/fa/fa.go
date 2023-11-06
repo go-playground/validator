@@ -29,6 +29,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "regex",
+			translation: "مقدار {0} نامعتبر است",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("len-string", "طول {0} باید {1} باشد", false); err != nil {

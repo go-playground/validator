@@ -34,6 +34,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "regex",
+			translation: "Vērtība {0} ir nederīga.",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("len-string", "{0} garumam jābūt {1}", false); err != nil {

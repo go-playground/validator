@@ -30,6 +30,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "regex",
+			translation: "La valeur de {0} est invalide.",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
