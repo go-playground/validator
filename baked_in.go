@@ -233,6 +233,7 @@ var (
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"argon2":                        isArgon2,
 	}
 )
 
@@ -2952,4 +2953,24 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex.MatchString(cronString)
+}
+
+// isArgon2 is the validation function for validating if the field's value is a valid Argon2.
+func isArgon2(fl FieldLevel) bool {
+	val := fl.Field().String()
+	res := argon2Regex.MatchString(val)
+	if !res {
+		return false
+	}
+
+	sp := strings.Split(val, "$")
+	if strings.Count(sp[4], "+") > 1 || strings.Count(sp[4], "/") > 1 {
+		return false
+	}
+
+	if strings.Count(sp[5], "+") > 1 || strings.Count(sp[5], "/") > 1 {
+		return false
+	}
+
+	return true
 }

@@ -13692,3 +13692,40 @@ func TestOmitNilAndRequired(t *testing.T) {
 		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
 	})
 }
+
+func TestArgon2Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"f16e171ea258bb62c7aa202ff77f9f10", false},
+		{"argon2id$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$aMawMnEl0RKs+CJHr8Vd0Q", false},
+		{"$argon2$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$aMawMnEl0RKs+CJHr8Vd0Q", false},
+		{"$argon2$v=19$m=8,t=2,p=1$YXNzZGZmZGdzZGZnc2Rhcw$8W4XHqJYu2LHqiAv93++fEA+", false},
+		{"$argon2d$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$WcFGx+WZ5sKl//W0NOissxQ", false},
+		{"$argon2d$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$WcFGx+WZ5sKl/W0NOissxQ", true},
+		{"$argon2i$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$+ieRkqJkcSa6vRuzajIKsA", true},
+		{"$argon2id$v=19$m=16,t=2,p=1$YXNnYXNkZmdzZGZnc2Q$aMawMnEl0RKs+CJHr8Vd0Q", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "argon2")
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Argon2 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Argon2 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "argon2" {
+					t.Fatalf("Index: %d Argon2 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
