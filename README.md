@@ -208,6 +208,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | sha256 | SHA256 hash |
 | sha384 | SHA384 hash |
 | sha512 | SHA512 hash |
+| bcrypt | Bcrypt hash |
 | ripemd128 | RIPEMD-128 hash |
 | ripemd128 | RIPEMD-160 hash |
 | tiger128 | TIGER128 hash |
