@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -231,6 +232,7 @@ var (
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"python_var":                    isPythonVar,
 	}
 )
 
@@ -2877,4 +2879,56 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex.MatchString(cronString)
+}
+
+// check if string is a valid python variable name
+func isPythonVar(fl FieldLevel) bool {
+	// Python keywords can not be used as variable names
+	// in future this list may be subject to ammendement, pruning, or other change
+	switch fl.Field().String() {
+	case
+		"False",
+		"await",
+		"else",
+		"import",
+		"pass",
+		"None",
+		"break",
+		"except",
+		"in",
+		"raise",
+		"True",
+		"class",
+		"finally",
+		"is",
+		"return",
+		"and",
+		"continue",
+		"for",
+		"lambda",
+		"try",
+		"as",
+		"def",
+		"from",
+		"nonlocal",
+		"while",
+		"assert",
+		"del",
+		"global",
+		"not",
+		"with",
+		"async",
+		"elif",
+		"if",
+		"or",
+		"yield":
+		return false
+	}
+
+	// all variables must start with a letter or underscore
+	// further chars can be alphanumeric, or underscore
+	// dashes and special characters are not allowed
+	pattern := regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+	return pattern.Match([]byte(fl.Field().String()))
 }
