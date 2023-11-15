@@ -2882,10 +2882,18 @@ func digitsHaveLuhnChecksum(digits []string) bool {
 	return (sum % 10) == 0
 }
 
-// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
+// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID or valid connection string
 func isMongoDB(fl FieldLevel) bool {
 	val := fl.Field().String()
-	return mongodbRegex.MatchString(val)
+	param := fl.Param()
+	switch param {
+	case "id", "":
+		return mongodbIdRegex.MatchString(val)
+	case "connectionString":
+		return mongodbConnectionRegex.MatchString(val)
+	default:
+		return false
+	}
 }
 
 // isSpiceDB is the validation function for validating if the current field's value is valid for use with Authzed SpiceDB in the indicated way
