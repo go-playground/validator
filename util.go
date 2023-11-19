@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -308,4 +309,167 @@ func fieldMatchesRegexByStringerValOrString(regex *regexp.Regexp, fl FieldLevel)
 			return regex.MatchString(fl.Field().String())
 		}
 	}
+}
+
+// mutate validation field value
+func mutateWithReflect(from interface{}, to string) error {
+	ref := reflect.ValueOf(from)
+	return mutate(&ref, to)
+}
+
+// mutate recursively validation field value
+func mutate(ref *reflect.Value, to string) error {
+	switch ref.Kind() {
+	case reflect.String:
+		ref.Set(reflect.ValueOf(to))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v, err := strconv.ParseInt(to, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		switch ref.Kind() {
+		case reflect.Int:
+			vv := int(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Int8:
+			vv := int8(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Int16:
+			vv := int16(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Int32:
+			vv := int32(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Int64:
+			ref.Set(reflect.ValueOf(v))
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v, err := strconv.ParseUint(to, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		switch ref.Kind() {
+		case reflect.Uint:
+			vv := uint(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Uint8:
+			vv := uint8(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Uint16:
+			vv := uint16(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Uint32:
+			vv := uint32(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Uint64:
+			ref.Set(reflect.ValueOf(v))
+		}
+	case reflect.Float32, reflect.Float64:
+		v, err := strconv.ParseFloat(to, 10)
+		if err != nil {
+			return err
+		}
+
+		switch ref.Kind() {
+		case reflect.Float32:
+			vv := float32(v)
+			ref.Set(reflect.ValueOf(vv))
+		case reflect.Float64:
+			ref.Set(reflect.ValueOf(v))
+		}
+	case reflect.Bool:
+		v, err := strconv.ParseBool(to)
+		if err != nil {
+			return err
+		}
+		ref.Set(reflect.ValueOf(v))
+	default:
+		return errors.New("unsupported type")
+	case reflect.Pointer, reflect.UnsafePointer:
+		if !ref.IsNil() {
+			p := ref.Elem()
+			return mutate(&p, to)
+		}
+
+		return interNilType(ref, to)
+	}
+
+	return nil
+}
+
+func interNilType(ref *reflect.Value, to string) error {
+	t := ref.Type()
+	val := reflect.New(t.(reflect.Type)).Elem().Interface()
+	switch val.(type) {
+	case *string:
+		ref.Set(reflect.ValueOf(&to))
+	case *int, *int8, *int16, *int32, *int64:
+		v, err := strconv.ParseInt(to, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		switch val.(type) {
+		case *int:
+			vv := int(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *int8:
+			vv := int8(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *int16:
+			vv := int16(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *int32:
+			vv := int32(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *int64:
+			ref.Set(reflect.ValueOf(&v))
+		}
+	case *uint, *uint8, *uint16, *uint32, *uint64:
+		v, err := strconv.ParseUint(to, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		switch val.(type) {
+		case *uint:
+			vv := uint(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *uint8:
+			vv := uint8(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *uint16:
+			vv := uint16(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *uint32:
+			vv := uint32(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *uint64:
+			ref.Set(reflect.ValueOf(&v))
+		}
+	case *float64, *float32:
+		v, err := strconv.ParseFloat(to, 64)
+		if err != nil {
+			return err
+		}
+
+		switch val.(type) {
+		case *float32:
+			vv := float32(v)
+			ref.Set(reflect.ValueOf(&vv))
+		case *float64:
+			ref.Set(reflect.ValueOf(&v))
+		}
+	case *bool:
+		v, err := strconv.ParseBool(to)
+		if err != nil {
+			return err
+		}
+
+		ref.Set(reflect.ValueOf(&v))
+	}
+
+	return nil
 }
