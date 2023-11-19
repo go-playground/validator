@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -11,9 +10,13 @@ import (
 func defaultValidator(fl FieldLevel) bool {
 	if !hasValue(fl) {
 		f := fl.Field()
-		if f.IsNil() && f.CanSet() {
-			val := fl.Param()
-			f.Set(reflect.ValueOf(&val))
+		fmt.Printf("can %t", f.CanSet())
+		fmt.Printf("can %t", f.CanAddr())
+		if f.CanSet() && f.CanAddr() {
+			err := mutate(&f, fl.Param())
+			if err != nil {
+				fmt.Printf("Mutation failed: %s", err)
+			}
 		}
 	}
 
@@ -35,8 +38,11 @@ func defaultWithValidator(fl FieldLevel) bool {
 		if !requireCheckFieldKind(fl, param, true) {
 			if !hasValue(fl) {
 				f := fl.Field()
-				if f.IsNil() && f.CanSet() {
-					f.Set(reflect.ValueOf(&params1[1]))
+				if f.CanSet() && f.CanAddr() {
+					err := mutate(&f, params1[1])
+					if err != nil {
+						fmt.Printf("Mutation failed: %s", err)
+					}
 				}
 			}
 
@@ -66,8 +72,11 @@ func defaultWithAllValidator(fl FieldLevel) bool {
 
 	if !hasValue(fl) {
 		f := fl.Field()
-		if f.IsNil() && f.CanSet() {
-			f.Set(reflect.ValueOf(&params1[1]))
+		if f.CanSet() && f.CanAddr() {
+			err := mutate(&f, params1[1])
+			if err != nil {
+				fmt.Printf("Mutation failed: %s", err)
+			}
 		}
 	}
 
@@ -87,8 +96,11 @@ func defaultWithoutValidator(fl FieldLevel) bool {
 	if requireCheckFieldKind(fl, strings.TrimSpace(params1[0]), true) {
 		if !hasValue(fl) {
 			f := fl.Field()
-			if f.IsNil() && f.CanSet() {
-				f.Set(reflect.ValueOf(&params1[1]))
+			if f.CanSet() && f.CanAddr() {
+				err := mutate(&f, params1[1])
+				if err != nil {
+					fmt.Printf("Mutation failed: %s", err)
+				}
 			}
 		}
 
@@ -117,8 +129,11 @@ func defaultWithoutAllValidator(fl FieldLevel) bool {
 
 	if !hasValue(fl) {
 		f := fl.Field()
-		if f.IsNil() && f.CanSet() {
-			f.Set(reflect.ValueOf(&params1[1]))
+		if f.CanSet() && f.CanAddr() {
+			err := mutate(&f, params1[1])
+			if err != nil {
+				fmt.Printf("Mutation failed: %s", err)
+			}
 		}
 	}
 
