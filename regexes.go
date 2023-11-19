@@ -22,6 +22,7 @@ const (
 	base64RawURLRegexString          = "^(?:[A-Za-z0-9-_]{4})*(?:[A-Za-z0-9-_]{2,4})$"
 	iSBN10RegexString                = "^(?:[0-9]{9}X|[0-9]{10})$"
 	iSBN13RegexString                = "^(?:(?:97(?:8|9))[0-9]{10})$"
+	iSSNRegexString                  = "^(?:[0-9]{4}-[0-9]{3}[0-9X])$"
 	uUID3RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$"
 	uUID4RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 	uUID5RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -68,6 +69,9 @@ const (
 	cveRegexString                   = `^CVE-(1999|2\d{3})-(0[^0]\d{2}|0\d[^0]\d{1}|0\d{2}[^0]|[1-9]{1}\d{3,})$` // CVE Format Id https://cve.mitre.org/cve/identifiers/syntaxchange.html
 	mongodbRegexString               = "^[a-f\\d]{24}$"
 	cronRegexString                  = `(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
+	spicedbIDRegexString             = `^(([a-zA-Z0-9/_|\-=+]{1,})|\*)$`
+	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
+	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
 )
 
 var (
@@ -90,6 +94,7 @@ var (
 	base64RawURLRegex          = regexp.MustCompile(base64RawURLRegexString)
 	iSBN10Regex                = regexp.MustCompile(iSBN10RegexString)
 	iSBN13Regex                = regexp.MustCompile(iSBN13RegexString)
+	iSSNRegex                  = regexp.MustCompile(iSSNRegexString)
 	uUID3Regex                 = regexp.MustCompile(uUID3RegexString)
 	uUID4Regex                 = regexp.MustCompile(uUID4RegexString)
 	uUID5Regex                 = regexp.MustCompile(uUID5RegexString)
@@ -134,4 +139,7 @@ var (
 	cveRegex                   = regexp.MustCompile(cveRegexString)
 	mongodbRegex               = regexp.MustCompile(mongodbRegexString)
 	cronRegex                  = regexp.MustCompile(cronRegexString)
+	spicedbIDRegex             = regexp.MustCompile(spicedbIDRegexString)
+	spicedbPermissionRegex     = regexp.MustCompile(spicedbPermissionRegexString)
+	spicedbTypeRegex           = regexp.MustCompile(spicedbTypeRegexString)
 )
