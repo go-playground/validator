@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-playground/locales"
 	ut "github.com/go-playground/universal-translator"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -1119,6 +1120,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "isbn13",
 			translation: "{0} must be a valid ISBN-13 number",
+			override:    false,
+		},
+		{
+			tag:         "issn",
+			translation: "{0} must be a valid ISSN number",
 			override:    false,
 		},
 		{
