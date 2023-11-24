@@ -31,6 +31,7 @@ func TestTranslations(t *testing.T) {
 	}
 
 	type Test struct {
+
 		Inner              Inner
 		RequiredString     string            `validate:"required"`
 		RequiredNumber     int               `validate:"required"`
@@ -330,6 +331,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13 geçerli bir ISBN-13 numarası olmalıdır",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN geçerli bir ISSN numarası olmalıdır",
 		},
 		{
 			ns:       "Test.Excludes",

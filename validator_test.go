@@ -2575,19 +2575,26 @@ func TestCIDRv4Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-		{"10.0.0.0/0", true},
-		{"10.0.0.1/8", true},
-		{"172.16.0.1/16", true},
-		{"192.168.0.1/24", true},
-		{"192.168.255.254/24", true},
+		{"0.0.0.0/0", true},
+		{"10.0.0.0/0", false},
+		{"10.0.0.0/8", true},
+		{"10.0.0.1/8", false},
+		{"172.16.0.0/16", true},
+		{"172.16.0.1/16", false},
+		{"192.168.0.0/24", true},
+		{"192.168.0.1/24", false},
+		{"192.168.255.0/24", true},
+		{"192.168.255.254/24", false},
 		{"192.168.255.254/48", false},
 		{"192.168.255.256/24", false},
-		{"172.16.255.254/16", true},
+		{"172.16.0.0/16", true},
+		{"172.16.255.254/16", false},
 		{"172.16.256.255/16", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652/64", false},
 		{"2001:cdba:0000:0000:0000:0000:3257:9652/256", false},
 		{"2001:cdba:0:0:0:0:3257:9652/32", false},
 		{"2001:cdba::3257:9652/16", false},
+		{"172.56.1.0/16", false},
 	}
 
 	validate := New()
@@ -4098,6 +4105,23 @@ func TestUUID3Validation(t *testing.T) {
 	}
 }
 
+type uuidTestType struct {
+	val string
+}
+
+func (u uuidTestType) String() string {
+	return u.val
+}
+
+type uuidAlias string
+
+func (u uuidAlias) String() string {
+	return "This is a UUID " + string(u)
+}
+
+var _ fmt.Stringer = uuidTestType{}
+var _ fmt.Stringer = uuidAlias("")
+
 func TestUUIDValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -4133,6 +4157,31 @@ func TestUUIDValidation(t *testing.T) {
 				}
 			}
 		}
+	}
+
+	// Test UUID validation on uuid structs type that implements Stringer interface.
+	structWithValidUUID := struct {
+		UUID uuidTestType `validate:"uuid"`
+	}{
+		UUID: uuidTestType{val: "a987fbc9-4bed-3078-cf07-9141ba07c9f3"},
+	}
+	structWithInvalidUUID := struct {
+		UUID uuidTestType `validate:"uuid"`
+	}{
+		UUID: uuidTestType{val: "934859"},
+	}
+
+	if err := validate.Struct(structWithValidUUID); err != nil {
+		t.Fatalf("UUID failed Error: %s", err)
+	}
+	if err := validate.Struct(structWithInvalidUUID); err == nil {
+		t.Fatal("UUID failed Error expected but received nil")
+	}
+
+	// Test on Alias type with Stringer interface.
+	alias := uuidAlias("a987fbc9-4bed-3078-cf07-9141ba07c9f3")
+	if err := validate.Var(alias, "uuid"); err != nil {
+		t.Fatalf("UUID failed Error: %s", err)
 	}
 }
 
@@ -4794,6 +4843,42 @@ func TestISBN10Validation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "isbn10" {
 					t.Fatalf("Index: %d ISBN10 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestISSNValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"20519990", false},
+		{"2051-9991", false},
+		{"2051-999X", false},
+		{"1050-124X", true},
+		{"0317-8471", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "issn")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "issn" {
+					t.Fatalf("Index: %d ISSN failed Error: %s", i, errs)
 				}
 			}
 		}
@@ -8090,6 +8175,12 @@ func TestUrl(t *testing.T) {
 		{"./rel/test/dir", false},
 		{"irc:", false},
 		{"http://", false},
+		{"file://path/to/file.txt", true},
+		{"file:///c:/Windows/file.txt", true},
+		{"file://localhost/path/to/file.txt", true},
+		{"file://localhost/c:/WINDOWS/file.txt", true},
+		{"file://", true},
+		{"file:////remotehost/path/file.txt", true},
 	}
 
 	validate := New()
@@ -13147,14 +13238,14 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		tag      string
 		expected bool
 	}{
-		//Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
+		// Must be an asterisk OR a string containing alphanumeric characters and a restricted set a special symbols: _ | / - = +
 		{"*", "spicedb=id", true},
 		{`azAZ09_|/-=+`, "spicedb=id", true},
 		{`a*`, "spicedb=id", false},
 		{`/`, "spicedb=id", true},
 		{"*", "spicedb", true},
 
-		//Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
+		// Must begin and end with a lowercase letter, may also contain numbers and underscores between, min length 3, max length 64
 		{"a", "spicedb=permission", false},
 		{"1", "spicedb=permission", false},
 		{"a1", "spicedb=permission", false},
@@ -13164,7 +13255,7 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 		{"abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", true},
 		{"abcdefghijklmnopqrstuvwxyz_01234_56789_abcdefghijklmnopqrstuvwxyz", "spicedb=permission", false},
 
-		//Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
+		// Object types follow the same rules as permissions for the type name plus an optional prefix up to 63 characters with a /
 		{"a", "spicedb=type", false},
 		{"1", "spicedb=type", false},
 		{"a1", "spicedb=type", false},
@@ -13533,4 +13624,71 @@ func TestNestedStructValidation(t *testing.T) {
 			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
 		})
 	}
+}
+
+func TestTimeRequired(t *testing.T) {
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	type TestTime struct {
+		Time time.Time `validate:"required"`
+	}
+
+	var testTime TestTime
+
+	err := validate.Struct(&testTime)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "TestTime.Time", "TestTime.Time", "Time", "Time", "required")
+}
+
+func TestOmitNilAndRequired(t *testing.T) {
+	type (
+		OmitEmpty struct {
+			Str    string  `validate:"omitempty,required,min=10"`
+			StrPtr *string `validate:"omitempty,required,min=10"`
+			Inner  *OmitEmpty
+		}
+		OmitNil struct {
+			Str    string  `validate:"omitnil,required,min=10"`
+			StrPtr *string `validate:"omitnil,required,min=10"`
+			Inner  *OmitNil
+		}
+	)
+
+	var (
+		validate = New(WithRequiredStructEnabled())
+		valid    = "this is the long string to pass the validation rule"
+	)
+
+	t.Run("compare using valid data", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{Str: valid, StrPtr: &valid, Inner: &OmitEmpty{Str: valid, StrPtr: &valid}})
+		err2 := validate.Struct(OmitNil{Str: valid, StrPtr: &valid, Inner: &OmitNil{Str: valid, StrPtr: &valid}})
+
+		Equal(t, err1, nil)
+		Equal(t, err2, nil)
+	})
+
+	t.Run("compare fully empty omitempty and omitnil", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{})
+		err2 := validate.Struct(OmitNil{})
+
+		Equal(t, err1, nil)
+		AssertError(t, err2, "OmitNil.Str", "OmitNil.Str", "Str", "Str", "required")
+	})
+
+	t.Run("validate in deep", func(t *testing.T) {
+		err1 := validate.Struct(OmitEmpty{Str: valid, Inner: &OmitEmpty{}})
+		err2 := validate.Struct(OmitNil{Str: valid, Inner: &OmitNil{}})
+
+		Equal(t, err1, nil)
+		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
+	})
 }
