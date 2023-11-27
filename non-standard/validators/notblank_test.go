@@ -3,8 +3,8 @@ package validators
 import (
 	"testing"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/assert/v2"
+	"github.com/go-playground/validator/v10"
 )
 
 type test struct {
@@ -24,7 +24,7 @@ func TestNotBlank(t *testing.T) {
 	// Errors
 	var x *int
 	invalid := test{
-		String:    " ",
+		String:    " \x1c\x1d\x1e\x1f\r\n",
 		Array:     []int{},
 		Pointer:   x,
 		Number:    0,

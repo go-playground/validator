@@ -100,6 +100,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
+		ISSN              string    `validate:"issn"`
 		UUID              string    `validate:"uuid"`
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
@@ -140,6 +141,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Datetime          string    `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -325,6 +327,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13必須是一個有效的ISBN-13編號",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN必須是一個有效的ISSN編號",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -625,6 +631,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime與2006-01-02格式不匹配",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image 必須是有效圖像",
 		},
 	}
 

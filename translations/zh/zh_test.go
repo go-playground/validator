@@ -105,6 +105,7 @@ func TestTranslations(t *testing.T) {
 		ISBN                  string    `validate:"isbn"`
 		ISBN10                string    `validate:"isbn10"`
 		ISBN13                string    `validate:"isbn13"`
+		ISSN                  string    `validate:"issn"`
 		UUID                  string    `validate:"uuid"`
 		UUID3                 string    `validate:"uuid3"`
 		UUID4                 string    `validate:"uuid4"`
@@ -148,6 +149,7 @@ func TestTranslations(t *testing.T) {
 		LowercaseString       string    `validate:"lowercase"`
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -343,6 +345,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13必须是一个有效的ISBN-13编号",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN必须是一个有效的ISSN编号",
 		},
 		{
 			ns:       "Test.EndsWith",
@@ -675,6 +681,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime的格式必须是2006-01-02",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image 必须是有效图像",
 		},
 	}
 

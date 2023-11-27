@@ -1236,6 +1236,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0}必须是一个有效的ISSN编号",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0}必须是一个有效的UUID",
 			override:    false,
@@ -1427,6 +1432,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "image",
+			translation: "{0} 必须是有效图像",
+			override:    false,
 		},
 	}
 
