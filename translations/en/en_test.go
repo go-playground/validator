@@ -392,6 +392,10 @@ func TestTranslations(t *testing.T) {
 			expected: "ISBN13 must be a valid ISBN-13 number",
 		},
 		{
+			ns:       "Test.ISSN",
+			expected: "ISSN must be a valid ISSN number",
+		},
+		{
 			ns:       "Test.Excludes",
 			expected: "Excludes cannot contain the text 'text'",
 		},
