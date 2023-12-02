@@ -218,8 +218,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				panic(fmt.Sprintf("'%s' tag must be immediately preceded by the '%s' tag", keysTag, diveTag))
 			}
 
-			current.typeof = typeKeys
-
 			// need to pass along only keys tag
 			// need to increment i to skip over the keys tags
 			b := make([]byte, 0, 64)
