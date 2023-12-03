@@ -41,11 +41,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -54,9 +50,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("len-items", "{0} must contain {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("len-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -129,11 +122,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -142,9 +131,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("min-items", "{0} must contain at least {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("min-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -217,11 +203,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -230,9 +212,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("max-items", "{0} must contain at maximum {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -333,11 +312,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -346,10 +321,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("lt-items", "{0} must contain less than {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -450,11 +421,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -463,10 +430,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("lte-items", "{0} must contain at maximum {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -567,11 +530,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -580,10 +539,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("gt-items", "{0} must contain more than {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -684,11 +639,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} character", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} characters", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0} character", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -697,10 +648,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				if err = ut.Add("gte-items", "{0} must contain at least {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
 					return
 				}
 
@@ -964,12 +911,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "{0} can only contain alphabetic characters",
+			translation: "{0} can only contain alphabetic character",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0} can only contain alphanumeric characters",
+			translation: "{0} can only contain alphanumeric character",
 			override:    false,
 		},
 		{
@@ -1053,7 +1000,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0} must contain at least one of the following characters '{1}'",
+			translation: "{0} must contain at least one of the following character '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1081,7 +1028,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesall",
-			translation: "{0} cannot contain any of the following characters '{1}'",
+			translation: "{0} cannot contain any of the following character '{1}'",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1154,17 +1101,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ascii",
-			translation: "{0} must contain only ascii characters",
+			translation: "{0} must contain only ascii character",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0} must contain only printable ascii characters",
+			translation: "{0} must contain only printable ascii character",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0} must contain multibyte characters",
+			translation: "{0} must contain multibyte character",
 			override:    false,
 		},
 		{

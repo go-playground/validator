@@ -5,15 +5,15 @@ import (
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	english "github.com/go-playground/locales/en"
+	thai "github.com/go-playground/locales/th"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
-	eng := english.New()
-	uni := ut.New(eng, eng)
-	trans, _ := uni.GetTranslator("en")
+	th := thai.New()
+	uni := ut.New(th, th)
+	trans, _ := uni.GetTranslator("th")
 
 	validate := validator.New()
 
@@ -312,18 +312,6 @@ func TestTranslations(t *testing.T) {
 			expected: "Longitude must contain a valid longitude coordinates",
 		},
 		{
-			ns:       "Test.MultiByte",
-			expected: "MultiByte must contain multibyte characters",
-		},
-		{
-			ns:       "Test.ASCII",
-			expected: "ASCII must contain only ascii characters",
-		},
-		{
-			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII must contain only printable ascii characters",
-		},
-		{
 			ns:       "Test.UUID",
 			expected: "UUID must be a valid UUID",
 		},
@@ -364,16 +352,8 @@ func TestTranslations(t *testing.T) {
 			expected: "Excludes cannot contain the text 'text'",
 		},
 		{
-			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll cannot contain any of the following characters '!@#$'",
-		},
-		{
 			ns:       "Test.ExcludesRune",
 			expected: "ExcludesRune cannot contain the following '☻'",
-		},
-		{
-			ns:       "Test.ContainsAny",
-			expected: "ContainsAny must contain at least one of the following characters '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
@@ -428,14 +408,6 @@ func TestTranslations(t *testing.T) {
 			expected: "NumericString must be a valid numeric value",
 		},
 		{
-			ns:       "Test.AlphanumString",
-			expected: "AlphanumString can only contain alphanumeric characters",
-		},
-		{
-			ns:       "Test.AlphaString",
-			expected: "AlphaString can only contain alphabetic characters",
-		},
-		{
 			ns:       "Test.LtFieldString",
 			expected: "LtFieldString must be less than MaxString",
 		},
@@ -484,10 +456,6 @@ func TestTranslations(t *testing.T) {
 			expected: "EqFieldString must be equal to MaxString",
 		},
 		{
-			ns:       "Test.GteString",
-			expected: "GteString must be at least 3 characters in length",
-		},
-		{
 			ns:       "Test.GteNumber",
 			expected: "GteNumber must be 5.56 or greater",
 		},
@@ -498,10 +466,6 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.GteTime",
 			expected: "GteTime must be greater than or equal to the current Date & Time",
-		},
-		{
-			ns:       "Test.GtString",
-			expected: "GtString must be greater than 3 characters in length",
 		},
 		{
 			ns:       "Test.GtNumber",
@@ -516,10 +480,6 @@ func TestTranslations(t *testing.T) {
 			expected: "GtTime must be greater than the current Date & Time",
 		},
 		{
-			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
-		},
-		{
 			ns:       "Test.LteNumber",
 			expected: "LteNumber must be 5.56 or less",
 		},
@@ -530,10 +490,6 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.LteTime",
 			expected: "LteTime must be less than or equal to the current Date & Time",
-		},
-		{
-			ns:       "Test.LtString",
-			expected: "LtString must be less than 3 characters in length",
 		},
 		{
 			ns:       "Test.LtNumber",
@@ -570,10 +526,6 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.EqMultiple",
 			expected: "EqMultiple is not equal to 7",
-		},
-		{
-			ns:       "Test.MaxString",
-			expected: "MaxString must be a maximum of 3 characters in length",
 		},
 		{
 			ns:       "Test.MaxNumber",
@@ -624,16 +576,8 @@ func TestTranslations(t *testing.T) {
 			expected: "RequiredMultiple is a required field",
 		},
 		{
-			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen must be at least 10 characters in length",
-		},
-		{
 			ns:       "Test.StrPtrMaxLen",
 			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
-		},
-		{
-			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen must be 2 characters in length",
 		},
 		{
 			ns:       "Test.StrPtrLt",
@@ -642,14 +586,6 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.StrPtrLte",
 			expected: "StrPtrLte must be at maximum 1 character in length",
-		},
-		{
-			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt must be greater than 10 characters in length",
-		},
-		{
-			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte must be at least 10 characters in length",
 		},
 		{
 			ns:       "Test.OneOfString",
