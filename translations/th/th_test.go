@@ -352,6 +352,10 @@ func TestTranslations(t *testing.T) {
 			expected: "Excludes ต้องไม่มี 'text'",
 		},
 		{
+			ns:       "Test.ExcludesAll",
+			expected: "ExcludesAll ต้องไม่มีอักขระ '!@#$' ทั้งหมด",
+		},
+		{
 			ns:       "Test.ExcludesRune",
 			expected: "ExcludesRune ต้องไม่มี '☻'",
 		},
@@ -646,6 +650,34 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.CveString",
 			expected: "CveString ต้องเป็นรูปแบบ cve",
+		},
+		{
+			ns:       "Test.StrPtrMinLen",
+			expected: "StrPtrMinLen ต้องมีความยาวอย่างน้อย 10 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrMaxLen",
+			expected: "StrPtrMaxLen ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLen",
+			expected: "StrPtrLen ต้องมีความยาว 2 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLt",
+			expected: "StrPtrLt ต้องมีความยาวน้อยกว่า 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLte",
+			expected: "StrPtrLte ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrGt",
+			expected: "StrPtrGt ต้องมีความยาวมากกว่า 10 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrGte",
+			expected: "StrPtrGte ต้องมีความยาวอย่างน้อย 10 ตัวอักษร",
 		},
 	}
 
