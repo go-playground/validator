@@ -225,79 +225,79 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor must be a valid color",
+			expected: "IsColor ต้องเป็นเลขสี",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC must contain a valid MAC address",
+			expected: "MAC ต้องเป็น MAC address",
 		},
 		{
 			ns:       "Test.FQDN",
-			expected: "FQDN must be a valid FQDN",
+			expected: "FQDN ต้องเป็น FQDN",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr must be a resolvable IP address",
+			expected: "IPAddr ต้องเป็น IP address ที่เข้าถึงได้",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 must be a resolvable IPv4 address",
+			expected: "IPAddrv4 ต้องเป็น IPv4 address ที่เข้าถึงได้",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 must be a resolvable IPv6 address",
+			expected: "IPAddrv6 ต้องเป็น IPv6 address ที่เข้าถึงได้",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr must be a valid UDP address",
+			expected: "UDPAddr ต้องเป็น UDP address",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 must be a valid IPv4 UDP address",
+			expected: "UDPAddrv4 ต้องเป็น IPv4 UDP address",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 must be a valid IPv6 UDP address",
+			expected: "UDPAddrv6 ต้องเป็น IPv6 UDP address",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr must be a valid TCP address",
+			expected: "TCPAddr ต้องเป็น TCP address",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 must be a valid IPv4 TCP address",
+			expected: "TCPAddrv4 ต้องเป็น IPv4 TCP address",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 must be a valid IPv6 TCP address",
+			expected: "TCPAddrv6 ต้องเป็น IPv6 TCP address",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR must contain a valid CIDR notation",
+			expected: "CIDR ต้องเป็น CIDR notation",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 must contain a valid CIDR notation for an IPv4 address",
+			expected: "CIDRv4 ต้องเป็น CIDR notation สำหรับ an IPv4 address",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 must contain a valid CIDR notation for an IPv6 address",
+			expected: "CIDRv6 ต้องเป็น CIDR notation สำหรับ an IPv6 address",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN must be a valid SSN number",
+			expected: "SSN ต้องเป็นตัวเลข SSN",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP must be a valid IP address",
+			expected: "IP ต้องเป็น IP address",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 must be a valid IPv4 address",
+			expected: "IPv4 ต้องเป็น IPv4 address",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 must be a valid IPv6 address",
+			expected: "IPv6 ต้องเป็น IPv6 address",
 		},
 		{
 			ns:       "Test.DataURI",
@@ -305,27 +305,27 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude must contain valid latitude coordinates",
+			expected: "Latitude ต้องเป็นละติจูด",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude must contain a valid longitude coordinates",
+			expected: "Longitude ต้องเป็นลองจิจูด",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID must be a valid UUID",
+			expected: "UUID ต้องเป็น UUID",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 must be a valid version 3 UUID",
+			expected: "UUID3 ต้องเป็น version 3 UUID",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 must be a valid version 4 UUID",
+			expected: "UUID4 ต้องเป็น version 4 UUID",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 must be a valid version 5 UUID",
+			expected: "UUID5 ต้องเป็น version 5 UUID",
 		},
 		{
 			ns:       "Test.ULID",
@@ -333,299 +333,299 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN must be a valid ISBN number",
+			expected: "ISBN ต้องเป็นตัวเลข ISBN",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 must be a valid ISBN-10 number",
+			expected: "ISBN10 ต้องเป็นตัวเลข ISBN-10",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 must be a valid ISBN-13 number",
+			expected: "ISBN13 ต้องเป็นตัวเลข ISBN-13",
 		},
 		{
 			ns:       "Test.ISSN",
-			expected: "ISSN must be a valid ISSN number",
+			expected: "ISSN ต้องเป็นตัวเลข ISSN",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes cannot contain the text 'text'",
+			expected: "Excludes ต้องไม่มี 'text'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune cannot contain the following '☻'",
+			expected: "ExcludesRune ต้องไม่มี '☻'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains must contain the text 'purpose'",
+			expected: "Contains ต้องมี 'purpose'",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 must be a valid Base64 string",
+			expected: "Base64 ต้องเป็น Base64 เท่านั้น",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email must be a valid email address",
+			expected: "Email ต้องเป็นอีเมลเท่านั้น",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL must be a valid URL",
+			expected: "URL ต้องเป็น URL เท่านั้น",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI must be a valid URI",
+			expected: "URI ต้องเป็น URI เท่านั้น",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString must be a valid RGB color",
+			expected: "RGBColorString ต้องเป็นเลขสี RGB เท่านั้น",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString must be a valid RGBA color",
+			expected: "RGBAColorString ต้องเป็นเลขสี RGBA เท่านั้น",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString must be a valid HSL color",
+			expected: "HSLColorString ต้องเป็นเลขสี HSL เท่านั้น",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString must be a valid HSLA color",
+			expected: "HSLAColorString ต้องเป็นเลขสี HSLA เท่านั้น",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString must be a valid hexadecimal",
+			expected: "HexadecimalString ต้องเป็นค่าตัวเลขฐาน 16 เท่านั้น",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString must be a valid HEX color",
+			expected: "HexColorString ต้องเป็นเลขสีฐาน 16 เท่านั้น",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString must be a valid number",
+			expected: "NumberString ต้องเป็นตัวเลขเท่านั้น",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString must be a valid numeric value",
+			expected: "NumericString ต้องเป็นค่าตัวเลขเท่านั้น",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString must be less than MaxString",
+			expected: "LtFieldString ต้องมีค่าน้อยกว่า MaxString",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString must be less than or equal to MaxString",
+			expected: "LteFieldString ต้องมีค่าน้อยกว่าหรือเท่ากับ MaxString",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString must be greater than MaxString",
+			expected: "GtFieldString ต้องมีค่ามากกว่า MaxString",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString must be greater than or equal to MaxString",
+			expected: "GteFieldString ต้องมีค่ามากกว่าหรือเท่ากับ MaxString",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString cannot be equal to EqFieldString",
+			expected: "NeFieldString ต้องไม่เท่ากับ EqFieldString",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString must be less than Inner.LtCSFieldString",
+			expected: "LtCSFieldString ต้องมีค่าน้อยกว่า Inner.LtCSFieldString",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString must be less than or equal to Inner.LteCSFieldString",
+			expected: "LteCSFieldString ต้องมีค่าน้อยกว่าหรือเท่ากับ Inner.LteCSFieldString",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString must be greater than Inner.GtCSFieldString",
+			expected: "GtCSFieldString ต้องมีค่ามากกว่า Inner.GtCSFieldString",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString must be greater than or equal to Inner.GteCSFieldString",
+			expected: "GteCSFieldString ต้องมีค่ามากกว่าหรือเท่ากับ Inner.GteCSFieldString",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString cannot be equal to Inner.NeCSFieldString",
+			expected: "NeCSFieldString ต้องไม่เท่ากับ Inner.NeCSFieldString",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString must be equal to Inner.EqCSFieldString",
+			expected: "EqCSFieldString ต้องเท่ากับ Inner.EqCSFieldString",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString must be equal to MaxString",
+			expected: "EqFieldString ต้องเท่ากับ MaxString",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber must be 5.56 or greater",
+			expected: "GteNumber ต้องมีค่ามากกว่า 5.56",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple must contain at least 2 items",
+			expected: "GteMultiple ต้องมีอย่างน้อย 2 ไอเทม",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime must be greater than or equal to the current Date & Time",
+			expected: "GteTime ต้องมีค่ามากกว่าหรือเท่ากับเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber must be greater than 5.56",
+			expected: "GtNumber ต้องมีค่ามากกว่า 5.56",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple must contain more than 2 items",
+			expected: "GtMultiple ต้องมีมากกว่า 2 ไอเทม",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime must be greater than the current Date & Time",
+			expected: "GtTime ต้องมีค่ามากกว่าเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber must be 5.56 or less",
+			expected: "LteNumber ต้องมีค่าน้อยกว่าหรือเท่ากับ 5.56",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "LteMultiple ต้องมีไม่เกิน 2 ไอเทม",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "LteTime ต้องมีค่าน้อยกว่าหรือเท่ากับเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber must be less than 5.56",
+			expected: "LtNumber ต้องมีค่าน้อยกว่า 5.56",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple must contain less than 2 items",
+			expected: "LtMultiple ต้องมีน้อยกว่า 2 ไอเทม",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime ต้องมีค่าน้อยกว่าเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString should not be equal to ",
+			expected: "NeString ต้องไม่เท่ากับ ",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber should not be equal to 0.00",
+			expected: "NeNumber ต้องไม่เท่ากับ 0.00",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple should not be equal to 0",
+			expected: "NeMultiple ต้องไม่เท่ากับ 0",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString is not equal to 3",
+			expected: "EqString ไม่เท่ากับ 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber is not equal to 2.33",
+			expected: "EqNumber ไม่เท่ากับ 2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple is not equal to 7",
+			expected: "EqMultiple ไม่เท่ากับ 7",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber must be 1,113.00 or less",
+			expected: "MaxNumber ต้องมีค่าน้อยกว่าหรือเท่ากับ 1,113.00",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "MaxMultiple ต้องมีไม่เกิน 7 ไอเทม",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString must be at least 1 character in length",
+			expected: "MinString ต้องมีความยาวอย่างน้อย 1 ตัวอักษร",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber must be 1,113.00 or greater",
+			expected: "MinNumber ต้องมีค่ามากกว่า 1,113.00",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple must contain at least 7 items",
+			expected: "MinMultiple ต้องมีอย่างน้อย 7 ไอเทม",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString must be 1 character in length",
+			expected: "LenString ต้องมีความยาว 1 ตัวอักษร",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber must be equal to 1,113.00",
+			expected: "LenNumber ต้องเท่ากับ 1,113.00",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 items",
+			expected: "LenMultiple must contain 7 ไอเทม",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString is a required field",
+			expected: "โปรดระบุ RequiredString",
 		},
 		{
 			ns:       "Test.RequiredIf",
-			expected: "RequiredIf is a required field",
+			expected: "โปรดระบุ RequiredIf",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber is a required field",
+			expected: "โปรดระบุ RequiredNumber",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple is a required field",
+			expected: "โปรดระบุ RequiredMultiple",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+			expected: "StrPtrMaxLen ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt must be less than 1 character in length",
+			expected: "StrPtrLt ต้องมีความยาวน้อยกว่า 1 ตัวอักษร",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "StrPtrLte ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString must be one of [red green]",
+			expected: "OneOfString ต้องอยู่ใน [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt must be one of [5 63]",
+			expected: "OneOfInt ต้องอยู่ใน [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice must contain unique values",
+			expected: "UniqueSlice ต้องมีข้อมูลไม่ซ้ำ",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray must contain unique values",
+			expected: "UniqueArray ต้องมีข้อมูลไม่ซ้ำ",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap must contain unique values",
+			expected: "UniqueMap ต้องมีข้อมูลไม่ซ้ำ",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString must be a valid json string",
+			expected: "JSONString ต้องเป็น json string",
 		},
 		{
 			ns:       "Test.JWTString",
-			expected: "JWTString must be a valid jwt string",
+			expected: "JWTString ต้องเป็น jwt string",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString must be a lowercase string",
+			expected: "LowercaseString ต้องเป็นตัวพิมพ์เล็ก",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString must be an uppercase string",
+			expected: "UppercaseString ต้องเป็นตัวพิมพ์ใหญ่",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime does not match the 2006-01-02 format",
+			expected: "Datetime ไม่ตรงกับรูปแบบ 2006-01-02",
 		},
 		{
 			ns:       "Test.PostCode",
@@ -637,15 +637,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.BooleanString",
-			expected: "BooleanString must be a valid boolean value",
+			expected: "BooleanString ต้องเป็น boolean",
 		},
 		{
 			ns:       "Test.Image",
-			expected: "Image must be a valid image",
+			expected: "Image ต้องเป็นรูปภาพ",
 		},
 		{
 			ns:       "Test.CveString",
-			expected: "CveString must be a valid cve identifier",
+			expected: "CveString ต้องเป็นรูปแบบ cve",
 		},
 	}
 
