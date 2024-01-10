@@ -31,7 +31,6 @@ type validate struct {
 
 // parent and current will be the same the first run of validateStruct
 func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, structNs []byte, ct *cTag) {
-
 	cs, ok := v.v.structCache.Get(typ)
 	if !ok {
 		cs = v.v.extractStructCache(current, typ.Name())
@@ -193,7 +192,7 @@ OUTER:
 				// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
 				// VarWithField - this allows for validating against each field within the struct against a specific value
 				//                pretty handy in certain situations
-				if len(cf.name) > 0 {
+				if len(cf.name) > 0 && !(v.v.omitAnonymousName && parent.Type().Field(cf.idx).Anonymous) {
 					ns = append(append(ns, cf.altName...), '.')
 					structNs = append(append(structNs, cf.name...), '.')
 				}
@@ -482,5 +481,4 @@ OUTER:
 			ct = ct.next
 		}
 	}
-
 }
