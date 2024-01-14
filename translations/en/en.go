@@ -35,6 +35,66 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_unless",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} must be default value",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("len-string", "{0} must be {1} in length", false); err != nil {
