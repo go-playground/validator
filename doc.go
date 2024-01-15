@@ -1377,11 +1377,19 @@ This validates that a string value contains a valid credit card number using Luh
 
 This validates that a string or (u)int value contains a valid checksum using the Luhn algorithm.
 
-# MongoDb
+# MongoDB
 
 This validates that a string is a valid 24 character hexadecimal string or valid connection string.
 
-	Usage: mongodb=id|connectionString
+	Usage: mongodb
+	       mongodb_connection_string
+
+Example:
+
+	type Test struct {
+		ObjectIdField         string `validate:"mongodb"`
+		ConnectionStringField string `validate:"mongodb_connection_string"`
+	}
 
 # Cron
 

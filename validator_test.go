@@ -13208,35 +13208,6 @@ func TestMongoDBObjectIDFormatValidation(t *testing.T) {
 		{"07f191e810c19729de860ea", "mongodb", false},
 		{"507f191e810c19729de860e", "mongodb", false},
 		{"507f191e810c19729de860ea4", "mongodb", false},
-		{"", "mongodb", false},
-		{"", "mongodb=id", false},
-		{"", "mongodb=connectionString", false},
-		{"507f191e810c19729de860ea", "mongodb=id", true},
-		{"507f191e810c19729de860ea", "mongodb=unknownParam", false},
-		{"mongodb://username:password@server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=id", false},
-		{"mongodb://username:password@server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=connectionString", true},
-		{"mongodb+srv://username:password@server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=connectionString", true},
-		{"mongodb+srv://username:password@server.example.com:20017,server.example.com,server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=connectionString", true},
-		{"mongodb+srv://username:password@server.example.com:20017,server.example.com,server.example.com:20017?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=connectionString", true},
-		{"mongodb://username:password@server.example.com:20017,server.example.com,server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb=connectionString", true},
-		{"mongodb://localhost", "mongodb=connectionString", true},
-		{"mongodb://localhost:27017", "mongodb=connectionString", true},
-		{"localhost", "mongodb=connectionString", false},
-		{"mongodb://", "mongodb=connectionString", false},
-		{"mongodb+srv://", "mongodb=connectionString", false},
-		{"mongodbsrv://localhost", "mongodb=connectionString", false},
-		{"mongodb+srv://localhost", "mongodb=connectionString", true},
-		{"mongodb+srv://localhost:27017", "mongodb=connectionString", true},
-		{"mongodb+srv://localhost?replicaSet=test", "mongodb=connectionString", true},
-		{"mongodb+srv://localhost:27017?replicaSet=test", "mongodb=connectionString", true},
-		{"mongodb+srv://localhost:27017?", "mongodb=connectionString", false},
-		{"mongodb+srv://localhost:27017?replicaSet", "mongodb=connectionString", false},
-		{"mongodb+srv://localhost/database", "mongodb=connectionString", true},
-		{"mongodb+srv://localhost:27017/database", "mongodb=connectionString", true},
-		{"mongodb+srv://username@localhost", "mongodb=connectionString", false},
-		{"mongodb+srv://username:password@localhost", "mongodb=connectionString", true},
-		{"mongodb+srv://username:password@localhost:27017", "mongodb=connectionString", true},
-		{"mongodb+srv://username:password@localhost:27017,192.0.0.7,192.0.0.9:27018,server.example.com", "mongodb=connectionString", true},
 	}
 
 	validate := New()
@@ -13255,6 +13226,58 @@ func TestMongoDBObjectIDFormatValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "mongodb" {
 					t.Fatalf("Index: %d mongodb failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+func TestMongoDBConnectionStringFormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"mongodb_connection_string"`
+		tag      string
+		expected bool
+	}{
+		{"mongodb://username:password@server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb_connection_string", true},
+		{"mongodb+srv://username:password@server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb_connection_string", true},
+		{"mongodb+srv://username:password@server.example.com:20017,server.example.com,server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb_connection_string", true},
+		{"mongodb+srv://username:password@server.example.com:20017,server.example.com,server.example.com:20017?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb_connection_string", true},
+		{"mongodb://username:password@server.example.com:20017,server.example.com,server.example.com:20017/database?replicaSet=test&connectTimeoutMS=300000&ssl=true", "mongodb_connection_string", true},
+		{"mongodb://localhost", "mongodb_connection_string", true},
+		{"mongodb://localhost:27017", "mongodb_connection_string", true},
+		{"localhost", "mongodb_connection_string", false},
+		{"mongodb://", "mongodb_connection_string", false},
+		{"mongodb+srv://", "mongodb_connection_string", false},
+		{"mongodbsrv://localhost", "mongodb_connection_string", false},
+		{"mongodb+srv://localhost", "mongodb_connection_string", true},
+		{"mongodb+srv://localhost:27017", "mongodb_connection_string", true},
+		{"mongodb+srv://localhost?replicaSet=test", "mongodb_connection_string", true},
+		{"mongodb+srv://localhost:27017?replicaSet=test", "mongodb_connection_string", true},
+		{"mongodb+srv://localhost:27017?", "mongodb_connection_string", false},
+		{"mongodb+srv://localhost:27017?replicaSet", "mongodb_connection_string", false},
+		{"mongodb+srv://localhost/database", "mongodb_connection_string", true},
+		{"mongodb+srv://localhost:27017/database", "mongodb_connection_string", true},
+		{"mongodb+srv://username@localhost", "mongodb_connection_string", false},
+		{"mongodb+srv://username:password@localhost", "mongodb_connection_string", true},
+		{"mongodb+srv://username:password@localhost:27017", "mongodb_connection_string", true},
+		{"mongodb+srv://username:password@localhost:27017,192.0.0.7,192.0.0.9:27018,server.example.com", "mongodb_connection_string", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb_connection_string failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d mongodb_connection_string failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "mongodb_connection_string" {
+					t.Fatalf("Index: %d mongodb_connection_string failed Error: %s", i, errs)
 				}
 			}
 		}
