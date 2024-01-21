@@ -101,22 +101,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("len-number", "{0} musi być równe {1}", false); err != nil {
 					return
 				}
@@ -125,19 +109,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("len-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "len"); err != nil {
 					return
 				}
 
@@ -206,22 +178,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("min-number", "{0} musi być równe {1} lub więcej", false); err != nil {
 					return
 				}
@@ -230,19 +186,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("min-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "min"); err != nil {
 					return
 				}
 
@@ -311,22 +255,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("max-number", "{0} musi być równe {1} lub mniej", false); err != nil {
 					return
 				}
@@ -335,19 +263,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("max-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "max"); err != nil {
 					return
 				}
 
@@ -410,53 +326,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eq",
-			translation: "{0} nie równa się {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq",
+			translation:     "{0} nie równa się {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ne",
-			translation: "{0} nie powinien być równy {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne",
+			translation:     "{0} nie powinien być równy {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("lt-string", "{0} musi mieć długość mniejszą niż {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -468,23 +352,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("lt-datetime", "{0} musi być mniejsze niż obecny dzień i godzina", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "lt"); err != nil {
 					return
 				}
 
@@ -577,22 +449,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("lte-number", "{0} musi być równe {1} lub mniej", false); err != nil {
 					return
 				}
@@ -601,23 +457,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("lte-datetime", "{0} musi być mniejsze lub równe niż obecny dzień i godzina", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "lte"); err != nil {
 					return
 				}
 
@@ -710,22 +554,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("gt-number", "{0} musi być większe niż {1}", false); err != nil {
 					return
 				}
@@ -734,23 +562,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("gt-datetime", "{0} musi być większe niż obecny dzień i godzina", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "gt"); err != nil {
 					return
 				}
 
@@ -843,22 +659,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} znak", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} znaki", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} znaków", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} znaków", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("gte-number", "{0} musi być równe {1} lub większe", false); err != nil {
 					return
 				}
@@ -867,23 +667,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} element", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} elementy", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} elementów", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} elementów", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("gte-datetime", "{0} musi być większe lub równe niż obecny dzień i godzina", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "gte"); err != nil {
 					return
 				}
 
@@ -970,172 +758,76 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eqfield",
-			translation: "{0} musi być równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqfield",
+			translation:     "{0} musi być równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "eqcsfield",
-			translation: "{0} musi być równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqcsfield",
+			translation:     "{0} musi być równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "necsfield",
-			translation: "{0} nie może być równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "necsfield",
+			translation:     "{0} nie może być równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtcsfield",
-			translation: "{0} musi być większe niż {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtcsfield",
+			translation:     "{0} musi być większe niż {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtecsfield",
-			translation: "{0} musi być większe lub równe niż {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtecsfield",
+			translation:     "{0} musi być większe lub równe niż {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltcsfield",
-			translation: "{0} musi być mniejsze niż {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltcsfield",
+			translation:     "{0} musi być mniejsze niż {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltecsfield",
-			translation: "{0} musi być mniejsze lub równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltecsfield",
+			translation:     "{0} musi być mniejsze lub równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "nefield",
-			translation: "{0} nie może być równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "nefield",
+			translation:     "{0} nie może być równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtfield",
-			translation: "{0} musi być większe niż {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtfield",
+			translation:     "{0} musi być większe niż {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtefield",
-			translation: "{0} musi być większe lub równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtefield",
+			translation:     "{0} musi być większe lub równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltfield",
-			translation: "{0} musi być mniejsze niż {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltfield",
+			translation:     "{0} musi być mniejsze niż {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltefield",
-			translation: "{0} musi być mniejsze lub równe {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltefield",
+			translation:     "{0} musi być mniejsze lub równe {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "alpha",
@@ -1213,74 +905,34 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "contains",
-			translation: "{0} musi zawierać tekst '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "contains",
+			translation:     "{0} musi zawierać tekst '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "containsany",
-			translation: "{0} musi zawierać przynajmniej jeden z następujących znaków '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsany",
+			translation:     "{0} musi zawierać przynajmniej jeden z następujących znaków '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludes",
-			translation: "{0} nie może zawierać tekstu '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludes",
+			translation:     "{0} nie może zawierać tekstu '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesall",
-			translation: "{0} nie może zawierać żadnych z następujących znaków '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesall",
+			translation:     "{0} nie może zawierać żadnych z następujących znaków '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesrune",
-			translation: "{0} nie może zawierać następujących znaków '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesrune",
+			translation:     "{0} nie może zawierać następujących znaków '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "isbn",
@@ -1468,17 +1120,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "oneof",
-			translation: "{0} musi być jednym z [{1}]",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-				return s
-			},
+			tag:             "oneof",
+			translation:     "{0} musi być jednym z [{1}]",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "json",
@@ -1501,46 +1146,22 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "datetime",
-			translation: "{0} nie spełnia formatu {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "datetime",
+			translation:     "{0} nie spełnia formatu {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2",
-			translation: "{0} nie spełnia formatu kodu pocztowego kraju {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "postcode_iso3166_alpha2",
+			translation:     "{0} nie spełnia formatu kodu pocztowego kraju {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0} nie spełnia formatu kodu pocztowego kraju z pola {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "postcode_iso3166_alpha2_field",
+			translation:     "{0} nie spełnia formatu kodu pocztowego kraju z pola {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "boolean",
@@ -1597,4 +1218,55 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	}
 
 	return t
+}
+
+func translateFuncWithParam(ut ut.Translator, fe validator.FieldError) string {
+	t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+	if err != nil {
+		log.Printf("warning: error translating FieldError: %#v", fe)
+		return fe.(error).Error()
+	}
+
+	return t
+}
+
+func registerCardinals(ut ut.Translator, prefix string) (err error) {
+	var (
+		stringCharacterKey = fmt.Sprintf("%s-string-character", prefix)
+		itemsItemKey       = fmt.Sprintf("%s-items-item", prefix)
+	)
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} znak", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} znaki", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} znaków", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} znaków", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} element", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} elementy", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} elementów", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} elementów", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	return
 }
