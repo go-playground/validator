@@ -186,7 +186,7 @@ func (v Validate) validateMapCtx(ctx context.Context, root map[string]interface{
 				errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
 			}
 		} else if ruleStr, ok := rule.(string); ok {
-			err := v.VarCtxMap(ctx, root, data[field], ruleStr)
+			err := v.VarCtxMap(ctx, field, root, data[field], ruleStr)
 			if err != nil {
 				errs[field] = err
 			}
@@ -668,7 +668,7 @@ func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (e
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) VarCtxMap(ctx context.Context, parent interface{}, field interface{}, tag string) (err error) {
+func (v *Validate) VarCtxMap(ctx context.Context, key string, parent interface{}, field interface{}, tag string) (err error) {
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}
@@ -679,7 +679,8 @@ func (v *Validate) VarCtxMap(ctx context.Context, parent interface{}, field inte
 	vd := v.pool.Get().(*validate)
 	vd.top = val
 	vd.isPartial = false
-	vd.traverseField(ctx, reflect.ValueOf(parent), val, vd.ns[0:0], vd.actualNs[0:0], defaultCField, ctag)
+
+	vd.traverseField(ctx, reflect.ValueOf(parent), val, vd.ns[0:0], vd.actualNs[0:0], &cField{altName: key}, ctag)
 
 	if len(vd.errs) > 0 {
 		err = vd.errs

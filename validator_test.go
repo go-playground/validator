@@ -13280,6 +13280,21 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 			},
 			want: 1,
 		},
+
+		{
+			name: "test map with field+value reference - no brackets (fail)",
+			args: args{
+				data: map[string]interface{}{
+					"Field_A": "Value_A",
+					"Field_B": "",
+				},
+				rules: map[string]interface{}{
+					"Field_A": "required",
+					"Field_B": "required_if=Field_A Value_A",
+				},
+			},
+			want: 1,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
