@@ -14,3 +14,10 @@ func WithRequiredStructEnabled() Option {
 		v.requiredStructEnabled = true
 	}
 }
+
+// WithRequiredStructEnabled enables omitting the name of embedded anonymous structs from the namespace.
+func WithOmitAnonymousName() Option {
+	return func(v *Validate) {
+		v.omitAnonymousName = true
+	}
+}

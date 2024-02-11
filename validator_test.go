@@ -746,11 +746,9 @@ func TestStructPartial(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -4002,7 +4000,6 @@ func TestUUID5Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
@@ -4190,7 +4187,6 @@ func TestUUID5RFC4122Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81Fe-4c455b099bc9", false},
@@ -8793,6 +8789,7 @@ func TestNumeric(t *testing.T) {
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
 }
+
 func TestBoolean(t *testing.T) {
 	validate := New()
 
@@ -9518,11 +9515,9 @@ func TestStructFiltered(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -12909,7 +12904,6 @@ func TestSemverFormatValidation(t *testing.T) {
 }
 
 func TestCveFormatValidation(t *testing.T) {
-
 	tests := []struct {
 		value    string `validate:"cve"`
 		tag      string
@@ -13106,7 +13100,6 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 }
 
 func TestValidate_ValidateMapCtx(t *testing.T) {
-
 	type args struct {
 		data  map[string]interface{}
 		rules map[string]interface{}
@@ -13588,7 +13581,7 @@ func TestNestedStructValidation(t *testing.T) {
 		},
 	}
 
-	var evaluateTest = func(tt test, errs error) {
+	evaluateTest := func(tt test, errs error) {
 		if tt.err != (testErr{}) && errs != nil {
 			Equal(t, len(errs.(ValidationErrors)), 1)
 
@@ -13624,6 +13617,34 @@ func TestNestedStructValidation(t *testing.T) {
 			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
 		})
 	}
+}
+
+func TestHideEmbeddedStructName(t *testing.T) {
+	validate := New(WithOmitAnonymousName())
+
+	type Inner struct {
+		Test string `validate:"required"`
+	}
+
+	t.Run("anonymous", func(t *testing.T) {
+		type Anonymous struct {
+			Inner
+		}
+
+		err := validate.Struct(Anonymous{})
+		NotEqual(t, err, nil)
+		AssertError(t, err.(ValidationErrors), "Anonymous.Test", "Anonymous.Test", "Test", "Test", "required")
+	})
+
+	t.Run("named", func(t *testing.T) {
+		type Named struct {
+			Inner Inner
+		}
+
+		err := validate.Struct(Named{})
+		NotEqual(t, err, nil)
+		AssertError(t, err.(ValidationErrors), "Named.Inner.Test", "Named.Inner.Test", "Test", "Test", "required")
+	})
 }
 
 func TestTimeRequired(t *testing.T) {
