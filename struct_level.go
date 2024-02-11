@@ -54,6 +54,10 @@ type StructLevel interface {
 	// and process on the flip side it's up to you.
 	ReportError(field interface{}, fieldName, structFieldName string, tag, param string)
 
+	// ReportErrorWithMsg reports an error just by passing the field and tag information, and custom error message
+	// ReportError calls this internally by passing empty custom error message
+	ReportErrorWithMsg(field interface{}, fieldName, structFieldName string, tag, param, msg string)
+
 	// ReportValidationErrors reports an error just by passing ValidationErrors
 	//
 	// NOTES:
@@ -107,7 +111,11 @@ func (v *validate) ExtractType(field reflect.Value) (reflect.Value, reflect.Kind
 
 // ReportError reports an error just by passing the field and tag information
 func (v *validate) ReportError(field interface{}, fieldName, structFieldName, tag, param string) {
+	v.ReportErrorWithMsg(field, fieldName, structFieldName, tag, param, "")
+}
 
+// ReportErrorWithMsg reports an error just by passing the field and tag information, and custom error message
+func (v *validate) ReportErrorWithMsg(field interface{}, fieldName, structFieldName, tag, param, msg string) {
 	fv, kind, _ := v.extractTypeInternal(reflect.ValueOf(field), false)
 
 	if len(structFieldName) == 0 {
@@ -127,6 +135,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		v.errs = append(v.errs,
 			&fieldError{
 				v:              v.v,
+				msg:            msg,
 				tag:            tag,
 				actualTag:      tag,
 				ns:             v.str1,
@@ -143,6 +152,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 	v.errs = append(v.errs,
 		&fieldError{
 			v:              v.v,
+			msg:            msg,
 			tag:            tag,
 			actualTag:      tag,
 			ns:             v.str1,

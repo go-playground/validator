@@ -155,6 +155,9 @@ type FieldError interface {
 
 	// Error returns the FieldError's message
 	Error() string
+
+	// Error returns the custom error message
+	Msg() string
 }
 
 // compile time interface checks
@@ -166,6 +169,7 @@ var _ error = new(fieldError)
 // it complies with the FieldError interface
 type fieldError struct {
 	v              *Validate
+	msg            string
 	tag            string
 	actualTag      string
 	ns             string
@@ -176,6 +180,11 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+}
+
+// Msg returns the fieldError's custom error message
+func (fe *fieldError) Msg() string {
+	return fe.msg
 }
 
 // Tag returns the validation tag that failed.

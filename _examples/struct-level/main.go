@@ -21,6 +21,7 @@ type validationError struct {
 	Value           string `json:"value"`
 	Param           string `json:"param"`
 	Message         string `json:"message"`
+	Msg             string `json:"msg"`
 }
 
 type Gender uint
@@ -44,7 +45,7 @@ type User struct {
 	FirstName      string     `json:"fname"`
 	LastName       string     `json:"lname"`
 	Age            uint8      `validate:"gte=0,lte=130"`
-	Email          string     `json:"e-mail" validate:"required,email"`
+	Email          string     `json:"e-mail" validate:"required,email" msg:"User email is invalid"`
 	FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 	Gender         Gender     `json:"gender" validate:"required,gender_custom_validation"`
@@ -72,6 +73,11 @@ func main() {
 			return ""
 		}
 		return name
+	})
+
+	// register function to get custom error message from struct tag
+	validate.RegisterErrMsgFunc(func(fld reflect.StructField) string {
+		return fld.Tag.Get("msg")
 	})
 
 	// register validation for 'User'
@@ -132,6 +138,7 @@ func main() {
 				Value:           fmt.Sprintf("%v", err.Value()),
 				Param:           err.Param(),
 				Message:         err.Error(),
+				Msg:             err.Msg(),
 			}
 
 			indent, err := json.MarshalIndent(e, "", "  ")
@@ -164,7 +171,8 @@ func UserStructLevelValidation(sl validator.StructLevel) {
 	user := sl.Current().Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
-		sl.ReportError(user.FirstName, "fname", "FirstName", "fnameorlname", "")
+		sl.ReportErrorWithMsg(user.FirstName, "fname", "FirstName", "fnameorlname", "", "First name or last name must be provided")
+		// sl.ReportErrorWithMsg(user.LastName, "lname", "LastName", "fnameorlname", "", "First name or last name must be provided")
 		sl.ReportError(user.LastName, "lname", "LastName", "fnameorlname", "")
 	}
 

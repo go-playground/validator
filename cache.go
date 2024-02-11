@@ -79,6 +79,7 @@ type cField struct {
 	idx        int
 	name       string
 	altName    string
+	errMsg     string
 	namesEqual bool
 	cTags      *cTag
 }
@@ -149,6 +150,12 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			}
 		}
 
+		// check for any custom error message
+		errMsg := ""
+		if v.hasErrMsgFunc {
+			errMsg = v.errMsgFunc(fld)
+		}
+
 		// NOTE: cannot use shared tag cache, because tags may be equal, but things like alias may be different
 		// and so only struct level caching can be used instead of combined with Field tag caching
 
@@ -164,6 +171,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			idx:        i,
 			name:       fld.Name,
 			altName:    customName,
+			errMsg:     errMsg,
 			cTags:      ctag,
 			namesEqual: fld.Name == customName,
 		})
