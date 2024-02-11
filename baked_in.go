@@ -233,6 +233,7 @@ var (
 		"mongodb":                       isMongoDB,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"bcrypt":                        isBcrypt,
 	}
 )
 
@@ -2952,4 +2953,10 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex.MatchString(cronString)
+}
+
+// isBcrypt is the validation function for validating if the field's value is a valid Bcrypt hash.
+func isBcrypt(fl FieldLevel) bool {
+	bcryptString := fl.Field().String()
+	return bcryptRegex.MatchString(bcryptString)
 }

@@ -72,6 +72,7 @@ const (
 	spicedbIDRegexString             = `^(([a-zA-Z0-9/_|\-=+]{1,})|\*)$`
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
 	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
+	bcryptRegexString                = "^\\$2(?:a|b|x|y)\\$(?:[4-9]|[12][0-9]|3[01])\\$(?:[a-zA-Z\\d\\./]{22})(?:[a-zA-Z\\d\\./]{31})$"
 )
 
 var (
@@ -142,4 +143,5 @@ var (
 	spicedbIDRegex             = regexp.MustCompile(spicedbIDRegexString)
 	spicedbPermissionRegex     = regexp.MustCompile(spicedbPermissionRegexString)
 	spicedbTypeRegex           = regexp.MustCompile(spicedbTypeRegexString)
+	bcryptRegex                = regexp.MustCompile(bcryptRegexString)
 )

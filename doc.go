@@ -1383,6 +1383,12 @@ This validates that a string is a valid 24 character hexadecimal string.
 
 	Usage: mongodb
 
+# Bcrypt
+
+	Usage: bcrypt
+
+This validates that a string value is a valid Bcrypt hash.
+
 # Cron
 
 This validates that a string value contains a valid cron expression.

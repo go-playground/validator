@@ -13692,3 +13692,43 @@ func TestOmitNilAndRequired(t *testing.T) {
 		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
 	})
 }
+
+func TestBcryptValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{" ", false},
+		{"3994f547ee74552dc417428905a77e47", false},
+		{"$1$12$LIBGmKZIpw3HVbZwRMIb1O/epX7BaKbW0d", false},
+		{"$2w$12$LIBGmKZIpw3HVbZwRMIb1O/epX7BaKbW0dG2Kwu20RXKVmS0mN8u", false},
+		{"$2aa$12$LIBGmKZIpw3HVbZwRMIb1O/epX7BaKbW0dG2Kwu20RXKVmS0mN8ue", false},
+		{"$2a$12$LIBGmKZIpw3HVbZwRMIb1O/epX7BaKbW0dG2Kwu20RXKVmS0mN8ue", true},
+		{"$2a$12$feratNX4Cr/Tn2VEZZHyb.JWLRwtork3nF1AL4Mlirwc3mOvZwsmi", true},
+		{"$2b$12$feratNX4Cr/Tn2VEZZHyb.JWLRwtork3nF1AL4Mlirwc3mOvZwsmi", true},
+		{"$2x$12$feratNX4Cr/Tn2VEZZHyb.JWLRwtork3nF1AL4Mlirwc3mOvZwsmi", true},
+		{"$2y$12$feratNX4Cr/Tn2VEZZHyb.JWLRwtork3nF1AL4Mlirwc3mOvZwsmi", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "bcrypt")
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Bcrypt failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d Bcrypt failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bcrypt" {
+					t.Fatalf("Index: %d Bcrypt failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
