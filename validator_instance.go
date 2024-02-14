@@ -707,3 +707,22 @@ func (v *Validate) VarWithValueCtx(ctx context.Context, field interface{}, other
 	v.pool.Put(vd)
 	return
 }
+
+// ValidateTag validates a tag. It's main purpose is to be used when validating values directly via the Var, VarCtx,
+// VarWithValue and VarWithValueCtx methods to know beforehand if the tag is known by the library instead of managing
+// a panic error.
+//
+// Parameters:
+// tag (string): The tag to be validated.
+//
+// Returns:
+// error: An error signaling the given tag is invalid.
+func (v *Validate) ValidateTag(tag string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("error parsing tag: %v", r)
+		}
+	}()
+	v.parseFieldTagsRecursive(tag, "", "", false)
+	return err
+}

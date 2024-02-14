@@ -13692,3 +13692,11 @@ func TestOmitNilAndRequired(t *testing.T) {
 		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
 	})
 }
+
+func TestValidate_ValidateTag(t *testing.T) {
+	validate := New()
+	err := validate.ValidateTag("nonexsiting,nonexisting2")
+	NotEqual(t, err, nil)
+	err = validate.ValidateTag("required,email")
+	Equal(t, err, nil)
+}
