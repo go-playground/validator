@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 	"sync"
@@ -54,6 +55,7 @@ const (
 var (
 	timeDurationType = reflect.TypeOf(time.Duration(0))
 	timeType         = reflect.TypeOf(time.Time{})
+	urlType          = reflect.TypeOf(url.URL{})
 
 	byteSliceType = reflect.TypeOf([]byte{})
 
