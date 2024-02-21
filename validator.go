@@ -39,6 +39,7 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	}
 
 	if len(ns) == 0 && len(cs.name) != 0 {
+
 		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
 
@@ -57,6 +58,7 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 			f = cs.fields[i]
 
 			if v.isPartial {
+
 				if v.ffn != nil {
 					// used with StructFiltered
 					if v.ffn(append(structNs, f.name...)) {
