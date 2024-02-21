@@ -39,7 +39,6 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	}
 
 	if len(ns) == 0 && len(cs.name) != 0 {
-
 		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
 
@@ -58,7 +57,6 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 			f = cs.fields[i]
 
 			if v.isPartial {
-
 				if v.ffn != nil {
 					// used with StructFiltered
 					if v.ffn(append(structNs, f.name...)) {
@@ -445,8 +443,60 @@ OUTER:
 				ct = ct.next
 			}
 
-		default:
+		case typeSelect:
+			var name, altName string
+			var fieldValue reflect.Value
+			switch kind {
+			case reflect.Struct:
 
+				v.misc = append(v.misc[0:0], cf.name...)
+				v.misc = append(v.misc, '.')
+				v.misc = append(v.misc, ct.param...)
+				name = string(v.misc)
+
+				if cf.namesEqual {
+					altName = name
+				} else {
+					v.misc = append(v.misc[0:0], cf.altName...)
+					v.misc = append(v.misc, '.')
+					v.misc = append(v.misc, ct.param...)
+					altName = string(v.misc)
+				}
+
+				fieldValue = current.FieldByName(ct.param)
+
+			case reflect.Map:
+
+				v.misc = append(v.misc[0:0], cf.name...)
+				v.misc = append(v.misc, '[')
+				v.misc = append(v.misc, ct.param...)
+				v.misc = append(v.misc, ']')
+				name = string(v.misc)
+
+				if cf.namesEqual {
+					altName = name
+				} else {
+					v.misc = append(v.misc[0:0], cf.altName...)
+					v.misc = append(v.misc, '[')
+					v.misc = append(v.misc, ct.param...)
+					v.misc = append(v.misc, ']')
+					altName = string(v.misc)
+				}
+
+				fieldValue = current.MapIndex(reflect.ValueOf(ct.param))
+
+			default:
+				panic("can't select field on a non struct or map types")
+			}
+
+			v.traverseField(ctx, parent, fieldValue, ns, structNs, &cField{
+				altName: altName,
+				name:    name,
+			}, ct.next)
+
+			return
+
+		default:
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
