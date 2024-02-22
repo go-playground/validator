@@ -31,11 +31,7 @@ type validate struct {
 
 // parent and current will be the same the first run of validateStruct
 func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, structNs []byte, ct *cTag) {
-
-	cs, ok := v.v.structCache.Get(typ)
-	if !ok {
-		cs = v.v.extractStructCache(current, typ.Name())
-	}
+	cs := v.v.extractStructCache(current, typ.Name())
 
 	if len(ns) == 0 && len(cs.name) != 0 {
 
@@ -66,7 +62,7 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 
 				} else {
 					// used with StructPartial & StructExcept
-					_, ok = v.includeExclude[string(append(structNs, f.name...))]
+					_, ok := v.includeExclude[string(append(structNs, f.name...))]
 
 					if (ok && v.hasExcludes) || (!ok && !v.hasExcludes) {
 						continue
