@@ -486,7 +486,7 @@ OUTER:
 
 }
 
-func getValue(val reflect.Value) any {
+func getValue(val reflect.Value) interface{} {
 	if val.CanInterface() {
 		return val.Interface()
 	}
@@ -495,21 +495,16 @@ func getValue(val reflect.Value) any {
 		return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Interface()
 	}
 
-	if val.CanInt() {
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return val.Int()
-	}
-
-	if val.CanUint() {
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return val.Uint()
-	}
-
-	if val.CanComplex() {
+	case reflect.Complex64, reflect.Complex128:
 		return val.Complex()
-	}
-
-	if val.CanFloat() {
+	case reflect.Float32, reflect.Float64:
 		return val.Float()
+	default:
+		return val.String()
 	}
-
-	return val.String()
 }
