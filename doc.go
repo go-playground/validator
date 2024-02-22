@@ -258,9 +258,9 @@ It is similar to the dive tags for arrays/slices/maps except that it only applie
 
 Example:
 
-	// Validates that the field "Int64" of "MyStruct.Field" is greater than 10 when it is non-zero
+	// Validates that the field "V" of "MyStruct.Field" is greater than 10 when it is non-zero
 	type MyStruct struct {
-		Field sql.NullInt64 `validate:"select=Int64,omitempty,gt=10"`
+		Field sql.Null[uint] `validate:"select=omitempty,V,gt=10"`
 	}
 
 # Required
