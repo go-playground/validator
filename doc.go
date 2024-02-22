@@ -258,7 +258,7 @@ It is similar to the dive tags for arrays/slices/maps except that it only applie
 
 Example:
 
-	// Validates that the field "V" of "MyStruct.Field" is greater than 10 when it is non-zero
+	// Validates that the field "V" of "MyStruct.Field" is greater than 10 when "Field" is valid
 	type MyStruct struct {
 		Field sql.Null[uint] `validate:"select=omitempty,V,gt=10"`
 	}
