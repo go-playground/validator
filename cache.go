@@ -100,9 +100,6 @@ type cTag struct {
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
-	v.structCache.lock.Lock()
-	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
-
 	typ := current.Type()
 
 	// could have been multiple trying to access, but once first is done this ensures struct
@@ -111,6 +108,9 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	if ok {
 		return cs
 	}
+
+	v.structCache.lock.Lock()
+	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
 
 	cs = &cStruct{name: sName, fields: make([]*cField, 0), fn: v.structLevelFuncs[typ]}
 
