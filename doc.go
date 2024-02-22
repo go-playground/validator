@@ -260,7 +260,7 @@ Example:
 
 	// Validates that the field "V" of "MyStruct.Field" is greater than 10 when "Field" is valid
 	type MyStruct struct {
-		Field sql.Null[uint] `validate:"select=omitempty,V,gt=10"`
+		Field sql.Null[uint] `validate:"omitempty,select=V,gt=10"`
 	}
 
 # Required
