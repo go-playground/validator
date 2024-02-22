@@ -157,7 +157,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),

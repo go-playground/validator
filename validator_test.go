@@ -490,6 +490,108 @@ func TestAnonymous(t *testing.T) {
 	AssertError(t, err, "c", "c", "c", "c", "required")
 }
 
+func TestPrivateFieldsStruct(t *testing.T) {
+	type tc struct {
+		stct     interface{}
+		errorNum int
+	}
+
+	tcs := []tc{
+		{
+			stct: &struct {
+				f1 int8  `validate:"required"`
+				f2 int16 `validate:"required"`
+				f3 int32 `validate:"required"`
+				f4 int64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: &struct {
+				f1 uint8  `validate:"required"`
+				f2 uint16 `validate:"required"`
+				f3 uint32 `validate:"required"`
+				f4 uint64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: &struct {
+				f1 complex64  `validate:"required"`
+				f2 complex128 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: &struct {
+				f1 float32 `validate:"required"`
+				f2 float64 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 int8  `validate:"required"`
+				f2 int16 `validate:"required"`
+				f3 int32 `validate:"required"`
+				f4 int64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: struct {
+				f1 uint8  `validate:"required"`
+				f2 uint16 `validate:"required"`
+				f3 uint32 `validate:"required"`
+				f4 uint64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: struct {
+				f1 complex64  `validate:"required"`
+				f2 complex128 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 float32 `validate:"required"`
+				f2 float64 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 *int `validate:"required"`
+				f2 struct {
+					f3 int `validate:"required"`
+				}
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: &struct {
+				f1 *int `validate:"required"`
+				f2 struct {
+					f3 int `validate:"required"`
+				}
+			}{},
+			errorNum: 2,
+		},
+	}
+
+	validate := New()
+
+	for _, tc := range tcs {
+		err := validate.Struct(tc.stct)
+		NotEqual(t, err, nil)
+
+		errs := err.(ValidationErrors)
+		Equal(t, len(errs), tc.errorNum)
+	}
+}
+
 func TestAnonymousSameStructDifferentTags(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
