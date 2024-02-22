@@ -470,8 +470,9 @@ func TestAnonymous(t *testing.T) {
 
 	errs := err.(ValidationErrors)
 
-	Equal(t, len(errs), 1)
+	Equal(t, len(errs), 2)
 	AssertError(t, errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B", "BEE", "B", "required")
+	AssertError(t, errs, "Test.anonymousC.c", "Test.anonymousC.c", "c", "c", "required")
 
 	fe := getError(errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B")
 	NotEqual(t, fe, nil)
@@ -485,7 +486,8 @@ func TestAnonymous(t *testing.T) {
 	}
 
 	err = validate.Struct(s)
-	Equal(t, err, nil)
+	NotEqual(t, err, nil)
+	AssertError(t, err, "c", "c", "c", "c", "required")
 }
 
 func TestAnonymousSameStructDifferentTags(t *testing.T) {
@@ -7449,7 +7451,8 @@ func TestUnexposedStruct(t *testing.T) {
 	Equal(t, s.unexposed.A, "")
 
 	errs := validate.Struct(s)
-	Equal(t, errs, nil)
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Test.unexposed.A", "Test.unexposed.A", "A", "A", "required")
 }
 
 func TestBadParams(t *testing.T) {

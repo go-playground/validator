@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"unsafe"
 )
 
 // per validate construct
@@ -410,7 +411,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -430,7 +431,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -470,7 +471,7 @@ OUTER:
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
@@ -483,4 +484,32 @@ OUTER:
 		}
 	}
 
+}
+
+func getValue(val reflect.Value) any {
+	if val.CanInterface() {
+		return val.Interface()
+	}
+
+	if val.CanAddr() {
+		return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Interface()
+	}
+
+	if val.CanInt() {
+		return val.Int()
+	}
+
+	if val.CanUint() {
+		return val.Uint()
+	}
+
+	if val.CanComplex() {
+		return val.Complex()
+	}
+
+	if val.CanFloat() {
+		return val.Float()
+	}
+
+	return val.String()
 }
