@@ -470,9 +470,8 @@ func TestAnonymous(t *testing.T) {
 
 	errs := err.(ValidationErrors)
 
-	Equal(t, len(errs), 2)
+	Equal(t, len(errs), 1)
 	AssertError(t, errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B", "BEE", "B", "required")
-	AssertError(t, errs, "Test.anonymousC.c", "Test.anonymousC.c", "c", "c", "required")
 
 	fe := getError(errs, "Test.AnonymousB.BEE", "Test.AnonymousB.B")
 	NotEqual(t, fe, nil)
@@ -486,110 +485,7 @@ func TestAnonymous(t *testing.T) {
 	}
 
 	err = validate.Struct(s)
-	NotEqual(t, err, nil)
-	AssertError(t, err, "c", "c", "c", "c", "required")
-}
-
-func TestPrivateFieldsStruct(t *testing.T) {
-	type tc struct {
-		stct     interface{}
-		errorNum int
-	}
-
-	tcs := []tc{
-		{
-			stct: &struct {
-				f1 int8  `validate:"required"`
-				f2 int16 `validate:"required"`
-				f3 int32 `validate:"required"`
-				f4 int64 `validate:"required"`
-			}{},
-			errorNum: 4,
-		},
-		{
-			stct: &struct {
-				f1 uint8  `validate:"required"`
-				f2 uint16 `validate:"required"`
-				f3 uint32 `validate:"required"`
-				f4 uint64 `validate:"required"`
-			}{},
-			errorNum: 4,
-		},
-		{
-			stct: &struct {
-				f1 complex64  `validate:"required"`
-				f2 complex128 `validate:"required"`
-			}{},
-			errorNum: 2,
-		},
-		{
-			stct: &struct {
-				f1 float32 `validate:"required"`
-				f2 float64 `validate:"required"`
-			}{},
-			errorNum: 2,
-		},
-		{
-			stct: struct {
-				f1 int8  `validate:"required"`
-				f2 int16 `validate:"required"`
-				f3 int32 `validate:"required"`
-				f4 int64 `validate:"required"`
-			}{},
-			errorNum: 4,
-		},
-		{
-			stct: struct {
-				f1 uint8  `validate:"required"`
-				f2 uint16 `validate:"required"`
-				f3 uint32 `validate:"required"`
-				f4 uint64 `validate:"required"`
-			}{},
-			errorNum: 4,
-		},
-		{
-			stct: struct {
-				f1 complex64  `validate:"required"`
-				f2 complex128 `validate:"required"`
-			}{},
-			errorNum: 2,
-		},
-		{
-			stct: struct {
-				f1 float32 `validate:"required"`
-				f2 float64 `validate:"required"`
-			}{},
-			errorNum: 2,
-		},
-		{
-			stct: struct {
-				f1 *int `validate:"required"`
-				f2 struct {
-					f3 int `validate:"required"`
-				}
-			}{},
-			errorNum: 2,
-		},
-		{
-			stct: &struct {
-				f1 *int `validate:"required"`
-				f2 struct {
-					f3 int `validate:"required"`
-				}
-			}{},
-			errorNum: 2,
-		},
-	}
-
-	validate := New()
-
-	for _, tc := range tcs {
-		err := validate.Struct(tc.stct)
-		NotEqual(t, err, nil)
-
-		errs := err.(ValidationErrors)
-		Equal(t, len(errs), tc.errorNum)
-	}
+	Equal(t, err, nil)
 }
 
 func TestAnonymousSameStructDifferentTags(t *testing.T) {
@@ -7553,8 +7449,7 @@ func TestUnexposedStruct(t *testing.T) {
 	Equal(t, s.unexposed.A, "")
 
 	errs := validate.Struct(s)
-	NotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.unexposed.A", "Test.unexposed.A", "A", "A", "required")
+	Equal(t, errs, nil)
 }
 
 func TestBadParams(t *testing.T) {
@@ -13796,4 +13691,106 @@ func TestOmitNilAndRequired(t *testing.T) {
 		Equal(t, err1, nil)
 		AssertError(t, err2, "OmitNil.Inner.Str", "OmitNil.Inner.Str", "Str", "Str", "required")
 	})
+}
+
+func TestPrivateFieldsStruct(t *testing.T) {
+	type tc struct {
+		stct     interface{}
+		errorNum int
+	}
+
+	tcs := []tc{
+		{
+			stct: &struct {
+				f1 int8  `validate:"required"`
+				f2 int16 `validate:"required"`
+				f3 int32 `validate:"required"`
+				f4 int64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: &struct {
+				f1 uint8  `validate:"required"`
+				f2 uint16 `validate:"required"`
+				f3 uint32 `validate:"required"`
+				f4 uint64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: &struct {
+				f1 complex64  `validate:"required"`
+				f2 complex128 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: &struct {
+				f1 float32 `validate:"required"`
+				f2 float64 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 int8  `validate:"required"`
+				f2 int16 `validate:"required"`
+				f3 int32 `validate:"required"`
+				f4 int64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: struct {
+				f1 uint8  `validate:"required"`
+				f2 uint16 `validate:"required"`
+				f3 uint32 `validate:"required"`
+				f4 uint64 `validate:"required"`
+			}{},
+			errorNum: 4,
+		},
+		{
+			stct: struct {
+				f1 complex64  `validate:"required"`
+				f2 complex128 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 float32 `validate:"required"`
+				f2 float64 `validate:"required"`
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: struct {
+				f1 *int `validate:"required"`
+				f2 struct {
+					f3 int `validate:"required"`
+				}
+			}{},
+			errorNum: 2,
+		},
+		{
+			stct: &struct {
+				f1 *int `validate:"required"`
+				f2 struct {
+					f3 int `validate:"required"`
+				}
+			}{},
+			errorNum: 2,
+		},
+	}
+
+	validate := New(WithPrivateFieldValidation())
+
+	for _, tc := range tcs {
+		err := validate.Struct(tc.stct)
+		NotEqual(t, err, nil)
+
+		errs := err.(ValidationErrors)
+		Equal(t, len(errs), tc.errorNum)
+	}
 }

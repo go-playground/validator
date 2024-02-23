@@ -14,3 +14,12 @@ func WithRequiredStructEnabled() Option {
 		v.requiredStructEnabled = true
 	}
 }
+
+// WithPrivateFieldValidation activates validation for unexported fields
+//
+// It's experimental feature that partially uses unsafe package
+func WithPrivateFieldValidation() Option {
+	return func(v *Validate) {
+		v.privateFieldValidation = true
+	}
+}
