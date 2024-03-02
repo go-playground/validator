@@ -12,27 +12,19 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore Cache
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-v1-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-v1-go-
 
       - name: Test
         run: go test -race -covermode=atomic -coverprofile="profile.cov" ./...
 
       - name: Send Coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21.x'
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.22.x'
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: profile.cov
@@ -41,11 +33,11 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
-      - uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           version: latest
