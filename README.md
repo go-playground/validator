@@ -163,6 +163,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | credit_card | Credit Card Number |
 | mongodb | MongoDB ObjectID |
+| mongodb_connection_string | MongoDB Connection String |
 | cron | Cron |
 | spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
