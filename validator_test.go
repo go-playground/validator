@@ -8134,6 +8134,93 @@ func TestUrnRFC2141(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, tag) }, "Bad field type int")
 }
 
+func TestConventionalCommit(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"feat: allow provided config object to extend other configs", true},
+		{"refactor: move code around", true},
+		{"perf: my parser is so fast", true},
+		{"build: makefiles yay!", true},
+		{
+			`feat: allow provided config object to extend other configs
+
+BREAKING CHANGE: extends key in config file is now used for extending other config files`,
+			true,
+		},
+		{"feat!: send an email to the customer when a product is shipped", true},
+		{"feat(api)!: send an email to the customer when a product is shipped", true},
+		{
+			`chore!: drop support for Node 6
+
+BREAKING CHANGE: use JavaScript features not available in Node 6.`, true},
+		{"docs: correct spelling of CHANGELOG", true},
+		{"feat(lang): add Polish language", true},
+		{
+			`fix: prevent racing of requests
+
+Introduce a request id and a reference to latest request. Dismiss
+incoming responses other than from latest request.
+
+Remove timeouts which were used to mitigate the racing issue but are
+obsolete now.
+
+Reviewed-by: Z
+Refs: #123`,
+			true,
+		},
+		{"fix: x", true},
+		{"fix(): bbb", true},
+		{
+			`fix: only footer
+
+Fixes #3
+Signed-off-by: Leo`,
+			true,
+		},
+		{"fix", false},
+		{"fi:", false},
+		{"feat(az)(", false},
+		{"fix((", false},
+		{"feat(az)!: bla\x0A", false},
+		{"feat(az)!: bla\x0Al", false},
+		{"feat(az): new\x0Aline", false},
+		{"fix(scope)!:  ", false},
+		{"fix:a", false},
+		{"fix(scope)", false},
+		{"feat?", false},
+		{"fix>", false},
+	}
+
+	tag := "conventionalcommit"
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d conventionalcommit failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d conventionalcommit failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != tag {
+					t.Fatalf("Index: %d conventionalcommit failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, tag) }, "Bad field type int")
+}
+
 func TestUrl(t *testing.T) {
 	tests := []struct {
 		param    string

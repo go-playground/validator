@@ -916,6 +916,13 @@ according to the RFC 2141 spec.
 
 	Usage: urn_rfc2141
 
+# Conventional Commits v1.0 String
+
+This validataes that a string value contains a valid conventional commit
+according to the Conventional Commits v1.0 spec.
+
+	Usage: conventionalcommit
+
 # Base64 String
 
 This validates that a string value contains a valid base64 value.

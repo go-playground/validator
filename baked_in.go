@@ -23,6 +23,8 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/leodido/go-conventionalcommits"
+	cc "github.com/leodido/go-conventionalcommits/parser"
 	urn "github.com/leodido/go-urn"
 )
 
@@ -130,7 +132,8 @@ var (
 		"url":                           isURL,
 		"http_url":                      isHttpURL,
 		"uri":                           isURI,
-		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
+		"urn_rfc2141":                   isUrnRFC2141,         // RFC 2141
+		"conventionalcommit":            isConventionalCommit, // Conventional Commit v1.0 spec
 		"file":                          isFile,
 		"filepath":                      isFilePath,
 		"base64":                        isBase64,
@@ -1517,6 +1520,24 @@ func isUrnRFC2141(fl FieldLevel) bool {
 		_, match := urn.Parse([]byte(str))
 
 		return match
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+// isConventionalCommit is the validation function for validating if the current field's value is a valid conventional commit as per Conventional Commits v1.0 spec.
+func isConventionalCommit(fl FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+
+		str := field.String()
+
+		parser := cc.NewMachine(conventionalcommits.WithTypes(conventionalcommits.TypesConventional))
+		_, err := parser.Parse([]byte(str))
+
+		return err == nil
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
