@@ -271,7 +271,7 @@ func asFloat64(param string) float64 {
 	return i
 }
 
-// asFloat64 returns the parameter as a float64
+// asFloat32 returns the parameter as a float32
 // or panics if it can't convert
 func asFloat32(param string) float64 {
 	i, err := strconv.ParseFloat(param, 32)

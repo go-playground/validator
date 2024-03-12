@@ -35,7 +35,7 @@ var (
 
 func main() {
 
-	// NOTE: ommitting allot of error checking for brevity
+	// NOTE: omitting allot of error checking for brevity
 
 	en := en.New()
 	uni = ut.New(en, en)
