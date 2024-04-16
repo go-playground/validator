@@ -180,12 +180,12 @@ var iso3166_1_alpha_numeric = map[int]bool{
 }
 
 var iso3166_1_alpha_numeric_eu = map[int]bool{
-	43: true, 32: true, 359: true, 385: true, 357: true,
-	420: true, 45: true, 372: true, 358: true, 33: true,
-	49: true, 30: true, 36: true, 353: true, 39: true,
-	371: true, 370: true, 352: true, 356: true, 31: true,
-	48: true, 351: true, 40: true, 421: true, 386: true,
-	34: true, 46: true,
+	40: true, 56: true, 100: true, 191: true, 196: true,
+	200: true, 208: true, 233: true, 246: true, 250: true,
+	276: true, 300: true, 348: true, 372: true, 380: true,
+	428: true, 440: true, 442: true, 470: true, 528: true,
+	616: true, 620: true, 642: true, 703: true, 705: true,
+	724: true, 752: true,
 }
 
 var iso3166_2 = map[string]bool{
