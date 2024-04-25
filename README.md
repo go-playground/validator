@@ -253,6 +253,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | excluded_if | Excluded If |
 | excluded_if_contains | Excluded If Contains |
 | excluded_unless | Excluded Unless |
+| excluded_unless_contains | Excluded Unless Contains |
 | excluded_with | Excluded With |
 | excluded_with_all | Excluded With All |
 | excluded_without | Excluded Without |
