@@ -29,6 +29,7 @@ const (
 	requiredWithTag       = "required_with"
 	requiredWithAllTag    = "required_with_all"
 	requiredIfTag         = "required_if"
+	requiredIfContainsTag = "required_if_contains"
 	requiredUnlessTag     = "required_unless"
 	skipUnlessTag         = "skip_unless"
 	excludedWithoutAllTag = "excluded_without_all"
@@ -36,6 +37,7 @@ const (
 	excludedWithTag       = "excluded_with"
 	excludedWithAllTag    = "excluded_with_all"
 	excludedIfTag         = "excluded_if"
+	excludedIfContainsTag = "excluded_if_contains"
 	excludedUnlessTag     = "excluded_unless"
 	skipValidationTag     = "-"
 	diveTag               = "dive"
@@ -128,8 +130,8 @@ func New(options ...Option) *Validate {
 
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
-		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
-			excludedIfTag, excludedUnlessTag, excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag,
+		case requiredIfContainsTag, requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
+			excludedIfContainsTag, excludedIfTag, excludedUnlessTag, excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag,
 			skipUnlessTag:
 			_ = v.registerValidation(k, wrapFunc(val), true, true)
 		default:

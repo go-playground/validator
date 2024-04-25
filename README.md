@@ -244,12 +244,14 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | oneof | One Of |
 | required | Required |
 | required_if | Required If |
+| required_if_contains | Required If Contains |
 | required_unless | Required Unless |
 | required_with | Required With |
 | required_with_all | Required With All |
 | required_without | Required Without |
 | required_without_all | Required Without All |
 | excluded_if | Excluded If |
+| excluded_if_contains | Excluded If Contains |
 | excluded_unless | Excluded Unless |
 | excluded_with | Excluded With |
 | excluded_with_all | Excluded With All |

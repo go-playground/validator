@@ -74,6 +74,7 @@ var (
 	bakedInValidators = map[string]Func{
 		"required":                      hasValue,
 		"required_if":                   requiredIf,
+		"required_if_contains":          requiredIfContains,
 		"required_unless":               requiredUnless,
 		"skip_unless":                   skipUnless,
 		"required_with":                 requiredWith,
@@ -81,6 +82,7 @@ var (
 		"required_without":              requiredWithout,
 		"required_without_all":          requiredWithoutAll,
 		"excluded_if":                   excludedIf,
+		"excluded_if_contains":          excludedIfContains,
 		"excluded_unless":               excludedUnless,
 		"excluded_with":                 excludedWith,
 		"excluded_with_all":             excludedWithAll,
@@ -1793,11 +1795,22 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 func requireCheckFieldValue(
 	fl FieldLevel, param string, value string, defaultNotFoundValue bool,
 ) bool {
+	return requireCheckFieldValues(fl, param, value, defaultNotFoundValue, false)
+}
+
+// requireCheckFieldValue is a func for check field value
+func requireCheckFieldValues(
+	fl FieldLevel, param string, value string, defaultNotFoundValue bool, sliceContains bool,
+) bool {
 	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 	if !found {
 		return defaultNotFoundValue
 	}
 
+	return compareValues(field, kind, value, sliceContains)
+}
+
+func compareValues(field reflect.Value, kind reflect.Kind, value string, sliceContains bool) bool {
 	switch kind {
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -1813,8 +1826,28 @@ func requireCheckFieldValue(
 		return field.Float() == asFloat64(value)
 
 	case reflect.Slice, reflect.Map, reflect.Array:
+		// If slice contains is true, should look for the value inside the slice
+		if sliceContains {
+			for i := 0; i < field.Len(); i++ {
+				item := field.Index(i)
+				if compareValues(item, item.Kind(), value, false) {
+					return true
+				}
+			}
+
+			return false
+		}
+
 		return int64(field.Len()) == asInt(value)
 
+	case reflect.Ptr:
+		if field.IsNil() {
+			return false
+		}
+
+		element := field.Elem()
+
+		return compareValues(element, element.Kind(), value, false)
 	case reflect.Bool:
 		return field.Bool() == asBool(value)
 	}
@@ -1838,6 +1871,21 @@ func requiredIf(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
+// requiredIfContains is the validation function
+// The field under validation must be present and not empty only if all the other specified fields are equal to the value following with the specified field.
+func requiredIfContains(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for required_if_contains %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValues(fl, params[i], params[i+1], false, true) {
+			return true
+		}
+	}
+	return hasValue(fl)
+}
+
 // excludedIf is the validation function
 // The field under validation must not be present or is empty only if all the other specified fields are equal to the value following with the specified field.
 func excludedIf(fl FieldLevel) bool {
@@ -1848,6 +1896,22 @@ func excludedIf(fl FieldLevel) bool {
 
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return true
+		}
+	}
+	return !hasValue(fl)
+}
+
+// excludedIfContains is the validation function
+// The field under validation must not be present or is empty only if all the other specified fields are equal to the value following with the specified field.
+func excludedIfContains(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for excluded_if_contains %s", fl.FieldName()))
+	}
+
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValues(fl, params[i], params[i+1], false, true) {
 			return true
 		}
 	}
