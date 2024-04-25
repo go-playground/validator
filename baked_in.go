@@ -84,6 +84,7 @@ var (
 		"excluded_if":                   excludedIf,
 		"excluded_if_contains":          excludedIfContains,
 		"excluded_unless":               excludedUnless,
+		"excluded_unless_contains":      excludedUnlessContains,
 		"excluded_with":                 excludedWith,
 		"excluded_with_all":             excludedWithAll,
 		"excluded_without":              excludedWithout,
@@ -1958,6 +1959,21 @@ func excludedUnless(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+			return !hasValue(fl)
+		}
+	}
+	return true
+}
+
+// excludedUnless is the validation function
+// The field under validation must not be present or is empty unless all the other specified fields are equal to the value following with the specified field.
+func excludedUnlessContains(fl FieldLevel) bool {
+	params := parseOneOfParam2(fl.Param())
+	if len(params)%2 != 0 {
+		panic(fmt.Sprintf("Bad param number for excluded_unless_contains %s", fl.FieldName()))
+	}
+	for i := 0; i < len(params); i += 2 {
+		if !requireCheckFieldValues(fl, params[i], params[i+1], false, true) {
 			return !hasValue(fl)
 		}
 	}

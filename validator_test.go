@@ -13910,3 +13910,60 @@ func TestExcludeIfContains(t *testing.T) {
 	AssertError(t, errs, "test.FieldTInnerP", "test.FieldTInnerP", "FieldTInnerP", "FieldTInnerP", "excluded_if_contains")
 	AssertError(t, errs, "test.FieldTInner", "test.FieldTInner", "FieldTInner", "FieldTInner", "excluded_if_contains")
 }
+
+func TestExcludeUnlessContains(t *testing.T) {
+	type Inner struct {
+		Field []string
+	}
+
+	fieldVal := "test"
+	type test struct {
+		InnerP       *Inner
+		Inner        Inner
+		FieldS       []string `validate:"omitempty" json:"field_e"`
+		FieldI       []int    `validate:"omitempty" json:"field_i"`
+		FieldIP      []*int   `validate:"omitempty" json:"field_ip"`
+		FieldTS      string   `validate:"excluded_unless_contains=FieldS test" json:"field_ts"`
+		FieldTI      string   `validate:"excluded_unless_contains=FieldI 1" json:"field_ti"`
+		FieldTIP     string   `validate:"excluded_unless_contains=FieldIP 1" json:"field_tip"`
+		FieldTInnerP string   `validate:"excluded_unless_contains=InnerP.Field test" json:"field_t_innerp"`
+		FieldTInner  string   `validate:"excluded_unless_contains=Inner.Field test" json:"field_t_inner"`
+	}
+
+	validationOk := test{
+		InnerP: &Inner{Field: []string{}},
+		Inner:  Inner{Field: []string{}},
+		FieldS: []string{},
+		FieldI: []int{},
+	}
+
+	validate := New()
+
+	errs := validate.Struct(validationOk)
+	Equal(t, errs, nil)
+
+	validationNotOk := test{
+		InnerP:       &Inner{Field: []string{}},
+		Inner:        Inner{Field: []string{}},
+		FieldS:       []string{},
+		FieldI:       []int{},
+		FieldIP:      []*int{},
+		FieldTS:      fieldVal,
+		FieldTI:      fieldVal,
+		FieldTIP:     fieldVal,
+		FieldTInnerP: fieldVal,
+		FieldTInner:  fieldVal,
+	}
+
+	errs = validate.Struct(validationNotOk)
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 5)
+
+	AssertError(t, errs, "test.FieldTS", "test.FieldTS", "FieldTS", "FieldTS", "excluded_unless_contains")
+	AssertError(t, errs, "test.FieldTI", "test.FieldTI", "FieldTI", "FieldTI", "excluded_unless_contains")
+	AssertError(t, errs, "test.FieldTIP", "test.FieldTIP", "FieldTIP", "FieldTIP", "excluded_unless_contains")
+	AssertError(t, errs, "test.FieldTInnerP", "test.FieldTInnerP", "FieldTInnerP", "FieldTInnerP", "excluded_unless_contains")
+	AssertError(t, errs, "test.FieldTInner", "test.FieldTInner", "FieldTInner", "FieldTInner", "excluded_unless_contains")
+}

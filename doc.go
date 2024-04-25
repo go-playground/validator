@@ -426,6 +426,25 @@ Examples:
 	// exclude the field unless the Field1 and Field2 is equal to the value respectively:
 	Usage: excluded_unless=Field1 foo Field2 bar
 
+# Excluded Unless Contains
+
+The field under validation must not be present or empty unless all
+the other specified fields are equal to the value following the specified
+field. For strings ensures value is not "". For slices, maps, pointers,
+interfaces, channels and functions ensures the value is not nil. For structs ensures value is not the zero value.
+
+Diferent from excluded_unless, this tag will dive into slices to check if the value is present instead of checking the slice size.
+
+	Usage: excluded_unless_contains
+
+Examples:
+
+	// exclude the field unless the Field1 contains the parameter given:
+	Usage: excluded_unless_contains=Field1 foobar
+
+	// exclude the field unless the Field1 and Field2 contains the value respectively:
+	Usage: excluded_unless_contains=Field1 foo Field2 bar
+
 # Is Default
 
 This validates that the value is the default value and is almost the
