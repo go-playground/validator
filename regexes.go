@@ -31,7 +31,7 @@ const (
 	uUID4RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUID5RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-5[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUIDRFC4122RegexString           = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
+	uLIDRegexString                  = "^(?i)[A-HJKMNP-TV-Z0-9]{26}$"
 	md4RegexString                   = "^[0-9a-f]{32}$"
 	md5RegexString                   = "^[0-9a-f]{32}$"
 	sha256RegexString                = "^[0-9a-f]{64}$"
