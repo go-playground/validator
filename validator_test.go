@@ -4338,7 +4338,7 @@ func TestULIDValidation(t *testing.T) {
 	}{
 		{"", false},
 		{"01BX5ZZKBKACT-V9WEVGEMMVRZ", false},
-		{"01bx5zzkbkactav9wevgemmvrz", false},
+		{"01bx5zzkbkactav9wevgemmvrz", true},
 		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
 		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
 		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
