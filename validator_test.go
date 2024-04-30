@@ -5680,6 +5680,40 @@ func TestOneOfValidation(t *testing.T) {
 	}, "Bad field type float64")
 }
 
+func TestBase32Validation(t *testing.T) {
+	validate := New()
+
+	s := "ABCD2345"
+	errs := validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "AB======"
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD2==="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD===="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD234="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = ""
+	errs = validate.Var(s, "base32")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "base32")
+
+	s = "ABCabc1890== foo bar"
+	errs = validate.Var(s, "base32")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "base32")
+}
+
 func TestBase64Validation(t *testing.T) {
 	validate := New()
 

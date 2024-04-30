@@ -133,6 +133,7 @@ var (
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
 		"filepath":                      isFilePath,
+		"base32":                        isBase32,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
 		"base64rawurl":                  isBase64RawURL,
@@ -1397,6 +1398,11 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	}
 
 	return reg.MatchString(field.String())
+}
+
+// isBase32 is the validation function for validating if the current field's value is a valid base 32.
+func isBase32(fl FieldLevel) bool {
+	return base32Regex.MatchString(fl.Field().String())
 }
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.
