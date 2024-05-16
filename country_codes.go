@@ -125,6 +125,7 @@ var iso3166_1_alpha3_eu = map[string]bool{
 	"POL": true, "PRT": true, "ROU": true, "SVK": true, "SVN": true,
 	"ESP": true, "SWE": true,
 }
+
 var iso3166_1_alpha_numeric = map[int]bool{
 	// see: https://www.iso.org/iso-3166-country-codes.html
 	4: true, 8: true, 12: true, 16: true, 20: true,

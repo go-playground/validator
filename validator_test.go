@@ -746,11 +746,9 @@ func TestStructPartial(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -4002,7 +4000,6 @@ func TestUUID5Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
@@ -4119,8 +4116,10 @@ func (u uuidAlias) String() string {
 	return "This is a UUID " + string(u)
 }
 
-var _ fmt.Stringer = uuidTestType{}
-var _ fmt.Stringer = uuidAlias("")
+var (
+	_ fmt.Stringer = uuidTestType{}
+	_ fmt.Stringer = uuidAlias("")
+)
 
 func TestUUIDValidation(t *testing.T) {
 	tests := []struct {
@@ -4190,7 +4189,6 @@ func TestUUID5RFC4122Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81Fe-4c455b099bc9", false},
@@ -8827,6 +8825,7 @@ func TestNumeric(t *testing.T) {
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
 }
+
 func TestBoolean(t *testing.T) {
 	validate := New()
 
@@ -9552,11 +9551,9 @@ func TestStructFiltered(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -12667,7 +12664,7 @@ func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
 		value    interface{}
 		expected bool
 	}{
-		{752, true}, //Sweden
+		{752, true}, // Sweden
 		{"752", true},
 		{826, false}, // UK
 		{"826", false},
@@ -13064,7 +13061,6 @@ func TestSemverFormatValidation(t *testing.T) {
 }
 
 func TestCveFormatValidation(t *testing.T) {
-
 	tests := []struct {
 		value    string `validate:"cve"`
 		tag      string
@@ -13261,7 +13257,6 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 }
 
 func TestValidate_ValidateMapCtx(t *testing.T) {
-
 	type args struct {
 		data  map[string]interface{}
 		rules map[string]interface{}
@@ -13743,7 +13738,7 @@ func TestNestedStructValidation(t *testing.T) {
 		},
 	}
 
-	var evaluateTest = func(tt test, errs error) {
+	evaluateTest := func(tt test, errs error) {
 		if tt.err != (testErr{}) && errs != nil {
 			Equal(t, len(errs.(ValidationErrors)), 1)
 

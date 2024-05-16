@@ -19,7 +19,6 @@ type DbBackedUser struct {
 var validate *validator.Validate
 
 func main() {
-
 	validate = validator.New()
 
 	// register all sql.Null* types to use the ValidateValuer CustomTypeFunc
@@ -29,7 +28,6 @@ func main() {
 	x := DbBackedUser{Name: sql.NullString{String: "", Valid: true}, Age: sql.NullInt64{Int64: 0, Valid: false}}
 
 	err := validate.Struct(x)
-
 	if err != nil {
 		fmt.Printf("Err(s):\n%+v\n", err)
 	}
@@ -37,7 +35,6 @@ func main() {
 
 // ValidateValuer implements validator.CustomTypeFunc
 func ValidateValuer(field reflect.Value) interface{} {
-
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
 
 		val, err := valuer.Value()

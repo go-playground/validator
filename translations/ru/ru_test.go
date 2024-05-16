@@ -13,7 +13,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	ru := russian.New()
 	uni := ut.New(ru, ru)
 	trans, _ := uni.GetTranslator("ru")
@@ -165,7 +164,7 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice             []string          `validate:"unique"`
 		UniqueArray             [3]string         `validate:"unique"`
 		UniqueMap               map[string]string `validate:"unique"`
-		Image			  string			`validate:"image"`
+		Image                   string            `validate:"image"`
 	}
 
 	var test Test
@@ -752,7 +751,7 @@ func TestTranslations(t *testing.T) {
 			expected: "UniqueMap должен содержать уникальные значения",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "Image должно быть допустимым изображением",
 		},
 	}
@@ -773,5 +772,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

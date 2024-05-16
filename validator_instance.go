@@ -103,7 +103,6 @@ type Validate struct {
 // in essence only parsing your validation tags once per struct type.
 // Using multiple instances neglects the benefit of caching.
 func New(options ...Option) *Validate {
-
 	tc := new(tagCache)
 	tc.m.Store(make(map[string]*cTag))
 
@@ -125,7 +124,6 @@ func New(options ...Option) *Validate {
 
 	// must copy validators for separate validations to be used in each instance
 	for k, val := range bakedInValidators {
-
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
@@ -255,7 +253,6 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 //
 // NOTE: this function is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterAlias(alias, tags string) {
-
 	_, ok := restrictedTags[alias]
 
 	if ok || strings.ContainsAny(alias, restrictedTagChars) {
@@ -279,7 +276,6 @@ func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interfa
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...interface{}) {
-
 	if v.structLevelFuncs == nil {
 		v.structLevelFuncs = make(map[reflect.Type]StructLevelFuncCtx)
 	}
@@ -326,7 +322,6 @@ func (v *Validate) RegisterStructValidationMapRules(rules map[string]string, typ
 //
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
-
 	if v.customFuncs == nil {
 		v.customFuncs = make(map[reflect.Type]CustomTypeFunc)
 	}
@@ -340,7 +335,6 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 
 // RegisterTranslation registers translations against the provided tag.
 func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, registerFn RegisterTranslationsFunc, translationFn TranslationFunc) (err error) {
-
 	if v.transTagFunc == nil {
 		v.transTagFunc = make(map[ut.Translator]map[string]TranslationFunc)
 	}
@@ -374,7 +368,6 @@ func (v *Validate) Struct(s interface{}) error {
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
-
 	val := reflect.ValueOf(s)
 	top := val
 

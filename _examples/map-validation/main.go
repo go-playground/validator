@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -38,7 +39,6 @@ func validateMap() {
 }
 
 func validateNestedMap() {
-
 	data := map[string]interface{}{
 		"name":  "Arshiya Kiani",
 		"email": "zytel3301@gmail.com",

@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	idn := indonesia.New()
 	uni := ut.New(idn, idn)
 	trans, _ := uni.GetTranslator("id")
@@ -140,7 +139,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=merah hijau"`
 		OneOfInt          int       `validate:"oneof=5 63"`
-		Image			  string			`validate:"image"`
+		Image             string    `validate:"image"`
 	}
 
 	var test Test
@@ -626,7 +625,7 @@ func TestTranslations(t *testing.T) {
 			expected: "OneOfInt harus berupa salah satu dari [5 63]",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "Image harus berupa gambar yang valid",
 		},
 	}
@@ -645,5 +644,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
