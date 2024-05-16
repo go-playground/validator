@@ -690,7 +690,7 @@ func isEthereumAddress(fl FieldLevel) bool {
 	return ethAddressRegex.MatchString(address)
 }
 
-// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksumed Ethereum address.
+// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksummed Ethereum address.
 func isEthereumAddressChecksum(fl FieldLevel) bool {
 	address := fl.Field().String()
 
