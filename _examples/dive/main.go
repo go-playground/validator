@@ -16,7 +16,6 @@ type Test struct {
 var validate *validator.Validate
 
 func main() {
-
 	validate = validator.New()
 
 	// registering alias so we can see the differences between

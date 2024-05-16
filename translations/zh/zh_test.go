@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	zh := zhongwen.New()
 	uni := ut.New(zh, zh)
 	trans, _ := uni.GetTranslator("zh")
@@ -786,5 +785,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

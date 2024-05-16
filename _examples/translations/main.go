@@ -34,7 +34,6 @@ var (
 )
 
 func main() {
-
 	// NOTE: ommitting allot of error checking for brevity
 
 	en := en.New()
@@ -53,7 +52,6 @@ func main() {
 }
 
 func translateAll(trans ut.Translator) {
-
 	type User struct {
 		Username string `validate:"required"`
 		Tagline  string `validate:"required,lt=10"`
@@ -81,7 +79,6 @@ func translateAll(trans ut.Translator) {
 }
 
 func translateIndividual(trans ut.Translator) {
-
 	type User struct {
 		Username string `validate:"required"`
 	}
@@ -101,7 +98,6 @@ func translateIndividual(trans ut.Translator) {
 }
 
 func translateOverride(trans ut.Translator) {
-
 	validate.RegisterTranslation("required", trans, func(ut ut.Translator) error {
 		return ut.Add("required", "{0} must have a value!", true) // see universal-translator for details
 	}, func(ut ut.Translator, fe validator.FieldError) string {

@@ -29,7 +29,6 @@ type Address struct {
 var validate *validator.Validate
 
 func main() {
-
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	validateStruct()
@@ -37,7 +36,6 @@ func main() {
 }
 
 func validateStruct() {
-
 	address := &Address{
 		Street: "Eavesdown Docks",
 		Planet: "Persphone",
@@ -89,7 +87,6 @@ func validateStruct() {
 }
 
 func validateVariable() {
-
 	myEmail := "joeybloggs.gmail.com"
 
 	errs := validate.Var(myEmail, "required,email")

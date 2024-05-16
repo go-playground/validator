@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	ptbr := brazilian_portuguese.New()
 	uni := ut.New(ptbr, ptbr)
 	trans, _ := uni.GetTranslator("pt_BR")
@@ -657,5 +656,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

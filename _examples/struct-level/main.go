@@ -62,7 +62,6 @@ type Address struct {
 var validate *validator.Validate
 
 func main() {
-
 	validate = validator.New()
 
 	// register function to get tag name from json tags.
@@ -160,7 +159,6 @@ func main() {
 // hooks right into validator and you can combine with validation tags and still have a
 // common error output format.
 func UserStructLevelValidation(sl validator.StructLevel) {
-
 	user := sl.Current().Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
