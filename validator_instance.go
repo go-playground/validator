@@ -232,6 +232,7 @@ func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationE
 	return v.registerValidation(tag, fn, false, nilCheckable)
 }
 
+// GetValidation gets the current validation function associated with the given tag
 func (v *Validate) GetValidation(tag string) (FuncCtx, bool) {
 	wrapper, ok := v.validations[tag]
 	if !ok {
