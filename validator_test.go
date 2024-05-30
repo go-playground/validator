@@ -4338,7 +4338,7 @@ func TestULIDValidation(t *testing.T) {
 	}{
 		{"", false},
 		{"01BX5ZZKBKACT-V9WEVGEMMVRZ", false},
-		{"01bx5zzkbkactav9wevgemmvrz", false},
+		{"01bx5zzkbkactav9wevgemmvrz", true},
 		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3xxx", false},
 		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
 		{"01BX5ZZKBKACTAV9WEVGEMMVRZABC", false},
@@ -5678,6 +5678,40 @@ func TestOneOfValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(3.14, "oneof=red green")
 	}, "Bad field type float64")
+}
+
+func TestBase32Validation(t *testing.T) {
+	validate := New()
+
+	s := "ABCD2345"
+	errs := validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "AB======"
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD2==="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD===="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = "ABCD234="
+	errs = validate.Var(s, "base32")
+	Equal(t, errs, nil)
+
+	s = ""
+	errs = validate.Var(s, "base32")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "base32")
+
+	s = "ABCabc1890== foo bar"
+	errs = validate.Var(s, "base32")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "base32")
 }
 
 func TestBase64Validation(t *testing.T) {
@@ -12482,6 +12516,33 @@ func TestIsIso3166Alpha2Validation(t *testing.T) {
 	}
 }
 
+func TestIsIso3166Alpha2EUValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_1_alpha2_eu"`
+		expected bool
+	}{
+		{"SE", true},
+		{"UK", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha2_eu")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha2_eu failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha2_eu failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestIsIso31662Validation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"iso3166_2"`
@@ -12538,6 +12599,34 @@ func TestIsIso3166Alpha3Validation(t *testing.T) {
 	}
 }
 
+func TestIsIso3166Alpha3EUValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"iso3166_1_alpha3_eu"`
+		expected bool
+	}{
+		{"POL", true},
+		{"SWE", true},
+		{"UNK", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha3_eu")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha3_eu failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha3_eu failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
 func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	tests := []struct {
 		value    interface{}
@@ -12573,6 +12662,39 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	}, "Bad field type []string")
 }
 
+func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
+	tests := []struct {
+		value    interface{}
+		expected bool
+	}{
+		{752, true}, //Sweden
+		{"752", true},
+		{826, false}, // UK
+		{"826", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "iso3166_1_alpha_numeric_eu")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha_numeric_eu failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d iso3166_1_alpha_numeric_eu failed Error: %s", i, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var([]string{"1"}, "iso3166_1_alpha_numeric_eu")
+	}, "Bad field type []string")
+}
+
 func TestCountryCodeValidation(t *testing.T) {
 	tests := []struct {
 		value    interface{}
@@ -12601,6 +12723,39 @@ func TestCountryCodeValidation(t *testing.T) {
 		} else {
 			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d country_code failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestEUCountryCodeValidation(t *testing.T) {
+	tests := []struct {
+		value    interface{}
+		expected bool
+	}{
+		{724, true},
+		{0, false},
+		{1, false},
+		{"POL", true},
+		{"NO", false},
+		{"724", true},
+		{"1", false},
+		{"0", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "eu_country_code")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eu_country_code failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d eu_country_code failed Error: %s", i, errs)
 			}
 		}
 	}
