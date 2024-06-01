@@ -518,7 +518,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultipleは最大でも2つの項目を含まなければなりません",
+			expected: "LteMultipleは最大でも2つの項目でなければなりません",
 		},
 		{
 			ns:       "Test.LteTime",
@@ -534,7 +534,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultipleは2つの項目よりも少ない項目を含まなければなりません",
+			expected: "LtMultipleは2つの項目よりも少ない項目でなければなりません",
 		},
 		{
 			ns:       "Test.LtTime",
@@ -574,7 +574,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultipleは最大でも7つの項目を含まなければなりません",
+			expected: "MaxMultipleは最大でも7つの項目でなければなりません",
 		},
 		{
 			ns:       "Test.MinString",
