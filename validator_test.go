@@ -27,8 +27,8 @@ import (
 
 // NOTES:
 // - Run "go test" to run tests
-// - Run "gocov test | gocov report" to report on test converage by file
-// - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
+// - Run "gocov test | gocov report" to report on test coverage by file
+// - Run "gocov test | gocov annotate -" to report on all code and functions, those, marked with "MISS" were never called
 //
 // or
 //
@@ -799,7 +799,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial, p2...)
 	Equal(t, errs, nil)
 
-	// this isn't really a robust test, but is ment to illustrate the ANON CASE below
+	// this isn't really a robust test, but is meant to illustrate the ANON CASE below
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	Equal(t, errs, nil)
 
@@ -809,7 +809,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructExcept(tPartial, p2...)
 	Equal(t, errs, nil)
 
-	// mod tParial for required feild and re-test making sure invalid fields are NOT required:
+	// mod tPartial for required field and re-test making sure invalid fields are NOT required:
 	tPartial.Required = ""
 
 	errs = validate.StructExcept(tPartial, p1...)
@@ -830,7 +830,7 @@ func TestStructPartial(t *testing.T) {
 	tPartial.Required = "Required"
 	tPartial.Anonymous.A = ""
 
-	// will pass as unset feilds is not going to be tested
+	// will pass as unset fields is not going to be tested
 	errs = validate.StructPartial(tPartial, p1...)
 	Equal(t, errs, nil)
 
@@ -841,7 +841,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructExcept(tPartial.Anonymous, p4...)
 	Equal(t, errs, nil)
 
-	// will fail as unset feild is tested
+	// will fail as unset field is tested
 	errs = validate.StructPartial(tPartial, p2...)
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "TestPartial.Anonymous.A", "TestPartial.Anonymous.A", "A", "A", "required")
@@ -893,7 +893,7 @@ func TestStructPartial(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 1)
 	AssertError(t, errs, "TestPartial.SubSlice[0].Test", "TestPartial.SubSlice[0].Test", "Test", "Test", "required")
 
-	// reset struct in slice, and unset struct in slice in unset posistion
+	// reset struct in slice, and unset struct in slice in unset position
 	tPartial.SubSlice[0].Test = "Required"
 
 	// these will pass as the unset item is NOT tested
@@ -9268,7 +9268,7 @@ func TestCustomFieldName(t *testing.T) {
 	Equal(t, getError(errs, "A.E", "A.E").Field(), "E")
 }
 
-func TestMutipleRecursiveExtractStructCache(t *testing.T) {
+func TestMultipleRecursiveExtractStructCache(t *testing.T) {
 	validate := New()
 
 	type Recursive struct {
@@ -9609,7 +9609,7 @@ func TestStructFiltered(t *testing.T) {
 	errs = validate.StructFiltered(tPartial.SubSlice[0], p3)
 	Equal(t, errs, nil)
 
-	// mod tParial for required field and re-test making sure invalid fields are NOT required:
+	// mod tPartial for required field and re-test making sure invalid fields are NOT required:
 	tPartial.Required = ""
 
 	// inversion and retesting Partial to generate failures:
@@ -9621,7 +9621,7 @@ func TestStructFiltered(t *testing.T) {
 	tPartial.Required = "Required"
 	tPartial.Anonymous.A = ""
 
-	// will pass as unset feilds is not going to be tested
+	// will pass as unset fields is not going to be tested
 	errs = validate.StructFiltered(tPartial, p1)
 	Equal(t, errs, nil)
 
@@ -10558,7 +10558,7 @@ func TestHTMLEncodedValidation(t *testing.T) {
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d html_enocded failed Error: %v", i, errs)
+				t.Fatalf("Index: %d html_encoded failed Error: %v", i, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "html_encoded" {
@@ -10599,7 +10599,7 @@ func TestURLEncodedValidation(t *testing.T) {
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d url_enocded failed Error: %v", i, errs)
+				t.Fatalf("Index: %d url_encoded failed Error: %v", i, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "url_encoded" {

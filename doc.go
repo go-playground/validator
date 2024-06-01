@@ -911,7 +911,7 @@ This will accept any uri the golang request uri accepts
 
 # Urn RFC 2141 String
 
-This validataes that a string value contains a valid URN
+This validates that a string value contains a valid URN
 according to the RFC 2141 spec.
 
 	Usage: urn_rfc2141
@@ -966,7 +966,7 @@ Bitcoin Bech32 Address (segwit)
 
 This validates that a string value contains a valid bitcoin Bech32 address as defined
 by bip-0173 (https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
-Special thanks to Pieter Wuille for providng reference implementations.
+Special thanks to Pieter Wuille for providing reference implementations.
 
 	Usage: btc_addr_bech32
 
@@ -1299,7 +1299,7 @@ may not exist at the time of validation.
 # HostPort
 
 This validates that a string value contains a valid DNS hostname and port that
-can be used to valiate fields typically passed to sockets and connections.
+can be used to validate fields typically passed to sockets and connections.
 
 	Usage: hostname_port
 
