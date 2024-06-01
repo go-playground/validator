@@ -68,7 +68,8 @@ const (
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
 	cveRegexString                   = `^CVE-(1999|2\d{3})-(0[^0]\d{2}|0\d[^0]\d{1}|0\d{2}[^0]|[1-9]{1}\d{3,})$` // CVE Format Id https://cve.mitre.org/cve/identifiers/syntaxchange.html
-	mongodbRegexString               = "^[a-f\\d]{24}$"
+	mongodbIdRegexString             = "^[a-f\\d]{24}$"
+	mongodbConnStringRegexString     = "^mongodb(\\+srv)?:\\/\\/(([a-zA-Z\\d]+):([a-zA-Z\\d$:\\/?#\\[\\]@]+)@)?(([a-z\\d.-]+)(:[\\d]+)?)((,(([a-z\\d.-]+)(:(\\d+))?))*)?(\\/[a-zA-Z-_]{1,64})?(\\?(([a-zA-Z]+)=([a-zA-Z\\d]+))(&(([a-zA-Z\\d]+)=([a-zA-Z\\d]+))?)*)?$"
 	cronRegexString                  = `(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
 	spicedbIDRegexString             = `^(([a-zA-Z0-9/_|\-=+]{1,})|\*)$`
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
@@ -139,7 +140,8 @@ var (
 	semverRegex                = regexp.MustCompile(semverRegexString)
 	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
 	cveRegex                   = regexp.MustCompile(cveRegexString)
-	mongodbRegex               = regexp.MustCompile(mongodbRegexString)
+	mongodbIdRegex             = regexp.MustCompile(mongodbIdRegexString)
+	mongodbConnectionRegex     = regexp.MustCompile(mongodbConnStringRegexString)
 	cronRegex                  = regexp.MustCompile(cronRegexString)
 	spicedbIDRegex             = regexp.MustCompile(spicedbIDRegexString)
 	spicedbPermissionRegex     = regexp.MustCompile(spicedbPermissionRegexString)
