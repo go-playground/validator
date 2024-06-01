@@ -235,7 +235,8 @@ var (
 		"credit_card":                   isCreditCard,
 		"cve":                           isCveFormat,
 		"luhn_checksum":                 hasLuhnChecksum,
-		"mongodb":                       isMongoDB,
+		"mongodb":                       isMongoDBObjectId,
+		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 	}
@@ -2932,10 +2933,16 @@ func digitsHaveLuhnChecksum(digits []string) bool {
 	return (sum % 10) == 0
 }
 
-// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
-func isMongoDB(fl FieldLevel) bool {
+// isMongoDBObjectId is the validation function for validating if the current field's value is valid MongoDB ObjectID
+func isMongoDBObjectId(fl FieldLevel) bool {
 	val := fl.Field().String()
-	return mongodbRegex.MatchString(val)
+	return mongodbIdRegex.MatchString(val)
+}
+
+// isMongoDBConnectionString is the validation function for validating if the current field's value is valid MongoDB Connection String
+func isMongoDBConnectionString(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return mongodbConnectionRegex.MatchString(val)
 }
 
 // isSpiceDB is the validation function for validating if the current field's value is valid for use with Authzed SpiceDB in the indicated way
