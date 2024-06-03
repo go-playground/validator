@@ -8183,7 +8183,7 @@ func TestUrnRFC8141(t *testing.T) {
 		{"urn:", false},
 	}
 
-	tag := "urn"
+	tag := "urn_rfc8141"
 
 	validate := New()
 
