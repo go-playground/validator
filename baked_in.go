@@ -130,7 +130,7 @@ var (
 		"url":                           isURL,
 		"http_url":                      isHttpURL,
 		"uri":                           isURI,
-		"urn":                           isUrnRFC8141, // RFC 8141
+		"urn_rfc8141":                           isUrnRFC8141, // RFC 8141
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
 		"filepath":                      isFilePath,
