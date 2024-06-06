@@ -16,7 +16,6 @@ import (
 // RegisterDefaultTranslations registers a set of default translations
 // for all built in tag's in validator; you may add your own as desired.
 func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (err error) {
-
 	translations := []struct {
 		tag             string
 		translation     string
@@ -30,26 +29,74 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} має бути значенням за замовчуванням",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("len-string", "{0} має бути довжиною в {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -61,27 +108,13 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("len-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} елемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "len"); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -127,7 +160,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				default:
 					t, err = ut.T("len-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
-
 			END:
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %s", err)
@@ -140,24 +172,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("min-string", "{0} має містити щонайменше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -168,27 +183,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("min-items", "{0} має містити щонайменше {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("min-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
 
-				if err = ut.AddCardinal("min-items-item", "{0} елемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "min"); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -247,24 +249,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("max-string", "{0} має містити максимум {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -275,27 +260,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("max-items", "{0} має містити максимум {1}", false); err != nil {
 					return
 				}
-				if err = ut.AddCardinal("max-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
 
-				if err = ut.AddCardinal("max-items-item", "{0} елемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "max"); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -352,56 +324,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eq",
-			translation: "{0} не дорівнює {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq",
+			translation:     "{0} не дорівнює {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ne",
-			translation: "{0} має не дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne",
+			translation:     "{0} має не дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lt-string", "{0} має мати менше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} символів", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("lt-string", "{0} має мати менше за {1}", false); err != nil {
 					return
 				}
 
@@ -409,35 +346,21 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0} має містити менше {1}", false); err != nil {
+				if err = ut.Add("lt-items", "{0} має містити менше ніж {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} має бути менше поточної дати й часу", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} елементів", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("lt-datetime", "{0} must be less than the current Date & Time", false); err != nil {
+				if err = registerCardinals(ut, "lt"); err != nil {
 					return
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -521,24 +444,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("lte-string", "{0} має містити максимум {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -550,30 +456,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} елемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("lte-datetime", "{0} має бути менше чи дорівнювати поточній даті та часу", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "lte"); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -657,24 +550,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gt-string", "{0} має бути довше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gt-string", "{0} має бути довше за {1}", false); err != nil {
 					return
 				}
 
@@ -682,23 +558,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0} має містити більше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} елементів", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gt-items", "{0} має містити більше ніж {1}", false); err != nil {
 					return
 				}
 
@@ -706,10 +566,13 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
+				if err = registerCardinals(ut, "gt"); err != nil {
+					return
+				}
+
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -793,24 +656,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
 				if err = ut.Add("gte-string", "{0} має містити щонайменше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символи", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -822,30 +668,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} елемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} елемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} елементів", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} елементи", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
 				if err = ut.Add("gte-datetime", "{0} має бути пізніше чи дорівнювати теперішньому моменту", false); err != nil {
+					return
+				}
+
+				if err = registerCardinals(ut, "gte"); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -927,184 +760,76 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "eqfield",
-			translation: "{0} має дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqfield",
+			translation:     "{0} має дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "eqcsfield",
-			translation: "{0} має дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqcsfield",
+			translation:     "{0} має дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "necsfield",
-			translation: "{0} не має дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "necsfield",
+			translation:     "{0} не має дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtcsfield",
-			translation: "{0} має бути більше {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtcsfield",
+			translation:     "{0} має бути більше {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtecsfield",
-			translation: "{0} має бути більше чи дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtecsfield",
+			translation:     "{0} має бути більше чи дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltcsfield",
-			translation: "{0} має бути менше {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltcsfield",
+			translation:     "{0} має бути менше {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltecsfield",
-			translation: "{0} має бути менше чи дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltecsfield",
+			translation:     "{0} має бути менше чи дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "nefield",
-			translation: "{0} не має дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "nefield",
+			translation:     "{0} не має дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtfield",
-			translation: "{0} має бути більше {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtfield",
+			translation:     "{0} має бути більше {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtefield",
-			translation: "{0} має бути більше чи дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtefield",
+			translation:     "{0} має бути більше чи дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltfield",
-			translation: "{0} має бути менше {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltfield",
+			translation:     "{0} має бути менше {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltefield",
-			translation: "{0} має бути менше чи дорівнювати {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltefield",
+			translation:     "{0} має бути менше чи дорівнювати {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "alpha",
@@ -1182,79 +907,34 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "contains",
-			translation: "{0} має містити текст '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "contains",
+			translation:     "{0} має містити текст '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "containsany",
-			translation: "{0} має містити щонайменше один із символів '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsany",
+			translation:     "{0} має містити щонайменше один із символів '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludes",
-			translation: "{0} не має містити текст '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludes",
+			translation:     "{0} не має містити текст '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesall",
-			translation: "{0} не має містити символи '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesall",
+			translation:     "{0} не має містити символи '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesrune",
-			translation: "{0} не має містити '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesrune",
+			translation:     "{0} не має містити '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "isbn",
@@ -1422,6 +1102,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "fqdn",
+			translation: "{0} має містити FQDN",
+			override:    false,
+		},
+		{
 			tag:         "unique",
 			translation: "{0} має містити унікальні значення",
 			override:    false,
@@ -1432,17 +1117,20 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "oneof",
-			translation: "{0} має бути одним з [{1}]",
+			tag:             "oneof",
+			translation:     "{0} має бути одним з [{1}]",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
+		},
+		{
+			tag:         "json",
+			translation: "{0} має бути json рядком",
 			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-				return s
-			},
+		},
+		{
+			tag:         "jwt",
+			translation: "{0} має бути jwt рядком",
+			override:    false,
 		},
 		{
 			tag:         "lowercase",
@@ -1455,6 +1143,24 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:             "datetime",
+			translation:     "{0} не відповідає {1} формату",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
+		},
+		{
+			tag:             "postcode_iso3166_alpha2",
+			translation:     "{0} не відповідає формату поштового індексу країни {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
+		},
+		{
+			tag:             "postcode_iso3166_alpha2_field",
+			translation:     "{0} не відповідає формату поштового індексу країни в {1} полі",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
+		},
+		{
 			tag:         "boolean",
 			translation: "{0} має бути булевим значенням",
 			override:    false,
@@ -1464,22 +1170,20 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} має бути допустимим зображенням",
 			override:    false,
 		},
+		{
+			tag:         "cve",
+			translation: "{0} має бути cve ідентифікатором",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
-
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
-
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), t.customTransFunc)
-
 		} else if t.customTransFunc == nil && t.customRegisFunc != nil {
-
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, translateFunc)
-
 		} else {
 			err = v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		}
@@ -1493,21 +1197,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 }
 
 func registrationFunc(tag string, translation string, override bool) validator.RegisterTranslationsFunc {
-
 	return func(ut ut.Translator) (err error) {
-
 		if err = ut.Add(tag, translation, override); err != nil {
 			return
 		}
 
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
-
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {
 		log.Printf("warning: error translating FieldError: %#v", fe)
@@ -1515,4 +1214,55 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	}
 
 	return t
+}
+
+func translateFuncWithParam(ut ut.Translator, fe validator.FieldError) string {
+	t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+	if err != nil {
+		log.Printf("warning: error translating FieldError: %#v", fe)
+		return fe.(error).Error()
+	}
+
+	return t
+}
+
+func registerCardinals(ut ut.Translator, prefix string) (err error) {
+	var (
+		stringCharacterKey = fmt.Sprintf("%s-string-character", prefix)
+		itemsItemKey       = fmt.Sprintf("%s-items-item", prefix)
+	)
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символ", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символи", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символів", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символи", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елемент", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементи", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементів", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементи", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	return
 }

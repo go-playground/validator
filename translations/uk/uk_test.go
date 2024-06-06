@@ -1,7 +1,6 @@
 package uk
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -12,10 +11,12 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	uk := ukrainian.New()
 	uni := ut.New(uk, uk)
-	trans, _ := uni.GetTranslator("uk")
+	trans, ok := uni.GetTranslator("uk")
+	if !ok {
+		t.Fatalf("didn't found translator")
+	}
 
 	validate := validator.New()
 
@@ -23,12 +24,24 @@ func TestTranslations(t *testing.T) {
 	Equal(t, err, nil)
 
 	type Inner struct {
-		EqCSFieldString  string
-		NeCSFieldString  string
-		GtCSFieldString  string
-		GteCSFieldString string
-		LtCSFieldString  string
-		LteCSFieldString string
+		EqCSFieldString    string
+		NeCSFieldString    string
+		GtCSFieldString    string
+		GteCSFieldString   string
+		LtCSFieldString    string
+		LteCSFieldString   string
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithAll    string
+		RequiredWithout    string
+		RequiredWithoutAll string
+		ExcludedIf         string
+		ExcludedUnless     string
+		ExcludedWith       string
+		ExcludedWithAll    string
+		ExcludedWithout    string
+		ExcludedWithoutAll string
 	}
 
 	type Test struct {
@@ -36,21 +49,39 @@ func TestTranslations(t *testing.T) {
 		RequiredString          string            `validate:"required"`
 		RequiredNumber          int               `validate:"required"`
 		RequiredMultiple        []string          `validate:"required"`
+		RequiredIf              string            `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless          string            `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith            string            `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll         string            `validate:"required_with_all=Inner.RequiredWith Inner.RequiredWithAll"`
+		RequiredWithout         string            `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll      string            `validate:"required_without_all=Inner.RequiredWithout Inner.RequiredWithoutAll"`
+		ExcludedIf              string            `validate:"excluded_if=Inner.ExcludedIf abcd"`
+		ExcludedUnless          string            `validate:"excluded_unless=Inner.ExcludedUnless abcd"`
+		ExcludedWith            string            `validate:"excluded_with=Inner.ExcludedWith"`
+		ExcludedWithout         string            `validate:"excluded_with_all=Inner.ExcludedWithAll"`
+		ExcludedWithAll         string            `validate:"excluded_without=Inner.ExcludedWithout"`
+		ExcludedWithoutAll      string            `validate:"excluded_without_all=Inner.ExcludedWithoutAll"`
+		IsDefault               string            `validate:"isdefault"`
 		LenString               string            `validate:"len=1"`
 		LenNumber               float64           `validate:"len=1113.00"`
 		LenMultiple             []string          `validate:"len=7"`
 		LenMultipleSecond       []string          `validate:"len=2"`
+		LenMultipleThird        []string          `validate:"len=1"`
 		MinString               string            `validate:"min=1"`
 		MinStringMultiple       string            `validate:"min=2"`
 		MinStringMultipleSecond string            `validate:"min=7"`
+		MinStringMultipleThird  string            `validate:"min=1"`
 		MinNumber               float64           `validate:"min=1113.00"`
 		MinMultiple             []string          `validate:"min=7"`
 		MinMultipleSecond       []string          `validate:"min=2"`
+		MinMultipleThird        []string          `validate:"min=1"`
 		MaxString               string            `validate:"max=3"`
 		MaxStringSecond         string            `validate:"max=7"`
+		MaxStringThird          string            `validate:"max=1"`
 		MaxNumber               float64           `validate:"max=1113.00"`
 		MaxMultiple             []string          `validate:"max=7"`
 		MaxMultipleSecond       []string          `validate:"max=2"`
+		MaxMultipleThird        []string          `validate:"max=1"`
 		EqString                string            `validate:"eq=3"`
 		EqNumber                float64           `validate:"eq=2.33"`
 		EqMultiple              []string          `validate:"eq=7"`
@@ -59,27 +90,35 @@ func TestTranslations(t *testing.T) {
 		NeMultiple              []string          `validate:"ne=0"`
 		LtString                string            `validate:"lt=3"`
 		LtStringSecond          string            `validate:"lt=7"`
+		LtStringThird           string            `validate:"lt=1"`
 		LtNumber                float64           `validate:"lt=5.56"`
 		LtMultiple              []string          `validate:"lt=2"`
 		LtMultipleSecond        []string          `validate:"lt=7"`
+		LtMultipleThird         []string          `validate:"lt=1"`
 		LtTime                  time.Time         `validate:"lt"`
 		LteString               string            `validate:"lte=3"`
 		LteStringSecond         string            `validate:"lte=7"`
+		LteStringThird          string            `validate:"lte=1"`
 		LteNumber               float64           `validate:"lte=5.56"`
 		LteMultiple             []string          `validate:"lte=2"`
 		LteMultipleSecond       []string          `validate:"lte=7"`
+		LteMultipleThird        []string          `validate:"lte=1"`
 		LteTime                 time.Time         `validate:"lte"`
 		GtString                string            `validate:"gt=3"`
 		GtStringSecond          string            `validate:"gt=7"`
+		GtStringThird           string            `validate:"gt=1"`
 		GtNumber                float64           `validate:"gt=5.56"`
 		GtMultiple              []string          `validate:"gt=2"`
 		GtMultipleSecond        []string          `validate:"gt=7"`
+		GtMultipleThird         []string          `validate:"gt=1"`
 		GtTime                  time.Time         `validate:"gt"`
 		GteString               string            `validate:"gte=3"`
 		GteStringSecond         string            `validate:"gte=7"`
+		GteStringThird          string            `validate:"gte=1"`
 		GteNumber               float64           `validate:"gte=5.56"`
 		GteMultiple             []string          `validate:"gte=2"`
 		GteMultipleSecond       []string          `validate:"gte=7"`
+		GteMultipleThird        []string          `validate:"gte=1"`
 		GteTime                 time.Time         `validate:"gte"`
 		EqFieldString           string            `validate:"eqfield=MaxString"`
 		EqCSFieldString         string            `validate:"eqcsfield=Inner.EqCSFieldString"`
@@ -145,6 +184,7 @@ func TestTranslations(t *testing.T) {
 		IPAddrv6                string            `validate:"ip6_addr"`
 		UinxAddr                string            `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
 		MAC                     string            `validate:"mac"`
+		FQDN                    string            `validate:"fqdn"`
 		IsColor                 string            `validate:"iscolor"`
 		StrPtrMinLen            *string           `validate:"min=10"`
 		StrPtrMinLenSecond      *string           `validate:"min=2"`
@@ -164,10 +204,17 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice             []string          `validate:"unique"`
 		UniqueArray             [3]string         `validate:"unique"`
 		UniqueMap               map[string]string `validate:"unique"`
+		JSONString              string            `validate:"json"`
+		JWTString               string            `validate:"jwt"`
 		LowercaseString         string            `validate:"lowercase"`
 		UppercaseString         string            `validate:"uppercase"`
-		BooleanString           string            `validate:"boolean"`
-		Image                   string            `validate:"image"`
+		Datetime                string            `validate:"datetime=2006-01-02"`
+		PostCode                string            `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry         string
+		PostCodeByField         string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString           string `validate:"boolean"`
+		Image                   string `validate:"image"`
+		CveString               string `validate:"cve"`
 	}
 
 	var test Test
@@ -175,25 +222,45 @@ func TestTranslations(t *testing.T) {
 	test.Inner.EqCSFieldString = "1234"
 	test.Inner.GtCSFieldString = "1234"
 	test.Inner.GteCSFieldString = "1234"
+	test.Inner.RequiredUnless = "1234"
+	test.Inner.RequiredWith = "1234"
+	test.Inner.RequiredWithAll = "1234"
+	test.Inner.ExcludedIf = "abcd"
+	test.Inner.ExcludedUnless = "1234"
+	test.Inner.ExcludedWith = "1234"
+	test.Inner.ExcludedWithAll = "1234"
+
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithoutAll = "1234"
 
 	test.MaxString = "1234"
 	test.MaxStringSecond = "12345678"
+	test.MaxStringThird = "12"
 	test.MaxNumber = 2000
 	test.MaxMultiple = make([]string, 9)
 	test.MaxMultipleSecond = make([]string, 3)
+	test.MaxMultipleThird = make([]string, 2)
 
 	test.LtString = "1234"
 	test.LtStringSecond = "12345678"
+	test.LtStringThird = "12"
 	test.LtNumber = 6
 	test.LtMultiple = make([]string, 3)
 	test.LtMultipleSecond = make([]string, 8)
+	test.LtMultipleThird = make([]string, 2)
 	test.LtTime = time.Now().Add(time.Hour * 24)
 
 	test.LteString = "1234"
 	test.LteStringSecond = "12345678"
+	test.LteStringThird = "12"
 	test.LteNumber = 6
 	test.LteMultiple = make([]string, 3)
 	test.LteMultipleSecond = make([]string, 8)
+	test.LteMultipleThird = make([]string, 2)
 	test.LteTime = time.Now().Add(time.Hour * 24)
 
 	test.LtFieldString = "12345"
@@ -225,7 +292,11 @@ func TestTranslations(t *testing.T) {
 
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
+	test.Datetime = "2008-Feb-01"
 	test.BooleanString = "A"
+	test.CveString = "A"
+
+	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -244,6 +315,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.MAC",
 			expected: "MAC має містити MAC адресу",
+		},
+		{
+			ns:       "Test.FQDN",
+			expected: "FQDN має містити FQDN",
 		},
 		{
 			ns:       "Test.IPAddr",
@@ -495,11 +570,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString має містити щонайменше 3 символа",
+			expected: "GteString має містити щонайменше 3 символи",
 		},
 		{
 			ns:       "Test.GteStringSecond",
 			expected: "GteStringSecond має містити щонайменше 7 символів",
+		},
+		{
+			ns:       "Test.GteStringThird",
+			expected: "GteStringThird має містити щонайменше 1 символ",
 		},
 		{
 			ns:       "Test.GteNumber",
@@ -507,11 +586,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple має містити щонайменше 2 елемента",
+			expected: "GteMultiple має містити щонайменше 2 елементи",
 		},
 		{
 			ns:       "Test.GteMultipleSecond",
 			expected: "GteMultipleSecond має містити щонайменше 7 елементів",
+		},
+		{
+			ns:       "Test.GteMultipleThird",
+			expected: "GteMultipleThird має містити щонайменше 1 елемент",
 		},
 		{
 			ns:       "Test.GteTime",
@@ -519,11 +602,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString має бути довше 3 символа",
+			expected: "GtString має бути довше за 3 символи",
 		},
 		{
 			ns:       "Test.GtStringSecond",
-			expected: "GtStringSecond має бути довше 7 символів",
+			expected: "GtStringSecond має бути довше за 7 символів",
+		},
+		{
+			ns:       "Test.GtStringThird",
+			expected: "GtStringThird має бути довше за 1 символ",
 		},
 		{
 			ns:       "Test.GtNumber",
@@ -531,11 +618,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple має містити більше 2 елементів",
+			expected: "GtMultiple має містити більше ніж 2 елементи",
 		},
 		{
 			ns:       "Test.GtMultipleSecond",
-			expected: "GtMultipleSecond має містити більше 7 елементів",
+			expected: "GtMultipleSecond має містити більше ніж 7 елементів",
+		},
+		{
+			ns:       "Test.GtMultipleThird",
+			expected: "GtMultipleThird має містити більше ніж 1 елемент",
 		},
 		{
 			ns:       "Test.GtTime",
@@ -543,11 +634,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString має містити максимум 3 символа",
+			expected: "LteString має містити максимум 3 символи",
 		},
 		{
 			ns:       "Test.LteStringSecond",
 			expected: "LteStringSecond має містити максимум 7 символів",
+		},
+		{
+			ns:       "Test.LteStringThird",
+			expected: "LteStringThird має містити максимум 1 символ",
 		},
 		{
 			ns:       "Test.LteNumber",
@@ -555,11 +650,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple має містити максимум 2 елемента",
+			expected: "LteMultiple має містити максимум 2 елементи",
 		},
 		{
 			ns:       "Test.LteMultipleSecond",
 			expected: "LteMultipleSecond має містити максимум 7 елементів",
+		},
+		{
+			ns:       "Test.LteMultipleThird",
+			expected: "LteMultipleThird має містити максимум 1 елемент",
 		},
 		{
 			ns:       "Test.LteTime",
@@ -567,11 +666,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString має мати менше 3 символів",
+			expected: "LtString має мати менше за 3 символи",
 		},
 		{
 			ns:       "Test.LtStringSecond",
-			expected: "LtStringSecond має мати менше 7 символів",
+			expected: "LtStringSecond має мати менше за 7 символів",
+		},
+		{
+			ns:       "Test.LtStringThird",
+			expected: "LtStringThird має мати менше за 1 символ",
 		},
 		{
 			ns:       "Test.LtNumber",
@@ -579,15 +682,19 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple має містити менше 2 елементів",
+			expected: "LtMultiple має містити менше ніж 2 елементи",
 		},
 		{
 			ns:       "Test.LtMultipleSecond",
-			expected: "LtMultipleSecond має містити менше 7 елементів",
+			expected: "LtMultipleSecond має містити менше ніж 7 елементів",
+		},
+		{
+			ns:       "Test.LtMultipleThird",
+			expected: "LtMultipleThird має містити менше ніж 1 елемент",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime має бути менше поточної дати й часу",
 		},
 		{
 			ns:       "Test.NeString",
@@ -615,7 +722,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString має містити максимум 3 символа",
+			expected: "MaxString має містити максимум 3 символи",
 		},
 		{
 			ns:       "Test.MaxStringSecond",
@@ -631,7 +738,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxMultipleSecond",
-			expected: "MaxMultipleSecond має містити максимум 2 елемента",
+			expected: "MaxMultipleSecond має містити максимум 2 елементи",
 		},
 		{
 			ns:       "Test.MinString",
@@ -639,11 +746,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinStringMultiple",
-			expected: "MinStringMultiple має містити щонайменше 2 символа",
+			expected: "MinStringMultiple має містити щонайменше 2 символи",
 		},
 		{
 			ns:       "Test.MinStringMultipleSecond",
 			expected: "MinStringMultipleSecond має містити щонайменше 7 символів",
+		},
+		{
+			ns:       "Test.MinStringMultipleThird",
+			expected: "MinStringMultipleThird має містити щонайменше 1 символ",
 		},
 		{
 			ns:       "Test.MinNumber",
@@ -655,7 +766,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinMultipleSecond",
-			expected: "MinMultipleSecond має містити щонайменше 2 елемента",
+			expected: "MinMultipleSecond має містити щонайменше 2 елементи",
 		},
 		{
 			ns:       "Test.LenString",
@@ -671,11 +782,19 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenMultipleSecond",
-			expected: "LenMultipleSecond має містити 2 елемента",
+			expected: "LenMultipleSecond має містити 2 елементи",
+		},
+		{
+			ns:       "Test.LenMultipleThird",
+			expected: "LenMultipleThird має містити 1 елемент",
 		},
 		{
 			ns:       "Test.RequiredString",
 			expected: "RequiredString обов'язкове поле",
+		},
+		{
+			ns:       "Test.RequiredIf",
+			expected: "RequiredIf обов'язкове поле",
 		},
 		{
 			ns:       "Test.RequiredNumber",
@@ -686,12 +805,56 @@ func TestTranslations(t *testing.T) {
 			expected: "RequiredMultiple обов'язкове поле",
 		},
 		{
+			ns:       "Test.RequiredUnless",
+			expected: "RequiredUnless обов'язкове поле",
+		},
+		{
+			ns:       "Test.RequiredWith",
+			expected: "RequiredWith обов'язкове поле",
+		},
+		{
+			ns:       "Test.RequiredWithAll",
+			expected: "RequiredWithAll обов'язкове поле",
+		},
+		{
+			ns:       "Test.RequiredWithout",
+			expected: "RequiredWithout обов'язкове поле",
+		},
+		{
+			ns:       "Test.RequiredWithoutAll",
+			expected: "RequiredWithoutAll обов'язкове поле",
+		},
+		{
+			ns:       "Test.ExcludedIf",
+			expected: "ExcludedIf є виключеним полем",
+		},
+		{
+			ns:       "Test.ExcludedUnless",
+			expected: "ExcludedUnless є виключеним полем",
+		},
+		{
+			ns:       "Test.ExcludedWith",
+			expected: "ExcludedWith є виключеним полем",
+		},
+		{
+			ns:       "Test.ExcludedWithAll",
+			expected: "ExcludedWithAll є виключеним полем",
+		},
+		{
+			ns:       "Test.ExcludedWithout",
+			expected: "ExcludedWithout є виключеним полем",
+		},
+		{
+			ns:       "Test.ExcludedWithoutAll",
+			expected: "ExcludedWithoutAll є виключеним полем",
+		},
+		{
 			ns:       "Test.StrPtrMinLen",
 			expected: "StrPtrMinLen має містити щонайменше 10 символів",
 		},
 		{
 			ns:       "Test.StrPtrMinLenSecond",
-			expected: "StrPtrMinLenSecond має містити щонайменше 2 символа",
+			expected: "StrPtrMinLenSecond має містити щонайменше 2 символи",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
@@ -699,7 +862,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen має бути довжиною в 2 символа",
+			expected: "StrPtrLen має бути довжиною в 2 символи",
 		},
 		{
 			ns:       "Test.StrPtrLenSecond",
@@ -707,7 +870,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt має мати менше 1 символ",
+			expected: "StrPtrLt має мати менше за 1 символ",
 		},
 		{
 			ns:       "Test.StrPtrLte",
@@ -715,7 +878,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLteMultiple",
-			expected: "StrPtrLteMultiple має містити максимум 2 символа",
+			expected: "StrPtrLteMultiple має містити максимум 2 символи",
 		},
 		{
 			ns:       "Test.StrPtrLteMultipleSecond",
@@ -723,11 +886,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt має бути довше 10 символів",
+			expected: "StrPtrGt має бути довше за 10 символів",
 		},
 		{
 			ns:       "Test.StrPtrGtSecond",
-			expected: "StrPtrGtSecond має бути довше 2 символа",
+			expected: "StrPtrGtSecond має бути довше за 2 символи",
 		},
 		{
 			ns:       "Test.StrPtrGte",
@@ -735,7 +898,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrGteSecond",
-			expected: "StrPtrGteSecond має містити щонайменше 2 символа",
+			expected: "StrPtrGteSecond має містити щонайменше 2 символи",
 		},
 		{
 			ns:       "Test.OneOfString",
@@ -758,12 +921,32 @@ func TestTranslations(t *testing.T) {
 			expected: "UniqueMap має містити унікальні значення",
 		},
 		{
+			ns:       "Test.JSONString",
+			expected: "JSONString має бути json рядком",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString має бути jwt рядком",
+		},
+		{
 			ns:       "Test.LowercaseString",
 			expected: "LowercaseString має бути рядком у нижньому регістрі",
 		},
 		{
 			ns:       "Test.UppercaseString",
 			expected: "UppercaseString має бути рядком у верхньому регістрі",
+		},
+		{
+			ns:       "Test.Datetime",
+			expected: "Datetime не відповідає 2006-01-02 формату",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode не відповідає формату поштового індексу країни SG",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField не відповідає формату поштового індексу країни в PostCodeCountry полі",
 		},
 		{
 			ns:       "Test.BooleanString",
@@ -773,10 +956,13 @@ func TestTranslations(t *testing.T) {
 			ns:       "Test.Image",
 			expected: "Image має бути допустимим зображенням",
 		},
+		{
+			ns:       "Test.CveString",
+			expected: "CveString має бути cve ідентифікатором",
+		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -786,10 +972,7 @@ func TestTranslations(t *testing.T) {
 			}
 		}
 
-		log.Println(fe)
-
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
