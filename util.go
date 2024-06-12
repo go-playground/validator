@@ -297,7 +297,8 @@ func panicIf(err error) {
 
 // Checks if field value matches regex. If fl.Field can be cast to Stringer, it uses the Stringer interfaces
 // String() return value. Otherwise, it uses fl.Field's String() value.
-func fieldMatchesRegexByStringerValOrString(regex *regexp.Regexp, fl FieldLevel) bool {
+func fieldMatchesRegexByStringerValOrString(regexFn func() *regexp.Regexp, fl FieldLevel) bool {
+	regex := regexFn()
 	switch fl.Field().Kind() {
 	case reflect.String:
 		return regex.MatchString(fl.Field().String())
