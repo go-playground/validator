@@ -1,10 +1,5 @@
 package validator
 
-import (
-	"regexp"
-	"sync"
-)
-
 const (
 	alphaRegexString                 = "^[a-zA-Z]+$"
 	alphaNumericRegexString          = "^[a-zA-Z0-9]+$"
@@ -78,12 +73,6 @@ const (
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
 	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
 )
-
-func lazyRegexCompile(str string) func() *regexp.Regexp {
-	return sync.OnceValue(func() *regexp.Regexp {
-		return regexp.MustCompile(str)
-	})
-}
 
 var (
 	alphaRegex                 = lazyRegexCompile(alphaRegexString)
