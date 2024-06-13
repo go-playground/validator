@@ -80,14 +80,9 @@ const (
 )
 
 func lazyRegexCompile(str string) func() *regexp.Regexp {
-	var regex *regexp.Regexp
-	var once sync.Once
-	return func() *regexp.Regexp {
-		once.Do(func() {
-			regex = regexp.MustCompile(str)
-		})
-		return regex
-	}
+	return sync.OnceValue(func() *regexp.Regexp {
+		return regexp.MustCompile(str)
+	})
 }
 
 var (
