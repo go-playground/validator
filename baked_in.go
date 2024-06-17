@@ -186,6 +186,7 @@ var (
 		"ipv4":                          isIPv4,
 		"ipv6":                          isIPv6,
 		"ip":                            isIP,
+		"ipv4_port":                     isIPv4Port,
 		"cidrv4":                        isCIDRv4,
 		"cidrv6":                        isCIDRv6,
 		"cidr":                          isCIDR,
@@ -2700,6 +2701,29 @@ func isHostnamePort(fl FieldLevel) bool {
 	// If host is specified, it should match a DNS name
 	if host != "" {
 		return hostnameRegexRFC1123().MatchString(host)
+	}
+	return true
+}
+
+// isIPv4Port validates a <ipv4>:<port> combination for fields typically used for socket address.
+func isIPv4Port(fl FieldLevel) bool {
+	val := fl.Field().String()
+	ip, port, err := net.SplitHostPort(val)
+	if err != nil {
+		return false
+	}
+	// Port must be a iny <= 65535.
+	if portNum, err := strconv.ParseInt(
+		port, 10, 32,
+	); err != nil || portNum > 65535 || portNum < 1 {
+		return false
+	}
+
+	// If IP address is specified, it should match a valid IPv4 address
+	if ip != "" {
+		// we need to support older Golang versions, so we can not use netip.ParseAddr
+		parsedIp := net.ParseIP(ip)
+		return parsedIp != nil && parsedIp.To4() != nil
 	}
 	return true
 }
