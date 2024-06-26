@@ -235,7 +235,8 @@ var (
 		"credit_card":                   isCreditCard,
 		"cve":                           isCveFormat,
 		"luhn_checksum":                 hasLuhnChecksum,
-		"mongodb":                       isMongoDB,
+		"mongodb":                       isMongoDBObjectId,
+		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 	}
@@ -252,7 +253,7 @@ func parseOneOfParam2(s string) []string {
 	oneofValsCacheRWLock.RUnlock()
 	if !ok {
 		oneofValsCacheRWLock.Lock()
-		vals = splitParamsRegex.FindAllString(s, -1)
+		vals = splitParamsRegex().FindAllString(s, -1)
 		for i := 0; i < len(vals); i++ {
 			vals[i] = strings.Replace(vals[i], "'", "", -1)
 		}
@@ -263,15 +264,15 @@ func parseOneOfParam2(s string) []string {
 }
 
 func isURLEncoded(fl FieldLevel) bool {
-	return uRLEncodedRegex.MatchString(fl.Field().String())
+	return uRLEncodedRegex().MatchString(fl.Field().String())
 }
 
 func isHTMLEncoded(fl FieldLevel) bool {
-	return hTMLEncodedRegex.MatchString(fl.Field().String())
+	return hTMLEncodedRegex().MatchString(fl.Field().String())
 }
 
 func isHTML(fl FieldLevel) bool {
-	return hTMLRegex.MatchString(fl.Field().String())
+	return hTMLRegex().MatchString(fl.Field().String())
 }
 
 func isOneOf(fl FieldLevel) bool {
@@ -428,7 +429,7 @@ func isSSN(fl FieldLevel) bool {
 		return false
 	}
 
-	return sSNRegex.MatchString(field.String())
+	return sSNRegex().MatchString(field.String())
 }
 
 // isLongitude is the validation function for validating if the field's value is a valid longitude coordinate.
@@ -451,7 +452,7 @@ func isLongitude(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 
-	return longitudeRegex.MatchString(v)
+	return longitudeRegex().MatchString(v)
 }
 
 // isLatitude is the validation function for validating if the field's value is a valid latitude coordinate.
@@ -474,7 +475,7 @@ func isLatitude(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 
-	return latitudeRegex.MatchString(v)
+	return latitudeRegex().MatchString(v)
 }
 
 // isDataURI is the validation function for validating if the field's value is a valid data URI.
@@ -485,11 +486,11 @@ func isDataURI(fl FieldLevel) bool {
 		return false
 	}
 
-	if !dataURIRegex.MatchString(uri[0]) {
+	if !dataURIRegex().MatchString(uri[0]) {
 		return false
 	}
 
-	return base64Regex.MatchString(uri[1])
+	return base64Regex().MatchString(uri[1])
 }
 
 // hasMultiByteCharacter is the validation function for validating if the field's value has a multi byte character.
@@ -500,17 +501,17 @@ func hasMultiByteCharacter(fl FieldLevel) bool {
 		return true
 	}
 
-	return multibyteRegex.MatchString(field.String())
+	return multibyteRegex().MatchString(field.String())
 }
 
 // isPrintableASCII is the validation function for validating if the field's value is a valid printable ASCII character.
 func isPrintableASCII(fl FieldLevel) bool {
-	return printableASCIIRegex.MatchString(fl.Field().String())
+	return printableASCIIRegex().MatchString(fl.Field().String())
 }
 
 // isASCII is the validation function for validating if the field's value is a valid ASCII character.
 func isASCII(fl FieldLevel) bool {
-	return aSCIIRegex.MatchString(fl.Field().String())
+	return aSCIIRegex().MatchString(fl.Field().String())
 }
 
 // isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
@@ -560,52 +561,52 @@ func isULID(fl FieldLevel) bool {
 
 // isMD4 is the validation function for validating if the field's value is a valid MD4.
 func isMD4(fl FieldLevel) bool {
-	return md4Regex.MatchString(fl.Field().String())
+	return md4Regex().MatchString(fl.Field().String())
 }
 
 // isMD5 is the validation function for validating if the field's value is a valid MD5.
 func isMD5(fl FieldLevel) bool {
-	return md5Regex.MatchString(fl.Field().String())
+	return md5Regex().MatchString(fl.Field().String())
 }
 
 // isSHA256 is the validation function for validating if the field's value is a valid SHA256.
 func isSHA256(fl FieldLevel) bool {
-	return sha256Regex.MatchString(fl.Field().String())
+	return sha256Regex().MatchString(fl.Field().String())
 }
 
 // isSHA384 is the validation function for validating if the field's value is a valid SHA384.
 func isSHA384(fl FieldLevel) bool {
-	return sha384Regex.MatchString(fl.Field().String())
+	return sha384Regex().MatchString(fl.Field().String())
 }
 
 // isSHA512 is the validation function for validating if the field's value is a valid SHA512.
 func isSHA512(fl FieldLevel) bool {
-	return sha512Regex.MatchString(fl.Field().String())
+	return sha512Regex().MatchString(fl.Field().String())
 }
 
 // isRIPEMD128 is the validation function for validating if the field's value is a valid PIPEMD128.
 func isRIPEMD128(fl FieldLevel) bool {
-	return ripemd128Regex.MatchString(fl.Field().String())
+	return ripemd128Regex().MatchString(fl.Field().String())
 }
 
 // isRIPEMD160 is the validation function for validating if the field's value is a valid PIPEMD160.
 func isRIPEMD160(fl FieldLevel) bool {
-	return ripemd160Regex.MatchString(fl.Field().String())
+	return ripemd160Regex().MatchString(fl.Field().String())
 }
 
 // isTIGER128 is the validation function for validating if the field's value is a valid TIGER128.
 func isTIGER128(fl FieldLevel) bool {
-	return tiger128Regex.MatchString(fl.Field().String())
+	return tiger128Regex().MatchString(fl.Field().String())
 }
 
 // isTIGER160 is the validation function for validating if the field's value is a valid TIGER160.
 func isTIGER160(fl FieldLevel) bool {
-	return tiger160Regex.MatchString(fl.Field().String())
+	return tiger160Regex().MatchString(fl.Field().String())
 }
 
 // isTIGER192 is the validation function for validating if the field's value is a valid isTIGER192.
 func isTIGER192(fl FieldLevel) bool {
-	return tiger192Regex.MatchString(fl.Field().String())
+	return tiger192Regex().MatchString(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
@@ -617,7 +618,7 @@ func isISBN(fl FieldLevel) bool {
 func isISBN13(fl FieldLevel) bool {
 	s := strings.Replace(strings.Replace(fl.Field().String(), "-", "", 4), " ", "", 4)
 
-	if !iSBN13Regex.MatchString(s) {
+	if !iSBN13Regex().MatchString(s) {
 		return false
 	}
 
@@ -637,7 +638,7 @@ func isISBN13(fl FieldLevel) bool {
 func isISBN10(fl FieldLevel) bool {
 	s := strings.Replace(strings.Replace(fl.Field().String(), "-", "", 3), " ", "", 3)
 
-	if !iSBN10Regex.MatchString(s) {
+	if !iSBN10Regex().MatchString(s) {
 		return false
 	}
 
@@ -661,7 +662,7 @@ func isISBN10(fl FieldLevel) bool {
 func isISSN(fl FieldLevel) bool {
 	s := fl.Field().String()
 
-	if !iSSNRegex.MatchString(s) {
+	if !iSSNRegex().MatchString(s) {
 		return false
 	}
 	s = strings.ReplaceAll(s, "-", "")
@@ -687,14 +688,14 @@ func isISSN(fl FieldLevel) bool {
 func isEthereumAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	return ethAddressRegex.MatchString(address)
+	return ethAddressRegex().MatchString(address)
 }
 
-// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksumed Ethereum address.
+// isEthereumAddressChecksum is the validation function for validating if the field's value is a valid checksummed Ethereum address.
 func isEthereumAddressChecksum(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	if !ethAddressRegex.MatchString(address) {
+	if !ethAddressRegex().MatchString(address) {
 		return false
 	}
 	// Checksum validation. Reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
@@ -720,7 +721,7 @@ func isEthereumAddressChecksum(fl FieldLevel) bool {
 func isBitcoinAddress(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	if !btcAddressRegex.MatchString(address) {
+	if !btcAddressRegex().MatchString(address) {
 		return false
 	}
 
@@ -757,7 +758,7 @@ func isBitcoinAddress(fl FieldLevel) bool {
 func isBitcoinBech32Address(fl FieldLevel) bool {
 	address := fl.Field().String()
 
-	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address) {
+	if !btcLowerAddressRegexBech32().MatchString(address) && !btcUpperAddressRegexBech32().MatchString(address) {
 		return false
 	}
 
@@ -1369,6 +1370,7 @@ func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
+	postcodeRegexInit.Do(initPostcodes)
 	reg, found := postCodeRegexDict[param]
 	if !found {
 		return false
@@ -1406,22 +1408,22 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 
 // isBase32 is the validation function for validating if the current field's value is a valid base 32.
 func isBase32(fl FieldLevel) bool {
-	return base32Regex.MatchString(fl.Field().String())
+	return base32Regex().MatchString(fl.Field().String())
 }
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.
 func isBase64(fl FieldLevel) bool {
-	return base64Regex.MatchString(fl.Field().String())
+	return base64Regex().MatchString(fl.Field().String())
 }
 
 // isBase64URL is the validation function for validating if the current field's value is a valid base64 URL safe string.
 func isBase64URL(fl FieldLevel) bool {
-	return base64URLRegex.MatchString(fl.Field().String())
+	return base64URLRegex().MatchString(fl.Field().String())
 }
 
 // isBase64RawURL is the validation function for validating if the current field's value is a valid base64 URL safe string without '=' padding.
 func isBase64RawURL(fl FieldLevel) bool {
-	return base64RawURLRegex.MatchString(fl.Field().String())
+	return base64RawURLRegex().MatchString(fl.Field().String())
 }
 
 // isURI is the validation function for validating if the current field's value is a valid URI.
@@ -1667,42 +1669,42 @@ func isFilePath(fl FieldLevel) bool {
 
 // isE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
 func isE164(fl FieldLevel) bool {
-	return e164Regex.MatchString(fl.Field().String())
+	return e164Regex().MatchString(fl.Field().String())
 }
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
 func isEmail(fl FieldLevel) bool {
-	return emailRegex.MatchString(fl.Field().String())
+	return emailRegex().MatchString(fl.Field().String())
 }
 
 // isHSLA is the validation function for validating if the current field's value is a valid HSLA color.
 func isHSLA(fl FieldLevel) bool {
-	return hslaRegex.MatchString(fl.Field().String())
+	return hslaRegex().MatchString(fl.Field().String())
 }
 
 // isHSL is the validation function for validating if the current field's value is a valid HSL color.
 func isHSL(fl FieldLevel) bool {
-	return hslRegex.MatchString(fl.Field().String())
+	return hslRegex().MatchString(fl.Field().String())
 }
 
 // isRGBA is the validation function for validating if the current field's value is a valid RGBA color.
 func isRGBA(fl FieldLevel) bool {
-	return rgbaRegex.MatchString(fl.Field().String())
+	return rgbaRegex().MatchString(fl.Field().String())
 }
 
 // isRGB is the validation function for validating if the current field's value is a valid RGB color.
 func isRGB(fl FieldLevel) bool {
-	return rgbRegex.MatchString(fl.Field().String())
+	return rgbRegex().MatchString(fl.Field().String())
 }
 
 // isHEXColor is the validation function for validating if the current field's value is a valid HEX color.
 func isHEXColor(fl FieldLevel) bool {
-	return hexColorRegex.MatchString(fl.Field().String())
+	return hexColorRegex().MatchString(fl.Field().String())
 }
 
 // isHexadecimal is the validation function for validating if the current field's value is a valid hexadecimal.
 func isHexadecimal(fl FieldLevel) bool {
-	return hexadecimalRegex.MatchString(fl.Field().String())
+	return hexadecimalRegex().MatchString(fl.Field().String())
 }
 
 // isNumber is the validation function for validating if the current field's value is a valid number.
@@ -1711,7 +1713,7 @@ func isNumber(fl FieldLevel) bool {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64:
 		return true
 	default:
-		return numberRegex.MatchString(fl.Field().String())
+		return numberRegex().MatchString(fl.Field().String())
 	}
 }
 
@@ -1721,28 +1723,28 @@ func isNumeric(fl FieldLevel) bool {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64:
 		return true
 	default:
-		return numericRegex.MatchString(fl.Field().String())
+		return numericRegex().MatchString(fl.Field().String())
 	}
 }
 
 // isAlphanum is the validation function for validating if the current field's value is a valid alphanumeric value.
 func isAlphanum(fl FieldLevel) bool {
-	return alphaNumericRegex.MatchString(fl.Field().String())
+	return alphaNumericRegex().MatchString(fl.Field().String())
 }
 
 // isAlpha is the validation function for validating if the current field's value is a valid alpha value.
 func isAlpha(fl FieldLevel) bool {
-	return alphaRegex.MatchString(fl.Field().String())
+	return alphaRegex().MatchString(fl.Field().String())
 }
 
 // isAlphanumUnicode is the validation function for validating if the current field's value is a valid alphanumeric unicode value.
 func isAlphanumUnicode(fl FieldLevel) bool {
-	return alphaUnicodeNumericRegex.MatchString(fl.Field().String())
+	return alphaUnicodeNumericRegex().MatchString(fl.Field().String())
 }
 
 // isAlphaUnicode is the validation function for validating if the current field's value is a valid alpha unicode value.
 func isAlphaUnicode(fl FieldLevel) bool {
-	return alphaUnicodeRegex.MatchString(fl.Field().String())
+	return alphaUnicodeRegex().MatchString(fl.Field().String())
 }
 
 // isBoolean is the validation function for validating if the current field's value is a valid boolean value or can be safely converted to a boolean value.
@@ -2565,11 +2567,11 @@ func isIP6Addr(fl FieldLevel) bool {
 }
 
 func isHostnameRFC952(fl FieldLevel) bool {
-	return hostnameRegexRFC952.MatchString(fl.Field().String())
+	return hostnameRegexRFC952().MatchString(fl.Field().String())
 }
 
 func isHostnameRFC1123(fl FieldLevel) bool {
-	return hostnameRegexRFC1123.MatchString(fl.Field().String())
+	return hostnameRegexRFC1123().MatchString(fl.Field().String())
 }
 
 func isFQDN(fl FieldLevel) bool {
@@ -2579,7 +2581,7 @@ func isFQDN(fl FieldLevel) bool {
 		return false
 	}
 
-	return fqdnRegexRFC1123.MatchString(val)
+	return fqdnRegexRFC1123().MatchString(val)
 }
 
 // isDir is the validation function for validating if the current field's value is a valid existing directory.
@@ -2678,7 +2680,7 @@ func isJSON(fl FieldLevel) bool {
 
 // isJWT is the validation function for validating if the current field's value is a valid JWT string.
 func isJWT(fl FieldLevel) bool {
-	return jWTRegex.MatchString(fl.Field().String())
+	return jWTRegex().MatchString(fl.Field().String())
 }
 
 // isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
@@ -2697,7 +2699,7 @@ func isHostnamePort(fl FieldLevel) bool {
 
 	// If host is specified, it should match a DNS name
 	if host != "" {
-		return hostnameRegexRFC1123.MatchString(host)
+		return hostnameRegexRFC1123().MatchString(host)
 	}
 	return true
 }
@@ -2768,26 +2770,26 @@ func isTimeZone(fl FieldLevel) bool {
 
 // isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-2 country code.
 func isIso3166Alpha2(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso3166_1_alpha2[val]
+	_, ok := iso3166_1_alpha2[fl.Field().String()]
+	return ok
 }
 
 // isIso3166Alpha2EU is the validation function for validating if the current field's value is a valid iso3166-1 alpha-2 European Union country code.
 func isIso3166Alpha2EU(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso3166_1_alpha2_eu[val]
+	_, ok := iso3166_1_alpha2_eu[fl.Field().String()]
+	return ok
 }
 
 // isIso3166Alpha3 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 country code.
 func isIso3166Alpha3(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso3166_1_alpha3[val]
+	_, ok := iso3166_1_alpha3[fl.Field().String()]
+	return ok
 }
 
 // isIso3166Alpha3EU is the validation function for validating if the current field's value is a valid iso3166-1 alpha-3 European Union country code.
 func isIso3166Alpha3EU(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso3166_1_alpha3_eu[val]
+	_, ok := iso3166_1_alpha3_eu[fl.Field().String()]
+	return ok
 }
 
 // isIso3166AlphaNumeric is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric country code.
@@ -2809,7 +2811,9 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
-	return iso3166_1_alpha_numeric[code]
+
+	_, ok := iso3166_1_alpha_numeric[code]
+	return ok
 }
 
 // isIso3166AlphaNumericEU is the validation function for validating if the current field's value is a valid iso3166-1 alpha-numeric European Union country code.
@@ -2831,19 +2835,21 @@ func isIso3166AlphaNumericEU(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
-	return iso3166_1_alpha_numeric_eu[code]
+
+	_, ok := iso3166_1_alpha_numeric_eu[code]
+	return ok
 }
 
 // isIso31662 is the validation function for validating if the current field's value is a valid iso3166-2 code.
 func isIso31662(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso3166_2[val]
+	_, ok := iso3166_2[fl.Field().String()]
+	return ok
 }
 
 // isIso4217 is the validation function for validating if the current field's value is a valid iso4217 currency code.
 func isIso4217(fl FieldLevel) bool {
-	val := fl.Field().String()
-	return iso4217[val]
+	_, ok := iso4217[fl.Field().String()]
+	return ok
 }
 
 // isIso4217Numeric is the validation function for validating if the current field's value is a valid iso4217 numeric currency code.
@@ -2859,7 +2865,9 @@ func isIso4217Numeric(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
-	return iso4217_numeric[code]
+
+	_, ok := iso4217_numeric[code]
+	return ok
 }
 
 // isBCP47LanguageTag is the validation function for validating if the current field's value is a valid BCP 47 language tag, as parsed by language.Parse
@@ -2878,21 +2886,21 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 func isIsoBicFormat(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
-	return bicRegex.MatchString(bicString)
+	return bicRegex().MatchString(bicString)
 }
 
 // isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
 func isSemverFormat(fl FieldLevel) bool {
 	semverString := fl.Field().String()
 
-	return semverRegex.MatchString(semverString)
+	return semverRegex().MatchString(semverString)
 }
 
 // isCveFormat is the validation function for validating if the current field's value is a valid cve id, defined in CVE mitre org
 func isCveFormat(fl FieldLevel) bool {
 	cveString := fl.Field().String()
 
-	return cveRegex.MatchString(cveString)
+	return cveRegex().MatchString(cveString)
 }
 
 // isDnsRFC1035LabelFormat is the validation function
@@ -2900,7 +2908,7 @@ func isCveFormat(fl FieldLevel) bool {
 // a valid dns RFC 1035 label, defined in RFC 1035.
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
-	return dnsRegexRFC1035Label.MatchString(val)
+	return dnsRegexRFC1035Label().MatchString(val)
 }
 
 // digitsHaveLuhnChecksum returns true if and only if the last element of the given digits slice is the Luhn checksum of the previous elements
@@ -2926,10 +2934,16 @@ func digitsHaveLuhnChecksum(digits []string) bool {
 	return (sum % 10) == 0
 }
 
-// isMongoDB is the validation function for validating if the current field's value is valid mongoDB objectID
-func isMongoDB(fl FieldLevel) bool {
+// isMongoDBObjectId is the validation function for validating if the current field's value is valid MongoDB ObjectID
+func isMongoDBObjectId(fl FieldLevel) bool {
 	val := fl.Field().String()
-	return mongodbRegex.MatchString(val)
+	return mongodbIdRegex().MatchString(val)
+}
+
+// isMongoDBConnectionString is the validation function for validating if the current field's value is valid MongoDB Connection String
+func isMongoDBConnectionString(fl FieldLevel) bool {
+	val := fl.Field().String()
+	return mongodbConnectionRegex().MatchString(val)
 }
 
 // isSpiceDB is the validation function for validating if the current field's value is valid for use with Authzed SpiceDB in the indicated way
@@ -2939,11 +2953,11 @@ func isSpiceDB(fl FieldLevel) bool {
 
 	switch param {
 	case "permission":
-		return spicedbPermissionRegex.MatchString(val)
+		return spicedbPermissionRegex().MatchString(val)
 	case "type":
-		return spicedbTypeRegex.MatchString(val)
+		return spicedbTypeRegex().MatchString(val)
 	case "id", "":
-		return spicedbIDRegex.MatchString(val)
+		return spicedbIDRegex().MatchString(val)
 	}
 
 	panic("Unrecognized parameter: " + param)
@@ -2995,5 +3009,5 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 // isCron is the validation function for validating if the current field's value is a valid cron expression
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
-	return cronRegex.MatchString(cronString)
+	return cronRegex().MatchString(cronString)
 }
