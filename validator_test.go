@@ -5718,7 +5718,6 @@ func TestBase64Validation(t *testing.T) {
 	validate := New()
 
 	s := "dW5pY29ybg=="
-
 	errs := validate.Var(s, "base64")
 	Equal(t, errs, nil)
 
