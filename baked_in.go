@@ -1414,11 +1414,8 @@ func isBase32(fl FieldLevel) bool {
 	}
 
 	_, err := base32.StdEncoding.DecodeString(fl.Field().String())
-	if err != nil {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.
