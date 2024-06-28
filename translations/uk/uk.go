@@ -1,4 +1,4 @@
-package it
+package uk
 
 import (
 	"fmt"
@@ -25,41 +25,90 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0} è un campo obbligatorio",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_if",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} обов'язкове поле",
 			override:    false,
 		},
 		{
 			tag:         "required_without",
-			translation: "{0} è un campo obbligatorio",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} обов'язкове поле",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} є виключеним полем",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} має бути значенням за замовчуванням",
 			override:    false,
 		},
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("len-string", "{0} deve essere lungo {1}", false); err != nil {
+				if err = ut.Add("len-string", "{0} має бути довжиною в {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("len-number", "{0} має дорівнювати {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("len-items", "{0} має містити {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-number", "{0} deve essere uguale a {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.Add("len-items", "{0} deve contenere {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("len-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("len-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "len"); err != nil {
 					return
 				}
 
@@ -111,7 +160,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				default:
 					t, err = ut.T("len-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
-
 			END:
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %s", err)
@@ -124,31 +172,19 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("min-string", "{0} deve essere lungo almeno {1}", false); err != nil {
+				if err = ut.Add("min-string", "{0} має містити щонайменше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("min-number", "{0} має бути більше чи дорівнювати {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("min-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("min-items", "{0} має містити щонайменше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-number", "{0} deve essere maggiore o uguale a {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.Add("min-items", "{0} deve contenere almeno {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("min-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("min-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "min"); err != nil {
 					return
 				}
 
@@ -156,7 +192,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
-
 				var t string
 
 				var digits uint64
@@ -214,30 +249,19 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("max-string", "{0} deve essere lungo al massimo {1}", false); err != nil {
+				if err = ut.Add("max-string", "{0} має містити максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("max-number", "{0} має бути менше чи дорівнювати {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("max-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("max-items", "{0} має містити максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-number", "{0} deve essere minore o uguale a {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.Add("max-items", "{0} deve contenere al massimo {1}", false); err != nil {
-					return
-				}
-				if err = ut.AddCardinal("max-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("max-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
+				if err = registerCardinals(ut, "max"); err != nil {
 					return
 				}
 
@@ -301,49 +325,36 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:             "eq",
-			translation:     "{0} non è uguale a {1}",
+			translation:     "{0} не дорівнює {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "ne",
-			translation:     "{0} deve essere diverso da {1}",
+			translation:     "{0} має не дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag: "lt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lt-string", "{0} deve essere lungo meno di {1}", false); err != nil {
+				if err = ut.Add("lt-string", "{0} має мати менше за {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("lt-number", "{0} має бути менше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lt-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("lt-items", "{0} має містити менше ніж {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-number", "{0} deve essere minore di {1}", false); err != nil {
-
+				if err = ut.Add("lt-datetime", "{0} має бути менше поточної дати й часу", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0} deve contenere meno di {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lt-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("lt-datetime", "{0} deve essere precedente alla Data/Ora corrente", false); err != nil {
+				if err = registerCardinals(ut, "lt"); err != nil {
 					return
 				}
 
@@ -357,6 +368,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
+
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -432,43 +444,29 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("lte-string", "{0} deve essere lungo al massimo {1}", false); err != nil {
+				if err = ut.Add("lte-string", "{0} має містити максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("lte-number", "{0} має бути менше чи дорівнювати {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("lte-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("lte-items", "{0} має містити максимум {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0} deve essere minore o uguale a {1}", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} має бути менше чи дорівнювати поточній даті та часу", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0} deve contenere al massimo {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("lte-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("lte-datetime", "{0} deve essere uguale o precedente alla Data/Ora corrente", false); err != nil {
+				if err = registerCardinals(ut, "lte"); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -476,6 +474,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
+
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -551,43 +550,29 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gt",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-
-				if err = ut.Add("gt-string", "{0} deve essere lungo più di {1}", false); err != nil {
+				if err = ut.Add("gt-string", "{0} має бути довше за {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("gt-number", "{0} має бути більше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gt-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gt-items", "{0} має містити більше ніж {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-number", "{0} deve essere maggiore di {1}", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} має бути пізніше поточного моменту", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0} deve contenere più di {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gt-datetime", "{0} deve essere successivo alla Data/Ora corrente", false); err != nil {
+				if err = registerCardinals(ut, "gt"); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -595,6 +580,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
+
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -670,42 +656,29 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gte-string", "{0} deve essere lungo almeno {1}", false); err != nil {
+				if err = ut.Add("gte-string", "{0} має містити щонайменше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} carattere", locales.PluralRuleOne, false); err != nil {
+				if err = ut.Add("gte-number", "{0} має бути більше чи дорівнювати {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("gte-string-character", "{0} caratteri", locales.PluralRuleOther, false); err != nil {
+				if err = ut.Add("gte-items", "{0} має містити щонайменше {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0} deve essere maggiore o uguale a {1}", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} має бути пізніше чи дорівнювати теперішньому моменту", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0} deve contenere almeno {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} elemento", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} elementi", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gte-datetime", "{0} deve essere uguale o successivo alla Data/Ora corrente", false); err != nil {
+				if err = registerCardinals(ut, "gte"); err != nil {
 					return
 				}
 
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -713,6 +686,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
+
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -787,437 +761,418 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:             "eqfield",
-			translation:     "{0} deve essere uguale a {1}",
+			translation:     "{0} має дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "eqcsfield",
-			translation:     "{0} deve essere uguale a {1}",
+			translation:     "{0} має дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "necsfield",
-			translation:     "{0} deve essere diverso da {1}",
+			translation:     "{0} не має дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "gtcsfield",
-			translation:     "{0} deve essere maggiore di {1}",
+			translation:     "{0} має бути більше {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "gtecsfield",
-			translation:     "{0} deve essere maggiore o uguale a {1}",
+			translation:     "{0} має бути більше чи дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "ltcsfield",
-			translation:     "{0} deve essere minore di {1}",
+			translation:     "{0} має бути менше {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "ltecsfield",
-			translation:     "{0} deve essere minore o uguale a {1}",
+			translation:     "{0} має бути менше чи дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "nefield",
-			translation:     "{0} deve essere diverso da {1}",
+			translation:     "{0} не має дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "gtfield",
-			translation:     "{0} deve essere maggiore di {1}",
+			translation:     "{0} має бути більше {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "gtefield",
-			translation:     "{0} deve essere maggiore o uguale a {1}",
+			translation:     "{0} має бути більше чи дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "ltfield",
-			translation:     "{0} deve essere minore di {1}",
+			translation:     "{0} має бути менше {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "ltefield",
-			translation:     "{0} deve essere minore o uguale a {1}",
+			translation:     "{0} має бути менше чи дорівнювати {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "alpha",
-			translation: "{0} può contenere solo caratteri alfabetici",
+			translation: "{0} має містити тільки літери",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0} può contenere solo caratteri alfanumerici",
+			translation: "{0} має містити тільки літери та цифри",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "{0} deve essere un valore numerico valido",
+			translation: "{0} має бути цифровим значенням",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0} deve essere un numero valido",
+			translation: "{0} має бути цифрою",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0} deve essere un esadecimale valido",
+			translation: "{0} має бути шістнадцятковим рядком",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "{0} deve essere un colore HEX valido",
+			translation: "{0} має бути HEX кольором",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "{0} deve essere un colore RGB valido",
+			translation: "{0} має бути RGB кольором",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "{0} deve essere un colore RGBA valido",
+			translation: "{0} має бути RGBA кольором",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "{0} deve essere un colore HSL valido",
+			translation: "{0} має бути HSL кольором",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "{0} deve essere un colore HSLA valido",
+			translation: "{0} має бути HSLA кольором",
 			override:    false,
 		},
 		{
 			tag:         "e164",
-			translation: "{0} deve essere un numero telefonico in formato E.164 valido",
+			translation: "{0} має бути номером телефону у форматі E.164",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "{0} deve essere un indirizzo email valido",
+			translation: "{0} має бути email адресою",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "{0} deve essere un URL valido",
+			translation: "{0} має бути URL",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0} deve essere un URI valido",
+			translation: "{0} має бути URI",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0} deve essere una stringa Base64 valida",
+			translation: "{0} має бути Base64 рядком",
 			override:    false,
 		},
 		{
 			tag:             "contains",
-			translation:     "{0} deve contenere il testo '{1}'",
+			translation:     "{0} має містити текст '{1}'",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "containsany",
-			translation:     "{0} deve contenere almeno uno dei seguenti caratteri '{1}'",
+			translation:     "{0} має містити щонайменше один із символів '{1}'",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "excludes",
-			translation:     "{0} non deve contenere il testo '{1}'",
+			translation:     "{0} не має містити текст '{1}'",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "excludesall",
-			translation:     "{0} non deve contenere alcuno dei seguenti caratteri '{1}'",
+			translation:     "{0} не має містити символи '{1}'",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "excludesrune",
-			translation:     "{0} non deve contenere '{1}'",
+			translation:     "{0} не має містити '{1}'",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "isbn",
-			translation: "{0} deve essere un numero ISBN valido",
+			translation: "{0} має бути ISBN номером",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0} deve essere un numero ISBN-10 valido",
+			translation: "{0} має бути ISBN-10 номером",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0} deve essere un numero ISBN-13 valido",
+			translation: "{0} має бути ISBN-13 номером",
 			override:    false,
 		},
 		{
 			tag:         "issn",
-			translation: "{0} deve essere un numero ISSN valido",
+			translation: "{0} має бути ISSN номером",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0} deve essere un UUID valido",
+			translation: "{0} має бути UUID",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0} deve essere un UUID versione 3 valido",
+			translation: "{0} має бути UUID 3 версії",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0} deve essere un UUID versione 4 valido",
+			translation: "{0} має бути UUID 4 версії",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0} deve essere un UUID versione 5 valido",
+			translation: "{0} має бути UUID 5 версії",
 			override:    false,
 		},
 		{
 			tag:         "ulid",
-			translation: "{0} deve essere un ULID valido",
+			translation: "{0} має бути ULID",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "{0} deve contenere solo caratteri ascii",
+			translation: "{0} має містити тільки ascii символи",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0} deve contenere solo caratteri ascii stampabili",
+			translation: "{0} має містити тільки доступні для друку ascii символи",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0} deve contenere caratteri multibyte",
+			translation: "{0} має містити мультібайтні символи",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "{0} deve contenere un Data URI valido",
+			translation: "{0} має містити Data URI",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0} deve contenere una latitudine valida",
+			translation: "{0} має містити координати широти",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0} deve contenere una longitudine valida",
+			translation: "{0} має містити координати довготи",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "{0} deve essere un numero SSN valido",
+			translation: "{0} має бути SSN номером",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "{0} deve essere un indirizzo IPv4 valido",
+			translation: "{0} має бути IPv4 адресою",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "{0} deve essere un indirizzo IPv6 valido",
+			translation: "{0} має бути IPv6 адресою",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "{0} deve essere un indirizzo IP valido",
+			translation: "{0} має бути IP адресою",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "{0} deve contenere una notazione CIDR valida",
+			translation: "{0} має містити CIDR позначення",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "{0} deve contenere una notazione CIDR per un indirizzo IPv4 valida",
+			translation: "{0} має містити CIDR позначення для IPv4 адреси",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "{0} deve contenere una notazione CIDR per un indirizzo IPv6 valida",
+			translation: "{0} має містити CIDR позначення для IPv6 адреси",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "{0} deve essere un indirizzo TCP valido",
+			translation: "{0} має бути TCP адресою",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "{0} deve essere un indirizzo IPv4 TCP valido",
+			translation: "{0} має бути IPv4 TCP адресою",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "{0} deve essere un indirizzo IPv6 TCP valido",
+			translation: "{0} має бути IPv6 TCP адресою",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "{0} deve essere un indirizzo UDP valido",
+			translation: "{0} має бути UDP адресою",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "{0} deve essere un indirizzo IPv4 UDP valido",
+			translation: "{0} має бути IPv4 UDP адресою",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "{0} deve essere un indirizzo IPv6 UDP valido",
+			translation: "{0} має бути IPv6 UDP адресою",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "{0} deve essere un indirizzo IP risolvibile",
+			translation: "{0} має бути розпізнаваною IP адресою",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0} deve essere un indirizzo IPv4 risolvibile",
+			translation: "{0} має бути розпізнаваною IPv4 адресою",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0} deve essere un indirizzo IPv6 risolvibile",
+			translation: "{0} має бути розпізнаваною IPv6 адресою",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0} deve essere un indirizzo UNIX risolvibile",
+			translation: "{0} має бути розпізнаваною UNIX адресою",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "{0} deve contenere un indirizzo MAC valido",
+			translation: "{0} має містити MAC адресу",
+			override:    false,
+		},
+		{
+			tag:         "fqdn",
+			translation: "{0} має містити FQDN",
 			override:    false,
 		},
 		{
 			tag:         "unique",
-			translation: "{0} deve contenere valori unici",
+			translation: "{0} має містити унікальні значення",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0} deve essere un colore valido",
-			override:    false,
-		},
-		{
-			tag:         "cron",
-			translation: "{0} deve essere una stringa cron valida",
+			translation: "{0} має бути кольором",
 			override:    false,
 		},
 		{
 			tag:             "oneof",
-			translation:     "{0} deve essere uno di [{1}]",
+			translation:     "{0} має бути одним з [{1}]",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "json",
-			translation: "{0} deve essere una stringa json valida",
+			translation: "{0} має бути json рядком",
 			override:    false,
 		},
 		{
 			tag:         "jwt",
-			translation: "{0} deve essere una stringa jwt valida",
+			translation: "{0} має бути jwt рядком",
 			override:    false,
 		},
 		{
 			tag:         "lowercase",
-			translation: "{0} deve essere una stringa minuscola",
-			override:    false,
-		},
-		{
-			tag:         "boolean",
-			translation: "{0} deve rappresentare un valore booleano",
+			translation: "{0} має бути рядком у нижньому регістрі",
 			override:    false,
 		},
 		{
 			tag:         "uppercase",
-			translation: "{0} deve essere una stringa maiuscola",
+			translation: "{0} має бути рядком у верхньому регістрі",
 			override:    false,
 		},
 		{
-			tag:             "startswith",
-			translation:     "{0} deve iniziare con {1}",
-			override:        false,
-			customTransFunc: customTransFuncV1,
-		},
-		{
-			tag:             "startsnotwith",
-			translation:     "{0} non deve iniziare con {1}",
-			override:        false,
-			customTransFunc: customTransFuncV1,
-		},
-		{
-			tag:             "endswith",
-			translation:     "{0} deve terminare con {1}",
-			override:        false,
-			customTransFunc: customTransFuncV1,
-		},
-		{
-			tag:             "endsnotwith",
-			translation:     "{0} non deve terminare con {1}",
-			override:        false,
-			customTransFunc: customTransFuncV1,
-		},
-		{
 			tag:             "datetime",
-			translation:     "{0} non corrisponde al formato {1}",
+			translation:     "{0} не відповідає {1} формату",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "postcode_iso3166_alpha2",
-			translation:     "{0} non corrisponde al formato del codice postale dello stato {1}",
+			translation:     "{0} не відповідає формату поштового індексу країни {1}",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:             "postcode_iso3166_alpha2_field",
-			translation:     "{0} non corrisponde al formato del codice postale dello stato nel campo {1}",
+			translation:     "{0} не відповідає формату поштового індексу країни в {1} полі",
 			override:        false,
-			customTransFunc: customTransFuncV1,
+			customTransFunc: translateFuncWithParam,
+		},
+		{
+			tag:         "boolean",
+			translation: "{0} має бути булевим значенням",
+			override:    false,
 		},
 		{
 			tag:         "image",
-			translation: "{0} deve essere un'immagine valida",
+			translation: "{0} має бути допустимим зображенням",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0} має бути cve ідентифікатором",
 			override:    false,
 		},
 	}
@@ -1261,11 +1216,53 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	return t
 }
 
-func customTransFuncV1(ut ut.Translator, fe validator.FieldError) string {
-	s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+func translateFuncWithParam(ut ut.Translator, fe validator.FieldError) string {
+	t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
 	if err != nil {
 		log.Printf("warning: error translating FieldError: %#v", fe)
 		return fe.(error).Error()
 	}
-	return s
+
+	return t
+}
+
+func registerCardinals(ut ut.Translator, prefix string) (err error) {
+	var (
+		stringCharacterKey = fmt.Sprintf("%s-string-character", prefix)
+		itemsItemKey       = fmt.Sprintf("%s-items-item", prefix)
+	)
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символ", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символи", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символів", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(stringCharacterKey, "{0} символи", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елемент", locales.PluralRuleOne, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементи", locales.PluralRuleFew, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементів", locales.PluralRuleMany, false); err != nil {
+		return
+	}
+
+	if err = ut.AddCardinal(itemsItemKey, "{0} елементи", locales.PluralRuleOther, false); err != nil {
+		return
+	}
+
+	return
 }

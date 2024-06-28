@@ -60,6 +60,41 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "excluded_if",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0}为禁填字段",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
@@ -1236,6 +1271,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0}必须是一个有效的ISSN编号",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0}必须是一个有效的UUID",
 			override:    false,
@@ -1427,6 +1467,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "image",
+			translation: "{0} 必须是有效图像",
+			override:    false,
 		},
 	}
 

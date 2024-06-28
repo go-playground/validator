@@ -20,6 +20,7 @@ const (
 	typeOr
 	typeKeys
 	typeEndKeys
+	typeOmitNil
 )
 
 const (
@@ -126,7 +127,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 		fld = typ.Field(i)
 
-		if !fld.Anonymous && len(fld.PkgPath) > 0 {
+		if !v.privateFieldValidation && !fld.Anonymous && len(fld.PkgPath) > 0 {
 			continue
 		}
 
@@ -254,6 +255,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			current.typeof = typeOmitEmpty
 			continue
 
+		case omitnil:
+			current.typeof = typeOmitNil
+			continue
+
 		case structOnlyTag:
 			current.typeof = typeStructOnly
 			continue
@@ -291,7 +296,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 				if wrapper, ok := v.validations[current.tag]; ok {
 					current.fn = wrapper.fn
-					current.runValidationWhenNil = wrapper.runValidatinOnNil
+					current.runValidationWhenNil = wrapper.runValidationOnNil
 				} else {
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}

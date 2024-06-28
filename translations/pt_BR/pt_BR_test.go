@@ -100,6 +100,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
+		ISSN              string    `validate:"issn"`
 		UUID              string    `validate:"uuid"`
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
@@ -140,6 +141,8 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		BooleanString     string    `validate:"boolean"`
+		Image             string    `validate:"image"`
+		CveString         string    `validate:"cve"`
 	}
 
 	var test Test
@@ -173,6 +176,7 @@ func TestTranslations(t *testing.T) {
 	test.NumericString = "12E.00"
 	test.NumberString = "12E"
 	test.BooleanString = "A"
+	test.CveString = "A"
 
 	test.Excludes = "este é um texto de teste"
 	test.ExcludesAll = "Isso é Ótimo!"
@@ -324,6 +328,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13 deve ser um número ISBN-13 válido",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN deve ser um número ISSN válido",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -575,15 +583,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString é um campo requerido",
+			expected: "RequiredString é um campo obrigatório",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber é um campo requerido",
+			expected: "RequiredNumber é um campo obrigatório",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple é um campo requerido",
+			expected: "RequiredMultiple é um campo obrigatório",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
@@ -624,6 +632,14 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.BooleanString",
 			expected: "BooleanString deve ser um valor booleano válido",
+		},
+		{
+			ns:       "Test.Image",
+			expected: "Image deve ser uma imagen válido",
+		},
+		{
+			ns:       "Test.CveString",
+			expected: "CveString deve ser um identificador cve válido",
 		},
 	}
 

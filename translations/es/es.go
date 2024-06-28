@@ -30,6 +30,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0} es un campo requerido",
+			override:    false,
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 
@@ -1159,6 +1164,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0} debe ser un número ISSN válido",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} debe ser un UUID válido",
 			override:    false,
@@ -1325,6 +1335,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 				return s
 			},
+		},
+		{
+			tag:         "image",
+			translation: "{0} debe ser una imagen válida",
+			override:    false,
 		},
 	}
 

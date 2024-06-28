@@ -101,6 +101,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string            `validate:"isbn"`
 		ISBN10            string            `validate:"isbn10"`
 		ISBN13            string            `validate:"isbn13"`
+		ISSN              string            `validate:"issn"`
 		UUID              string            `validate:"uuid"`
 		UUID3             string            `validate:"uuid3"`
 		UUID4             string            `validate:"uuid4"`
@@ -147,6 +148,7 @@ func TestTranslations(t *testing.T) {
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -337,6 +339,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13 deve ser um número ISBN-13 válido",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN deve ser um número ISSN válido",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -661,6 +667,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime não está no formato 2006-01-02",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image deve ser uma imagem válida",
 		},
 	}
 

@@ -28,6 +28,18 @@ func TestTranslations(t *testing.T) {
 		GteCSFieldString string
 		LtCSFieldString  string
 		LteCSFieldString string
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithAll    string
+		RequiredWithout    string
+		RequiredWithoutAll string
+		ExcludedIf         string
+		ExcludedUnless     string
+		ExcludedWith       string
+		ExcludedWithAll    string
+		ExcludedWithout    string
+		ExcludedWithoutAll string
 	}
 
 	type Test struct {
@@ -35,6 +47,19 @@ func TestTranslations(t *testing.T) {
 		RequiredString    string    `validate:"required"`
 		RequiredNumber    int       `validate:"required"`
 		RequiredMultiple  []string  `validate:"required"`
+		RequiredIf             string    `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless        string    `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith          string    `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll       string    `validate:"required_with_all=Inner.RequiredWith Inner.RequiredWithAll"`
+		RequiredWithout       string    `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll    string    `validate:"required_without_all=Inner.RequiredWithout Inner.RequiredWithoutAll"`
+		ExcludedIf            string    `validate:"excluded_if=Inner.ExcludedIf abcd"`
+		ExcludedUnless        string    `validate:"excluded_unless=Inner.ExcludedUnless abcd"`
+		ExcludedWith          string    `validate:"excluded_with=Inner.ExcludedWith"`
+		ExcludedWithout       string    `validate:"excluded_with_all=Inner.ExcludedWithAll"`
+		ExcludedWithAll       string    `validate:"excluded_without=Inner.ExcludedWithout"`
+		ExcludedWithoutAll    string    `validate:"excluded_without_all=Inner.ExcludedWithoutAll"`
+		IsDefault             string    `validate:"isdefault"`
 		LenString         string    `validate:"len=1"`
 		LenNumber         float64   `validate:"len=1113.00"`
 		LenMultiple       []string  `validate:"len=7"`
@@ -100,6 +125,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
+		ISSN              string    `validate:"issn"`
 		UUID              string    `validate:"uuid"`
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
@@ -140,6 +166,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Datetime          string    `validate:"datetime=2006-01-02"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -147,6 +174,21 @@ func TestTranslations(t *testing.T) {
 	test.Inner.EqCSFieldString = "1234"
 	test.Inner.GtCSFieldString = "1234"
 	test.Inner.GteCSFieldString = "1234"
+	test.Inner.RequiredIf = "abcd"
+	test.Inner.RequiredUnless = "1234"
+	test.Inner.RequiredWith = "1234"
+	test.Inner.RequiredWithAll = "1234"
+	test.Inner.ExcludedIf = "abcd"
+	test.Inner.ExcludedUnless = "1234"
+	test.Inner.ExcludedWith = "1234"
+	test.Inner.ExcludedWithAll = "1234"
+
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithoutAll = "1234"
 
 	test.MaxString = "1234"
 	test.MaxNumber = 2000
@@ -325,6 +367,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13必須是一個有效的ISBN-13編號",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN必須是一個有效的ISSN編號",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -587,6 +633,50 @@ func TestTranslations(t *testing.T) {
 			expected: "RequiredMultiple為必填欄位",
 		},
 		{
+			ns:       "Test.RequiredUnless",
+			expected: "RequiredUnless為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWith",
+			expected: "RequiredWith為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithAll",
+			expected: "RequiredWithAll為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithout",
+			expected: "RequiredWithout為必填欄位",
+		},
+		{
+			ns:       "Test.RequiredWithoutAll",
+			expected: "RequiredWithoutAll為必填欄位",
+		},
+		{
+			ns:       "Test.ExcludedIf",
+			expected: "ExcludedIf為禁填欄位",
+		},
+		{
+			ns:       "Test.ExcludedUnless",
+			expected: "ExcludedUnless為禁填欄位",
+		},
+		{
+			ns:       "Test.ExcludedWith",
+			expected: "ExcludedWith為禁填欄位",
+		},
+		{
+			ns:       "Test.ExcludedWithAll",
+			expected: "ExcludedWithAll為禁填欄位",
+		},
+		{
+			ns:       "Test.ExcludedWithout",
+			expected: "ExcludedWithout為禁填欄位",
+		},
+		{
+			ns:       "Test.ExcludedWithoutAll",
+			expected: "ExcludedWithoutAll為禁填欄位",
+		},
+		{
 			ns:       "Test.StrPtrMinLen",
 			expected: "StrPtrMinLen長度必須至少為10個字元",
 		},
@@ -625,6 +715,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetime與2006-01-02格式不匹配",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image 必須是有效圖像",
 		},
 	}
 

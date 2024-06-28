@@ -100,6 +100,7 @@ func TestTranslations(t *testing.T) {
 		ISBN              string    `validate:"isbn"`
 		ISBN10            string    `validate:"isbn10"`
 		ISBN13            string    `validate:"isbn13"`
+		ISSN              string    `validate:"issn"`
 		UUID              string    `validate:"uuid"`
 		UUID3             string    `validate:"uuid3"`
 		UUID4             string    `validate:"uuid4"`
@@ -139,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		StrPtrGte         *string   `validate:"gte=10"`
 		OneOfString       string    `validate:"oneof=merah hijau"`
 		OneOfInt          int       `validate:"oneof=5 63"`
+		Image			  string			`validate:"image"`
 	}
 
 	var test Test
@@ -322,6 +324,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISBN13",
 			expected: "ISBN13 harus berupa nomor ISBN-13 yang valid",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN harus berupa nomor ISSN yang valid",
 		},
 		{
 			ns:       "Test.Excludes",
@@ -618,6 +624,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.OneOfInt",
 			expected: "OneOfInt harus berupa salah satu dari [5 63]",
+		},
+		{
+			ns: "Test.Image",
+			expected: "Image harus berupa gambar yang valid",
 		},
 	}
 

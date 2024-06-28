@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-playground/locales"
 	ut "github.com/go-playground/universal-translator"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -31,6 +32,66 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "required_if",
 			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} is a required field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} is an excluded field",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} must be default value",
 			override:    false,
 		},
 		{
@@ -1122,6 +1183,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0} must be a valid ISSN number",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} must be a valid UUID",
 			override:    false,
@@ -1267,6 +1333,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "fqdn",
+			translation: "{0} must be a valid FQDN",
+			override:    false,
+		},
+		{
 			tag:         "unique",
 			translation: "{0} must contain unique values",
 			override:    false,
@@ -1274,6 +1345,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "iscolor",
 			translation: "{0} must be a valid color",
+			override:    false,
+		},
+		{
+			tag:         "cron",
+			translation: "{0} must be a valid cron expression",
 			override:    false,
 		},
 		{
@@ -1354,6 +1430,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "boolean",
 			translation: "{0} must be a valid boolean value",
+			override:    false,
+		},
+		{
+			tag:         "image",
+			translation: "{0} must be a valid image",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0} must be a valid cve identifier",
 			override:    false,
 		},
 	}

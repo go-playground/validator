@@ -1154,6 +1154,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "issn",
+			translation: "{0} harus berupa nomor ISSN yang valid",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} harus berupa UUID yang valid",
 			override:    false,
@@ -1315,6 +1320,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 				return s
 			},
+		},
+		{
+			tag:         "image",
+			translation: "{0} harus berupa gambar yang valid",
+			override:    false,
 		},
 	}
 
