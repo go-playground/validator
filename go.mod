@@ -17,4 +17,4 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 )
 
-replace golang.org/x/net => golang.org/x/net v0.23.0 // GODRIVER-3225
+replace golang.org/x/net => golang.org/x/net v0.23.0 // https://github.com/advisories/GHSA-4v7x-pqxf-cx7m
