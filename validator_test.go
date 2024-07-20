@@ -12377,6 +12377,32 @@ func Test_hostnameport_validator(t *testing.T) {
 	}
 }
 
+func Test_port_validator(t *testing.T) {
+	type Host struct {
+		Port uint32 `validate:"port"`
+	}
+
+	type testInput struct {
+		data     uint32
+		expected bool
+	}
+	testData := []testInput{
+		{0, false},
+		{1, true},
+		{65535, true},
+		{65536, false},
+		{65538, false},
+	}
+	for _, td := range testData {
+		h := Host{Port: td.data}
+		v := New()
+		err := v.Struct(h)
+		if td.expected != (err == nil) {
+			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
+		}
+	}
+}
+
 func TestLowercaseValidation(t *testing.T) {
 	tests := []struct {
 		param    string
