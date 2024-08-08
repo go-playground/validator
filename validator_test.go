@@ -13637,6 +13637,7 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"*/20 * * * *", "cron", true},
 		{"0 15 10 ? * MON-FRI", "cron", true},
 		{"0 15 10 ? * 6#3", "cron", true},
+		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
 	}
 
