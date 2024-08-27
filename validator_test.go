@@ -12002,6 +12002,25 @@ func TestExcludedIf(t *testing.T) {
 	errs = validate.Struct(test10)
 	Equal(t, errs, nil)
 
+	test11 := struct {
+		Field1 bool
+  		Field2 *string `validate:"excluded_if=Field1 false"`
+	}{
+		Field1: false,
+		Field2: nil,
+	}
+	errs = validate.Struct(test11)
+	Equal(t, errs, nil)
+
+	test12 := struct {
+		Field1 bool
+		Field2 *string `validate:"excluded_if=Field1 !Field1"`
+	}{
+		Field1: true,
+		Field2: nil,
+	}
+	errs = validate.Struct(test12)
+	Equal(t, errs, nil)
 	// Checks number of params in struct tag is correct
 	defer func() {
 		if r := recover(); r == nil {

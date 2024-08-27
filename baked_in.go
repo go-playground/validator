@@ -1828,7 +1828,14 @@ func requireCheckFieldValue(
 		return int64(field.Len()) == asInt(value)
 
 	case reflect.Bool:
-		return field.Bool() == asBool(value)
+		return field.Bool() == (value == "true")
+
+	case reflect.Ptr:
+		if field.IsNil() {
+			return value == "nil"
+		}
+		// Handle non-nil pointers
+		return requireCheckFieldValue(fl, param, value, defaultNotFoundValue)
 	}
 
 	// default reflect.String:
