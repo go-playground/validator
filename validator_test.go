@@ -8675,7 +8675,7 @@ func TestEmail(t *testing.T) {
 	errs = validate.Var(s, "email")
 	Equal(t, errs, nil)
 
-	s = `"test test"@email.com`
+	s = `"test test"@email.com` // U+00A0 No-Break Space between quotes
 	errs = validate.Var(s, "email")
 	Equal(t, errs, nil)
 
