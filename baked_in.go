@@ -1398,6 +1398,7 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", currentField.Interface()))
 	}
 
+	postcodeRegexInit.Do(initPostcodes)
 	reg, found := postCodeRegexDict[currentField.String()]
 	if !found {
 		return false
