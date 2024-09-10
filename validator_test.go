@@ -12396,6 +12396,38 @@ func Test_hostnameport_validator(t *testing.T) {
 	}
 }
 
+func Test_ipv4_port_validator(t *testing.T) {
+	type IPv4Port struct {
+		BindAddr string `validate:"ipv4_port"`
+	}
+
+	type testInput struct {
+		data     string
+		expected bool
+	}
+	testData := []testInput{
+		{"192.168.1.1:1234", true},
+		{":1234", true},
+		{"localhost:1234", false},
+		{"aaa.bbb.ccc.ddd:234", false},
+		{":alpha", false},
+		{"1.2.3.4", false},
+		{"2001:db8::1:0.0.0.0:234", false},
+		{"2001:db8::1:0.0.0.0", false},
+		{"2001:db8::1:0.0.0.0:", false},
+		{"2001:db8::1:0.0.0.0:123456", false},
+		{"2001:db8::1:0.0.0.0:123456:", false},
+	}
+	for _, td := range testData {
+		h := IPv4Port{BindAddr: td.data}
+		v := New()
+		err := v.Struct(h)
+		if td.expected != (err == nil) {
+			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
+		}
+	}
+}
+
 func TestLowercaseValidation(t *testing.T) {
 	tests := []struct {
 		param    string
