@@ -8754,6 +8754,11 @@ func TestEmail(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "email")
 
+	s = ` test@example.com` // U+2028 Line Separator
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	s = ` test@example.com` // U+202F Narrow No-Break Space
 	errs = validate.Var(s, "email")
 	NotEqual(t, errs, nil)
