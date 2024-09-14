@@ -205,6 +205,7 @@ var (
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
+		"oneofci":                       isOneOfCI,
 		"html":                          isHTML,
 		"html_encoded":                  isHTMLEncoded,
 		"url_encoded":                   isURLEncoded,
@@ -293,6 +294,23 @@ func isOneOf(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(vals); i++ {
 		if vals[i] == v {
+			return true
+		}
+	}
+	return false
+}
+
+// isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).
+func isOneOfCI(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	v := field.String()
+	for _, val := range vals {
+		if strings.EqualFold(val, v) {
 			return true
 		}
 	}
