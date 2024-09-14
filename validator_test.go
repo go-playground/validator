@@ -5745,12 +5745,15 @@ func TestOneOfCIValidation(t *testing.T) {
 		{f: uint64(5), t: "oneofci=red green"},
 	}
 
+	panicCount := 0
 	for _, spec := range panicSpecs {
 		t.Logf("%#v", spec)
 		PanicMatches(t, func() {
 			_ = validate.Var(spec.f, spec.t)
 		}, fmt.Sprintf("Bad field type %T", spec.f))
+		panicCount++
 	}
+	Equal(t, panicCount, len(panicSpecs))
 }
 
 func TestBase32Validation(t *testing.T) {
