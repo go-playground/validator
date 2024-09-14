@@ -5680,6 +5680,79 @@ func TestOneOfValidation(t *testing.T) {
 	}, "Bad field type float64")
 }
 
+func TestOneOfCIValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "red", t: "oneofci=RED GREEN"},
+		{f: "RED", t: "oneofci=red green"},
+		{f: "red", t: "oneofci=red green"},
+		{f: "RED", t: "oneofci=RED GREEN"},
+		{f: "green", t: "oneofci=red green"},
+		{f: "red green", t: "oneofci='red green' blue"},
+		{f: "blue", t: "oneofci='red green' blue"},
+		{f: "GREEN", t: "oneofci=Red Green"},
+		{f: "ReD", t: "oneofci=RED GREEN"},
+		{f: "gReEn", t: "oneofci=rEd GrEeN"},
+		{f: "RED GREEN", t: "oneofci='red green' blue"},
+		{f: "red Green", t: "oneofci='RED GREEN' Blue"},
+		{f: "Red green", t: "oneofci='Red Green' BLUE"},
+		{f: "rEd GrEeN", t: "oneofci='ReD gReEn' BlUe"},
+		{f: "BLUE", t: "oneofci='Red Green' BLUE"},
+		{f: "BlUe", t: "oneofci='RED GREEN' Blue"},
+		{f: "bLuE", t: "oneofci='red green' BLUE"},
+	}
+
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "", t: "oneofci=red green"},
+		{f: "yellow", t: "oneofci=red green"},
+		{f: "green", t: "oneofci='red green' blue"},
+	}
+
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "oneofci")
+	}
+
+	panicSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: 3.14, t: "oneofci=red green"},
+		{f: 5, t: "oneofci=red green"},
+		{f: uint(6), t: "oneofci=7"},
+		{f: int8(5), t: "oneofci=red green"},
+		{f: int16(5), t: "oneofci=red green"},
+		{f: int32(5), t: "oneofci=red green"},
+		{f: int64(5), t: "oneofci=red green"},
+		{f: uint(5), t: "oneofci=red green"},
+		{f: uint8(5), t: "oneofci=red green"},
+		{f: uint16(5), t: "oneofci=red green"},
+		{f: uint32(5), t: "oneofci=red green"},
+		{f: uint64(5), t: "oneofci=red green"},
+	}
+
+	for _, spec := range panicSpecs {
+		t.Logf("%#v", spec)
+		PanicMatches(t, func() {
+			_ = validate.Var(spec.f, spec.t)
+		}, fmt.Sprintf("Bad field type %T", spec.f))
+	}
+}
+
 func TestBase32Validation(t *testing.T) {
 	validate := New()
 
