@@ -22,6 +22,11 @@ It has the following **unique** features:
 -   Customizable i18n aware error messages.
 -   Default validator for the [gin](https://github.com/gin-gonic/gin) web framework; upgrading from v8 to v9 in gin see [here](https://github.com/go-playground/validator/tree/master/_examples/gin-upgrading-overriding)
 
+A Call for Maintainers
+----------------------
+
+Please read the discussiong started [here](https://github.com/go-playground/validator/discussions/1330) if you are interested in contributing/helping maintain this package.
+
 Installation
 ------------
 
