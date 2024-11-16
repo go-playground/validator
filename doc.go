@@ -495,6 +495,13 @@ the target string between single quotes. Kind of like an 'enum'.
 	       oneof='red green' 'blue yellow'
 	       oneof=5 7 9
 
+# One Of Case Insensitive
+
+Works the same as oneof but is case insensitive and therefore only accepts strings.
+
+	Usage: oneofci=red green
+	       oneofci='red green' 'blue yellow'
+
 # Greater Than
 
 For numbers, this will ensure that the value is greater than the
