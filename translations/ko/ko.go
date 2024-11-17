@@ -1172,7 +1172,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0}는 올바른 ISBN 번호여야 합니다".,
+			translation: "{0}는 올바른 ISBN 번호여야 합니다.",
 			override:    false,
 		},
 		{
