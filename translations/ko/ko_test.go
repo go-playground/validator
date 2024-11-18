@@ -366,7 +366,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny은(는) '!@#$' 중 적어도 하나를 포함해야 합니다.",
+			expected: "ContainsAny은(는) '!@#$' 중 최소 하나를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Contains",
