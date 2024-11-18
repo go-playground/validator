@@ -1342,7 +1342,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0}은(는) 올바른 색여야 합니다.",
+			translation: "{0}은(는) 올바른 색이여야 합니다.",
 			override:    false,
 		},
 		{
