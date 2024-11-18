@@ -36,7 +36,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("len-string", "{0}의 길이는 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("len-string", "{0}의 길이는 {1}여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -125,7 +125,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("min-string", "{0}의 길이는 최소 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("min-string", "{0}의 길이는 최소 {1}여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -137,7 +137,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}은(는) {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("min-number", "{0}은(는) {1} 이상여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -214,7 +214,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "max",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("max-string", "{0}의 길이는 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("max-string", "{0}의 길이는 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -230,7 +230,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-items", "{0}은(는) 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("max-items", "{0}은(는) 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("max-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
@@ -405,7 +405,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0}은(는) {1}보다 적은 항목이어야 합니다.", false); err != nil {
+				if err = ut.Add("lt-items", "{0}은(는) {1}보다 적은 항목여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -417,7 +417,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0}은(는) 현재 시간보다 이전이어야 합니다.", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0}은(는) 현재 시간보다 이전여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -508,7 +508,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lte-string", "{0}의 길이는 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("lte-string", "{0}의 길이는 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -524,7 +524,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0}은(는) 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("lte-items", "{0}은(는) 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -536,7 +536,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0}은(는) 현재 시간 이전이어야 합니다.", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0}은(는) 현재 시간 이전여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -746,7 +746,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gte-string", "{0}의 길이는 최소 {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("gte-string", "{0}의 길이는 최소 {1} 이상여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -758,7 +758,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}은(는) {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("gte-number", "{0}은(는) {1} 이상여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -920,7 +920,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0}은(는) {1} 이상이어야 합니다.",
+			translation: "{0}은(는) {1} 이상여야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -990,7 +990,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0}은(는) {1} 이상이어야 합니다.",
+			translation: "{0}은(는) {1} 이상여야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1087,17 +1087,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "url",
-			translation: "{0}은(는) 올바른 URL이어야 합니다.",
+			translation: "{0}은(는) 올바른 URL여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0}은(는) 올바른 URI이어야 합니다.",
+			translation: "{0}은(는) 올바른 URI여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0}은(는) 올바른 Base64 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 Base64 문자열여야 합니다.",
 			override:    false,
 		},
 		{
@@ -1342,7 +1342,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0}은(는) 올바른 색이어야 합니다.",
+			translation: "{0}은(는) 올바른 색여야 합니다.",
 			override:    false,
 		},
 		{
@@ -1365,12 +1365,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "json",
-			translation: "{0}은(는) 올바른 JSON 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 JSON 문자열여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "jwt",
-			translation: "{0}은(는) 올바른 JWT 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 JWT 문자열여야 합니다.",
 			override:    false,
 		},
 		{
@@ -1427,7 +1427,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "boolean",
-			translation: "{0}은(는) 올바른 부울 값이어야 합니다.",
+			translation: "{0}은(는) 올바른 부울 값여야 합니다.",
 			override:    false,
 		},
 	}
