@@ -1390,7 +1390,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "fqdn",
-			translation: "{0}은 유효한 FQDN이어야 합니다.",
+			translation: "{0}은(는) 유효한 FQDN이어야 합니다.",
 			override:    false,
 		},
 		{
