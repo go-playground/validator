@@ -892,7 +892,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0}은(는) {1}와 달라야 합니다.",
+			translation: "{0}은(는) {1}과(와) 달라야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -962,7 +962,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0}은(는) {1}와 달라야 합니다.",
+			translation: "{0}은(는) {1}과(와) 달라야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
