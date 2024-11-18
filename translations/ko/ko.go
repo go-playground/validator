@@ -40,11 +40,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("len-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("len-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("len-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -129,11 +129,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("min-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("min-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("min-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -218,11 +218,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("max-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("max-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("max-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -393,11 +393,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("lt-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lt-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lt-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -512,11 +512,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("lte-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("lte-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("lte-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -631,11 +631,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("gt-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gt-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gt-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
