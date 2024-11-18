@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-playground/locales"
 	ut "github.com/go-playground/universal-translator"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -31,6 +32,66 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "required_if",
 			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0}은(는) 필수 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0}은(는) 제외된 필드입니다.",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0}은(는) 기본값이어야 합니다.",
 			override:    false,
 		},
 		{
@@ -64,7 +125,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
@@ -153,7 +213,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
@@ -242,10 +301,8 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				}
 
 				return
-
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 
@@ -316,7 +373,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag: "ne",
+			tag:         "ne",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("ne-items", "{0}의 항목 수는 {1}와(과) 달라야 합니다.", false); err != nil {
 					fmt.Printf("ne customRegisFunc #1 error because of %v\n", err)
@@ -337,7 +394,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -424,7 +480,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -432,7 +487,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -543,7 +597,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -551,7 +604,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -662,7 +714,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -670,7 +721,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -781,7 +831,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-
 				var err error
 				var t string
 				var f64 float64
@@ -789,7 +838,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -1081,6 +1129,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "e164",
+			translation: "{0}은(는) 유효한 E.164 형식의 전화번호여야 합니다.",
+			override:    false,
+		},
+		{
 			tag:         "email",
 			translation: "{0}은(는) 올바른 이메일 주소여야 합니다.",
 			override:    false,
@@ -1336,6 +1389,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "fqdn",
+			translation: "{0}은 유효한 FQDN이어야 합니다.",
+			override:    false,
+		},
+		{
 			tag:         "unique",
 			translation: "{0}은(는) 고유한 값만 포함해야 합니다.",
 			override:    false,
@@ -1343,6 +1401,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "iscolor",
 			translation: "{0}은(는) 올바른 색이여야 합니다.",
+			override:    false,
+		},
+		{
+			tag:         "cron",
+			translation: "{0}은(는) 유효한 cron 표현식이어야 합니다.",
 			override:    false,
 		},
 		{
@@ -1429,6 +1492,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			tag:         "boolean",
 			translation: "{0}은(는) 올바른 부울 값여야 합니다.",
 			override:    false,
+		},,
+		{
+			tag:         "image",
+			translation: "{0}은(는) 유효한 이미지여야 합니다.",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0}은(는) 유효한 CVE 식별자여야 합니다.",
+			override:    false,
 		},
 	}
 
@@ -1459,9 +1532,7 @@ func registrationFunc(tag string, translation string, override bool) validator.R
 		}
 
 		return
-
 	}
-
 }
 
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
