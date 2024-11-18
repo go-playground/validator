@@ -446,7 +446,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString은(는) EqFieldString과 달라야 합니다.",
+			expected: "NeFieldString은(는) EqFieldString과(와) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
@@ -466,7 +466,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString은(는) Inner.NeCSFieldString과 달라야 합니다.",
+			expected: "NeCSFieldString은(는) Inner.NeCSFieldString과(와) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
@@ -542,15 +542,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString은(는) 빈 문자열과 달라야 합니다.",
+			expected: "NeString은(는) 빈 문자열과(와) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber은(는) 0.00과 달라야 합니다.",
+			expected: "NeNumber은(는) 0.00과(와) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple의 항목 수는 0과 달라야 합니다.",
+			expected: "NeMultiple의 항목 수는 0과(와) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.EqString",
