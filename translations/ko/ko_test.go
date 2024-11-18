@@ -310,11 +310,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII는 ASCII 문자만을 포함해야 합니다.",
+			expected: "ASCII는 ASCII 문자만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII는 인쇄 가능한 ASCII 문자만을 포함해야 합니다.",
+			expected: "PrintableASCII는 인쇄 가능한 ASCII 문자만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.UUID",
