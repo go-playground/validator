@@ -470,11 +470,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString은(는) Inner.EqCSFieldString과 같아야 합니다.",
+			expected: "EqCSFieldString은(는) Inner.EqCSFieldString과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString은(는) MaxString과 같아야 합니다.",
+			expected: "EqFieldString은(는) MaxString과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.GteString",
@@ -554,15 +554,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString은(는) 3과 같아야 합니다.",
+			expected: "EqString은(는) 3과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber은(는) 2.33과 같아야 합니다.",
+			expected: "EqNumber은(는) 2.33과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple은(는) 7과 같아야 합니다.",
+			expected: "EqMultiple은(는) 7과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.MaxString",
@@ -594,7 +594,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber은(는) 1,113.00과 같아야 합니다.",
+			expected: "LenNumber은(는) 1,113.00과(와) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.LenMultiple",
