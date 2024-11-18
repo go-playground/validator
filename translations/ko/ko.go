@@ -141,7 +141,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-items", "{0}은(는) 적어도 {1}을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("min-items", "{0}은(는) 최소 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("min-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
@@ -762,7 +762,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0}은(는) 적어도 {1}을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("gte-items", "{0}은(는) 최소 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
 
@@ -1116,7 +1116,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0}은(는) '{1}' 중 적어도 하나를 포함해야 합니다.",
+			translation: "{0}은(는) '{1}' 중 최소 하나를 포함해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
