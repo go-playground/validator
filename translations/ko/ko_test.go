@@ -330,7 +330,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5는 버전 5의 올바른 UUID여야 합니다.",
+			expected: "UUID5은(는) 버전 5의 올바른 UUID여야 합니다.",
 		},
 		{
 			ns:       "Test.ULID",
