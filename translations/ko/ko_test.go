@@ -422,11 +422,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString은(는) 알파벳과 숫자만을 포함할 수 있습니다.",
+			expected: "AlphanumString은(는) 알파벳과 숫자만 포함할 수 있습니다.",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString은(는) 알파벳만을 포함할 수 있습니다.",
+			expected: "AlphaString은(는) 알파벳만 포함할 수 있습니다.",
 		},
 		{
 			ns:       "Test.LtFieldString",
