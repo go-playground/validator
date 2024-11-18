@@ -1158,7 +1158,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excludesrune",
-			translation: "{0}에는 '{1}'을 포함할 수 없습니다.",
+			translation: "{0}에는 '{1}'을(를) 포함할 수 없습니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
