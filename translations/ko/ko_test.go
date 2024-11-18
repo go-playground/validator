@@ -442,7 +442,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString은(는) MaxString보다 크거나 같아야 합니다.",
+			expected: "GteFieldString은(는) MaxString 이상이어야 합니다.",
 		},
 		{
 			ns:       "Test.NeFieldString",
@@ -462,7 +462,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString은(는) Inner.GteCSFieldString보다 크거나 같아야 합니다.",
+			expected: "GteCSFieldString은(는) Inner.GteCSFieldString 이상이어야 합니다.",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
