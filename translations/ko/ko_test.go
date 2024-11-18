@@ -362,7 +362,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune에는 '☻'를 포함할 수 없습니다.",
+			expected: "ExcludesRune에는 '☻'을(를) 포함할 수 없습니다.",
 		},
 		{
 			ns:       "Test.ContainsAny",
