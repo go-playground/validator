@@ -358,7 +358,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll에는 '!@#$'의 어느 것도 포함할 수 없습니다.",
+			expected: "ExcludesAll에는 '!@#$' 중 어느 것도 포함할 수 없습니다.",
 		},
 		{
 			ns:       "Test.ExcludesRune",
