@@ -25,12 +25,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		{
 			tag:         "required",
-			translation: "{0}는 필수 필드입니다.",
+			translation: "{0}은(는) 필수 필드입니다.",
 			override:    false,
 		},
 		{
 			tag:         "required_if",
-			translation: "{0}는 필수 필드입니다.",
+			translation: "{0}은(는) 필수 필드입니다.",
 			override:    false,
 		},
 		{
@@ -48,11 +48,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("len-number", "{0}는 {1}과 같아야 합니다.", false); err != nil {
+				if err = ut.Add("len-number", "{0}은(는) {1}과 같아야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("len-items", "{0}는 {1}을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("len-items", "{0}은(는) {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("len-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
@@ -137,11 +137,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-number", "{0}는 {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("min-number", "{0}은(는) {1} 이상이어야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("min-items", "{0}는 적어도 {1}을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("min-items", "{0}은(는) 적어도 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("min-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
@@ -226,11 +226,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-number", "{0}는 {1} 이하여야 합니다.", false); err != nil {
+				if err = ut.Add("max-number", "{0}은(는) {1} 이하여야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("max-items", "{0}는 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("max-items", "{0}은(는) 최대 {1}이어야 합니다.", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("max-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
@@ -303,7 +303,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0}는 {1}와(과) 같지 않습니다.",
+			translation: "{0}은(는) {1}와(과) 같지 않습니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -329,7 +329,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.AddCardinal("ne-items-item", "{0}개", locales.PluralRuleOther, false); err != nil {
 					return
 				}
-				if err = ut.Add("ne", "{0}는 {1}와(과) 달라야 합니다.", false); err != nil {
+				if err = ut.Add("ne", "{0}은(는) {1}와(과) 달라야 합니다.", false); err != nil {
 					fmt.Printf("ne customRegisFunc #2 error because of %v\n", err)
 					return
 				}
@@ -401,11 +401,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-number", "{0}는 {1}보다 작아야 합니다.", false); err != nil {
+				if err = ut.Add("lt-number", "{0}은(는) {1}보다 작아야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0}는 {1}보다 적은 항목이어야 합니다.", false); err != nil {
+				if err = ut.Add("lt-items", "{0}은(는) {1}보다 적은 항목이어야 합니다.", false); err != nil {
 					return
 				}
 
@@ -417,7 +417,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0}는 현재 시간보다 이전이어야 합니다.", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0}은(는) 현재 시간보다 이전이어야 합니다.", false); err != nil {
 					return
 				}
 
@@ -520,11 +520,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-number", "{0}는 {1} 이하여야 합니다.", false); err != nil {
+				if err = ut.Add("lte-number", "{0}은(는) {1} 이하여야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0}는 최대 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("lte-items", "{0}은(는) 최대 {1}이어야 합니다.", false); err != nil {
 					return
 				}
 
@@ -536,7 +536,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0}는 현재 시간 이전이어야 합니다.", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0}은(는) 현재 시간 이전이어야 합니다.", false); err != nil {
 					return
 				}
 
@@ -639,11 +639,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gt-number", "{0}는 {1}보다 커야 합니다.", false); err != nil {
+				if err = ut.Add("gt-number", "{0}은(는) {1}보다 커야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-items", "{0}는 {1}보다 많은 항목을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("gt-items", "{0}은(는) {1}보다 많은 항목을 포함해야 합니다.", false); err != nil {
 					return
 				}
 
@@ -655,7 +655,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0}는 현재 시간 이후여야 합니다.", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0}은(는) 현재 시간 이후여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -758,11 +758,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-number", "{0}는 {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("gte-number", "{0}은(는) {1} 이상이어야 합니다.", false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-items", "{0}는 적어도 {1}을 포함해야 합니다.", false); err != nil {
+				if err = ut.Add("gte-items", "{0}은(는) 적어도 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
 
@@ -774,7 +774,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0}는 현재 시간 이후여야 합니다.", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0}은(는) 현재 시간 이후여야 합니다.", false); err != nil {
 					return
 				}
 
@@ -864,7 +864,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "{0}는 {1}와 같아야 합니다.",
+			translation: "{0}은(는) {1}와 같아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -878,7 +878,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "{0}는 {1}와 같아야 합니다.",
+			translation: "{0}은(는) {1}와 같아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -892,7 +892,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "necsfield",
-			translation: "{0}는 {1}와 달라야 합니다.",
+			translation: "{0}은(는) {1}와 달라야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -906,7 +906,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtcsfield",
-			translation: "{0}는 {1}보다 커야 합니다.",
+			translation: "{0}은(는) {1}보다 커야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -920,7 +920,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0}는 {1} 이상이어야 합니다.",
+			translation: "{0}은(는) {1} 이상이어야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -934,7 +934,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltcsfield",
-			translation: "{0}는 {1}보다 작아야 합니다.",
+			translation: "{0}은(는) {1}보다 작아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -948,7 +948,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltecsfield",
-			translation: "{0}는 {1} 이하여야 합니다.",
+			translation: "{0}은(는) {1} 이하여야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -962,7 +962,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "nefield",
-			translation: "{0}는 {1}와 달라야 합니다.",
+			translation: "{0}은(는) {1}와 달라야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -976,7 +976,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtfield",
-			translation: "{0}는 {1}보다 커야 합니다.",
+			translation: "{0}은(는) {1}보다 커야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -990,7 +990,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtefield",
-			translation: "{0}는 {1} 이상이어야 합니다.",
+			translation: "{0}은(는) {1} 이상이어야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1004,7 +1004,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltfield",
-			translation: "{0}는 {1}보다 작아야 합니다.",
+			translation: "{0}은(는) {1}보다 작아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1018,7 +1018,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "ltefield",
-			translation: "{0}는 {1} 이하여야 합니다.",
+			translation: "{0}은(는) {1} 이하여야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1032,77 +1032,77 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "alpha",
-			translation: "{0}는 알파벳만 포함할 수 있습니다.",
+			translation: "{0}은(는) 알파벳만 포함할 수 있습니다.",
 			override:    false,
 		},
 		{
 			tag:         "alphanum",
-			translation: "{0}는 알파벳과 숫자만 포함할 수 있습니다.",
+			translation: "{0}은(는) 알파벳과 숫자만 포함할 수 있습니다.",
 			override:    false,
 		},
 		{
 			tag:         "numeric",
-			translation: "{0}는 올바른 숫자여야 합니다.",
+			translation: "{0}은(는) 올바른 숫자여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "number",
-			translation: "{0}는 올바른 수여야 합니다.",
+			translation: "{0}은(는) 올바른 수여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0}는 올바른 16진수 표기여야 합니다.",
+			translation: "{0}은(는) 올바른 16진수 표기여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "hexcolor",
-			translation: "{0}는 올바른 HEX 색상 코드여야 합니다.",
+			translation: "{0}은(는) 올바른 HEX 색상 코드여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "rgb",
-			translation: "{0}는 올바른 RGB 색상 코드여야 합니다.",
+			translation: "{0}은(는) 올바른 RGB 색상 코드여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "rgba",
-			translation: "{0}는 올바른 RGBA 색상 코드여야 합니다.",
+			translation: "{0}은(는) 올바른 RGBA 색상 코드여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "hsl",
-			translation: "{0}는 올바른 HSL 색상 코드여야 합니다.",
+			translation: "{0}은(는) 올바른 HSL 색상 코드여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "hsla",
-			translation: "{0}는 올바른 HSLA 색상 코드여야 합니다.",
+			translation: "{0}은(는) 올바른 HSLA 색상 코드여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "email",
-			translation: "{0}는 올바른 이메일 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 이메일 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "url",
-			translation: "{0}는 올바른 URL이어야 합니다.",
+			translation: "{0}은(는) 올바른 URL이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uri",
-			translation: "{0}는 올바른 URI이어야 합니다.",
+			translation: "{0}은(는) 올바른 URI이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "base64",
-			translation: "{0}는 올바른 Base64 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 Base64 문자열이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "contains",
-			translation: "{0}는 '{1}'을(를) 포함해야 합니다.",
+			translation: "{0}은(는) '{1}'을(를) 포함해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1116,7 +1116,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "containsany",
-			translation: "{0}는 '{1}' 중 적어도 하나를 포함해야 합니다.",
+			translation: "{0}은(는) '{1}' 중 적어도 하나를 포함해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1172,182 +1172,182 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "isbn",
-			translation: "{0}는 올바른 ISBN 번호여야 합니다.",
+			translation: "{0}은(는) 올바른 ISBN 번호여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "isbn10",
-			translation: "{0}는 올바른 ISBN-10 번호여야 합니다.",
+			translation: "{0}은(는) 올바른 ISBN-10 번호여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "isbn13",
-			translation: "{0}는 올바른 ISBN-13 번호여야 합니다.",
+			translation: "{0}은(는) 올바른 ISBN-13 번호여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "issn",
-			translation: "{0}는 올바른 ISSN 번호여야 합니다.",
+			translation: "{0}은(는) 올바른 ISSN 번호여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uuid",
-			translation: "{0}는 올바른 UUID여야 합니다.",
+			translation: "{0}은(는) 올바른 UUID여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uuid3",
-			translation: "{0}는 버전 3의 올바른 UUID여야 합니다.",
+			translation: "{0}은(는) 버전 3의 올바른 UUID여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uuid4",
-			translation: "{0}는 버전 4의 올바른 UUID여야 합니다.",
+			translation: "{0}은(는) 버전 4의 올바른 UUID여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uuid5",
-			translation: "{0}는 버전 5의 올바른 UUID여야 합니다.",
+			translation: "{0}은(는) 버전 5의 올바른 UUID여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ulid",
-			translation: "{0}는 올바른 ULID여야 합니다.",
+			translation: "{0}은(는) 올바른 ULID여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ascii",
-			translation: "{0}는 ASCII 문자만 포함해야 합니다.",
+			translation: "{0}은(는) ASCII 문자만 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "printascii",
-			translation: "{0}는 인쇄 가능한 ASCII 문자만 포함해야 합니다.",
+			translation: "{0}은(는) 인쇄 가능한 ASCII 문자만 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "multibyte",
-			translation: "{0}는 멀티바이트 문자를 포함해야 합니다.",
+			translation: "{0}은(는) 멀티바이트 문자를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "datauri",
-			translation: "{0}는 올바른 데이터 URI를 포함해야 합니다.",
+			translation: "{0}은(는) 올바른 데이터 URI를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0}는 올바른 위도 좌표를 포함해야 합니다.",
+			translation: "{0}은(는) 올바른 위도 좌표를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0}는 올바른 경도 좌표를 포함해야 합니다.",
+			translation: "{0}은(는) 올바른 경도 좌표를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ssn",
-			translation: "{0}는 올바른 사회 보장 번호여야 합니다.",
+			translation: "{0}은(는) 올바른 사회 보장 번호여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ipv4",
-			translation: "{0}는 올바른 IPv4 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv4 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ipv6",
-			translation: "{0}는 올바른 IPv6 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv6 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ip",
-			translation: "{0}는 올바른 IP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "cidr",
-			translation: "{0}는 올바른 CIDR 표기를 포함해야 합니다.",
+			translation: "{0}은(는) 올바른 CIDR 표기를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "cidrv4",
-			translation: "{0}는 IPv4 주소의 올바른 CIDR 표기를 포함해야 합니다.",
+			translation: "{0}은(는) IPv4 주소의 올바른 CIDR 표기를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "cidrv6",
-			translation: "{0}는 IPv6 주소의 올바른 CIDR 표기를 포함해야 합니다.",
+			translation: "{0}은(는) IPv6 주소의 올바른 CIDR 표기를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "tcp_addr",
-			translation: "{0}는 올바른 TCP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 TCP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "tcp4_addr",
-			translation: "{0}는 올바른 IPv4의 TCP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv4의 TCP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "tcp6_addr",
-			translation: "{0}는 올바른 IPv6의 TCP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv6의 TCP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "udp_addr",
-			translation: "{0}는 올바른 UDP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 UDP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "udp4_addr",
-			translation: "{0}는 올바른 IPv4의 UDP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv4의 UDP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "udp6_addr",
-			translation: "{0}는 올바른 IPv6의 UDP 주소여야 합니다.",
+			translation: "{0}은(는) 올바른 IPv6의 UDP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ip_addr",
-			translation: "{0}는 해석 가능한 IP 주소여야 합니다.",
+			translation: "{0}은(는) 해석 가능한 IP 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ip4_addr",
-			translation: "{0}는 해석 가능한 IPv4 주소여야 합니다.",
+			translation: "{0}은(는) 해석 가능한 IPv4 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "ip6_addr",
-			translation: "{0}는 해석 가능한 IPv6 주소여야 합니다.",
+			translation: "{0}은(는) 해석 가능한 IPv6 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "unix_addr",
-			translation: "{0}는 해석 가능한 UNIX 주소여야 합니다.",
+			translation: "{0}은(는) 해석 가능한 UNIX 주소여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "mac",
-			translation: "{0}는 올바른 MAC 주소를 포함해야 합니다.",
+			translation: "{0}은(는) 올바른 MAC 주소를 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "unique",
-			translation: "{0}는 고유한 값만 포함해야 합니다.",
+			translation: "{0}은(는) 고유한 값만 포함해야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "iscolor",
-			translation: "{0}는 올바른 색이어야 합니다.",
+			translation: "{0}은(는) 올바른 색이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "oneof",
-			translation: "{0}는 [{1}] 중 하나여야 합니다.",
+			translation: "{0}은(는) [{1}] 중 하나여야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1360,32 +1360,32 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "image",
-			translation: "{0}는 유효한 이미지여야 합니다.",
+			translation: "{0}은(는) 유효한 이미지여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "json",
-			translation: "{0}는 올바른 JSON 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 JSON 문자열이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "jwt",
-			translation: "{0}는 올바른 JWT 문자열이어야 합니다.",
+			translation: "{0}은(는) 올바른 JWT 문자열이어야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "lowercase",
-			translation: "{0}는 소문자여야 합니다.",
+			translation: "{0}은(는) 소문자여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "uppercase",
-			translation: "{0}는 대문자여야 합니다.",
+			translation: "{0}은(는) 대문자여야 합니다.",
 			override:    false,
 		},
 		{
 			tag:         "datetime",
-			translation: "{0}는 {1} 형식과 일치해야 합니다.",
+			translation: "{0}은(는) {1} 형식과 일치해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1399,7 +1399,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2",
-			translation: "{0}는 국가 코드 {1}의 우편번호 형식과 일치해야 합니다.",
+			translation: "{0}은(는) 국가 코드 {1}의 우편번호 형식과 일치해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1413,7 +1413,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0}는 {1} 필드에 지정된 국가 코드의 우편번호 형식과 일치해야 합니다.",
+			translation: "{0}은(는) {1} 필드에 지정된 국가 코드의 우편번호 형식과 일치해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1427,7 +1427,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "boolean",
-			translation: "{0}는 올바른 부울 값이어야 합니다.",
+			translation: "{0}은(는) 올바른 부울 값이어야 합니다.",
 			override:    false,
 		},
 	}
