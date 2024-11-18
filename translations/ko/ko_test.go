@@ -370,7 +370,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains는 'purpose'를 포함해야 합니다.",
+			expected: "Contains는 'purpose'을(를) 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Base64",
