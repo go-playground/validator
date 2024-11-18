@@ -48,7 +48,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("len-number", "{0}은(는) {1}과 같아야 합니다.", false); err != nil {
+				if err = ut.Add("len-number", "{0}은(는) {1}과(와) 같아야 합니다.", false); err != nil {
 					return
 				}
 
@@ -864,7 +864,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqfield",
-			translation: "{0}은(는) {1}와 같아야 합니다.",
+			translation: "{0}은(는) {1}과(와) 같아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -878,7 +878,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eqcsfield",
-			translation: "{0}은(는) {1}와 같아야 합니다.",
+			translation: "{0}은(는) {1}과(와) 같아야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
