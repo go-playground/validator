@@ -1102,7 +1102,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "contains",
-			translation: "{0}는 '{1}'을 포함해야 합니다.",
+			translation: "{0}는 '{1}'을(를) 포함해야 합니다.",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
