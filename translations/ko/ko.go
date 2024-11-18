@@ -125,7 +125,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "min",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("min-string", "{0}의 길이는 적어도 {1}이어야 합니다.", false); err != nil {
+				if err = ut.Add("min-string", "{0}의 길이는 최소 {1}이어야 합니다.", false); err != nil {
 					return
 				}
 
@@ -746,15 +746,15 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "gte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gte-string", "{0}의 길이는 적어도 {1} 이상이어야 합니다.", false); err != nil {
+				if err = ut.Add("gte-string", "{0}의 길이는 최소 {1} 이상이어야 합니다.", false); err != nil {
 					return
 				}
 
-				// if err = ut.AddCardinal("gte-string-character", "{0}문자", locales.PluralRuleOne, false); err != nil {
+				// if err = ut.AddCardinal("gte-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
 				// 	return
 				// }
 
-				if err = ut.AddCardinal("gte-string-character", "{0}문자", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
