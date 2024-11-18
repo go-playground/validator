@@ -1422,11 +1422,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "image",
-			translation: "{0}은(는) 유효한 이미지여야 합니다.",
-			override:    false,
-		},
-		{
 			tag:         "json",
 			translation: "{0}은(는) 올바른 JSON 문자열여야 합니다.",
 			override:    false,
