@@ -414,7 +414,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString은(는) 올바른 숫자여야 합니다.",
+			expected: "NumberString은(는) 올바른 수여야 합니다.",
 		},
 		{
 			ns:       "Test.NumericString",
