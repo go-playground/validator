@@ -434,7 +434,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString은(는) MaxString보다 작거나 같아야 합니다.",
+			expected: "LteFieldString은(는) MaxString 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.GtFieldString",
@@ -454,7 +454,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString은(는) Inner.LteCSFieldString보다 작거나 같아야 합니다.",
+			expected: "LteCSFieldString은(는) Inner.LteCSFieldString 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
@@ -514,7 +514,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber은(는) 5.56보다 작거나 같아야 합니다.",
+			expected: "LteNumber은(는) 5.56 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.LteMultiple",
@@ -570,7 +570,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber은(는) 1,113.00보다 작거나 같아야 합니다.",
+			expected: "MaxNumber은(는) 1,113.00 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.MaxMultiple",
