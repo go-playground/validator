@@ -24,6 +24,7 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	urn "github.com/leodido/go-urn"
+	"github.com/lib/pq"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -326,6 +327,11 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
+		// If it's a pq.StringArray, convert it to a []string for easier handling
+		if field.Type() == reflect.TypeOf(pq.StringArray{}) {
+			field = reflect.ValueOf([]string(field.Interface().(pq.StringArray)))
+		}
+
 		elem := field.Type().Elem()
 		if elem.Kind() == reflect.Ptr {
 			elem = elem.Elem()
