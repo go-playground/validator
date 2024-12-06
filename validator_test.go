@@ -12939,7 +12939,7 @@ func TestIsIso4217Validation(t *testing.T) {
 
 func TestIsIso4217NumericValidation(t *testing.T) {
 	tests := []struct {
-		value    any `validate:"iso4217_numeric"`
+		value    interface{} `validate:"iso4217_numeric"`
 		expected bool
 	}{
 		{8, true},
