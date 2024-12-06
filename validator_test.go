@@ -5987,7 +5987,7 @@ func TestImageValidation(t *testing.T) {
 			paths["noperm"],
 			false,
 			func() {
-				os.OpenFile(paths["noperm"], os.O_CREATE, 0o000)
+				_, _ = os.OpenFile(paths["noperm"], os.O_CREATE, 0o000)
 			},
 			func() {
 				os.Remove(paths["noperm"])
