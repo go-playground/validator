@@ -5522,12 +5522,11 @@ func TestIsEqValidation(t *testing.T) {
 	var errs error
 	validate := New()
 
-	var j uint64
-	var k float64
 	s := "abcd"
 	i := 1
-	j = 1
-	k = 1.543
+	j := uint64(1)
+	k := float64(1.543)
+	k32 := float32(1.543)
 	arr := []string{"test"}
 	now := time.Now().UTC()
 
@@ -5541,6 +5540,9 @@ func TestIsEqValidation(t *testing.T) {
 	Equal(t, errs, nil)
 
 	errs = validate.Var(k, "eq=1.543")
+	Equal(t, errs, nil)
+
+	errs = validate.Var(k32, "eq=1.543")
 	Equal(t, errs, nil)
 
 	errs = validate.Var(arr, "eq=1")
@@ -5946,6 +5948,7 @@ func TestImageValidation(t *testing.T) {
 	paths := map[string]string{
 		"empty":     "",
 		"directory": "testdata",
+		"noperm":    filepath.Join("testdata", "noperm.png"),
 		"missing":   filepath.Join("testdata", "none.png"),
 		"png":       filepath.Join("testdata", "image.png"),
 		"jpeg":      filepath.Join("testdata", "image.jpg"),
@@ -5978,6 +5981,17 @@ func TestImageValidation(t *testing.T) {
 			false,
 			func() {},
 			func() {},
+		},
+		{
+			"no permission",
+			paths["noperm"],
+			false,
+			func() {
+				os.OpenFile(paths["noperm"], os.O_CREATE, 0o000)
+			},
+			func() {
+				os.Remove(paths["noperm"])
+			},
 		},
 		{
 			"valid png",
@@ -6053,7 +6067,8 @@ func TestFilePathValidation(t *testing.T) {
 		{"empty filepath", "", false},
 		{"valid filepath", filepath.Join("testdata", "a.go"), true},
 		{"invalid filepath", filepath.Join("testdata", "no\000.go"), false},
-		{"directory, not a filepath", "testdata" + string(os.PathSeparator), false},
+		{"existing directory, not a filepath", "testdata" + string(os.PathSeparator), false},
+		{"non-existing directory, not a filepath", "missing" + string(os.PathSeparator), false},
 		{"directory", "testdata", false},
 	}
 
@@ -11001,14 +11016,14 @@ func TestDirPathValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
-func TestStartsWithValidation(t *testing.T) {
+func TestStartsNotWithValidation(t *testing.T) {
 	tests := []struct {
-		Value       string `validate:"startswith=(/^ヮ^)/*:・ﾟ✧"`
+		Value       string `validate:"startsnotwith=(/^ヮ^)/*:・ﾟ✧"`
 		Tag         string
 		ExpectedNil bool
 	}{
-		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
-		{Value: "abcd", Tag: "startswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+		{Value: "abcd", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
 	}
 
 	validate := New()
@@ -11028,14 +11043,14 @@ func TestStartsWithValidation(t *testing.T) {
 	}
 }
 
-func TestEndsWithValidation(t *testing.T) {
+func TestEndsNotWithValidation(t *testing.T) {
 	tests := []struct {
-		Value       string `validate:"endswith=(/^ヮ^)/*:・ﾟ✧"`
+		Value       string `validate:"endsnotwith=(/^ヮ^)/*:・ﾟ✧"`
 		Tag         string
 		ExpectedNil bool
 	}{
-		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
-		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
 	}
 
 	validate := New()
@@ -12080,7 +12095,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -12754,8 +12769,10 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 		expected bool
 	}{
 		{248, true},
+		{uint(248), true},
 		{"248", true},
 		{0, false},
+		{uint(0), false},
 		{1, false},
 		{"1", false},
 		{"invalid_int", false},
@@ -12788,9 +12805,11 @@ func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
 		value    interface{}
 		expected bool
 	}{
-		{752, true}, //Sweden
+		{752, true},       // Sweden
+		{uint(752), true}, // Sweden
 		{"752", true},
-		{826, false}, // UK
+		{826, false},       // UK
+		{uint(826), false}, // UK
 		{"826", false},
 	}
 
@@ -12847,6 +12866,10 @@ func TestCountryCodeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1.1, "country_code")
+	}, "Bad field type float64")
 }
 
 func TestEUCountryCodeValidation(t *testing.T) {
@@ -12880,6 +12903,10 @@ func TestEUCountryCodeValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1.1, "eu_country_code")
+	}, "Bad field type float64")
 }
 
 func TestIsIso4217Validation(t *testing.T) {
@@ -12912,12 +12939,14 @@ func TestIsIso4217Validation(t *testing.T) {
 
 func TestIsIso4217NumericValidation(t *testing.T) {
 	tests := []struct {
-		value    int `validate:"iso4217_numeric"`
+		value    any `validate:"iso4217_numeric"`
 		expected bool
 	}{
 		{8, true},
 		{12, true},
+		{uint(12), true},
 		{13, false},
+		{uint(13), false},
 	}
 
 	validate := New()
@@ -12936,6 +12965,10 @@ func TestIsIso4217NumericValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var("12", "iso4217_numeric")
+	}, "Bad field type string")
 }
 
 func TestTimeZoneValidation(t *testing.T) {
@@ -13632,6 +13665,10 @@ func TestSpiceDBValueFormatValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(`a_B/a_b`, "spicedb=invalid")
+	}, "Unrecognized parameter: invalid")
 }
 
 func TestCreditCardFormatValidation(t *testing.T) {
@@ -13717,6 +13754,10 @@ func TestLuhnChecksumValidation(t *testing.T) {
 			}
 		}
 	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(1.1, "luhn_checksum")
+	}, "Bad field type: float64")
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
