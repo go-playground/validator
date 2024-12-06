@@ -13757,7 +13757,7 @@ func TestLuhnChecksumValidation(t *testing.T) {
 
 	PanicMatches(t, func() {
 		_ = validate.Var(1.1, "luhn_checksum")
-	}, "Bad field type: float64")
+	}, "Bad field type float64")
 }
 
 func TestMultiOrOperatorGroup(t *testing.T) {
