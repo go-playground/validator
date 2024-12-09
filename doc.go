@@ -764,7 +764,7 @@ This validates that a string value contains ASCII alpha characters only
 
 # Alpha Space
 
-This validate that a string value contains ASCII alpha characters and spaces only
+This validates that a string value contains ASCII alpha characters and spaces only
 
 	Usage: alphaspace
 
