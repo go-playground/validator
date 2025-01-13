@@ -367,6 +367,8 @@ This does not mean the package will not work with older versions of Go, only tha
 MSGV(Minimum Supported Go Version) when the need arises to address Security issues/patches, OS issues & support or newly 
 introduced functionality that would greatly benefit the maintenance and/or usage of this package.
 
+If and when the MSGV is increased it will be done so in a minimum of a `Minor` release bump.
+
 License
 -------
 Distributed under MIT License, please see license file within the code for more details.
