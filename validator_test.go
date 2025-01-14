@@ -5680,6 +5680,82 @@ func TestOneOfValidation(t *testing.T) {
 	}, "Bad field type float64")
 }
 
+func TestOneOfCIValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "red", t: "oneofci=RED GREEN"},
+		{f: "RED", t: "oneofci=red green"},
+		{f: "red", t: "oneofci=red green"},
+		{f: "RED", t: "oneofci=RED GREEN"},
+		{f: "green", t: "oneofci=red green"},
+		{f: "red green", t: "oneofci='red green' blue"},
+		{f: "blue", t: "oneofci='red green' blue"},
+		{f: "GREEN", t: "oneofci=Red Green"},
+		{f: "ReD", t: "oneofci=RED GREEN"},
+		{f: "gReEn", t: "oneofci=rEd GrEeN"},
+		{f: "RED GREEN", t: "oneofci='red green' blue"},
+		{f: "red Green", t: "oneofci='RED GREEN' Blue"},
+		{f: "Red green", t: "oneofci='Red Green' BLUE"},
+		{f: "rEd GrEeN", t: "oneofci='ReD gReEn' BlUe"},
+		{f: "BLUE", t: "oneofci='Red Green' BLUE"},
+		{f: "BlUe", t: "oneofci='RED GREEN' Blue"},
+		{f: "bLuE", t: "oneofci='red green' BLUE"},
+	}
+
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: "", t: "oneofci=red green"},
+		{f: "yellow", t: "oneofci=red green"},
+		{f: "green", t: "oneofci='red green' blue"},
+	}
+
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "oneofci")
+	}
+
+	panicSpecs := []struct {
+		f interface{}
+		t string
+	}{
+		{f: 3.14, t: "oneofci=red green"},
+		{f: 5, t: "oneofci=red green"},
+		{f: uint(6), t: "oneofci=7"},
+		{f: int8(5), t: "oneofci=red green"},
+		{f: int16(5), t: "oneofci=red green"},
+		{f: int32(5), t: "oneofci=red green"},
+		{f: int64(5), t: "oneofci=red green"},
+		{f: uint(5), t: "oneofci=red green"},
+		{f: uint8(5), t: "oneofci=red green"},
+		{f: uint16(5), t: "oneofci=red green"},
+		{f: uint32(5), t: "oneofci=red green"},
+		{f: uint64(5), t: "oneofci=red green"},
+	}
+
+	panicCount := 0
+	for _, spec := range panicSpecs {
+		t.Logf("%#v", spec)
+		PanicMatches(t, func() {
+			_ = validate.Var(spec.f, spec.t)
+		}, fmt.Sprintf("Bad field type %T", spec.f))
+		panicCount++
+	}
+	Equal(t, panicCount, len(panicSpecs))
+}
+
 func TestBase32Validation(t *testing.T) {
 	validate := New()
 
@@ -12396,6 +12472,32 @@ func Test_hostnameport_validator(t *testing.T) {
 	}
 }
 
+func Test_port_validator(t *testing.T) {
+	type Host struct {
+		Port uint32 `validate:"port"`
+	}
+
+	type testInput struct {
+		data     uint32
+		expected bool
+	}
+	testData := []testInput{
+		{0, false},
+		{1, true},
+		{65535, true},
+		{65536, false},
+		{65538, false},
+	}
+	for _, td := range testData {
+		h := Host{Port: td.data}
+		v := New()
+		err := v.Struct(h)
+		if td.expected != (err == nil) {
+			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
+		}
+	}
+}
+
 func TestLowercaseValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -13656,6 +13758,7 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"*/20 * * * *", "cron", true},
 		{"0 15 10 ? * MON-FRI", "cron", true},
 		{"0 15 10 ? * 6#3", "cron", true},
+		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
 	}
 

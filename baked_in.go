@@ -205,6 +205,7 @@ var (
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
+		"oneofci":                       isOneOfCI,
 		"html":                          isHTML,
 		"html_encoded":                  isHTMLEncoded,
 		"url_encoded":                   isURLEncoded,
@@ -213,6 +214,7 @@ var (
 		"json":                          isJSON,
 		"jwt":                           isJWT,
 		"hostname_port":                 isHostnamePort,
+		"port":                          isPort,
 		"lowercase":                     isLowercase,
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
@@ -304,6 +306,23 @@ func isOneOf(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(vals); i++ {
 		if vals[i] == v {
+			return true
+		}
+	}
+	return false
+}
+
+// isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).
+func isOneOfCI(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	v := field.String()
+	for _, val := range vals {
+		if strings.EqualFold(val, v) {
 			return true
 		}
 	}
@@ -2987,6 +3006,13 @@ func isHostnamePort(fl FieldLevel) bool {
 		return hostnameRegexRFC1123().MatchString(host)
 	}
 	return true
+}
+
+// IsPort validates if the current field's value represents a valid port
+func isPort(fl FieldLevel) bool {
+	val := fl.Field().Uint()
+
+	return val >= 1 && val <= 65535
 }
 
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
