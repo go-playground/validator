@@ -241,6 +241,7 @@ var (
 		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"oci_tag":                       isOciTag,
 	}
 )
 
@@ -3044,4 +3045,9 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex().MatchString(cronString)
+}
+
+// isOciTag is the validation function for validating if the current field's value is a valid OCI tag, as described in the OCI Distribution Specification: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
+func isOciTag(fl FieldLevel) bool {
+	return ociTagRegex().MatchString(fl.Field().String())
 }

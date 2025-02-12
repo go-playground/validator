@@ -9417,6 +9417,32 @@ func TestPointerAndOmitEmpty(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestOciTag(t *testing.T) {
+	validate := New()
+
+	type Test struct {
+		Value string `validate:"oci_tag"`
+	}
+
+	var test Test
+
+	err := validate.Struct(test)
+	NotEqual(t, err, nil)
+	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "oci_tag")
+
+	test.Value = "latest"
+	err = validate.Struct(test)
+	Equal(t, err, nil)
+
+	test.Value = "thisismorethanonehundredandtwentyeightcharactersthisismorethanonehundredandtwentyeightcharactersthisismorethanonehundredandtwenty"
+	err = validate.Struct(test)
+	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "oci_tag")
+
+	test.Value = ""
+	err = validate.Struct(test)
+	AssertError(t, err.(ValidationErrors), "Test.Value", "Test.Value", "Value", "Value", "oci_tag")
+}
+
 func TestRequired(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -12080,7 +12106,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
