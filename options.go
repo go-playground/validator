@@ -25,7 +25,10 @@ func WithPrivateFieldValidation() Option {
 	}
 }
 
-// WithEarlyExit
+// WithEarlyExit configures the validator to immediately stop validation as soon as the first error is encountered
+//
+// This feature could be an opt-in behavior, allowing to opt into "early exit" validation, without breaking current workflows
+// Early exit on the first failure would save time by avoiding unnecessary checks on the remaining fields
 func WithEarlyExit() Option {
 	return func(v *Validate) {
 		v.earlyExit = true
