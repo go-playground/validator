@@ -24,3 +24,10 @@ func WithPrivateFieldValidation() Option {
 		v.privateFieldValidation = true
 	}
 }
+
+// WithEarlyExit
+func WithEarlyExit() Option {
+	return func(v *Validate) {
+		v.earlyExit = true
+	}
+}

@@ -95,6 +95,7 @@ type Validate struct {
 	hasTagNameFunc         bool
 	requiredStructEnabled  bool
 	privateFieldValidation bool
+	earlyExit              bool
 }
 
 // New returns a new instance of 'validate' with sane defaults.

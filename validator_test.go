@@ -12080,7 +12080,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -14119,6 +14119,75 @@ func TestPrivateFieldsStruct(t *testing.T) {
 		err := validate.Struct(tc.stct)
 		NotEqual(t, err, nil)
 
+		errs := err.(ValidationErrors)
+		Equal(t, len(errs), tc.errorNum)
+	}
+}
+
+func TestEarlyExitStruct(t *testing.T) {
+	type tc struct {
+		stct     interface{}
+		errorNum int
+	}
+
+	tcs := []tc{
+		{
+			stct: &struct {
+				f1 int8  `validate:"gt=0"`
+				f2 int16 `validate:"gt=0"`
+				f3 int32 `validate:"gt=0"`
+				f4 int64 `validate:"gt=0"`
+			}{},
+			errorNum: 1,
+		},
+		{
+			stct: &struct {
+				f1 string `validate:"min=3"`
+				f2 string `validate:"min=3"`
+			}{},
+			errorNum: 1,
+		},
+		{
+			stct: &struct {
+				f1 struct {
+					f2 string `validate:"min=3"`
+				}
+				f3 int8 `validate:"gt=3"`
+			}{},
+			errorNum: 1,
+		},
+		{
+			stct: &struct {
+				f1 string `validate:"min=3"`
+				f2 struct {
+					f3 string `validate:"min=3"`
+				}
+			}{},
+			errorNum: 1,
+		},
+		{
+			stct: &struct {
+				f1 *int `validate:"gt=0"`
+				f2 struct {
+					f3 string `validate:"min=3"`
+				}
+			}{},
+			errorNum: 1,
+		},
+		{
+			stct: &struct {
+				f1 []string `validate:"required,dive"`
+				f2 []int8   `validate:"required,dive"`
+			}{},
+			errorNum: 1,
+		},
+	}
+
+	validate := New(WithPrivateFieldValidation(), WithEarlyExit())
+
+	for _, tc := range tcs {
+		err := validate.Struct(tc.stct)
+		NotEqual(t, err, nil)
 		errs := err.(ValidationErrors)
 		Equal(t, len(errs), tc.errorNum)
 	}
