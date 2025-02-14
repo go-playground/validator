@@ -200,20 +200,18 @@ func TestFieldTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -379,20 +377,18 @@ func TestNetworkTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -559,20 +555,18 @@ func TestStringTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -921,20 +915,18 @@ func TestFormatTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -1116,20 +1108,18 @@ func TestComparisonTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -1340,20 +1330,18 @@ func TestOtherTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
 
@@ -1438,19 +1426,17 @@ func TestAliasesTagsTranslations(t *testing.T) {
 
 	// verify each expected error message
 	for _, tt := range tests {
-		t.Run(tt.ns, func(t *testing.T) {
-			var fe validator.FieldError
+		var fe validator.FieldError
 
-			// find matching field error
-			for _, e := range errs {
-				if tt.ns == e.Namespace() {
-					fe = e
-					break
-				}
+		// find matching field error
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
 			}
+		}
 
-			NotEqual(t, fe, nil)
-			Equal(t, tt.expected, fe.Translate(trans))
-		})
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }

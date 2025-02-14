@@ -25,201 +25,89 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}{
 		// Field Tags
 		{
-			tag:         "eqcsfield",
-			translation: "{0} harus sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqcsfield",
+			translation:     "{0} harus sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "eqfield",
-			translation: "{0} harus sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eqfield",
+			translation:     "{0} harus sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "fieldcontains",
-			translation: "{0} harus berisi nilai dari field {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "fieldcontains",
+			translation:     "{0} harus berisi nilai dari field {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "fieldexcludes",
-			translation: "{0} tidak boleh berisi nilai dari field {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "fieldexcludes",
+			translation:     "{0} tidak boleh berisi nilai dari field {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtcsfield",
-			translation: "{0} harus lebih besar dari {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtcsfield",
+			translation:     "{0} harus lebih besar dari {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtecsfield",
-			translation: "{0} harus lebih besar dari atau sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtecsfield",
+			translation:     "{0} harus lebih besar dari atau sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtefield",
-			translation: "{0} harus lebih besar dari atau sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtefield",
+			translation:     "{0} harus lebih besar dari atau sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "gtfield",
-			translation: "{0} harus lebih besar dari {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "gtfield",
+			translation:     "{0} harus lebih besar dari {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltcsfield",
-			translation: "{0} harus kurang dari {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltcsfield",
+			translation:     "{0} harus kurang dari {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltecsfield",
-			translation: "{0} harus kurang dari atau sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltecsfield",
+			translation:     "{0} harus kurang dari atau sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltefield",
-			translation: "{0} harus kurang dari atau sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltefield",
+			translation:     "{0} harus kurang dari atau sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ltfield",
-			translation: "{0} harus kurang dari {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ltfield",
+			translation:     "{0} harus kurang dari {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "necsfield",
-			translation: "{0} tidak sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "necsfield",
+			translation:     "{0} tidak sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 
 		{
-			tag:         "nefield",
-			translation: "{0} tidak sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "nefield",
+			translation:     "{0} tidak sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 
 		// Network Tags
@@ -391,116 +279,52 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "contains",
-			translation: "{0} harus berisi teks '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "contains",
+			translation:     "{0} harus berisi teks '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "containsany",
-			translation: "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsany",
+			translation:     "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "containsrune",
-			translation: "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "containsrune",
+			translation:     "{0} harus berisi setidaknya salah satu karakter berikut '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "endsnotwith",
-			translation: "{0} tidak boleh diakhiri dengan '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "endsnotwith",
+			translation:     "{0} tidak boleh diakhiri dengan '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "endswith",
-			translation: "{0} harus diakhiri dengan '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "endswith",
+			translation:     "{0} harus diakhiri dengan '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludes",
-			translation: "{0} tidak boleh berisi teks '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludes",
+			translation:     "{0} tidak boleh berisi teks '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesall",
-			translation: "{0} tidak boleh berisi salah satu karakter berikut '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesall",
+			translation:     "{0} tidak boleh berisi salah satu karakter berikut '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excludesrune",
-			translation: "{0} tidak boleh berisi '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excludesrune",
+			translation:     "{0} tidak boleh berisi '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "lowercase",
@@ -528,32 +352,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "startsnotwith",
-			translation: "{0} tidak boleh diawali dengan '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "startsnotwith",
+			translation:     "{0} tidak boleh diawali dengan '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "startswith",
-			translation: "{0} harus diawali dengan '{1}'",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "startswith",
+			translation:     "{0} harus diawali dengan '{1}'",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "uppercase",
@@ -628,18 +436,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "datetime",
-			translation: "{0} tidak sesuai dengan format {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "datetime",
+			translation:     "{0} tidak sesuai dengan format {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "e164",
@@ -752,32 +552,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2",
-			translation: "{0} tidak sesuai dengan format kode pos negara {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "postcode_iso3166_alpha2",
+			translation:     "{0} tidak sesuai dengan format kode pos negara {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "postcode_iso3166_alpha2_field",
-			translation: "{0} tidak sesuai dengan format kode pos negara dalam field {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "postcode_iso3166_alpha2_field",
+			translation:     "{0} tidak sesuai dengan format kode pos negara dalam field {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "rgb",
@@ -907,32 +691,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 		// Comparisons Tags
 		{
-			tag:         "eq",
-			translation: "{0} tidak sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq",
+			translation:     "{0} tidak sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "eq_ignore_case",
-			translation: "{0} harus sama dengan {1} (tidak case-sensitive)",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "eq_ignore_case",
+			translation:     "{0} harus sama dengan {1} (tidak case-sensitive)",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag: "gt",
@@ -1375,32 +1143,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "ne",
-			translation: "{0} tidak sama dengan {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne",
+			translation:     "{0} tidak sama dengan {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "ne_ignore_case",
-			translation: "{0} tidak sama dengan {1} (tidak case-sensitive)",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "ne_ignore_case",
+			translation:     "{0} tidak sama dengan {1} (tidak case-sensitive)",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 
 		// Other Tags
@@ -1660,17 +1412,10 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "oneof",
-			translation: "{0} harus berupa salah satu dari [{1}]",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-				return s
-			},
+			tag:             "oneof",
+			translation:     "{0} harus berupa salah satu dari [{1}]",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "required",
@@ -1678,172 +1423,76 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
-			tag:         "required_if",
-			translation: "{0} wajib diisi jika {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_if",
+			translation:     "{0} wajib diisi jika {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "required_unless",
-			translation: "{0} wajib diisi kecuali {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_unless",
+			translation:     "{0} wajib diisi kecuali {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "required_with",
-			translation: "{0} wajib diisi jika {1} telah diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_with",
+			translation:     "{0} wajib diisi jika {1} telah diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "required_with_all",
-			translation: "{0} wajib diisi jika {1} telah diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_with_all",
+			translation:     "{0} wajib diisi jika {1} telah diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "required_without",
-			translation: "{0} wajib diisi jika {1} tidak diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_without",
+			translation:     "{0} wajib diisi jika {1} tidak diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "required_without_all",
-			translation: "{0} wajib diisi jika {1} tidak diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "required_without_all",
+			translation:     "{0} wajib diisi jika {1} tidak diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_if",
-			translation: "{0} tidak boleh diisi jika {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_if",
+			translation:     "{0} tidak boleh diisi jika {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_unless",
-			translation: "{0} tidak boleh diisi kecuali {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_unless",
+			translation:     "{0} tidak boleh diisi kecuali {1}",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_with",
-			translation: "{0} tidak boleh diisi jika {1} telah diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_with",
+			translation:     "{0} tidak boleh diisi jika {1} telah diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_with_all",
-			translation: "{0} tidak boleh diisi jika semua {1} telah diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_with_all",
+			translation:     "{0} tidak boleh diisi jika semua {1} telah diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_without",
-			translation: "{0} tidak boleh diisi jika {1} tidak diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_without",
+			translation:     "{0} tidak boleh diisi jika {1} tidak diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
-			tag:         "excluded_without_all",
-			translation: "{0} tidak boleh diisi jika {1} tidak diisi",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
-				}
-
-				return t
-			},
+			tag:             "excluded_without_all",
+			translation:     "{0} tidak boleh diisi jika {1} tidak diisi",
+			override:        false,
+			customTransFunc: translateFuncWithParam,
 		},
 		{
 			tag:         "unique",
@@ -1901,5 +1550,16 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 		log.Printf("warning: error translating FieldError: %#v", fe)
 		return fe.(error).Error()
 	}
+	return t
+}
+
+// translateFuncWithParam is the default translation function with parameter
+func translateFuncWithParam(ut ut.Translator, fe validator.FieldError) string {
+	t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+	if err != nil {
+		log.Printf("warning: error translating FieldError: %#v", fe)
+		return fe.(error).Error()
+	}
+
 	return t
 }
