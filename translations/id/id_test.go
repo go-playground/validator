@@ -961,21 +961,25 @@ func TestComparisonTagsTranslations(t *testing.T) {
 		GtString string    `validate:"gt=5"` // length > 5
 		GtNumber float64   `validate:"gt=10.5"`
 		GtTime   time.Time `validate:"gt"`
+		GtSlice  []string  `validate:"gt=1"` // length > 1
 
 		// Greater than or equal comparisons
 		GteString string    `validate:"gte=5"` // length >= 5
 		GteNumber float64   `validate:"gte=10.5"`
 		GteTime   time.Time `validate:"gte"`
+		GteSlice  []string  `validate:"gte=1"` // length >= 1
 
 		// Less than comparisons
 		LtString string    `validate:"lt=5"` // length < 5
 		LtNumber float64   `validate:"lt=10.5"`
 		LtTime   time.Time `validate:"lt"`
+		LtSlice  []string  `validate:"lt=2"` // length < 1
 
 		// Less than or equal comparisons
 		LteString string    `validate:"lte=5"` // length <= 5
 		LteNumber float64   `validate:"lte=10.5"`
 		LteTime   time.Time `validate:"lte"`
+		LteSlice  []string  `validate:"lte=1"` // length <= 1
 	}
 
 	// init test struct with invalid values
@@ -997,13 +1001,15 @@ func TestComparisonTagsTranslations(t *testing.T) {
 		GteNumber: 5.5,                 // should be >= 10.5
 		GteTime:   now.Add(-time.Hour), // should be >= now
 
-		LtString: "toolong",          // length = 7, should be < 5
-		LtNumber: 15.5,               // should be < 10.5
-		LtTime:   now.Add(time.Hour), // should be < now
+		LtString: "toolong",               // length = 7, should be < 5
+		LtNumber: 15.5,                    // should be < 10.5
+		LtTime:   now.Add(time.Hour),      // should be < now
+		LtSlice:  []string{"satu", "dua"}, // should be < 2
 
-		LteString: "toolong",          // length = 7, should be <= 5
-		LteNumber: 15.5,               // should be <= 10.5
-		LteTime:   now.Add(time.Hour), // should be <= now
+		LteString: "toolong",               // length = 7, should be <= 5
+		LteNumber: 15.5,                    // should be <= 10.5
+		LteTime:   now.Add(time.Hour),      // should be <= now
+		LteSlice:  []string{"satu", "dua"}, // should be <= 1
 	}
 
 	// validate struct
@@ -1055,6 +1061,10 @@ func TestComparisonTagsTranslations(t *testing.T) {
 			expected: "GtTime harus lebih besar dari tanggal & waktu saat ini",
 		},
 		{
+			ns:       "TestComparisonTags.GtSlice",
+			expected: "GtSlice harus berisi lebih dari 1 item",
+		},
+		{
 			ns:       "TestComparisonTags.GteString",
 			expected: "panjang minimal GteString adalah 5 karakter",
 		},
@@ -1065,6 +1075,10 @@ func TestComparisonTagsTranslations(t *testing.T) {
 		{
 			ns:       "TestComparisonTags.GteTime",
 			expected: "GteTime harus lebih besar dari atau sama dengan tanggal & waktu saat ini",
+		},
+		{
+			ns:       "TestComparisonTags.GteSlice",
+			expected: "GteSlice harus berisi setidaknya 1 item",
 		},
 		{
 			ns:       "TestComparisonTags.LtString",
@@ -1079,6 +1093,10 @@ func TestComparisonTagsTranslations(t *testing.T) {
 			expected: "LtTime harus kurang dari tanggal & waktu saat ini",
 		},
 		{
+			ns:       "TestComparisonTags.LtSlice",
+			expected: "LtSlice harus berisi kurang dari 2 item",
+		},
+		{
 			ns:       "TestComparisonTags.LteString",
 			expected: "panjang maksimal LteString adalah 5 karakter",
 		},
@@ -1089,6 +1107,10 @@ func TestComparisonTagsTranslations(t *testing.T) {
 		{
 			ns:       "TestComparisonTags.LteTime",
 			expected: "LteTime harus kurang dari atau sama dengan tanggal & waktu saat ini",
+		},
+		{
+			ns:       "TestComparisonTags.LteSlice",
+			expected: "LteSlice harus berisi maksimal 1 item",
 		},
 	}
 
@@ -1135,19 +1157,21 @@ func TestOtherTagsTranslations(t *testing.T) {
 		LenSlice           []string `validate:"len=3"`
 		LenNumber          int      `validate:"len=10"`
 		MinString          string   `validate:"min=3"`
+		MinSlice           []string `validate:"min=1"`
 		MaxString          string   `validate:"max=5"`
+		MaxSlice           []string `validate:"max=1"`
 		IsDefault          string   `validate:"isdefault"`
 		Required           string   `validate:"required"`
 		RequiredIf         string   `validate:"required_if=Inner.RequiredWith value"`
 		RequiredUnless     string   `validate:"required_unless=Inner.RequiredWith values"`
 		RequiredWith       string   `validate:"required_with=Inner.RequiredWith"`
 		RequiredWithAll    string   `validate:"required_with_all=Inner.RequiredWith"`
-		RequiredWithout    string   `validate:"required_without=Inner.RequiredWith"`
-		RequiredWithoutAll string   `validate:"required_without_all=Inner.RequiredWith"`
+		RequiredWithout    string   `validate:"required_without=Inner.ExcludedWith"`
+		RequiredWithoutAll string   `validate:"required_without_all=Inner.ExcludedWith"`
 		ExcludedIf         string   `validate:"excluded_if=Inner.RequiredWith value"`
 		ExcludedUnless     string   `validate:"excluded_unless=Inner.ExcludedWith value"`
-		ExcludedWith       string   `validate:"excluded_with=Inner.Field"`
-		ExcludedWithAll    string   `validate:"excluded_with_all=Inner.Field"`
+		ExcludedWith       string   `validate:"excluded_with=Inner.RequiredWith"`
+		ExcludedWithAll    string   `validate:"excluded_with_all=Inner.RequiredWith"`
 		ExcludedWithout    string   `validate:"excluded_without=Inner.ExcludedWith"`
 		ExcludedWithoutAll string   `validate:"excluded_without_all=Inner.ExcludedWith"`
 		OneOf              string   `validate:"oneof=red green blue"`
@@ -1162,11 +1186,13 @@ func TestOtherTagsTranslations(t *testing.T) {
 		File:    "nonexistent.txt",
 		Image:   "not-an-image.txt",
 
-		LenString: "toolong",          // should be exactly 5 chars
-		LenSlice:  []string{"a", "b"}, // should be exactly 3 items
-		LenNumber: 5,                  // should be 10
-		MinString: "ab",               // should be min 3 chars
-		MaxString: "toolong",          // should be max 5 chars
+		LenString: "toolong",               // should be exactly 5 chars
+		LenSlice:  []string{"a", "b"},      // should be exactly 3 items
+		LenNumber: 5,                       // should be 10
+		MinString: "ab",                    // should be min 3 chars
+		MinSlice:  []string{},              // should be min 1 item
+		MaxString: "toolong",               // should be max 5 chars
+		MaxSlice:  []string{"satu", "dua"}, // should be max 1 item
 
 		IsDefault: "non-default",
 
@@ -1181,9 +1207,8 @@ func TestOtherTagsTranslations(t *testing.T) {
 		Unique: []string{"a", "a"}, // contains duplicate
 
 		Inner: Inner{
-			RequiredWith: "value",     // triggers required_if validation
-			ExcludedWith: "",          // triggers excluded_unless validation
-			Field:        "populated", // triggers excluded_with validation
+			RequiredWith: "value", // triggers required_if validation
+			ExcludedWith: "",      // triggers excluded_unless validation
 		},
 	}
 
@@ -1236,8 +1261,16 @@ func TestOtherTagsTranslations(t *testing.T) {
 			expected: "panjang minimal MinString adalah 3 karakter",
 		},
 		{
+			ns:       "TestOtherTags.MinSlice",
+			expected: "MinSlice harus berisi minimal 1 item",
+		},
+		{
 			ns:       "TestOtherTags.MaxString",
 			expected: "panjang maksimal MaxString adalah 5 karakter",
+		},
+		{
+			ns:       "TestOtherTags.MaxSlice",
+			expected: "MaxSlice harus berisi maksimal 1 item",
 		},
 		{
 			ns:       "TestOtherTags.IsDefault",
@@ -1264,6 +1297,14 @@ func TestOtherTagsTranslations(t *testing.T) {
 			expected: "RequiredWithAll wajib diisi jika Inner.RequiredWith telah diisi",
 		},
 		{
+			ns:       "TestOtherTags.RequiredWithout",
+			expected: "RequiredWithout wajib diisi jika Inner.ExcludedWith tidak diisi",
+		},
+		{
+			ns:       "TestOtherTags.RequiredWithoutAll",
+			expected: "RequiredWithoutAll wajib diisi jika Inner.ExcludedWith tidak diisi",
+		},
+		{
 			ns:       "TestOtherTags.ExcludedIf",
 			expected: "ExcludedIf tidak boleh diisi jika Inner.RequiredWith value",
 		},
@@ -1273,19 +1314,19 @@ func TestOtherTagsTranslations(t *testing.T) {
 		},
 		{
 			ns:       "TestOtherTags.ExcludedWith",
-			expected: "ExcludedWith tidak boleh diisi jika Inner.Field telah diisi",
+			expected: "ExcludedWith tidak boleh diisi jika Inner.RequiredWith telah diisi",
 		},
-		//{
-		//	ns:       "TestOtherTags.ExcludedWithAll",
-		//	expected: "ExcludedWithAll tidak boleh diisi jika semua Inner.Field dan Inner.ExcludedWith telah diisi",
-		//},
+		{
+			ns:       "TestOtherTags.ExcludedWithAll",
+			expected: "ExcludedWithAll tidak boleh diisi jika semua Inner.RequiredWith telah diisi",
+		},
 		{
 			ns:       "TestOtherTags.ExcludedWithout",
 			expected: "ExcludedWithout tidak boleh diisi jika Inner.ExcludedWith tidak diisi",
 		},
 		{
 			ns:       "TestOtherTags.ExcludedWithoutAll",
-			expected: "ExcludedWithoutAll tidak boleh diisi jika semua Inner.ExcludedWith tidak diisi",
+			expected: "ExcludedWithoutAll tidak boleh diisi jika Inner.ExcludedWith tidak diisi",
 		},
 		{
 			ns:       "TestOtherTags.OneOf",

@@ -1599,7 +1599,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("min-items", "panjang minimal {0} adalah {1}", false); err != nil {
+				if err = ut.Add("min-items", "{0} harus berisi minimal {1}", false); err != nil {
 					return
 				}
 
@@ -1833,7 +1833,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "excluded_without_all",
-			translation: "{0} tidak boleh diisi jika semua {1} tidak diisi",
+			translation: "{0} tidak boleh diisi jika {1} tidak diisi",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
