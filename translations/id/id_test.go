@@ -88,11 +88,8 @@ func TestFieldTagsTranslations(t *testing.T) {
 		ExcludesField string `validate:"fieldexcludes=Inner.FieldExcludes"`
 	}
 
-	// init test struct
-	var test TestFieldTags
-
-	// set test values
-	test = TestFieldTags{
+	// init test struct with values
+	test := TestFieldTags{
 		Inner: Inner{
 			EqCSFieldString:  "equal",
 			NeCSFieldString:  "not-equal",
