@@ -2708,24 +2708,23 @@ func isHostnamePort(fl FieldLevel) bool {
 // isIPv4Port validates a <ipv4>:<port> combination for fields typically used for socket address.
 func isIPv4Port(fl FieldLevel) bool {
 	val := fl.Field().String()
-	ip, port, err := net.SplitHostPort(val)
+	host, port, err := net.SplitHostPort(val)
 	if err != nil {
 		return false
 	}
-	// Port must be a iny <= 65535.
-	if portNum, err := strconv.ParseInt(
-		port, 10, 32,
-	); err != nil || portNum > 65535 || portNum < 1 {
+	// Validate port range (1-65535).
+	if portNum, err := strconv.ParseUInt(port, 10, 32,); err != nil || portNum < 1 || portNum > 65535 {
 		return false
 	}
 
-	// If IP address is specified, it should match a valid IPv4 address
-	if ip != "" {
-		// we need to support older Golang versions, so we can not use netip.ParseAddr
-		parsedIp := net.ParseIP(ip)
-		return parsedIp != nil && parsedIp.To4() != nil
-	}
-	return true
+	// If no host is specified, return true (valid)
+        if host == "" {
+            return true
+        }
+
+        // Parse and validate IPv4 address
+        ip := net.ParseIP(host)
+        return ip != nil && ip.To4() != nil
 }
 
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
