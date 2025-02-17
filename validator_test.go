@@ -12080,7 +12080,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -12607,6 +12607,70 @@ func TestDatetimeValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "datetime")
 	}, "Bad field type int")
+}
+
+func TestWeekendStringValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"weekend=2006-01-02"`
+		expected bool
+	}{
+		{"2025-01-25", true},  // Saturday
+		{"2025-01-26", true},  // Sunday
+		{"2025-01-27", false}, // Monday
+		{"2025-01-28", false}, // Tuesday
+		{"2025-01-29", false}, // Wednesday
+		{"2025-01-30", false}, // Thursday
+		{"2025-01-31", false}, // Friday
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.value, "weekend=2006-01-02")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d weekend failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d weekend failed Error: %s", i, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "weekend")
+	}, "Bad field type int")
+}
+
+func TestWeekendStructValidation(t *testing.T) {
+	type ChosenDate struct {
+		Datetime time.Time `validate:"weekend"`
+	}
+
+	type testInput struct {
+		data     time.Time
+		expected bool
+	}
+	testData := []testInput{
+		{time.Date(2025, 1, 25, 0, 0, 0, 0, time.UTC), true},  // Saturday
+		{time.Date(2025, 1, 26, 0, 0, 0, 0, time.UTC), true},  // Sunday
+		{time.Date(2025, 1, 27, 0, 0, 0, 0, time.UTC), false}, // Monday
+		{time.Date(2025, 1, 28, 0, 0, 0, 0, time.UTC), false}, // Tuesday
+		{time.Date(2025, 1, 29, 0, 0, 0, 0, time.UTC), false}, // Wednesday
+		{time.Date(2025, 1, 30, 0, 0, 0, 0, time.UTC), false}, // Thursday
+		{time.Date(2025, 1, 31, 0, 0, 0, 0, time.UTC), false}, // Friday
+	}
+	for _, td := range testData {
+		c := ChosenDate{Datetime: td.data}
+		v := New()
+		err := v.Struct(c)
+		if td.expected != (err == nil) {
+			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
+		}
+	}
 }
 
 func TestIsIso3166Alpha2Validation(t *testing.T) {

@@ -220,6 +220,7 @@ var (
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
 		"timezone":                      isTimeZone,
+		"weekend":                       isWeekend,
 		"iso3166_1_alpha2":              isIso3166Alpha2,
 		"iso3166_1_alpha2_eu":           isIso3166Alpha2EU,
 		"iso3166_1_alpha3":              isIso3166Alpha3,
@@ -2812,6 +2813,36 @@ func isTimeZone(fl FieldLevel) bool {
 
 		_, err := time.LoadLocation(field.String())
 		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
+func isWeekend(fl FieldLevel) bool {
+	field := fl.Field()
+	kind := field.Kind()
+	param := fl.Param()
+
+	fmt.Println("param", param)
+	fmt.Println("field", field.String())
+
+	if kind == reflect.String {
+		fmt.Println("reflect", "string")
+		parsedTime, err := time.Parse(param, field.String())
+		if err != nil {
+			panic(fmt.Sprintf("Bad time format: %s", err))
+		}
+		weekday := parsedTime.Weekday()
+		fmt.Println("weekday", weekday)
+		return weekday == time.Saturday || weekday == time.Sunday
+	}
+
+	if kind == reflect.Struct {
+		fmt.Println("reflect", "struct")
+		if field.Type().ConvertibleTo(timeType) {
+			weekday := field.Convert(timeType).Interface().(time.Time).Weekday()
+			return weekday == time.Saturday || weekday == time.Sunday
+		}
 	}
 
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
