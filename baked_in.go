@@ -2823,22 +2823,16 @@ func isWeekend(fl FieldLevel) bool {
 	kind := field.Kind()
 	param := fl.Param()
 
-	fmt.Println("param", param)
-	fmt.Println("field", field.String())
-
 	if kind == reflect.String {
-		fmt.Println("reflect", "string")
 		parsedTime, err := time.Parse(param, field.String())
 		if err != nil {
 			panic(fmt.Sprintf("Bad time format: %s", err))
 		}
 		weekday := parsedTime.Weekday()
-		fmt.Println("weekday", weekday)
 		return weekday == time.Saturday || weekday == time.Sunday
 	}
 
 	if kind == reflect.Struct {
-		fmt.Println("reflect", "struct")
 		if field.Type().ConvertibleTo(timeType) {
 			weekday := field.Convert(timeType).Interface().(time.Time).Weekday()
 			return weekday == time.Saturday || weekday == time.Sunday
