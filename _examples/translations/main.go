@@ -27,7 +27,7 @@ type Address struct {
 	Phone  string `validate:"required"`
 }
 
-// use a single instance , it caches struct info
+// use a single instance, it caches struct info
 var (
 	uni      *ut.UniversalTranslator
 	validate *validator.Validate
@@ -35,7 +35,7 @@ var (
 
 func main() {
 
-	// NOTE: ommitting allot of error checking for brevity
+	// NOTE: omitting allot of error checking for brevity
 
 	en := en.New()
 	uni = ut.New(en, en)
