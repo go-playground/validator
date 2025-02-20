@@ -3059,7 +3059,7 @@ func isCron(fl FieldLevel) bool {
 func isEIN(fl FieldLevel) bool {
 	field := fl.Field()
 
-	if field.Len() != 11 {
+	if field.Len() != 10 {
 		return false
 	}
 
