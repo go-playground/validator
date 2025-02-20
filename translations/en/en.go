@@ -217,17 +217,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
+					return
 				}
 
 				kind = fe.Kind()
@@ -240,6 +241,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("min-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -250,6 +256,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("min-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -258,6 +269,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("min-items", fe.Field(), c)
 
 				default:
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("min-number", fe.Field(), fe.Param())
+						goto END
+					}
+
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					t, err = ut.T("min-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
@@ -305,17 +326,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
+					return
 				}
 
 				kind = fe.Kind()
@@ -328,6 +350,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("max-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -338,6 +365,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("max-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -346,6 +378,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("max-items", fe.Field(), c)
 
 				default:
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("max-number", fe.Field(), fe.Param())
+						goto END
+					}
+
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					t, err = ut.T("max-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
