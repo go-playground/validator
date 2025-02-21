@@ -12080,7 +12080,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -14068,6 +14068,8 @@ func TestFailFastSettingStructExceptCtx(t *testing.T) {
 
 		validationErrs := errs.(ValidationErrors)
 		IsEqual(len(validationErrs), t.expectedErrLen)
+	}
+}
 
 func TestTimeRequired(t *testing.T) {
 	validate := New()
