@@ -230,7 +230,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-items", "{0}は最大でも{1}を含まなければなりません", false); err != nil {
+				if err = ut.Add("max-items", "{0}は最大でも{1}でなければなりません", false); err != nil {
 					return
 				}
 				// if err = ut.AddCardinal("max-items-item", "{0}つの項目", locales.PluralRuleOne, false); err != nil {
@@ -405,7 +405,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-items", "{0}は{1}よりも少ない項目を含まなければなりません", false); err != nil {
+				if err = ut.Add("lt-items", "{0}は{1}よりも少ない項目でなければなりません", false); err != nil {
 					return
 				}
 
@@ -525,7 +525,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0}は最大でも{1}を含まなければなりません", false); err != nil {
+				if err = ut.Add("lte-items", "{0}は最大でも{1}でなければなりません", false); err != nil {
 					return
 				}
 
@@ -1184,6 +1184,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "isbn13",
 			translation: "{0}は正しいISBN-13番号でなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "issn",
+			translation: "{0}は正しいISSN番号でなければなりません",
 			override:    false,
 		},
 		{

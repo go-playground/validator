@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"unsafe"
 )
 
 // per validate construct
@@ -104,6 +105,8 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
 
+	var isNestedStruct bool
+
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
 
@@ -112,6 +115,14 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 
 		if ct.typeof == typeOmitEmpty || ct.typeof == typeIsDefault {
+			return
+		}
+
+		if ct.typeof == typeOmitNil && (kind != reflect.Invalid && current.IsNil()) {
+			return
+		}
+
+		if ct.typeof == typeOmitZero {
 			return
 		}
 
@@ -155,7 +166,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),
@@ -165,86 +176,61 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			}
 		}
 
-	case reflect.Struct:
-
-		typ = current.Type()
-
-		if !typ.ConvertibleTo(timeType) {
-
-			if ct != nil {
-
-				if ct.typeof == typeStructOnly {
-					goto CONTINUE
-				} else if ct.typeof == typeIsDefault || ct.typeof == typeNestedStructLevel {
-					// set Field Level fields
-					v.slflParent = parent
-					v.flField = current
-					v.cf = cf
-					v.ct = ct
-
-					if !ct.fn(ctx, v) {
-						v.str1 = string(append(ns, cf.altName...))
-
-						if v.v.hasTagNameFunc {
-							v.str2 = string(append(structNs, cf.name...))
-						} else {
-							v.str2 = v.str1
-						}
-
-						v.errs = append(v.errs,
-							&fieldError{
-								v:              v.v,
-								tag:            ct.aliasTag,
-								actualTag:      ct.tag,
-								ns:             v.str1,
-								structNs:       v.str2,
-								fieldLen:       uint8(len(cf.altName)),
-								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
-								param:          ct.param,
-								kind:           kind,
-								typ:            typ,
-							},
-						)
-						return
-					}
-				}
-
-				ct = ct.next
-			}
-
-			if ct != nil && ct.typeof == typeNoStructLevel {
-				return
-			}
-
-		CONTINUE:
-			// if len == 0 then validating using 'Var' or 'VarWithValue'
-			// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
-			// VarWithField - this allows for validating against each field within the struct against a specific value
-			//                pretty handy in certain situations
-			if len(cf.name) > 0 {
-				ns = append(append(ns, cf.altName...), '.')
-				structNs = append(append(structNs, cf.name...), '.')
-			}
-
-			v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
+		if kind == reflect.Invalid {
 			return
 		}
-	}
 
-	if ct == nil || !ct.hasTag {
-		return
+	case reflect.Struct:
+		isNestedStruct = !current.Type().ConvertibleTo(timeType)
+		// For backward compatibility before struct level validation tags were supported
+		// as there were a number of projects relying on `required` not failing on non-pointer
+		// structs. Since it's basically nonsensical to use `required` with a non-pointer struct
+		// are explicitly skipping the required validation for it. This WILL be removed in the
+		// next major version.
+		if isNestedStruct && !v.v.requiredStructEnabled && ct != nil && ct.tag == requiredTag {
+			ct = ct.next
+		}
 	}
 
 	typ = current.Type()
 
 OUTER:
 	for {
-		if ct == nil {
+		if ct == nil || !ct.hasTag || (isNestedStruct && len(cf.name) == 0) {
+			// isNestedStruct check here
+			if isNestedStruct {
+				// if len == 0 then validating using 'Var' or 'VarWithValue'
+				// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
+				// VarWithField - this allows for validating against each field within the struct against a specific value
+				//                pretty handy in certain situations
+				if len(cf.name) > 0 {
+					ns = append(append(ns, cf.altName...), '.')
+					structNs = append(append(structNs, cf.name...), '.')
+				}
+
+				v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
+			}
 			return
 		}
 
 		switch ct.typeof {
+		case typeNoStructLevel:
+			return
+
+		case typeStructOnly:
+			if isNestedStruct {
+				// if len == 0 then validating using 'Var' or 'VarWithValue'
+				// Var - doesn't make much sense to do it that way, should call 'Struct', but no harm...
+				// VarWithField - this allows for validating against each field within the struct against a specific value
+				//                pretty handy in certain situations
+				if len(cf.name) > 0 {
+					ns = append(append(ns, cf.altName...), '.')
+					structNs = append(append(structNs, cf.name...), '.')
+				}
+
+				v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
+			}
+			return
 
 		case typeOmitEmpty:
 
@@ -256,6 +242,39 @@ OUTER:
 
 			if !hasValue(v) {
 				return
+			}
+
+			ct = ct.next
+			continue
+
+		case typeOmitZero:
+			v.slflParent = parent
+			v.flField = current
+			v.cf = cf
+			v.ct = ct
+
+			if !hasNotZeroValue(v) {
+				return
+			}
+
+			ct = ct.next
+			continue
+
+		case typeOmitNil:
+			v.slflParent = parent
+			v.flField = current
+			v.cf = cf
+			v.ct = ct
+
+			switch field := v.Field(); field.Kind() {
+			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+				if field.IsNil() {
+					return
+				}
+			default:
+				if v.fldIsPointer && field.Interface() == nil {
+					return
+				}
 			}
 
 			ct = ct.next
@@ -371,7 +390,7 @@ OUTER:
 						ct = ct.next
 
 						if ct == nil {
-							return
+							continue OUTER
 						}
 
 						if ct.typeof != typeOr {
@@ -414,7 +433,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -434,7 +453,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -474,7 +493,7 @@ OUTER:
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
@@ -487,4 +506,27 @@ OUTER:
 		}
 	}
 
+}
+
+func getValue(val reflect.Value) interface{} {
+	if val.CanInterface() {
+		return val.Interface()
+	}
+
+	if val.CanAddr() {
+		return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Interface()
+	}
+
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val.Uint()
+	case reflect.Complex64, reflect.Complex128:
+		return val.Complex()
+	case reflect.Float32, reflect.Float64:
+		return val.Float()
+	default:
+		return val.String()
+	}
 }

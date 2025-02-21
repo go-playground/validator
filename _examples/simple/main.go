@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
@@ -12,7 +13,7 @@ type User struct {
 	LastName       string     `validate:"required"`
 	Age            uint8      `validate:"gte=0,lte=130"`
 	Email          string     `validate:"required,email"`
-	Gender         string     `validate:"oneof=male female prefer_not_to`
+	Gender         string     `validate:"oneof=male female prefer_not_to"`
 	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla'
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 }
@@ -30,7 +31,7 @@ var validate *validator.Validate
 
 func main() {
 
-	validate = validator.New()
+	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	validateStruct()
 	validateVariable()
@@ -61,24 +62,27 @@ func validateStruct() {
 		// this check is only needed when your code could produce
 		// an invalid value for validation such as interface with nil
 		// value most including myself do not usually have code like this.
-		if _, ok := err.(*validator.InvalidValidationError); ok {
+		var invalidValidationError *validator.InvalidValidationError
+		if errors.As(err, &invalidValidationError) {
 			fmt.Println(err)
 			return
 		}
 
-		for _, err := range err.(validator.ValidationErrors) {
-
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println()
+		var validateErrs validator.ValidationErrors
+		if errors.As(err, &validateErrs) {
+			for _, e := range validateErrs {
+				fmt.Println(e.Namespace())
+				fmt.Println(e.Field())
+				fmt.Println(e.StructNamespace())
+				fmt.Println(e.StructField())
+				fmt.Println(e.Tag())
+				fmt.Println(e.ActualTag())
+				fmt.Println(e.Kind())
+				fmt.Println(e.Type())
+				fmt.Println(e.Value())
+				fmt.Println(e.Param())
+				fmt.Println()
+			}
 		}
 
 		// from here you can create your own error messages in whatever language you wish
