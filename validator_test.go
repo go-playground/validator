@@ -12080,7 +12080,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -13952,6 +13952,122 @@ func TestNestedStructValidation(t *testing.T) {
 		t.Run(tt.name+"Ptr", func(t *testing.T) {
 			evaluateTest(tt, validator.Struct(topLevel{&tt.value}))
 		})
+	}
+}
+
+type Value struct {
+	Street string `validate:"required"`
+	City   string `validate:"required"`
+}
+
+func TestFailFastSettingStruct(t *testing.T) {
+
+	tests := []struct {
+		v              Value
+		failFast       bool
+		expectedErrLen int
+	}{
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       true,
+			expectedErrLen: 1,
+		},
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       false,
+			expectedErrLen: 2,
+		},
+	}
+
+	for _, t := range tests {
+		validate := New()
+		if t.failFast {
+			validate.FailFast()
+		}
+		errs := validate.Struct(t.v)
+
+		validationErrs := errs.(ValidationErrors)
+		IsEqual(len(validationErrs), t.expectedErrLen)
+	}
+}
+
+func TestFailFastSettingStructPartialCtx(t *testing.T) {
+
+	tests := []struct {
+		v              Value
+		failFast       bool
+		expectedErrLen int
+	}{
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       true,
+			expectedErrLen: 1,
+		},
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       false,
+			expectedErrLen: 2,
+		},
+	}
+
+	for _, t := range tests {
+		validate := New()
+		if t.failFast {
+			validate.FailFast()
+		}
+		errs := validate.StructPartialCtx(context.TODO(), t.v, "Street", "City")
+
+		validationErrs := errs.(ValidationErrors)
+		IsEqual(len(validationErrs), t.expectedErrLen)
+	}
+}
+
+func TestFailFastSettingStructExceptCtx(t *testing.T) {
+
+	tests := []struct {
+		v              Value
+		failFast       bool
+		expectedErrLen int
+	}{
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       true,
+			expectedErrLen: 1,
+		},
+		{
+			v: Value{
+				Street: "",
+				City:   "",
+			},
+			failFast:       false,
+			expectedErrLen: 2,
+		},
+	}
+
+	for _, t := range tests {
+		validate := New()
+		if t.failFast {
+			validate.FailFast()
+		}
+		errs := validate.StructPartialCtx(context.TODO(), t.v, "Street", "City")
+
+		validationErrs := errs.(ValidationErrors)
+		IsEqual(len(validationErrs), t.expectedErrLen)
 	}
 }
 
