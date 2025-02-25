@@ -1671,6 +1671,11 @@ func isFilePath(fl FieldLevel) bool {
 					// It's definitely an invalid character in the filepath.
 					return false
 				}
+
+				if t.Err == syscall.ENOENT {
+					return false
+				}
+
 				// It could be a permission error, a does-not-exist error, etc.
 				// Out-of-scope for this validation, though.
 				return true
