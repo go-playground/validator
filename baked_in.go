@@ -1376,7 +1376,6 @@ func isEqIgnoreCase(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		return strings.EqualFold(field.String(), param)
 	}
@@ -1606,7 +1605,6 @@ func isImage(fl FieldLevel) bool {
 	case reflect.String:
 		filePath := field.String()
 		fileInfo, err := os.Stat(filePath)
-
 		if err != nil {
 			return false
 		}
@@ -1635,7 +1633,6 @@ func isImage(fl FieldLevel) bool {
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
 func isFilePath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -2227,7 +2224,6 @@ func isGt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).After(time.Now().UTC())
 		}
 	}
@@ -2464,7 +2460,6 @@ func isLt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).Before(time.Now().UTC())
 		}
 	}
@@ -2644,7 +2639,6 @@ func isDir(fl FieldLevel) bool {
 
 // isDirPath is the validation function for validating if the current field's value is a valid directory.
 func isDirPath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -2957,6 +2951,12 @@ func isCveFormat(fl FieldLevel) bool {
 // a valid dns RFC 1035 label, defined in RFC 1035.
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
+
+	size := len(val)
+	if size > 63 {
+		return false
+	}
+
 	return dnsRegexRFC1035Label().MatchString(val)
 }
 
