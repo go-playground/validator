@@ -101,10 +101,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("len-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("len-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -116,9 +112,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("len-items", "{0}은(는) {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("len-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("len-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -189,10 +182,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("min-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("min-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -204,9 +193,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("min-items", "{0}은(는) 최소 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("min-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("min-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -277,10 +263,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("max-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("max-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -292,9 +274,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("max-items", "{0}은(는) 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
-				// if err = ut.AddCardinal("max-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("max-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -379,9 +358,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					fmt.Printf("ne customRegisFunc #1 error because of %v\n", err)
 					return
 				}
-				// if err = ut.AddCardinal("ne-items-item", "{0}개", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("ne-items-item", "{0}개", locales.PluralRuleOther, false); err != nil {
 					return
@@ -449,10 +425,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("lt-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("lt-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -464,10 +436,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("lt-items", "{0}은(는) {1}보다 적은 항목여야 합니다.", false); err != nil {
 					return
 				}
-
-				// if err = ut.AddCardinal("lt-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("lt-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -566,10 +534,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("lte-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("lte-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -581,10 +545,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("lte-items", "{0}은(는) 최대 {1}여야 합니다.", false); err != nil {
 					return
 				}
-
-				// if err = ut.AddCardinal("lte-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("lte-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -683,10 +643,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("gt-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("gt-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -698,10 +654,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("gt-items", "{0}은(는) {1}보다 많은 항목을 포함해야 합니다.", false); err != nil {
 					return
 				}
-
-				// if err = ut.AddCardinal("gt-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("gt-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
@@ -800,10 +752,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				// if err = ut.AddCardinal("gte-string-character", "{0}자", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
-
 				if err = ut.AddCardinal("gte-string-character", "{0}자", locales.PluralRuleOther, false); err != nil {
 					return
 				}
@@ -815,10 +763,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("gte-items", "{0}은(는) 최소 {1}을 포함해야 합니다.", false); err != nil {
 					return
 				}
-
-				// if err = ut.AddCardinal("gte-items-item", "{0}개의 항목", locales.PluralRuleOne, false); err != nil {
-				// 	return
-				// }
 
 				if err = ut.AddCardinal("gte-items-item", "{0}개의 항목", locales.PluralRuleOther, false); err != nil {
 					return
