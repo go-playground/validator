@@ -805,15 +805,7 @@ func TestTranslations(t *testing.T) {
 			}
 		}
 
-		/*if fe == nil {
-			t.Logf("no error found for %s", tt.ns)
-		}*/
-
 		NotEqual(t, fe, nil)
-		/*if strings.Contains(tt.expected, "or greater") {
-			got := fe.Translate(trans)
-			Equal(t, tt.expected, got)
-		}*/
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
