@@ -1134,6 +1134,12 @@ This validates that a string value contains a valid longitude.
 
 	Usage: longitude
 
+# Employeer Identification Number EIN
+
+This validates that a string value contains a valid U.S. Employer Identification Number.
+
+	Usage: ein
+
 # Social Security Number SSN
 
 This validates that a string value contains a valid U.S. Social Security Number.

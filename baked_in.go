@@ -3056,6 +3056,7 @@ func isCron(fl FieldLevel) bool {
 	return cronRegex().MatchString(cronString)
 }
 
+// isEIN is the validation function for validating if the current field's value is a valid U.S. Employer Identification Number (EIN)
 func isEIN(fl FieldLevel) bool {
 	field := fl.Field()
 
