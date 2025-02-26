@@ -77,6 +77,7 @@ const (
 	spicedbIDRegexString             = `^(([a-zA-Z0-9/_|\-=+]{1,})|\*)$`
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
 	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
+	ociTagRegexString                = "^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$"
 )
 
 func lazyRegexCompile(str string) func() *regexp.Regexp {
@@ -160,4 +161,5 @@ var (
 	spicedbIDRegex             = lazyRegexCompile(spicedbIDRegexString)
 	spicedbPermissionRegex     = lazyRegexCompile(spicedbPermissionRegexString)
 	spicedbTypeRegex           = lazyRegexCompile(spicedbTypeRegexString)
+	ociTagRegex                = lazyRegexCompile(ociTagRegexString)
 )
