@@ -54,7 +54,9 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 		var f *cField
 
 		for i := 0; i < len(cs.fields); i++ {
-
+			if v.v.earlyExit && len(v.errs) > 0 {
+				return
+			}
 			f = cs.fields[i]
 
 			if v.isPartial {
