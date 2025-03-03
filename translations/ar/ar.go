@@ -199,26 +199,48 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("min-items-item-other", "{0} عناصر", false); err != nil {
 					return
 				}
+				if err = ut.Add("min-duration", "يجب أن تكون مدة {0} {1} أو أكبر", false); err != nil {
+					return
+				}
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if fe.Type() != reflect.TypeOf(time.Duration(0)) {
+						return nil
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					t, err = ut.T("min-duration", fe.Field(), fe.Param())
+					return
 				}
 
 				kind = fe.Kind()
 				if kind == reflect.Ptr {
 					kind = fe.Type().Elem().Kind()
+				}
+
+				if err = fn(); err != nil || t != "" {
+					goto END
+				}
+
+				if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+					t, err = ut.T("min-duration", fe.Field(), fe.Param())
+					goto END
+				}
+
+				if idx := strings.Index(fe.Param(), "."); idx != -1 {
+					digits = uint64(len(fe.Param()[idx+1:]))
+				}
+
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
+				if err != nil {
+					goto END
 				}
 
 				switch kind {
@@ -252,11 +274,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					log.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 				return t
 			},
+			override: false,
 		},
 		{
 			tag: "max",
@@ -282,26 +305,48 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				if err = ut.Add("max-items-item-other", "{0} عناصر", false); err != nil {
 					return
 				}
+				if err = ut.Add("max-duration", "يجب أن تكون مدة {0} {1} أو أقل", false); err != nil {
+					return
+				}
 				return
 			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if fe.Type() != reflect.TypeOf(time.Duration(0)) {
+						return nil
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					t, err = ut.T("max-duration", fe.Field(), fe.Param())
+					return
 				}
 
 				kind = fe.Kind()
 				if kind == reflect.Ptr {
 					kind = fe.Type().Elem().Kind()
+				}
+
+				if err = fn(); err != nil || t != "" {
+					goto END
+				}
+
+				if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+					t, err = ut.T("max-duration", fe.Field(), fe.Param())
+					goto END
+				}
+
+				if idx := strings.Index(fe.Param(), "."); idx != -1 {
+					digits = uint64(len(fe.Param()[idx+1:]))
+				}
+
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
+				if err != nil {
+					goto END
 				}
 
 				switch kind {
@@ -335,11 +380,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					log.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 				return t
 			},
+			override: false,
 		},
 		{
 			tag:         "eq",
@@ -385,19 +431,26 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var digits uint64
 				var kind reflect.Kind
+				var f64 float64
+
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				// Special handling for time.Time
+				if fe.Type() == reflect.TypeOf(time.Time{}) {
+					t, err = ut.T("lt-datetime", fe.Field())
+					goto END
+				}
 
 				if idx := strings.Index(fe.Param(), "."); idx != -1 {
 					digits = uint64(len(fe.Param()[idx+1:]))
 				}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
 				if err != nil {
 					goto END
-				}
-
-				kind = fe.Kind()
-				if kind == reflect.Ptr {
-					kind = fe.Type().Elem().Kind()
 				}
 
 				switch kind {
@@ -426,11 +479,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("lt-items", fe.Field(), c)
 
 				case reflect.Struct:
-					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
-						goto END
-					}
-					t, err = ut.T("lt-datetime", fe.Field())
+					t, err = ut.T("lt-number", fe.Field(), ut.FmtNumber(f64, digits))
 
 				default:
 					t, err = ut.T("lt-number", fe.Field(), ut.FmtNumber(f64, digits))
@@ -438,11 +487,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					log.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 				return t
 			},
+			override: false,
 		},
 		{
 			tag: "lte",
@@ -478,19 +528,26 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var t string
 				var digits uint64
 				var kind reflect.Kind
+				var f64 float64
+
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				// Special handling for time.Time
+				if fe.Type() == reflect.TypeOf(time.Time{}) {
+					t, err = ut.T("lte-datetime", fe.Field())
+					goto END
+				}
 
 				if idx := strings.Index(fe.Param(), "."); idx != -1 {
 					digits = uint64(len(fe.Param()[idx+1:]))
 				}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
 				if err != nil {
 					goto END
-				}
-
-				kind = fe.Kind()
-				if kind == reflect.Ptr {
-					kind = fe.Type().Elem().Kind()
 				}
 
 				switch kind {
@@ -519,11 +576,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("lte-items", fe.Field(), c)
 
 				case reflect.Struct:
-					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
-						goto END
-					}
-					t, err = ut.T("lte-datetime", fe.Field())
+					t, err = ut.T("lte-number", fe.Field(), ut.FmtNumber(f64, digits))
 
 				default:
 					t, err = ut.T("lte-number", fe.Field(), ut.FmtNumber(f64, digits))
@@ -531,11 +584,12 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 			END:
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					log.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 				return t
 			},
+			override: false,
 		},
 		{
 			tag:         "eqfield",
@@ -650,60 +704,101 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "gtfield",
-			translation: "يجب أن يكون {0} أكبر من {1}",
-			override:    false,
+			tag: "gt",
+			customRegisFunc: func(ut ut.Translator) (err error) {
+				if err = ut.Add("gt-string", "يجب أن يكون طول {0} أكبر من {1}", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-string-character-one", "{0} حرف", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-string-character-other", "{0} أحرف", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-number", "يجب أن يكون {0} أكبر من {1}", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-items", "يجب أن يحتوي {0} على أكثر من {1}", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-items-item-one", "{0} عنصر", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-items-item-other", "{0} عناصر", false); err != nil {
+					return
+				}
+				if err = ut.Add("gt-datetime", "يجب أن يكون {0} أكبر من التاريخ والوقت الحاليين", false); err != nil {
+					return
+				}
+				return
+			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
+				var err error
+				var t string
+				var digits uint64
+				var kind reflect.Kind
+				var f64 float64
+
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
 				}
 
-				return t
-			},
-		},
-		{
-			tag:         "gtefield",
-			translation: "يجب أن يكون {0} أكبر من أو يساوي {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
+				// Special handling for time.Time
+				if fe.Type() == reflect.TypeOf(time.Time{}) {
+					t, err = ut.T("gt-datetime", fe.Field())
+					goto END
 				}
 
-				return t
-			},
-		},
-		{
-			tag:         "ltfield",
-			translation: "يجب أن يكون {0} أصغر من {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
-				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
+				if idx := strings.Index(fe.Param(), "."); idx != -1 {
+					digits = uint64(len(fe.Param()[idx+1:]))
 				}
 
-				return t
-			},
-		},
-		{
-			tag:         "ltefield",
-			translation: "يجب أن يكون {0} أصغر من أو يساوي {1}",
-			override:    false,
-			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
 				if err != nil {
-					log.Printf("warning: error translating FieldError: %#v", fe)
-					return fe.(error).Error()
+					goto END
 				}
 
+				switch kind {
+				case reflect.String:
+					var c string
+					if f64 == 1 {
+						c, err = ut.T("gt-string-character-one", ut.FmtNumber(f64, digits))
+					} else {
+						c, err = ut.T("gt-string-character-other", ut.FmtNumber(f64, digits))
+					}
+					if err != nil {
+						goto END
+					}
+					t, err = ut.T("gt-string", fe.Field(), c)
+
+				case reflect.Slice, reflect.Map, reflect.Array:
+					var c string
+					if f64 == 1 {
+						c, err = ut.T("gt-items-item-one", ut.FmtNumber(f64, digits))
+					} else {
+						c, err = ut.T("gt-items-item-other", ut.FmtNumber(f64, digits))
+					}
+					if err != nil {
+						goto END
+					}
+					t, err = ut.T("gt-items", fe.Field(), c)
+
+				case reflect.Struct:
+					t, err = ut.T("gt-number", fe.Field(), ut.FmtNumber(f64, digits))
+
+				default:
+					t, err = ut.T("gt-number", fe.Field(), ut.FmtNumber(f64, digits))
+				}
+
+			END:
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %s", err)
+					return fe.(error).Error()
+				}
 				return t
 			},
+			override: false,
 		},
 		{
 			tag:         "alpha",
@@ -1112,21 +1207,186 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "cve",
-			translation: "يجب أن يكون {0} رقم CVE صالح",
+			translation: "يجب أن يكون {0} معرف CVE صالح",
 			override:    false,
 		},
 		{
-			tag:         "gte",
-			translation: "يجب أن يكون طول {0} على الأقل {1} أحرف",
-			override:    true,
+			tag: "gte",
+			customRegisFunc: func(ut ut.Translator) (err error) {
+				if err = ut.Add("gte-string", "يجب أن يكون طول {0} على الأقل {1}", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-string-character-one", "{0} حرف", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-string-character-other", "{0} أحرف", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-number", "{0} يجب أن يكون {1} أو أكبر", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-items", "يجب أن يحتوي {0} على {1} على الأقل", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-items-item-one", "{0} عنصر", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-items-item-other", "{0} عناصر", false); err != nil {
+					return
+				}
+				if err = ut.Add("gte-datetime", "يجب أن يكون {0} أكبر من أو يساوي التاريخ والوقت الحاليين", false); err != nil {
+					return
+				}
+				return
+			},
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				var err error
+				var t string
+				var digits uint64
+				var kind reflect.Kind
+				var f64 float64
+
+				kind = fe.Kind()
+				if kind == reflect.Ptr {
+					kind = fe.Type().Elem().Kind()
+				}
+
+				// Special handling for time.Time
+				if fe.Type() == reflect.TypeOf(time.Time{}) {
+					t, err = ut.T("gte-datetime", fe.Field())
+					goto END
+				}
+
+				if idx := strings.Index(fe.Param(), "."); idx != -1 {
+					digits = uint64(len(fe.Param()[idx+1:]))
+				}
+
+				f64, err = strconv.ParseFloat(fe.Param(), 64)
 				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
+					goto END
+				}
+
+				switch kind {
+				case reflect.String:
+					var c string
+					if f64 == 1 {
+						c, err = ut.T("gte-string-character-one", ut.FmtNumber(f64, digits))
+					} else {
+						c, err = ut.T("gte-string-character-other", ut.FmtNumber(f64, digits))
+					}
+					if err != nil {
+						goto END
+					}
+					t, err = ut.T("gte-string", fe.Field(), c)
+
+				case reflect.Slice, reflect.Map, reflect.Array:
+					var c string
+					if f64 == 1 {
+						c, err = ut.T("gte-items-item-one", ut.FmtNumber(f64, digits))
+					} else {
+						c, err = ut.T("gte-items-item-other", ut.FmtNumber(f64, digits))
+					}
+					if err != nil {
+						goto END
+					}
+					t, err = ut.T("gte-items", fe.Field(), c)
+
+				case reflect.Struct:
+					t, err = ut.T("gte-number", fe.Field(), ut.FmtNumber(f64, digits))
+
+				default:
+					t, err = ut.T("gte-number", fe.Field(), ut.FmtNumber(f64, digits))
+				}
+
+			END:
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
 				return t
 			},
+			override: false,
+		},
+		{
+			tag:         "gtfield",
+			translation: "يجب أن يكون {0} أكبر من {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "gtefield",
+			translation: "يجب أن يكون {0} أكبر من أو يساوي {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "ltfield",
+			translation: "يجب أن يكون {0} أصغر من {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "ltefield",
+			translation: "يجب أن يكون {0} أصغر من أو يساوي {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "fqdn",
+			translation: "يجب أن يكون {0} اسم نطاق مؤهل بالكامل صالح",
+			override:    false,
+		},
+		{
+			tag:         "cron",
+			translation: "يجب أن يكون {0} تعبير cron صالح",
+			override:    false,
+		},
+		{
+			tag:         "md5",
+			translation: "يجب أن يكون {0} تجزئة MD5 صالحة",
+			override:    false,
+		},
+		{
+			tag:         "sha256",
+			translation: "يجب أن يكون {0} تجزئة SHA256 صالحة",
+			override:    false,
+		},
+		{
+			tag:         "semver",
+			translation: "يجب أن يكون {0} إصدار دلالي صالح",
+			override:    false,
 		},
 	}
 
