@@ -49,11 +49,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("len-items", "{0} must contain {1}", false); err != nil {
+				if err = ut.Add("len-items", "{0} ต้องประกอบไปด้วย {1}", false); err != nil {
 					return
 				}
 
-				if err = ut.AddCardinal("len-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("len-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -134,7 +134,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("min-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("min-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -215,7 +215,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("max-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("max-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
@@ -324,11 +324,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lt-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lt-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0} ต้องมีค่าน้อยกว่าเวลาปัจจุบัน", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} ต้องเป็นเวลาก่อนปัจจุบัน", false); err != nil {
 					return
 				}
 
@@ -433,11 +433,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("lte-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("lte-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0} ต้องมีค่าน้อยกว่าหรือเท่ากับเวลาปัจจุบัน", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} ต้องเป็นเวลาก่อนหรือเป็นเวลาปัจจุบัน", false); err != nil {
 					return
 				}
 
@@ -542,11 +542,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gt-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gt-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0} ต้องมีค่ามากกว่าเวลาปัจจุบัน", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} ต้องเป็นเวลาหลังจากปัจจุบัน", false); err != nil {
 					return
 				}
 
@@ -651,11 +651,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.AddCardinal("gte-items-item", "{0} ไอเทม", locales.PluralRuleOther, false); err != nil {
+				if err = ut.AddCardinal("gte-items-item", "{0} รายการ", locales.PluralRuleOther, false); err != nil {
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0} ต้องมีค่ามากกว่าหรือเท่ากับเวลาปัจจุบัน", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} ต้องเป็นเวลาหลังหรือเป็นเวลาปัจจุบัน", false); err != nil {
 					return
 				}
 
@@ -1116,7 +1116,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "datauri",
-			translation: "{0} must contain a valid Data URI",
+			translation: "{0} ต้องประกอบไปด้วย a valid Data URI",
 			override:    false,
 		},
 		{

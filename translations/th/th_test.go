@@ -301,7 +301,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI must contain a valid Data URI",
+			expected: "DataURI ต้องประกอบไปด้วย a valid Data URI",
 		},
 		{
 			ns:       "Test.Latitude",
@@ -465,11 +465,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple ต้องมีอย่างน้อย 2 ไอเทม",
+			expected: "GteMultiple ต้องมีอย่างน้อย 2 รายการ",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime ต้องมีค่ามากกว่าหรือเท่ากับเวลาปัจจุบัน",
+			expected: "GteTime ต้องเป็นเวลาหลังหรือเป็นเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.GtNumber",
@@ -477,11 +477,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple ต้องมีมากกว่า 2 ไอเทม",
+			expected: "GtMultiple ต้องมีมากกว่า 2 รายการ",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime ต้องมีค่ามากกว่าเวลาปัจจุบัน",
+			expected: "GtTime ต้องเป็นเวลาหลังจากปัจจุบัน",
 		},
 		{
 			ns:       "Test.LteNumber",
@@ -489,11 +489,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple ต้องมีไม่เกิน 2 ไอเทม",
+			expected: "LteMultiple ต้องมีไม่เกิน 2 รายการ",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime ต้องมีค่าน้อยกว่าหรือเท่ากับเวลาปัจจุบัน",
+			expected: "LteTime ต้องเป็นเวลาก่อนหรือเป็นเวลาปัจจุบัน",
 		},
 		{
 			ns:       "Test.LtNumber",
@@ -501,11 +501,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple ต้องมีน้อยกว่า 2 ไอเทม",
+			expected: "LtMultiple ต้องมีน้อยกว่า 2 รายการ",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime ต้องมีค่าน้อยกว่าเวลาปัจจุบัน",
+			expected: "LtTime ต้องเป็นเวลาก่อนปัจจุบัน",
 		},
 		{
 			ns:       "Test.NeString",
@@ -537,7 +537,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple ต้องมีไม่เกิน 7 ไอเทม",
+			expected: "MaxMultiple ต้องมีไม่เกิน 7 รายการ",
 		},
 		{
 			ns:       "Test.MinString",
@@ -549,7 +549,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple ต้องมีอย่างน้อย 7 ไอเทม",
+			expected: "MinMultiple ต้องมีอย่างน้อย 7 รายการ",
 		},
 		{
 			ns:       "Test.LenString",
@@ -561,7 +561,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 ไอเทม",
+			expected: "LenMultiple ต้องประกอบไปด้วย 7 รายการ",
 		},
 		{
 			ns:       "Test.RequiredString",
