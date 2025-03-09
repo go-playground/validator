@@ -8727,6 +8727,16 @@ func TestEmail(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "email")
 
+	s = "mail@dotaftercom.com."
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
+	s = "mail@dotaftercom.co.uk."
+	errs = validate.Var(s, "email")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "email")
+
 	s = ""
 	errs = validate.Var(s, "email")
 	NotEqual(t, errs, nil)
@@ -12080,7 +12090,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
