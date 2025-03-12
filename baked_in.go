@@ -242,6 +242,7 @@ var (
 		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"ein":                           isEIN,
 	}
 )
 
@@ -3059,4 +3060,15 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex().MatchString(cronString)
+}
+
+// isEIN is the validation function for validating if the current field's value is a valid U.S. Employer Identification Number (EIN)
+func isEIN(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Len() != 10 {
+		return false
+	}
+
+	return einRegex().MatchString(field.String())
 }

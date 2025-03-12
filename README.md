@@ -172,6 +172,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
+| ein | U.S. Employeer Identification Number |
 | email | E-mail String
 | eth_addr | Ethereum Address |
 | hexadecimal | Hexadecimal String |

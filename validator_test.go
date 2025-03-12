@@ -746,11 +746,9 @@ func TestStructPartial(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -4002,7 +4000,6 @@ func TestUUID5Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81fe-4c455b099bc9", false},
@@ -4119,8 +4116,10 @@ func (u uuidAlias) String() string {
 	return "This is a UUID " + string(u)
 }
 
-var _ fmt.Stringer = uuidTestType{}
-var _ fmt.Stringer = uuidAlias("")
+var (
+	_ fmt.Stringer = uuidTestType{}
+	_ fmt.Stringer = uuidAlias("")
+)
 
 func TestUUIDValidation(t *testing.T) {
 	tests := []struct {
@@ -4190,7 +4189,6 @@ func TestUUID5RFC4122Validation(t *testing.T) {
 		param    string
 		expected bool
 	}{
-
 		{"", false},
 		{"xxxa987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"9c858901-8a57-4791-81Fe-4c455b099bc9", false},
@@ -8903,6 +8901,7 @@ func TestNumeric(t *testing.T) {
 	errs = validate.Var(i, "numeric")
 	Equal(t, errs, nil)
 }
+
 func TestBoolean(t *testing.T) {
 	validate := New()
 
@@ -9628,11 +9627,9 @@ func TestStructFiltered(t *testing.T) {
 
 		SubSlice: []*SubTest{
 			{
-
 				Test: "Required",
 			},
 			{
-
 				Test: "Required",
 			},
 		},
@@ -12080,7 +12077,7 @@ func TestExcludedIf(t *testing.T) {
 
 	test11 := struct {
 		Field1 bool
-  		Field2 *string `validate:"excluded_if=Field1 false"`
+		Field2 *string `validate:"excluded_if=Field1 false"`
 	}{
 		Field1: false,
 		Field2: nil,
@@ -12788,7 +12785,7 @@ func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
 		value    interface{}
 		expected bool
 	}{
-		{752, true}, //Sweden
+		{752, true}, // Sweden
 		{"752", true},
 		{826, false}, // UK
 		{"826", false},
@@ -13185,7 +13182,6 @@ func TestSemverFormatValidation(t *testing.T) {
 }
 
 func TestCveFormatValidation(t *testing.T) {
-
 	tests := []struct {
 		value    string `validate:"cve"`
 		tag      string
@@ -13384,7 +13380,6 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 }
 
 func TestValidate_ValidateMapCtx(t *testing.T) {
-
 	type args struct {
 		data  map[string]interface{}
 		rules map[string]interface{}
@@ -13509,6 +13504,7 @@ func TestMongoDBObjectIDFormatValidation(t *testing.T) {
 		}
 	}
 }
+
 func TestMongoDBConnectionStringFormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"mongodb_connection_string"`
@@ -13919,7 +13915,7 @@ func TestNestedStructValidation(t *testing.T) {
 		},
 	}
 
-	var evaluateTest = func(tt test, errs error) {
+	evaluateTest := func(tt test, errs error) {
 		if tt.err != (testErr{}) && errs != nil {
 			Equal(t, len(errs.(ValidationErrors)), 1)
 
@@ -14073,6 +14069,36 @@ func TestOmitZero(t *testing.T) {
 		AssertError(t, err1, "OmitEmpty.StrPtr", "OmitEmpty.StrPtr", "StrPtr", "StrPtr", "min")
 		Equal(t, err2, nil)
 	})
+}
+
+func TestEINStringValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"ein"`
+		expected bool
+	}{
+		{"01-2564282", true},
+		{"25-4573894", true},
+		{"63-236", false},
+		{"3-5738294", false},
+		{"4235-48", false},
+		{"0.-47829", false},
+		{"23-", false},
+	}
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, "ein")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ein failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d ein failed Error: %s", i, errs)
+			}
+		}
+	}
 }
 
 func TestPrivateFieldsStruct(t *testing.T) {
