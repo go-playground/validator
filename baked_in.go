@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net"
+	"net/mail"
 	"net/url"
 	"os"
 	"reflect"
@@ -1693,6 +1694,10 @@ func isE164(fl FieldLevel) bool {
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
 func isEmail(fl FieldLevel) bool {
+	_, err := mail.ParseAddress(fl.Field().String())
+	if err != nil {
+		return false
+	}
 	return emailRegex().MatchString(fl.Field().String())
 }
 
