@@ -244,7 +244,7 @@ var (
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 		"ein":                           isEIN,
-    "isvalid":                       isValid,
+		"validateFn":                    isValidateFn,
 	}
 )
 
@@ -3079,7 +3079,7 @@ func isEIN(fl FieldLevel) bool {
 	return einRegex().MatchString(field.String())
 }
 
-func isValid(fl FieldLevel) bool {
+func isValidateFn(fl FieldLevel) bool {
 	if instance, ok := tryConvertFieldTo[interface{ Validate() error }](fl.Field()); ok {
 		return instance.Validate() == nil
 	}

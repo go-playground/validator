@@ -14236,7 +14236,7 @@ func TestIsValid(t *testing.T) {
 
 		type Test struct {
 			String string
-			Inner  *NotRed `validate:"isvalid"`
+			Inner  *NotRed `validate:"validateFn"`
 		}
 
 		var tt Test
@@ -14247,7 +14247,7 @@ func TestIsValid(t *testing.T) {
 		fe := errs.(ValidationErrors)[0]
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test.Inner")
-		Equal(t, fe.Tag(), "isvalid")
+		Equal(t, fe.Tag(), "validateFn")
 
 		tt.Inner = &NotRed{Color: "blue"}
 		errs = validate.Struct(tt)
@@ -14260,7 +14260,7 @@ func TestIsValid(t *testing.T) {
 		fe = errs.(ValidationErrors)[0]
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test.Inner")
-		Equal(t, fe.Tag(), "isvalid")
+		Equal(t, fe.Tag(), "validateFn")
 
 	})
 
@@ -14269,7 +14269,7 @@ func TestIsValid(t *testing.T) {
 
 		type Test2 struct {
 			String string
-			Inner  NotRed `validate:"isvalid"`
+			Inner  NotRed `validate:"validateFn"`
 		}
 
 		var tt2 Test2
@@ -14289,6 +14289,6 @@ func TestIsValid(t *testing.T) {
 		fe := errs.(ValidationErrors)[0]
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test2.Inner")
-		Equal(t, fe.Tag(), "isvalid")
+		Equal(t, fe.Tag(), "validateFn")
 	})
 }

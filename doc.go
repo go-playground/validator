@@ -756,12 +756,12 @@ in a field of the struct specified via a parameter.
 	// For slices of struct:
 	Usage: unique=field
 
-# IsValid
+# ValidateFn
 
 This validates that an object respects the interface `Validate() error` and
 the method `Validate` does not return an error.
 
-	Usage: isvalid
+	Usage: validateFn
 
 # Alpha Only
 
