@@ -1,19 +1,19 @@
-package ar
+package th
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	english "github.com/go-playground/locales/en"
+	thai "github.com/go-playground/locales/th"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 func TestTranslations(t *testing.T) {
-	eng := english.New()
-	uni := ut.New(eng, eng)
-	trans, _ := uni.GetTranslator("en")
+	th := thai.New()
+	uni := ut.New(th, th)
+	trans, _ := uni.GetTranslator("th")
 
 	validate := validator.New()
 
@@ -27,6 +27,7 @@ func TestTranslations(t *testing.T) {
 		GteCSFieldString string
 		LtCSFieldString  string
 		LteCSFieldString string
+		RequiredIf       string
 	}
 
 	type Test struct {
@@ -34,6 +35,7 @@ func TestTranslations(t *testing.T) {
 		RequiredString    string            `validate:"required"`
 		RequiredNumber    int               `validate:"required"`
 		RequiredMultiple  []string          `validate:"required"`
+		RequiredIf        string            `validate:"required_if=Inner.RequiredIf abcd"`
 		LenString         string            `validate:"len=1"`
 		LenNumber         float64           `validate:"len=1113.00"`
 		LenMultiple       []string          `validate:"len=7"`
@@ -129,6 +131,7 @@ func TestTranslations(t *testing.T) {
 		IPAddrv6          string            `validate:"ip6_addr"`
 		UinxAddr          string            `validate:"unix_addr"` // can't fail from within Go's net package currently, but maybe in the future
 		MAC               string            `validate:"mac"`
+		FQDN              string            `validate:"fqdn"`
 		IsColor           string            `validate:"iscolor"`
 		StrPtrMinLen      *string           `validate:"min=10"`
 		StrPtrMaxLen      *string           `validate:"max=1"`
@@ -149,17 +152,10 @@ func TestTranslations(t *testing.T) {
 		Datetime          string            `validate:"datetime=2006-01-02"`
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
-		PostCodeByField   string        `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		Image             string        `validate:"image"`
-		BooleanString     string        `validate:"boolean"`
-		CveString         string        `validate:"cve"`
-		FQDN              string        `validate:"fqdn"`
-		MinDuration       time.Duration `validate:"min=1h30m"`
-		MaxDuration       time.Duration `validate:"max=2h"`
-		CronString        string        `validate:"cron"`
-		MD5String         string        `validate:"md5"`
-		SHA256String      string        `validate:"sha256"`
-		Semver            string        `validate:"semver"`
+		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString     string `validate:"boolean"`
+		Image             string `validate:"image"`
+		CveString         string `validate:"cve"`
 	}
 
 	var test Test
@@ -212,20 +208,10 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
-	test.PostCode = "invalid"
-	test.PostCodeCountry = "SG"
-	test.PostCodeByField = "invalid"
-	test.Image = "not-an-image-data"
+	test.BooleanString = "A"
+	test.CveString = "A"
 
-	test.BooleanString = "invalid-boolean"
-	test.CveString = "invalid-cve"
-	test.FQDN = "invalid-fqdn"
-	test.MinDuration = 1 * time.Hour
-	test.MaxDuration = 3 * time.Hour
-	test.CronString = "invalid-cron"
-	test.MD5String = "invalid-md5"
-	test.SHA256String = "invalid-sha256"
-	test.Semver = "invalid-semver"
+	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -239,511 +225,459 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "يجب أن يكون IsColor لون صالح",
+			expected: "IsColor ต้องเป็นเลขสี",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "يجب أن يحتوي MAC على عنوان MAC صالح",
-		},
-		{
-			ns:       "Test.IPAddr",
-			expected: "يجب أن يكون IPAddr عنوان IP قابل للحل",
-		},
-		{
-			ns:       "Test.IPAddrv4",
-			expected: "يجب أن يكون IPAddrv4 عنوان IP قابل للحل",
-		},
-		{
-			ns:       "Test.IPAddrv6",
-			expected: "يجب أن يكون IPAddrv6 عنوان IPv6 قابل للحل",
-		},
-		{
-			ns:       "Test.UDPAddr",
-			expected: "يجب أن يكون UDPAddr عنوان UDP صالح",
-		},
-		{
-			ns:       "Test.UDPAddrv4",
-			expected: "يجب أن يكون UDPAddrv4 عنوان IPv4 UDP صالح",
-		},
-		{
-			ns:       "Test.UDPAddrv6",
-			expected: "يجب أن يكون UDPAddrv6 عنوان IPv6 UDP صالح",
-		},
-		{
-			ns:       "Test.TCPAddr",
-			expected: "يجب أن يكون TCPAddr عنوان TCP صالح",
-		},
-		{
-			ns:       "Test.TCPAddrv4",
-			expected: "يجب أن يكون TCPAddrv4 عنوان IPv4 TCP صالح",
-		},
-		{
-			ns:       "Test.TCPAddrv6",
-			expected: "يجب أن يكون TCPAddrv6 عنوان IPv6 TCP صالح",
-		},
-		{
-			ns:       "Test.CIDR",
-			expected: "يجب أن يحتوي CIDR على علامة CIDR صالحة",
-		},
-		{
-			ns:       "Test.CIDRv4",
-			expected: "يجب أن يحتوي CIDRv4 على علامة CIDR صالحة لعنوان IPv4",
-		},
-		{
-			ns:       "Test.CIDRv6",
-			expected: "يجب أن يحتوي CIDRv6 على علامة CIDR صالحة لعنوان IPv6",
-		},
-		{
-			ns:       "Test.SSN",
-			expected: "يجب أن يكون SSN رقم SSN صالح",
-		},
-		{
-			ns:       "Test.IP",
-			expected: "يجب أن يكون IP عنوان IP صالح",
-		},
-		{
-			ns:       "Test.IPv4",
-			expected: "يجب أن يكون IPv4 عنوان IPv4 صالح",
-		},
-		{
-			ns:       "Test.IPv6",
-			expected: "يجب أن يكون IPv6 عنوان IPv6 صالح",
-		},
-		{
-			ns:       "Test.DataURI",
-			expected: "يجب أن يحتوي DataURI على URI صالح للبيانات",
-		},
-		{
-			ns:       "Test.Latitude",
-			expected: "يجب أن يحتوي Latitude على إحداثيات خط عرض صالحة",
-		},
-		{
-			ns:       "Test.Longitude",
-			expected: "يجب أن يحتوي Longitude على إحداثيات خط طول صالحة",
-		},
-		{
-			ns:       "Test.MultiByte",
-			expected: "يجب أن يحتوي MultiByte على أحرف متعددة البايت",
-		},
-		{
-			ns:       "Test.ASCII",
-			expected: "يجب أن يحتوي ASCII على أحرف ascii فقط",
-		},
-		{
-			ns:       "Test.PrintableASCII",
-			expected: "يجب أن يحتوي PrintableASCII على أحرف ascii قابلة للطباعة فقط",
-		},
-		{
-			ns:       "Test.UUID",
-			expected: "يجب أن يكون UUID UUID صالح",
-		},
-		{
-			ns:       "Test.UUID3",
-			expected: "يجب أن يكون UUID3 UUID صالح من النسخة 3",
-		},
-		{
-			ns:       "Test.UUID4",
-			expected: "يجب أن يكون UUID4 UUID صالح من النسخة 4",
-		},
-		{
-			ns:       "Test.UUID5",
-			expected: "يجب أن يكون UUID5 UUID صالح من النسخة 5",
-		},
-		{
-			ns:       "Test.ULID",
-			expected: "يجب أن يكون ULID ULID صالح من نسخة",
-		},
-		{
-			ns:       "Test.ISBN",
-			expected: "يجب أن يكون ISBN رقم ISBN صالح",
-		},
-		{
-			ns:       "Test.ISBN10",
-			expected: "يجب أن يكون ISBN10 رقم ISBN-10 صالح",
-		},
-		{
-			ns:       "Test.ISBN13",
-			expected: "يجب أن يكون ISBN13 رقم ISBN-13 صالح",
-		},
-		{
-			ns:       "Test.ISSN",
-			expected: "يجب أن يكون ISSN رقم ISSN صالح",
-		},
-		{
-			ns:       "Test.Excludes",
-			expected: "لا يمكن أن يحتوي Excludes على النص 'text'",
-		},
-		{
-			ns:       "Test.ExcludesAll",
-			expected: "لا يمكن أن يحتوي ExcludesAll على أي من الأحرف التالية '!@#$'",
-		},
-		{
-			ns:       "Test.ExcludesRune",
-			expected: "لا يمكن أن يحتوي ExcludesRune على التالي '☻'",
-		},
-		{
-			ns:       "Test.ContainsAny",
-			expected: "يجب أن يحتوي ContainsAny على حرف واحد على الأقل من الأحرف التالية '!@#$'",
-		},
-		{
-			ns:       "Test.Contains",
-			expected: "يجب أن يحتوي Contains على النص 'purpose'",
-		},
-		{
-			ns:       "Test.Base64",
-			expected: "يجب أن يكون Base64 سلسلة Base64 صالحة",
-		},
-		{
-			ns:       "Test.Email",
-			expected: "يجب أن يكون Email عنوان بريد إلكتروني صالح",
-		},
-		{
-			ns:       "Test.URL",
-			expected: "يجب أن يكون URL رابط إنترنت صالح",
-		},
-		{
-			ns:       "Test.URI",
-			expected: "يجب أن يكون URI URI صالح",
-		},
-		{
-			ns:       "Test.RGBColorString",
-			expected: "يجب أن يكون RGBColorString لون RGB صالح",
-		},
-		{
-			ns:       "Test.RGBAColorString",
-			expected: "يجب أن يكون RGBAColorString لون RGBA صالح",
-		},
-		{
-			ns:       "Test.HSLColorString",
-			expected: "يجب أن يكون HSLColorString لون HSL صالح",
-		},
-		{
-			ns:       "Test.HSLAColorString",
-			expected: "يجب أن يكون HSLAColorString لون HSLA صالح",
-		},
-		{
-			ns:       "Test.HexadecimalString",
-			expected: "يجب أن يكون HexadecimalString عددًا سداسيًا عشريًا صالحاً",
-		},
-		{
-			ns:       "Test.HexColorString",
-			expected: "يجب أن يكون HexColorString لون HEX صالح",
-		},
-		{
-			ns:       "Test.NumberString",
-			expected: "يجب أن يكون NumberString رقم صالح",
-		},
-		{
-			ns:       "Test.NumericString",
-			expected: "يجب أن يكون NumericString قيمة رقمية صالحة",
-		},
-		{
-			ns:       "Test.AlphanumString",
-			expected: "يمكن أن يحتوي AlphanumString على أحرف أبجدية رقمية فقط",
-		},
-		{
-			ns:       "Test.AlphaString",
-			expected: "يمكن أن يحتوي AlphaString على أحرف أبجدية فقط",
-		},
-		{
-			ns:       "Test.LtFieldString",
-			expected: "يجب أن يكون LtFieldString أصغر من MaxString",
-		},
-		{
-			ns:       "Test.LteFieldString",
-			expected: "يجب أن يكون LteFieldString أصغر من أو يساوي MaxString",
-		},
-		{
-			ns:       "Test.GtFieldString",
-			expected: "يجب أن يكون GtFieldString أكبر من MaxString",
-		},
-		{
-			ns:       "Test.GteFieldString",
-			expected: "يجب أن يكون GteFieldString أكبر من أو يساوي MaxString",
-		},
-		{
-			ns:       "Test.NeFieldString",
-			expected: "NeFieldString لا يمكن أن يساوي EqFieldString",
-		},
-		{
-			ns:       "Test.LtCSFieldString",
-			expected: "يجب أن يكون LtCSFieldString أصغر من Inner.LtCSFieldString",
-		},
-		{
-			ns:       "Test.LteCSFieldString",
-			expected: "يجب أن يكون LteCSFieldString أصغر من أو يساوي Inner.LteCSFieldString",
-		},
-		{
-			ns:       "Test.GtCSFieldString",
-			expected: "يجب أن يكون GtCSFieldString أكبر من Inner.GtCSFieldString",
-		},
-		{
-			ns:       "Test.GteCSFieldString",
-			expected: "يجب أن يكون GteCSFieldString أكبر من أو يساوي Inner.GteCSFieldString",
-		},
-		{
-			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString لا يمكن أن يساوي Inner.NeCSFieldString",
-		},
-		{
-			ns:       "Test.EqCSFieldString",
-			expected: "يجب أن يكون EqCSFieldString مساويا ل Inner.EqCSFieldString",
-		},
-		{
-			ns:       "Test.EqFieldString",
-			expected: "يجب أن يكون EqFieldString مساويا ل MaxString",
-		},
-		{
-			ns:       "Test.GteString",
-			expected: "يجب أن يكون طول GteString على الأقل 3 أحرف",
-		},
-		{
-			ns:       "Test.GteNumber",
-			expected: "GteNumber يجب أن يكون 5.56 أو أكبر",
-		},
-		{
-			ns:       "Test.GteMultiple",
-			expected: "يجب أن يحتوي GteMultiple على 2 عناصر على الأقل",
-		},
-		{
-			ns:       "Test.GteTime",
-			expected: "يجب أن يكون GteTime أكبر من أو يساوي التاريخ والوقت الحاليين",
-		},
-		{
-			ns:       "Test.GtString",
-			expected: "يجب أن يكون طول GtString أكبر من 3 أحرف",
-		},
-		{
-			ns:       "Test.GtNumber",
-			expected: "يجب أن يكون GtNumber أكبر من 5.56",
-		},
-		{
-			ns:       "Test.GtMultiple",
-			expected: "يجب أن يحتوي GtMultiple على أكثر من 2 عناصر",
-		},
-		{
-			ns:       "Test.GtTime",
-			expected: "يجب أن يكون GtTime أكبر من التاريخ والوقت الحاليين",
-		},
-		{
-			ns:       "Test.LteString",
-			expected: "يجب أن يكون طول LteString كحد أقصى 3 أحرف",
-		},
-		{
-			ns:       "Test.LteNumber",
-			expected: "LteNumber يجب أن يكون 5.56 أو اقل",
-		},
-		{
-			ns:       "Test.LteMultiple",
-			expected: "يجب أن يحتوي LteMultiple على 2 عناصر كحد أقصى",
-		},
-		{
-			ns:       "Test.LteTime",
-			expected: "يجب أن يكون LteTime أقل من أو يساوي التاريخ والوقت الحاليين",
-		},
-		{
-			ns:       "Test.LtString",
-			expected: "يجب أن يكون طول LtString أقل من 3 أحرف",
-		},
-		{
-			ns:       "Test.LtNumber",
-			expected: "يجب أن يكون LtNumber أقل من 5.56",
-		},
-		{
-			ns:       "Test.LtMultiple",
-			expected: "يجب أن يحتوي LtMultiple على أقل من 2 عناصر",
-		},
-		{
-			ns:       "Test.LtTime",
-			expected: "يجب أن يكون LtTime أقل من التاريخ والوقت الحاليين",
-		},
-		{
-			ns:       "Test.NeString",
-			expected: "NeString يجب ألا يساوي ",
-		},
-		{
-			ns:       "Test.NeNumber",
-			expected: "NeNumber يجب ألا يساوي 0.00",
-		},
-		{
-			ns:       "Test.NeMultiple",
-			expected: "NeMultiple يجب ألا يساوي 0",
-		},
-		{
-			ns:       "Test.EqString",
-			expected: "EqString لا يساوي 3",
-		},
-		{
-			ns:       "Test.EqNumber",
-			expected: "EqNumber لا يساوي 2.33",
-		},
-		{
-			ns:       "Test.EqMultiple",
-			expected: "EqMultiple لا يساوي 7",
-		},
-		{
-			ns:       "Test.MaxString",
-			expected: "يجب أن يكون طول MaxString بحد أقصى 3 أحرف",
-		},
-		{
-			ns:       "Test.MaxNumber",
-			expected: "MaxNumber يجب أن يكون 1,113.00 أو اقل",
-		},
-		{
-			ns:       "Test.MaxMultiple",
-			expected: "يجب أن يحتوي MaxMultiple على 7 عناصر كحد أقصى",
-		},
-		{
-			ns:       "Test.MinString",
-			expected: "MinString يجب أن يكون 1 حرف على الأقل",
-		},
-		{
-			ns:       "Test.MinNumber",
-			expected: "MinNumber يجب أن يكون 1,113.00 أو أكثر",
-		},
-		{
-			ns:       "Test.MinMultiple",
-			expected: "يجب أن يحتوي MinMultiple على 7 عناصر على الأقل",
-		},
-		{
-			ns:       "Test.LenString",
-			expected: "يجب أن يكون طول LenString مساويا ل 1 حرف",
-		},
-		{
-			ns:       "Test.LenNumber",
-			expected: "يجب أن يكون LenNumber مساويا ل 1,113.00",
-		},
-		{
-			ns:       "Test.LenMultiple",
-			expected: "يجب أن يحتوي LenMultiple على 7 عناصر",
-		},
-		{
-			ns:       "Test.RequiredString",
-			expected: "حقل RequiredString مطلوب",
-		},
-		{
-			ns:       "Test.RequiredNumber",
-			expected: "حقل RequiredNumber مطلوب",
-		},
-		{
-			ns:       "Test.RequiredMultiple",
-			expected: "حقل RequiredMultiple مطلوب",
-		},
-		{
-			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen يجب أن يكون 10 أحرف على الأقل",
-		},
-		{
-			ns:       "Test.StrPtrMaxLen",
-			expected: "يجب أن يكون طول StrPtrMaxLen بحد أقصى 1 حرف",
-		},
-		{
-			ns:       "Test.StrPtrLen",
-			expected: "يجب أن يكون طول StrPtrLen مساويا ل 2 أحرف",
-		},
-		{
-			ns:       "Test.StrPtrLt",
-			expected: "يجب أن يكون طول StrPtrLt أقل من 1 حرف",
-		},
-		{
-			ns:       "Test.StrPtrLte",
-			expected: "يجب أن يكون طول StrPtrLte كحد أقصى 1 حرف",
-		},
-		{
-			ns:       "Test.StrPtrGt",
-			expected: "يجب أن يكون طول StrPtrGt أكبر من 10 أحرف",
-		},
-		{
-			ns:       "Test.StrPtrGte",
-			expected: "يجب أن يكون طول StrPtrGte على الأقل 10 أحرف",
-		},
-		{
-			ns:       "Test.OneOfString",
-			expected: "يجب أن يكون OneOfString واحدا من [red green]",
-		},
-		{
-			ns:       "Test.OneOfInt",
-			expected: "يجب أن يكون OneOfInt واحدا من [5 63]",
-		},
-		{
-			ns:       "Test.UniqueSlice",
-			expected: "يجب أن يحتوي UniqueSlice على قيم فريدة",
-		},
-		{
-			ns:       "Test.UniqueArray",
-			expected: "يجب أن يحتوي UniqueArray على قيم فريدة",
-		},
-		{
-			ns:       "Test.UniqueMap",
-			expected: "يجب أن يحتوي UniqueMap على قيم فريدة",
-		},
-		{
-			ns:       "Test.JSONString",
-			expected: "يجب أن يكون JSONString نص json صالح",
-		},
-		{
-			ns:       "Test.JWTString",
-			expected: "يجب أن يكون JWTString نص jwt صالح",
-		},
-		{
-			ns:       "Test.LowercaseString",
-			expected: "يجب أن يكون LowercaseString نص حروف صغيرة",
-		},
-		{
-			ns:       "Test.UppercaseString",
-			expected: "يجب أن يكون UppercaseString نص حروف كبيرة",
-		},
-		{
-			ns:       "Test.Datetime",
-			expected: "لا يتطابق Datetime مع تنسيق 2006-01-02",
-		},
-		{
-			ns:       "Test.PostCode",
-			expected: "لا يتطابق PostCode مع تنسيق الرمز البريدي للبلد SG",
-		},
-		{
-			ns:       "Test.PostCodeByField",
-			expected: "لا يتطابق PostCodeByField مع تنسيق الرمز البريدي للبلد في حقل PostCodeCountry",
-		},
-		{
-			ns:       "Test.Image",
-			expected: "يجب أن تكون Image صورة صالحة",
-		},
-		{
-			ns:       "Test.BooleanString",
-			expected: "يجب أن يكون BooleanString قيمة منطقية صالحة",
-		},
-		{
-			ns:       "Test.CveString",
-			expected: "يجب أن يكون CveString معرف CVE صالح",
+			expected: "MAC ต้องเป็น MAC address",
 		},
 		{
 			ns:       "Test.FQDN",
-			expected: "يجب أن يكون FQDN اسم نطاق مؤهل بالكامل صالح",
+			expected: "FQDN ต้องเป็น FQDN",
 		},
 		{
-			ns:       "Test.MinDuration",
-			expected: "يجب أن تكون مدة MinDuration 1h30m أو أكبر",
+			ns:       "Test.IPAddr",
+			expected: "IPAddr ต้องเป็น IP address ที่เข้าถึงได้",
 		},
 		{
-			ns:       "Test.MaxDuration",
-			expected: "يجب أن تكون مدة MaxDuration 2h أو أقل",
+			ns:       "Test.IPAddrv4",
+			expected: "IPAddrv4 ต้องเป็น IPv4 address ที่เข้าถึงได้",
 		},
 		{
-			ns:       "Test.CronString",
-			expected: "يجب أن يكون CronString تعبير cron صالح",
+			ns:       "Test.IPAddrv6",
+			expected: "IPAddrv6 ต้องเป็น IPv6 address ที่เข้าถึงได้",
 		},
 		{
-			ns:       "Test.MD5String",
-			expected: "يجب أن يكون MD5String تجزئة MD5 صالحة",
+			ns:       "Test.UDPAddr",
+			expected: "UDPAddr ต้องเป็น UDP address",
 		},
 		{
-			ns:       "Test.SHA256String",
-			expected: "يجب أن يكون SHA256String تجزئة SHA256 صالحة",
+			ns:       "Test.UDPAddrv4",
+			expected: "UDPAddrv4 ต้องเป็น IPv4 UDP address",
 		},
 		{
-			ns:       "Test.Semver",
-			expected: "يجب أن يكون Semver إصدار دلالي صالح",
+			ns:       "Test.UDPAddrv6",
+			expected: "UDPAddrv6 ต้องเป็น IPv6 UDP address",
+		},
+		{
+			ns:       "Test.TCPAddr",
+			expected: "TCPAddr ต้องเป็น TCP address",
+		},
+		{
+			ns:       "Test.TCPAddrv4",
+			expected: "TCPAddrv4 ต้องเป็น IPv4 TCP address",
+		},
+		{
+			ns:       "Test.TCPAddrv6",
+			expected: "TCPAddrv6 ต้องเป็น IPv6 TCP address",
+		},
+		{
+			ns:       "Test.CIDR",
+			expected: "CIDR ต้องเป็น CIDR notation",
+		},
+		{
+			ns:       "Test.CIDRv4",
+			expected: "CIDRv4 ต้องเป็น CIDR notation สำหรับ an IPv4 address",
+		},
+		{
+			ns:       "Test.CIDRv6",
+			expected: "CIDRv6 ต้องเป็น CIDR notation สำหรับ an IPv6 address",
+		},
+		{
+			ns:       "Test.SSN",
+			expected: "SSN ต้องเป็นตัวเลข SSN",
+		},
+		{
+			ns:       "Test.IP",
+			expected: "IP ต้องเป็น IP address",
+		},
+		{
+			ns:       "Test.IPv4",
+			expected: "IPv4 ต้องเป็น IPv4 address",
+		},
+		{
+			ns:       "Test.IPv6",
+			expected: "IPv6 ต้องเป็น IPv6 address",
+		},
+		{
+			ns:       "Test.DataURI",
+			expected: "DataURI ต้องประกอบไปด้วย a valid Data URI",
+		},
+		{
+			ns:       "Test.Latitude",
+			expected: "Latitude ต้องเป็นละติจูด",
+		},
+		{
+			ns:       "Test.Longitude",
+			expected: "Longitude ต้องเป็นลองจิจูด",
+		},
+		{
+			ns:       "Test.UUID",
+			expected: "UUID ต้องเป็น UUID",
+		},
+		{
+			ns:       "Test.UUID3",
+			expected: "UUID3 ต้องเป็น version 3 UUID",
+		},
+		{
+			ns:       "Test.UUID4",
+			expected: "UUID4 ต้องเป็น version 4 UUID",
+		},
+		{
+			ns:       "Test.UUID5",
+			expected: "UUID5 ต้องเป็น version 5 UUID",
+		},
+		{
+			ns:       "Test.ULID",
+			expected: "ULID must be a valid ULID",
+		},
+		{
+			ns:       "Test.ISBN",
+			expected: "ISBN ต้องเป็นตัวเลข ISBN",
+		},
+		{
+			ns:       "Test.ISBN10",
+			expected: "ISBN10 ต้องเป็นตัวเลข ISBN-10",
+		},
+		{
+			ns:       "Test.ISBN13",
+			expected: "ISBN13 ต้องเป็นตัวเลข ISBN-13",
+		},
+		{
+			ns:       "Test.ISSN",
+			expected: "ISSN ต้องเป็นตัวเลข ISSN",
+		},
+		{
+			ns:       "Test.Excludes",
+			expected: "Excludes ต้องไม่มี 'text'",
+		},
+		{
+			ns:       "Test.ExcludesAll",
+			expected: "ExcludesAll ต้องไม่มีอักขระ '!@#$' ทั้งหมด",
+		},
+		{
+			ns:       "Test.ExcludesRune",
+			expected: "ExcludesRune ต้องไม่มี '☻'",
+		},
+		{
+			ns:       "Test.Contains",
+			expected: "Contains ต้องมี 'purpose'",
+		},
+		{
+			ns:       "Test.Base64",
+			expected: "Base64 ต้องเป็น Base64 เท่านั้น",
+		},
+		{
+			ns:       "Test.Email",
+			expected: "Email ต้องเป็นอีเมลเท่านั้น",
+		},
+		{
+			ns:       "Test.URL",
+			expected: "URL ต้องเป็น URL เท่านั้น",
+		},
+		{
+			ns:       "Test.URI",
+			expected: "URI ต้องเป็น URI เท่านั้น",
+		},
+		{
+			ns:       "Test.RGBColorString",
+			expected: "RGBColorString ต้องเป็นเลขสี RGB เท่านั้น",
+		},
+		{
+			ns:       "Test.RGBAColorString",
+			expected: "RGBAColorString ต้องเป็นเลขสี RGBA เท่านั้น",
+		},
+		{
+			ns:       "Test.HSLColorString",
+			expected: "HSLColorString ต้องเป็นเลขสี HSL เท่านั้น",
+		},
+		{
+			ns:       "Test.HSLAColorString",
+			expected: "HSLAColorString ต้องเป็นเลขสี HSLA เท่านั้น",
+		},
+		{
+			ns:       "Test.HexadecimalString",
+			expected: "HexadecimalString ต้องเป็นค่าตัวเลขฐาน 16 เท่านั้น",
+		},
+		{
+			ns:       "Test.HexColorString",
+			expected: "HexColorString ต้องเป็นเลขสีฐาน 16 เท่านั้น",
+		},
+		{
+			ns:       "Test.NumberString",
+			expected: "NumberString ต้องเป็นตัวเลขเท่านั้น",
+		},
+		{
+			ns:       "Test.NumericString",
+			expected: "NumericString ต้องเป็นค่าตัวเลขเท่านั้น",
+		},
+		{
+			ns:       "Test.LtFieldString",
+			expected: "LtFieldString ต้องมีค่าน้อยกว่า MaxString",
+		},
+		{
+			ns:       "Test.LteFieldString",
+			expected: "LteFieldString ต้องมีค่าน้อยกว่าหรือเท่ากับ MaxString",
+		},
+		{
+			ns:       "Test.GtFieldString",
+			expected: "GtFieldString ต้องมีค่ามากกว่า MaxString",
+		},
+		{
+			ns:       "Test.GteFieldString",
+			expected: "GteFieldString ต้องมีค่ามากกว่าหรือเท่ากับ MaxString",
+		},
+		{
+			ns:       "Test.NeFieldString",
+			expected: "NeFieldString ต้องไม่เท่ากับ EqFieldString",
+		},
+		{
+			ns:       "Test.LtCSFieldString",
+			expected: "LtCSFieldString ต้องมีค่าน้อยกว่า Inner.LtCSFieldString",
+		},
+		{
+			ns:       "Test.LteCSFieldString",
+			expected: "LteCSFieldString ต้องมีค่าน้อยกว่าหรือเท่ากับ Inner.LteCSFieldString",
+		},
+		{
+			ns:       "Test.GtCSFieldString",
+			expected: "GtCSFieldString ต้องมีค่ามากกว่า Inner.GtCSFieldString",
+		},
+		{
+			ns:       "Test.GteCSFieldString",
+			expected: "GteCSFieldString ต้องมีค่ามากกว่าหรือเท่ากับ Inner.GteCSFieldString",
+		},
+		{
+			ns:       "Test.NeCSFieldString",
+			expected: "NeCSFieldString ต้องไม่เท่ากับ Inner.NeCSFieldString",
+		},
+		{
+			ns:       "Test.EqCSFieldString",
+			expected: "EqCSFieldString ต้องเท่ากับ Inner.EqCSFieldString",
+		},
+		{
+			ns:       "Test.EqFieldString",
+			expected: "EqFieldString ต้องเท่ากับ MaxString",
+		},
+		{
+			ns:       "Test.GteNumber",
+			expected: "GteNumber ต้องมีค่ามากกว่า 5.56",
+		},
+		{
+			ns:       "Test.GteMultiple",
+			expected: "GteMultiple ต้องมีอย่างน้อย 2 รายการ",
+		},
+		{
+			ns:       "Test.GteTime",
+			expected: "GteTime ต้องเป็นเวลาหลังหรือเป็นเวลาปัจจุบัน",
+		},
+		{
+			ns:       "Test.GtNumber",
+			expected: "GtNumber ต้องมีค่ามากกว่า 5.56",
+		},
+		{
+			ns:       "Test.GtMultiple",
+			expected: "GtMultiple ต้องมีมากกว่า 2 รายการ",
+		},
+		{
+			ns:       "Test.GtTime",
+			expected: "GtTime ต้องเป็นเวลาหลังจากปัจจุบัน",
+		},
+		{
+			ns:       "Test.LteNumber",
+			expected: "LteNumber ต้องมีค่าน้อยกว่าหรือเท่ากับ 5.56",
+		},
+		{
+			ns:       "Test.LteMultiple",
+			expected: "LteMultiple ต้องมีไม่เกิน 2 รายการ",
+		},
+		{
+			ns:       "Test.LteTime",
+			expected: "LteTime ต้องเป็นเวลาก่อนหรือเป็นเวลาปัจจุบัน",
+		},
+		{
+			ns:       "Test.LtNumber",
+			expected: "LtNumber ต้องมีค่าน้อยกว่า 5.56",
+		},
+		{
+			ns:       "Test.LtMultiple",
+			expected: "LtMultiple ต้องมีน้อยกว่า 2 รายการ",
+		},
+		{
+			ns:       "Test.LtTime",
+			expected: "LtTime ต้องเป็นเวลาก่อนปัจจุบัน",
+		},
+		{
+			ns:       "Test.NeString",
+			expected: "NeString ต้องไม่เท่ากับ ",
+		},
+		{
+			ns:       "Test.NeNumber",
+			expected: "NeNumber ต้องไม่เท่ากับ 0.00",
+		},
+		{
+			ns:       "Test.NeMultiple",
+			expected: "NeMultiple ต้องไม่เท่ากับ 0",
+		},
+		{
+			ns:       "Test.EqString",
+			expected: "EqString ไม่เท่ากับ 3",
+		},
+		{
+			ns:       "Test.EqNumber",
+			expected: "EqNumber ไม่เท่ากับ 2.33",
+		},
+		{
+			ns:       "Test.EqMultiple",
+			expected: "EqMultiple ไม่เท่ากับ 7",
+		},
+		{
+			ns:       "Test.MaxNumber",
+			expected: "MaxNumber ต้องมีค่าน้อยกว่าหรือเท่ากับ 1,113.00",
+		},
+		{
+			ns:       "Test.MaxMultiple",
+			expected: "MaxMultiple ต้องมีไม่เกิน 7 รายการ",
+		},
+		{
+			ns:       "Test.MinString",
+			expected: "MinString ต้องมีความยาวอย่างน้อย 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.MinNumber",
+			expected: "MinNumber ต้องมีค่ามากกว่า 1,113.00",
+		},
+		{
+			ns:       "Test.MinMultiple",
+			expected: "MinMultiple ต้องมีอย่างน้อย 7 รายการ",
+		},
+		{
+			ns:       "Test.LenString",
+			expected: "LenString ต้องมีความยาว 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.LenNumber",
+			expected: "LenNumber ต้องเท่ากับ 1,113.00",
+		},
+		{
+			ns:       "Test.LenMultiple",
+			expected: "LenMultiple ต้องประกอบไปด้วย 7 รายการ",
+		},
+		{
+			ns:       "Test.RequiredString",
+			expected: "โปรดระบุ RequiredString",
+		},
+		{
+			ns:       "Test.RequiredIf",
+			expected: "โปรดระบุ RequiredIf",
+		},
+		{
+			ns:       "Test.RequiredNumber",
+			expected: "โปรดระบุ RequiredNumber",
+		},
+		{
+			ns:       "Test.RequiredMultiple",
+			expected: "โปรดระบุ RequiredMultiple",
+		},
+		{
+			ns:       "Test.StrPtrMaxLen",
+			expected: "StrPtrMaxLen ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLt",
+			expected: "StrPtrLt ต้องมีความยาวน้อยกว่า 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLte",
+			expected: "StrPtrLte ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.OneOfString",
+			expected: "OneOfString ต้องอยู่ใน [red green]",
+		},
+		{
+			ns:       "Test.OneOfInt",
+			expected: "OneOfInt ต้องอยู่ใน [5 63]",
+		},
+		{
+			ns:       "Test.UniqueSlice",
+			expected: "UniqueSlice ต้องมีข้อมูลไม่ซ้ำ",
+		},
+		{
+			ns:       "Test.UniqueArray",
+			expected: "UniqueArray ต้องมีข้อมูลไม่ซ้ำ",
+		},
+		{
+			ns:       "Test.UniqueMap",
+			expected: "UniqueMap ต้องมีข้อมูลไม่ซ้ำ",
+		},
+		{
+			ns:       "Test.JSONString",
+			expected: "JSONString ต้องเป็น json string",
+		},
+		{
+			ns:       "Test.JWTString",
+			expected: "JWTString ต้องเป็น jwt string",
+		},
+		{
+			ns:       "Test.LowercaseString",
+			expected: "LowercaseString ต้องเป็นตัวพิมพ์เล็ก",
+		},
+		{
+			ns:       "Test.UppercaseString",
+			expected: "UppercaseString ต้องเป็นตัวพิมพ์ใหญ่",
+		},
+		{
+			ns:       "Test.Datetime",
+			expected: "Datetime ไม่ตรงกับรูปแบบ 2006-01-02",
+		},
+		{
+			ns:       "Test.PostCode",
+			expected: "PostCode does not match postcode format of SG country",
+		},
+		{
+			ns:       "Test.PostCodeByField",
+			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "BooleanString ต้องเป็น boolean",
+		},
+		{
+			ns:       "Test.Image",
+			expected: "Image ต้องเป็นรูปภาพ",
+		},
+		{
+			ns:       "Test.CveString",
+			expected: "CveString ต้องเป็นรูปแบบ cve",
+		},
+		{
+			ns:       "Test.StrPtrMinLen",
+			expected: "StrPtrMinLen ต้องมีความยาวอย่างน้อย 10 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrMaxLen",
+			expected: "StrPtrMaxLen ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLen",
+			expected: "StrPtrLen ต้องมีความยาว 2 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLt",
+			expected: "StrPtrLt ต้องมีความยาวน้อยกว่า 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrLte",
+			expected: "StrPtrLte ต้องมีความยาวไม่เกิน 1 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrGt",
+			expected: "StrPtrGt ต้องมีความยาวมากกว่า 10 ตัวอักษร",
+		},
+		{
+			ns:       "Test.StrPtrGte",
+			expected: "StrPtrGte ต้องมีความยาวอย่างน้อย 10 ตัวอักษร",
 		},
 	}
 

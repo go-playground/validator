@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net"
+	"net/mail"
 	"net/url"
 	"os"
 	"reflect"
@@ -50,6 +51,7 @@ var (
 		keysTag:           {},
 		endKeysTag:        {},
 		structOnlyTag:     {},
+		omitzero:          {},
 		omitempty:         {},
 		omitnil:           {},
 		skipValidationTag: {},
@@ -241,7 +243,8 @@ var (
 		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
-		"isvalid":                       isValid,
+		"ein":                           isEIN,
+    "isvalid":                       isValid,
 	}
 )
 
@@ -1376,7 +1379,6 @@ func isEqIgnoreCase(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		return strings.EqualFold(field.String(), param)
 	}
@@ -1418,6 +1420,7 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", currentField.Interface()))
 	}
 
+	postcodeRegexInit.Do(initPostcodes)
 	reg, found := postCodeRegexDict[currentField.String()]
 	if !found {
 		return false
@@ -1605,7 +1608,6 @@ func isImage(fl FieldLevel) bool {
 	case reflect.String:
 		filePath := field.String()
 		fileInfo, err := os.Stat(filePath)
-
 		if err != nil {
 			return false
 		}
@@ -1634,7 +1636,6 @@ func isImage(fl FieldLevel) bool {
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
 func isFilePath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -1694,6 +1695,10 @@ func isE164(fl FieldLevel) bool {
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
 func isEmail(fl FieldLevel) bool {
+	_, err := mail.ParseAddress(fl.Field().String())
+	if err != nil {
+		return false
+	}
 	return emailRegex().MatchString(fl.Field().String())
 }
 
@@ -1792,6 +1797,20 @@ func hasValue(fl FieldLevel) bool {
 	default:
 		if fl.(*validate).fldIsPointer && field.Interface() != nil {
 			return true
+		}
+		return field.IsValid() && !field.IsZero()
+	}
+}
+
+// hasNotZeroValue is the validation function for validating if the current field's value is not the zero value for its type.
+func hasNotZeroValue(fl FieldLevel) bool {
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
+	default:
+		if fl.(*validate).fldIsPointer && field.Interface() != nil {
+			return !field.IsZero()
 		}
 		return field.IsValid() && !field.IsZero()
 	}
@@ -2212,7 +2231,6 @@ func isGt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).After(time.Now().UTC())
 		}
 	}
@@ -2449,7 +2467,6 @@ func isLt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).Before(time.Now().UTC())
 		}
 	}
@@ -2629,7 +2646,6 @@ func isDir(fl FieldLevel) bool {
 
 // isDirPath is the validation function for validating if the current field's value is a valid directory.
 func isDirPath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -2942,6 +2958,12 @@ func isCveFormat(fl FieldLevel) bool {
 // a valid dns RFC 1035 label, defined in RFC 1035.
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
+
+	size := len(val)
+	if size > 63 {
+		return false
+	}
+
 	return dnsRegexRFC1035Label().MatchString(val)
 }
 
@@ -3044,6 +3066,17 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex().MatchString(cronString)
+}
+
+// isEIN is the validation function for validating if the current field's value is a valid U.S. Employer Identification Number (EIN)
+func isEIN(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Len() != 10 {
+		return false
+	}
+
+	return einRegex().MatchString(field.String())
 }
 
 func isValid(fl FieldLevel) bool {
