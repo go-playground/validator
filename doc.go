@@ -1413,6 +1413,12 @@ Example:
 		ConnectionStringField string `validate:"mongodb_connection_string"`
 	}
 
+# OCI Tag
+
+This validates that a string value is a valid OCI tag, as defined in the OCI Image Spec.
+
+	Usage: oci_tag
+
 # Cron
 
 This validates that a string value contains a valid cron expression.
