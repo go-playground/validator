@@ -3071,6 +3071,7 @@ func isCron(fl FieldLevel) bool {
 // isOciTag is the validation function for validating if the current field's value is a valid OCI tag, as described in the OCI Distribution Specification: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
 func isOciTag(fl FieldLevel) bool {
 	return ociTagRegex().MatchString(fl.Field().String())
+}
 
 // isEIN is the validation function for validating if the current field's value is a valid U.S. Employer Identification Number (EIN)
 func isEIN(fl FieldLevel) bool {
