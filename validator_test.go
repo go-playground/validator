@@ -3088,7 +3088,7 @@ func TestBadKeyValidation(t *testing.T) {
 
 func TestInterfaceErrValidation(t *testing.T) {
 	var v2 interface{} = 1
-	var v1 interface{} = v2
+	var v1 = v2
 
 	validate := New()
 	errs := validate.Var(v1, "len=1")
@@ -5941,13 +5941,15 @@ func TestFileValidation(t *testing.T) {
 func TestImageValidation(t *testing.T) {
 	validate := New()
 
+	tmpDir := t.TempDir()
+
 	paths := map[string]string{
 		"empty":     "",
 		"directory": "testdata",
-		"missing":   filepath.Join("testdata", "none.png"),
-		"png":       filepath.Join("testdata", "image.png"),
-		"jpeg":      filepath.Join("testdata", "image.jpg"),
-		"mp3":       filepath.Join("testdata", "music.mp3"),
+		"missing":   filepath.Join(tmpDir, "none.png"),
+		"png":       filepath.Join(tmpDir, "image.png"),
+		"jpeg":      filepath.Join(tmpDir, "image.jpg"),
+		"mp3":       filepath.Join(tmpDir, "music.mp3"),
 	}
 
 	tests := []struct {
@@ -5983,14 +5985,18 @@ func TestImageValidation(t *testing.T) {
 			true,
 			func() {
 				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
-				f, _ := os.Create(paths["png"])
-				err := png.Encode(f, img)
-				if err != nil {
-					panic(fmt.Sprintf("Could not encode file in PNG. Error: %s", err))
-				}
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
 			},
 			func() {
-				os.Remove(paths["png"])
+				err := os.Remove(paths["png"])
+				Equal(t, err, nil)
 			},
 		},
 		{
@@ -6000,14 +6006,18 @@ func TestImageValidation(t *testing.T) {
 			func() {
 				var opt jpeg.Options
 				img := image.NewGray(image.Rect(0, 0, 10, 10))
-				f, _ := os.Create(paths["jpeg"])
-				err := jpeg.Encode(f, img, &opt)
-				if err != nil {
-					panic(fmt.Sprintf("Could not encode file in JPEG. Error: %s", err))
-				}
+				f, err := os.Create(paths["jpeg"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = jpeg.Encode(f, img, &opt)
+				Equal(t, err, nil)
 			},
 			func() {
-				os.Remove(paths["jpeg"])
+				err := os.Remove(paths["jpeg"])
+				Equal(t, err, nil)
 			},
 		},
 		{

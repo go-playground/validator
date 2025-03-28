@@ -309,7 +309,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 
 				if len(vals) > 1 {
-					current.param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+					current.param = strings.ReplaceAll(strings.ReplaceAll(vals[1], utf8HexComma, ","), utf8Pipe, "|")
 				}
 			}
 			current.isBlockEnd = true
