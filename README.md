@@ -1,5 +1,6 @@
 Package validator
 =================
+
 <img align="right" src="logo.png">![Project status](https://img.shields.io/badge/version-10.25.0-green.svg)
 [![Build Status](https://github.com/go-playground/validator/actions/workflows/workflow.yml/badge.svg)](https://github.com/go-playground/validator/actions)
 [![Coverage Status](https://coveralls.io/repos/go-playground/validator/badge.svg?branch=master&service=github)](https://coveralls.io/github/go-playground/validator?branch=master)
@@ -11,15 +12,15 @@ Package validator implements value validations for structs and individual fields
 
 It has the following **unique** features:
 
--   Cross Field and Cross Struct validations by using validation tags or custom validators.
--   Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.
--   Ability to dive into both map keys and values for validation
--   Handles type interface by determining it's underlying type prior to validation.
--   Handles custom field types such as sql driver Valuer see [Valuer](https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29)
--   Alias validation tags, which allows for mapping of several validations to a single tag for easier defining of validations on structs
--   Extraction of custom defined Field Name e.g. can specify to extract the JSON name while validating and have it available in the resulting FieldError
--   Customizable i18n aware error messages.
--   Default validator for the [gin](https://github.com/gin-gonic/gin) web framework; upgrading from v8 to v9 in gin see [here](https://github.com/go-playground/validator/tree/master/_examples/gin-upgrading-overriding)
+- Cross Field and Cross Struct validations by using validation tags or custom validators.
+- Slice, Array and Map diving, which allows any or all levels of a multidimensional field to be validated.
+- Ability to dive into both map keys and values for validation
+- Handles type interface by determining it's underlying type prior to validation.
+- Handles custom field types such as sql driver Valuer see [Valuer](https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29)
+- Alias validation tags, which allows for mapping of several validations to a single tag for easier defining of validations on structs
+- Extraction of custom defined Field Name e.g. can specify to extract the JSON name while validating and have it available in the resulting FieldError
+- Customizable i18n aware error messages.
+- Default validator for the [gin](https://github.com/gin-gonic/gin) web framework; upgrading from v8 to v9 in gin see [here](https://github.com/go-playground/validator/tree/master/_examples/gin-upgrading-overriding)
 
 A Call for Maintainers
 ----------------------
@@ -31,11 +32,11 @@ Installation
 
 Use go get.
 
-	go get github.com/go-playground/validator/v10
+ go get github.com/go-playground/validator/v10
 
 Then import the validator package into your own code.
 
-	import "github.com/go-playground/validator/v10"
+ import "github.com/go-playground/validator/v10"
 
 Error Return Value
 -------
@@ -44,8 +45,8 @@ Validation functions return type error
 
 They return type error to avoid the issue discussed in the following, where err is always != nil:
 
-* http://stackoverflow.com/a/29138676/3158232
-* https://github.com/go-playground/validator/issues/134
+- <http://stackoverflow.com/a/29138676/3158232>
+- <https://github.com/go-playground/validator/issues/134>
 
 Validator returns only InvalidValidationError for bad validation input, nil or ValidationErrors as type error; so, in your code all you need to do is check if the error returned is not nil, and if it's not check if error is InvalidValidationError ( if necessary, most of the time it isn't ) type cast it to type ValidationErrors like so:
 
@@ -57,9 +58,9 @@ validationErrors := err.(validator.ValidationErrors)
 Usage and documentation
 ------
 
-Please see https://pkg.go.dev/github.com/go-playground/validator/v10 for detailed usage docs.
+Please see <https://pkg.go.dev/github.com/go-playground/validator/v10> for detailed usage docs.
 
-##### Examples:
+##### Examples
 
 - [Simple](https://github.com/go-playground/validator/blob/master/_examples/simple/main.go)
 - [Custom Field Types](https://github.com/go-playground/validator/blob/master/_examples/custom/main.go)
@@ -71,13 +72,15 @@ Please see https://pkg.go.dev/github.com/go-playground/validator/v10 for detaile
 Baked-in Validations
 ------
 
-### Special Notes:
+### Special Notes
+
 - If new to using validator it is highly recommended to initialize it using the `WithRequiredStructEnabled` option which is opt-in to new behaviour that will become the default behaviour in v11+. See documentation for more details.
+
 ```go
 validate := validator.New(validator.WithRequiredStructEnabled())
 ```
 
-### Fields:
+### Fields
 
 | Tag | Description |
 | - | - |
@@ -96,7 +99,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | necsfield | Field Does Not Equal Another Field (relative) |
 | nefield | Field Does Not Equal Another Field |
 
-### Network:
+### Network
 
 | Tag | Description |
 | - | - |
@@ -128,7 +131,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | url_encoded | URL Encoded |
 | urn_rfc2141 | Urn RFC 2141 String |
 
-### Strings:
+### Strings
 
 | Tag | Description |
 | - | - |
@@ -155,7 +158,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | startswith | Starts With |
 | uppercase | Uppercase |
 
-### Format:
+### Format
+
 | Tag | Description |
 | - | - |
 | base64 | Base64 String |
@@ -211,6 +215,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
 | md4 | MD4 hash |
 | md5 | MD5 hash |
+| oci_tag | Open Container Initiative (OCI) Tag |
 | sha256 | SHA256 hash |
 | sha384 | SHA384 hash |
 | sha512 | SHA512 hash |
@@ -223,7 +228,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 | cve | Common Vulnerabilities and Exposures Identifier (CVE id) |
 
-### Comparisons:
+### Comparisons
+
 | Tag | Description |
 | - | - |
 | eq | Equals |
@@ -235,7 +241,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | ne | Not Equal |
 | ne_ignore_case | Not Equal ignoring case |
 
-### Other:
+### Other
+
 | Tag | Description |
 | - | - |
 | dir | Existing Directory |
@@ -263,7 +270,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | excluded_without_all | Excluded Without All |
 | unique | Unique |
 
-#### Aliases:
+#### Aliases
+
 | Tag | Description |
 | - | - |
 | iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
@@ -271,7 +279,9 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 
 Benchmarks
 ------
+
 ###### Run on MacBook Pro Max M3
+
 ```go
 go version go1.23.3 darwin/arm64
 goos: darwin
@@ -347,8 +357,8 @@ Complementary Software
 
 Here is a list of software that complements using this library either pre or post validation.
 
-* [form](https://github.com/go-playground/form) - Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values. Dual Array and Full map support.
-* [mold](https://github.com/go-playground/mold) - A general library to help modify or set data within data structures and other objects
+- [form](https://github.com/go-playground/form) - Decodes url.Values into Go value(s) and Encodes Go value(s) into url.Values. Dual Array and Full map support.
+- [mold](https://github.com/go-playground/mold) - A general library to help modify or set data within data structures and other objects
 
 How to Contribute
 ------
@@ -360,20 +370,22 @@ Maintenance and support for SDK major versions
 
 See prior discussion [here](https://github.com/go-playground/validator/discussions/1342) for more details.
 
-This package is aligned with the [Go release policy](https://go.dev/doc/devel/release) in that support is guaranteed for 
+This package is aligned with the [Go release policy](https://go.dev/doc/devel/release) in that support is guaranteed for
 the two most recent major versions.
 
-This does not mean the package will not work with older versions of Go, only that we reserve the right to increase the 
-MSGV(Minimum Supported Go Version) when the need arises to address Security issues/patches, OS issues & support or newly 
+This does not mean the package will not work with older versions of Go, only that we reserve the right to increase the
+MSGV(Minimum Supported Go Version) when the need arises to address Security issues/patches, OS issues & support or newly
 introduced functionality that would greatly benefit the maintenance and/or usage of this package.
 
 If and when the MSGV is increased it will be done so in a minimum of a `Minor` release bump.
 
 License
 -------
+
 Distributed under MIT License, please see license file within the code for more details.
 
 Maintainers
 -----------
+
 This project has grown large enough that more than one person is required to properly support the community.
-If you are interested in becoming a maintainer please reach out to me https://github.com/deankarn
+If you are interested in becoming a maintainer please reach out to me <https://github.com/deankarn>
