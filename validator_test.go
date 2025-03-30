@@ -9489,6 +9489,7 @@ func TestTranslations(t *testing.T) {
 	fr, _ := uni.GetTranslator("fr")
 
 	validate := New()
+	validate.RegisterTranslator(trans)
 	err := validate.RegisterTranslation("required", trans,
 		func(ut ut.Translator) (err error) {
 			// using this stype because multiple translation may have to be added for the full translation
@@ -9543,7 +9544,7 @@ func TestTranslations(t *testing.T) {
 	fe := errs[0]
 	Equal(t, fe.Tag(), "required")
 	Equal(t, fe.Namespace(), "Test.Value")
-	Equal(t, fe.Translate(trans), fmt.Sprintf("%s is a required field", fe.Field()))
+	Equal(t, fe.Translate(validate.Translator()), fmt.Sprintf("%s is a required field", fe.Field()))
 	Equal(t, fe.Translate(fr), fmt.Sprintf("%s est un champ obligatoire", fe.Field()))
 
 	nl := nl.New()
@@ -9551,7 +9552,7 @@ func TestTranslations(t *testing.T) {
 	trans2, _ := uni2.GetTranslator("nl")
 	Equal(t, fe.Translate(trans2), "Key: 'Test.Value' Error:Field validation for 'Value' failed on the 'required' tag")
 
-	terrs := errs.Translate(trans)
+	terrs := errs.Translate(validate.Translator())
 	Equal(t, len(terrs), 1)
 
 	v, ok := terrs["Test.Value"]
@@ -9580,7 +9581,7 @@ func TestTranslations(t *testing.T) {
 	fe = errs[0]
 	Equal(t, fe.Tag(), "gt")
 	Equal(t, fe.Namespace(), "Test2.Value")
-	Equal(t, fe.Translate(trans), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag")
+	Equal(t, fe.Translate(validate.Translator()), "Key: 'Test2.Value' Error:Field validation for 'Value' failed on the 'gt' tag")
 }
 
 func TestTranslationErrors(t *testing.T) {
