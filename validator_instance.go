@@ -89,7 +89,7 @@ type Validate struct {
 	aliases                map[string]string
 	validations            map[string]internalValidationFuncWrapper
 	transTagFunc           map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
-	translator             ut.Translator
+	translator             map[string]ut.Translator
 	rules                  map[reflect.Type]map[string]string
 	tagCache               *tagCache
 	structCache            *structCache
@@ -116,6 +116,7 @@ func New(options ...Option) *Validate {
 		tagName:     defaultTagName,
 		aliases:     make(map[string]string, len(bakedInAliases)),
 		validations: make(map[string]internalValidationFuncWrapper, len(bakedInValidators)),
+		translator:  make(map[string]ut.Translator),
 		tagCache:    tc,
 		structCache: sc,
 	}
@@ -362,12 +363,12 @@ func (v *Validate) RegisterTranslation(tag string, trans ut.Translator, register
 	return
 }
 
-func (v *Validate) RegisterTranslator(trans ut.Translator) {
-	v.translator = trans
+func (v *Validate) RegisterTranslator(trans ut.Translator, locale string) {
+	v.translator[locale] = trans
 }
 
-func (v *Validate) Translator() ut.Translator {
-	return v.translator
+func (v *Validate) Translator(locale string) ut.Translator {
+	return v.translator[locale]
 }
 
 // Struct validates a structs exposed fields, and automatically validates nested structs, unless otherwise specified.
