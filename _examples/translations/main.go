@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-playground/locales/zh"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 )
 
 // User contains user information
@@ -38,14 +40,19 @@ func main() {
 	// NOTE: omitting allot of error checking for brevity
 
 	en := en.New()
-	uni = ut.New(en, en)
-
-	// this is usually know or extracted from http 'Accept-Language' header
-	// also see uni.FindTranslator(...)
-	trans, _ := uni.GetTranslator("en")
+	uni = ut.New(en, en, zh.New())
 
 	validate = validator.New()
-	en_translations.RegisterDefaultTranslations(validate, trans)
+	// The supported locales need to be predefined.
+	enTrans, _ := uni.GetTranslator("en")
+	en_translations.RegisterDefaultTranslations(validate, enTrans)
+	zhTrans, _ := uni.GetTranslator("zh")
+	zh_translations.RegisterDefaultTranslations(validate, zhTrans)
+
+	// this is usually know or extracted from http 'Accept-Language' header e.g.
+	// Example values to pass: zh, en
+	// also see uni.FindTranslator(...)
+	trans, _ := uni.GetTranslator("en")
 
 	translateAll(trans)
 	translateIndividual(trans)
