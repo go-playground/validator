@@ -210,7 +210,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		switch t {
 		case diveTag:
 			current.typeof = typeDive
-			continue
 
 		case keysTag:
 			current.typeof = typeKeys
@@ -218,8 +217,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			if i == 0 || prevTag != typeDive {
 				panic(fmt.Sprintf("'%s' tag must be immediately preceded by the '%s' tag", keysTag, diveTag))
 			}
-
-			current.typeof = typeKeys
 
 			// need to pass along only keys tag
 			// need to increment i to skip over the keys tags
@@ -238,7 +235,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			}
 
 			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false)
-			continue
 
 		case endKeysTag:
 			current.typeof = typeEndKeys
@@ -256,19 +252,15 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		case omitempty:
 			current.typeof = typeOmitEmpty
-			continue
 
 		case omitnil:
 			current.typeof = typeOmitNil
-			continue
 
 		case structOnlyTag:
 			current.typeof = typeStructOnly
-			continue
 
 		case noStructLevelTag:
 			current.typeof = typeNoStructLevel
-			continue
 
 		default:
 			if t == isdefault {
