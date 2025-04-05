@@ -2580,9 +2580,14 @@ func isIPAddrResolvable(fl FieldLevel) bool {
 
 // isUnixAddrResolvable is the validation function for validating if the field's value is a resolvable unix address.
 func isUnixAddrResolvable(fl FieldLevel) bool {
-	_, err := net.ResolveUnixAddr("unix", fl.Field().String())
-
-	return err == nil
+	stats, err := os.Stat(fl.Field().String())
+	if err != nil {
+		return false
+	}
+	if (stats.Mode().Type() & os.ModeSocket) == 0 {
+		return false
+	}
+	return true
 }
 
 func isIP4Addr(fl FieldLevel) bool {

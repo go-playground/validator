@@ -11,6 +11,7 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -2928,12 +2929,25 @@ func TestIP4AddrValidation(t *testing.T) {
 }
 
 func TestUnixAddrValidation(t *testing.T) {
+	f, err := os.CreateTemp(t.TempDir(), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	socketName := t.TempDir() + "/go_validator_test_sock"
+	l, err := net.Listen("unix", socketName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+
 	tests := []struct {
 		param    string
 		expected bool
 	}{
-		{"", true},
-		{"v.sock", true},
+		{"not_existing_file", false},
+		{f.Name(), false},
+		{socketName, true},
 	}
 
 	validate := New()
@@ -2942,6 +2956,7 @@ func TestUnixAddrValidation(t *testing.T) {
 		errs := validate.Var(test.param, "unix_addr")
 		if test.expected {
 			if !IsEqual(errs, nil) {
+				t.Log(test.param, IsEqual(errs, nil))
 				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
 			}
 		} else {
