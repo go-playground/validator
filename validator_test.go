@@ -192,7 +192,6 @@ type MadeUpCustomType struct {
 
 func ValidateCustomType(field reflect.Value) interface{} {
 	if cust, ok := field.Interface().(MadeUpCustomType); ok {
-
 		if len(cust.FirstName) == 0 || len(cust.LastName) == 0 {
 			return ""
 		}
@@ -224,7 +223,6 @@ type CustomMadeUpStruct struct {
 
 func ValidateValuerType(field reflect.Value) interface{} {
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
-
 		val, err := valuer.Value()
 		if err != nil {
 			// handle the error how you want
@@ -2341,7 +2339,6 @@ func TestMACValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "mac")
 
 		if test.expected {
@@ -2382,7 +2379,6 @@ func TestIPValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ip")
 
 		if test.expected {
@@ -2422,7 +2418,6 @@ func TestIPv6Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ipv6")
 
 		if test.expected {
@@ -2462,7 +2457,6 @@ func TestIPv4Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ipv4")
 
 		if test.expected {
@@ -2505,7 +2499,6 @@ func TestCIDRValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "cidr")
 
 		if test.expected {
@@ -2548,7 +2541,6 @@ func TestCIDRv6Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "cidrv6")
 
 		if test.expected {
@@ -2598,7 +2590,6 @@ func TestCIDRv4Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "cidrv4")
 
 		if test.expected {
@@ -3723,7 +3714,6 @@ func TestSSNValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ssn")
 
 		if test.expected {
@@ -3763,7 +3753,6 @@ func TestLongitudeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "longitude")
 
 		if test.expected {
@@ -3805,7 +3794,6 @@ func TestLatitudeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "latitude")
 
 		if test.expected {
@@ -3894,7 +3882,6 @@ func TestMultibyteValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "multibyte")
 
 		if test.expected {
@@ -3935,7 +3922,6 @@ func TestPrintableASCIIValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "printascii")
 
 		if test.expected {
@@ -3975,7 +3961,6 @@ func TestASCIIValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ascii")
 
 		if test.expected {
@@ -4011,7 +3996,6 @@ func TestUUID5Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid5")
 
 		if test.expected {
@@ -4047,7 +4031,6 @@ func TestUUID4Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid4")
 
 		if test.expected {
@@ -4082,7 +4065,6 @@ func TestUUID3Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid3")
 
 		if test.expected {
@@ -4139,7 +4121,6 @@ func TestUUIDValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid")
 
 		if test.expected {
@@ -4200,7 +4181,6 @@ func TestUUID5RFC4122Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid5_rfc4122")
 
 		if test.expected {
@@ -4236,7 +4216,6 @@ func TestUUID4RFC4122Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid4_rfc4122")
 
 		if test.expected {
@@ -4271,7 +4250,6 @@ func TestUUID3RFC4122Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid3_rfc4122")
 
 		if test.expected {
@@ -4309,7 +4287,6 @@ func TestUUIDRFC4122Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uuid_rfc4122")
 
 		if test.expected {
@@ -4349,7 +4326,6 @@ func TestULIDValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ulid")
 
 		if test.expected {
@@ -4385,7 +4361,6 @@ func TestMD4Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "md4")
 
 		if test.expected {
@@ -4421,7 +4396,6 @@ func TestMD5Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "md5")
 
 		if test.expected {
@@ -4457,7 +4431,6 @@ func TestSHA256Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "sha256")
 		if test.expected {
 			if !IsEqual(errs, nil) {
@@ -4492,7 +4465,6 @@ func TestSHA384Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "sha384")
 
 		if test.expected {
@@ -4528,7 +4500,6 @@ func TestSHA512Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "sha512")
 
 		if test.expected {
@@ -4564,7 +4535,6 @@ func TestRIPEMD128Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ripemd128")
 
 		if test.expected {
@@ -4600,7 +4570,6 @@ func TestRIPEMD160Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "ripemd160")
 
 		if test.expected {
@@ -4636,7 +4605,6 @@ func TestTIGER128Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "tiger128")
 
 		if test.expected {
@@ -4672,7 +4640,6 @@ func TestTIGER160Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "tiger160")
 
 		if test.expected {
@@ -4708,7 +4675,6 @@ func TestTIGER192Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "tiger192")
 
 		if test.expected {
@@ -4748,7 +4714,6 @@ func TestISBNValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "isbn")
 
 		if test.expected {
@@ -4787,7 +4752,6 @@ func TestISBN13Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "isbn13")
 
 		if test.expected {
@@ -4827,7 +4791,6 @@ func TestISBN10Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "isbn10")
 
 		if test.expected {
@@ -6077,7 +6040,6 @@ func TestFilePathValidation(t *testing.T) {
 				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
 			}
 		}
-
 	}
 
 	PanicMatches(t, func() {
@@ -6118,7 +6080,6 @@ func TestEthereumAddressValidation(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "eth_addr")
 
 		if test.expected {
@@ -6168,7 +6129,6 @@ func TestEthereumAddressChecksumValidation(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "eth_addr_checksum")
 
 		if test.expected {
@@ -6277,7 +6237,6 @@ func TestBitcoinAddressValidation(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "btc_addr")
 
 		if test.expected {
@@ -6327,7 +6286,6 @@ func TestBitcoinBech32AddressValidation(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "btc_addr_bech32")
 
 		if test.expected {
@@ -8229,7 +8187,6 @@ func TestUrnRFC2141(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, tag)
 
 		if test.expected {
@@ -8304,7 +8261,6 @@ func TestUrl(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "url")
 
 		if test.expected {
@@ -8379,7 +8335,6 @@ func TestHttpUrl(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "http_url")
 
 		if test.expected {
@@ -8445,7 +8400,6 @@ func TestUri(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uri")
 
 		if test.expected {
@@ -9890,7 +9844,6 @@ func TestAlphaUnicodeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "alphaunicode")
 
 		if test.expected {
@@ -9932,7 +9885,6 @@ func TestAlphanumericUnicodeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "alphanumunicode")
 
 		if test.expected {
@@ -10153,7 +10105,6 @@ func TestHostnameRFC952Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "hostname")
 
 		if test.expected {
@@ -10202,7 +10153,6 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "hostname_rfc1123")
 
 		if test.expected {
@@ -10252,7 +10202,6 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 	validate.RegisterAlias("hostname", "hostname_rfc1123")
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "hostname")
 
 		if test.expected {
@@ -10302,7 +10251,6 @@ func TestFQDNValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "fqdn")
 
 		if test.expected {
@@ -10438,7 +10386,6 @@ func TestUniqueValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "unique")
 
 		if test.expected {
@@ -10516,7 +10463,6 @@ func TestUniqueValidationStructSlice(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.target, test.param)
 
 		if test.expected {
@@ -10560,7 +10506,6 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.target, test.param)
 
 		if test.expected {
@@ -10600,7 +10545,6 @@ func TestHTMLValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "html")
 
 		if test.expected {
@@ -10646,7 +10590,6 @@ func TestHTMLEncodedValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "html_encoded")
 
 		if test.expected {
@@ -10687,7 +10630,6 @@ func TestURLEncodedValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "url_encoded")
 
 		if test.expected {
@@ -12403,7 +12345,6 @@ func TestJSONValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "json")
 
 		if test.expected {
@@ -12443,7 +12384,6 @@ func TestJWTValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "jwt")
 
 		if test.expected {
@@ -12532,7 +12472,6 @@ func TestLowercaseValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "lowercase")
 
 		if test.expected {
@@ -12569,7 +12508,6 @@ func TestUppercaseValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, "uppercase")
 
 		if test.expected {
@@ -12606,7 +12544,6 @@ func TestDatetimeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {
@@ -12643,7 +12580,6 @@ func TestIsIso3166Alpha2Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha2")
 
 		if test.expected {
@@ -12670,7 +12606,6 @@ func TestIsIso3166Alpha2EUValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha2_eu")
 
 		if test.expected {
@@ -12698,7 +12633,6 @@ func TestIsIso31662Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_2")
 
 		if test.expected {
@@ -12726,7 +12660,6 @@ func TestIsIso3166Alpha3Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha3")
 
 		if test.expected {
@@ -12754,7 +12687,6 @@ func TestIsIso3166Alpha3EUValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha3_eu")
 
 		if test.expected {
@@ -12785,7 +12717,6 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha_numeric")
 
 		if test.expected {
@@ -12818,7 +12749,6 @@ func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso3166_1_alpha_numeric_eu")
 
 		if test.expected {
@@ -12855,7 +12785,6 @@ func TestCountryCodeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "country_code")
 
 		if test.expected {
@@ -12888,7 +12817,6 @@ func TestEUCountryCodeValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "eu_country_code")
 
 		if test.expected {
@@ -12916,7 +12844,6 @@ func TestIsIso4217Validation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso4217")
 
 		if test.expected {
@@ -12944,7 +12871,6 @@ func TestIsIso4217NumericValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, "iso4217_numeric")
 
 		if test.expected {
@@ -12976,7 +12902,6 @@ func TestTimeZoneValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {
@@ -13062,7 +12987,6 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {
@@ -13107,7 +13031,6 @@ func TestBicIsoFormatValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {
@@ -13185,7 +13108,6 @@ func TestSemverFormatValidation(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.value, test.tag)
 
 		if test.expected {

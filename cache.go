@@ -124,7 +124,6 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	var customName string
 
 	for i := 0; i < numFields; i++ {
-
 		fld = typ.Field(i)
 
 		if !v.privateFieldValidation && !fld.Anonymous && len(fld.PkgPath) > 0 {
@@ -191,7 +190,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			} else {
 				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
 				current.next, current = next, curr
-
 			}
 			continue
 		}
@@ -225,7 +223,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			i++
 
 			for ; i < len(tags); i++ {
-
 				b = append(b, tags[i]...)
 				b = append(b, ',')
 
