@@ -2935,7 +2935,11 @@ func TestUnixAddrValidation(t *testing.T) {
 	}
 	f.Close()
 	socketName := t.TempDir() + "/go_validator_test_sock"
-	l, err := net.Listen("unix", socketName)
+	addr, err := net.ResolveUnixAddr("unix", socketName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	l, err := net.ListenUnix("unix", addr)
 	if err != nil {
 		t.Fatal(err)
 	}
