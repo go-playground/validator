@@ -12,7 +12,6 @@ import (
 
 // InitValidator initializes a new validator with Indonesian translations
 func InitValidator() (*validator.Validate, ut.Translator, error) {
-
 	// setup translator
 	idn := indonesia.New()
 	uni := ut.New(idn, idn)
@@ -32,7 +31,6 @@ func InitValidator() (*validator.Validate, ut.Translator, error) {
 
 // TestFieldTagsTranslations tests all field tags registered translations for Indonesian language
 func TestFieldTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)
@@ -394,7 +392,6 @@ func TestNetworkTagsTranslations(t *testing.T) {
 
 // TestStringTagsTranslations tests all string tags registered translations for Indonesian language
 func TestStringTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)
@@ -572,7 +569,6 @@ func TestStringTagsTranslations(t *testing.T) {
 
 // TestFormatTagsTranslations tests all format tags registered translations for Indonesian language
 func TestFormatTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)
@@ -932,7 +928,6 @@ func TestFormatTagsTranslations(t *testing.T) {
 
 // TestComparisonTagsTranslations tests all comparison tags registered translations for Indonesian language
 func TestComparisonTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)
@@ -1125,7 +1120,6 @@ func TestComparisonTagsTranslations(t *testing.T) {
 
 // TestOtherTagsTranslations tests all other tags registered translations for Indonesian language
 func TestOtherTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)
@@ -1347,7 +1341,6 @@ func TestOtherTagsTranslations(t *testing.T) {
 
 // TestAliasesTagsTranslations tests all aliases tags registered translations for Indonesian language
 func TestAliasesTagsTranslations(t *testing.T) {
-
 	// init validator with Indonesian translations
 	validate, trans, err := InitValidator()
 	Equal(t, err, nil)

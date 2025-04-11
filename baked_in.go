@@ -945,7 +945,6 @@ func isNeField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() != currentField.Int()
 
@@ -966,7 +965,6 @@ func isNeField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Interface().(time.Time)
 			fieldTime := field.Interface().(time.Time)
 
@@ -1005,7 +1003,6 @@ func isLteCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() <= topField.Int()
 
@@ -1023,7 +1020,6 @@ func isLteCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1052,7 +1048,6 @@ func isLtCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() < topField.Int()
 
@@ -1070,7 +1065,6 @@ func isLtCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1098,7 +1092,6 @@ func isGteCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() >= topField.Int()
 
@@ -1116,7 +1109,6 @@ func isGteCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1144,7 +1136,6 @@ func isGtCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() > topField.Int()
 
@@ -1162,7 +1153,6 @@ func isGtCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1190,7 +1180,6 @@ func isNeCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return topField.Int() != field.Int()
 
@@ -1211,7 +1200,6 @@ func isNeCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			t := field.Convert(timeType).Interface().(time.Time)
 			fieldTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1239,7 +1227,6 @@ func isEqCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return topField.Int() == field.Int()
 
@@ -1260,7 +1247,6 @@ func isEqCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			t := field.Convert(timeType).Interface().(time.Time)
 			fieldTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1288,7 +1274,6 @@ func isEqField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() == currentField.Int()
 
@@ -1309,7 +1294,6 @@ func isEqField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -1332,7 +1316,6 @@ func isEq(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		return field.String() == param
 
@@ -1851,7 +1834,6 @@ func requireCheckFieldValue(
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() == asInt(value)
 
@@ -2060,7 +2042,6 @@ func isGteField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() >= currentField.Int()
@@ -2078,7 +2059,6 @@ func isGteField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2106,7 +2086,6 @@ func isGtField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() > currentField.Int()
@@ -2124,7 +2103,6 @@ func isGtField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2147,7 +2125,6 @@ func isGte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2181,7 +2158,6 @@ func isGte(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			now := time.Now().UTC()
 			t := field.Convert(timeType).Interface().(time.Time)
 
@@ -2198,7 +2174,6 @@ func isGt(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2245,7 +2220,6 @@ func hasLengthOf(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2296,7 +2270,6 @@ func isLteField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() <= currentField.Int()
@@ -2314,7 +2287,6 @@ func isLteField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2342,7 +2314,6 @@ func isLtField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() < currentField.Int()
@@ -2360,7 +2331,6 @@ func isLtField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2383,7 +2353,6 @@ func isLte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2417,7 +2386,6 @@ func isLte(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			now := time.Now().UTC()
 			t := field.Convert(timeType).Interface().(time.Time)
 
@@ -2434,7 +2402,6 @@ func isLt(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
