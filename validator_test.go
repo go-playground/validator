@@ -14162,7 +14162,11 @@ func (r *NotRed) Validate() error {
 	return nil
 }
 
-func TestIsValid(t *testing.T) {
+func (r NotRed) IsNotRed() bool {
+	return r.Color != "red"
+}
+
+func TestValidateFn(t *testing.T) {
 	t.Run("using pointer", func(t *testing.T) {
 		validate := New()
 
@@ -14202,6 +14206,34 @@ func TestIsValid(t *testing.T) {
 		type Test2 struct {
 			String string
 			Inner  NotRed `validate:"validateFn"`
+		}
+
+		var tt2 Test2
+
+		errs := validate.Struct(&tt2)
+		Equal(t, errs, nil)
+
+		tt2.Inner = NotRed{Color: "blue"}
+
+		errs = validate.Struct(&tt2)
+		Equal(t, errs, nil)
+
+		tt2.Inner = NotRed{Color: "red"}
+		errs = validate.Struct(&tt2)
+		NotEqual(t, errs, nil)
+
+		fe := errs.(ValidationErrors)[0]
+		Equal(t, fe.Field(), "Inner")
+		Equal(t, fe.Namespace(), "Test2.Inner")
+		Equal(t, fe.Tag(), "validateFn")
+	})
+
+	t.Run("using struct with custom function", func(t *testing.T) {
+		validate := New()
+
+		type Test2 struct {
+			String string
+			Inner  NotRed `validate:"validateFn=IsNotRed"`
 		}
 
 		var tt2 Test2

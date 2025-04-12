@@ -2,10 +2,12 @@ package validator
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net"
@@ -3049,27 +3051,58 @@ func isEIN(fl FieldLevel) bool {
 }
 
 func isValidateFn(fl FieldLevel) bool {
-	if instance, ok := tryConvertFieldTo[interface{ Validate() error }](fl.Field()); ok {
-		return instance.Validate() == nil
+	const defaultParam = `Validate`
+
+	field := fl.Field()
+	param := cmp.Or(fl.Param(), defaultParam)
+
+	ok, err := tryCallValidateFn(field, param)
+	if err != nil {
+		panic(err)
 	}
 
-	return false
+	return ok
 }
 
-func tryConvertFieldTo[V any](field reflect.Value) (v V, ok bool) {
-	v, ok = convertFieldTo[V](field)
-	if !ok && field.CanAddr() {
-		v, ok = convertFieldTo[V](field.Addr())
+var (
+	errMethodNotFound          = errors.New(`method not found`)
+	errMethodReturnNoValues    = errors.New(`method return o values (void)`)
+	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
+)
+
+func tryCallValidateFn(field reflect.Value, methodName string) (bool, error) {
+	method := field.MethodByName(methodName)
+	if !method.IsValid() {
+		method = field.Addr().MethodByName(methodName)
 	}
 
-	return v, ok
-}
-
-func convertFieldTo[V any](field reflect.Value) (v V, ok bool) {
-	if v, ok = field.Interface().(V); ok {
-		return v, ok
+	if !method.IsValid() {
+		return false, fmt.Errorf("unable to call %q on type %q: %w",
+			methodName, field.Type().String(), errMethodNotFound)
 	}
 
-	var zero V
-	return zero, false
+	returnValues := method.Call([]reflect.Value{})
+	if len(returnValues) == 0 {
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w",
+			methodName, field.Type().String(), errMethodReturnNoValues)
+	}
+
+	firstReturnValue := returnValues[0]
+
+	switch firstReturnValue.Kind() {
+	case reflect.Bool:
+		return firstReturnValue.Bool(), nil
+	case reflect.Interface:
+		errorType := reflect.TypeOf((*error)(nil)).Elem()
+
+		if firstReturnValue.Type().Implements(errorType) {
+			return firstReturnValue.IsNil(), nil
+		}
+
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got interface %v expect error)",
+			methodName, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+	default:
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got %v expect error or bool)",
+			methodName, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+	}
 }
