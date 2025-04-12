@@ -3058,7 +3058,6 @@ func isValidateFn(fl FieldLevel) bool {
 
 	ok, err := tryCallValidateFn(field, validateFn)
 	if err != nil {
-		// error can be used in some log
 		return false
 	}
 
@@ -3073,7 +3072,7 @@ var (
 
 func tryCallValidateFn(field reflect.Value, validateFn string) (bool, error) {
 	method := field.MethodByName(validateFn)
-	if !method.IsValid() {
+	if field.CanAddr() && !method.IsValid() {
 		method = field.Addr().MethodByName(validateFn)
 	}
 
