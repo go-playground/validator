@@ -155,7 +155,7 @@ func TestTranslations(t *testing.T) {
 		PostCode            string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry     string
 		PostCodeByField     string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		Image			  string			`validate:"image"`
+		Image               string `validate:"image"`
 	}
 
 	var test Test
@@ -713,13 +713,12 @@ func TestTranslations(t *testing.T) {
 			expected: "PostCodeByField non corrisponde al formato del codice postale dello stato nel campo PostCodeCountry",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "Image deve essere un'immagine valida",
 		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {

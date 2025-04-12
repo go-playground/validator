@@ -352,7 +352,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag:         "ne",
+			tag: "ne",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("ne-items", "{0}의 항목 수는 {1}와(과) 달라야 합니다.", false); err != nil {
 					fmt.Printf("ne customRegisFunc #1 error because of %v\n", err)
@@ -377,7 +377,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				var kind reflect.Kind
 
 				fn := func() (err error) {
-
 					if idx := strings.Index(fe.Param(), "."); idx != -1 {
 						digits = uint64(len(fe.Param()[idx+1:]))
 					}
@@ -1445,7 +1444,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
