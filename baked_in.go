@@ -3054,11 +3054,12 @@ func isValidateFn(fl FieldLevel) bool {
 	const defaultParam = `Validate`
 
 	field := fl.Field()
-	param := cmp.Or(fl.Param(), defaultParam)
+	validateFn := cmp.Or(fl.Param(), defaultParam)
 
-	ok, err := tryCallValidateFn(field, param)
+	ok, err := tryCallValidateFn(field, validateFn)
 	if err != nil {
-		panic(err)
+		// error can be used in some log
+		return false
 	}
 
 	return ok
@@ -3070,21 +3071,21 @@ var (
 	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
 )
 
-func tryCallValidateFn(field reflect.Value, methodName string) (bool, error) {
-	method := field.MethodByName(methodName)
+func tryCallValidateFn(field reflect.Value, validateFn string) (bool, error) {
+	method := field.MethodByName(validateFn)
 	if !method.IsValid() {
-		method = field.Addr().MethodByName(methodName)
+		method = field.Addr().MethodByName(validateFn)
 	}
 
 	if !method.IsValid() {
 		return false, fmt.Errorf("unable to call %q on type %q: %w",
-			methodName, field.Type().String(), errMethodNotFound)
+			validateFn, field.Type().String(), errMethodNotFound)
 	}
 
 	returnValues := method.Call([]reflect.Value{})
 	if len(returnValues) == 0 {
 		return false, fmt.Errorf("unable to use result of method %q on type %q: %w",
-			methodName, field.Type().String(), errMethodReturnNoValues)
+			validateFn, field.Type().String(), errMethodReturnNoValues)
 	}
 
 	firstReturnValue := returnValues[0]
@@ -3100,9 +3101,9 @@ func tryCallValidateFn(field reflect.Value, methodName string) (bool, error) {
 		}
 
 		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got interface %v expect error)",
-			methodName, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
 	default:
 		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got %v expect error or bool)",
-			methodName, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
 	}
 }
