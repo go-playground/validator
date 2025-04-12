@@ -14263,9 +14263,9 @@ func TestValidateFn(t *testing.T) {
 		validate := New()
 
 		type Test2 struct {
-			String string `validate:"validateFn=NotExists"`
-			Inner  NotRed `validate:"validateFn=DoNothing"`
-			Inner2 NotRed `validate:"validateFn=String"`
+			String string `validate:"validateFn=NotExists"` // should fail, method not found
+			Inner  NotRed `validate:"validateFn=DoNothing"` // should fail, return nothing
+			Inner2 NotRed `validate:"validateFn=String"`    // should fail, wrong return (must be error or bool)
 		}
 
 		var tt2 Test2
