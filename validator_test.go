@@ -14197,7 +14197,6 @@ func TestValidateFn(t *testing.T) {
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test.Inner")
 		Equal(t, fe.Tag(), "validateFn")
-
 	})
 
 	t.Run("using struct", func(t *testing.T) {

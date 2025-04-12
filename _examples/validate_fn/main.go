@@ -28,7 +28,7 @@ func (e *Enum) Validate() error {
 }
 
 type Struct struct {
-	Foo *Enum `validate:"validateFn"`         //uses Validate() error by default
+	Foo *Enum `validate:"validateFn"`         // uses Validate() error by default
 	Bar Enum  `validate:"validateFn=NotZero"` // uses NotZero() bool
 }
 
