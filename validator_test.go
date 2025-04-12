@@ -14166,6 +14166,10 @@ func (r NotRed) IsNotRed() bool {
 	return r.Color != "red"
 }
 
+func (r NotRed) DoNothing() {}
+
+func (r NotRed) String() string { return "not red instance" }
+
 func TestValidateFn(t *testing.T) {
 	t.Run("using pointer", func(t *testing.T) {
 		validate := New()
@@ -14252,6 +14256,40 @@ func TestValidateFn(t *testing.T) {
 		fe := errs.(ValidationErrors)[0]
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test2.Inner")
+		Equal(t, fe.Tag(), "validateFn")
+	})
+
+	t.Run("try validate method with wrong signature or not existent", func(t *testing.T) {
+		validate := New()
+
+		type Test2 struct {
+			String string `validate:"validateFn=NotExists"`
+			Inner  NotRed `validate:"validateFn=DoNothing"`
+			Inner2 NotRed `validate:"validateFn=String"`
+		}
+
+		var tt2 Test2
+
+		err := validate.Struct(&tt2)
+		NotEqual(t, err, nil)
+
+		errs := err.(ValidationErrors)
+
+		Equal(t, len(errs), 3)
+
+		fe := errs[0]
+		Equal(t, fe.Field(), "String")
+		Equal(t, fe.Namespace(), "Test2.String")
+		Equal(t, fe.Tag(), "validateFn")
+
+		fe = errs[1]
+		Equal(t, fe.Field(), "Inner")
+		Equal(t, fe.Namespace(), "Test2.Inner")
+		Equal(t, fe.Tag(), "validateFn")
+
+		fe = errs[2]
+		Equal(t, fe.Field(), "Inner2")
+		Equal(t, fe.Namespace(), "Test2.Inner2")
 		Equal(t, fe.Tag(), "validateFn")
 	})
 }
