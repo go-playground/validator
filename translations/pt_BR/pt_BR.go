@@ -1292,6 +1292,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} deve ser um identificador cve válido",
 			override:    false,
 		},
+		{
+			tag:         "validateFn",
+			translation: "{0} deve ser um objeto válido",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

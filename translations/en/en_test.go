@@ -10,6 +10,10 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+type Foo struct{}
+
+func (Foo) IsBar() bool { return false }
+
 func TestTranslations(t *testing.T) {
 	eng := english.New()
 	uni := ut.New(eng, eng)
@@ -181,6 +185,7 @@ func TestTranslations(t *testing.T) {
 		CveString          string        `validate:"cve"`
 		MinDuration        time.Duration `validate:"min=1h30m,max=2h"`
 		MaxDuration        time.Duration `validate:"min=1h30m,max=2h"`
+		ValidateFn         Foo           `validate:"validateFn=IsBar"`
 	}
 
 	var test Test
@@ -804,6 +809,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.MaxDuration",
 			expected: "MaxDuration must be 2h or less",
+		},
+		{
+			ns:       "Test.ValidateFn",
+			expected: "ValidateFn must be a valid object",
 		},
 	}
 
