@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
-	"github.com/go-playground/locales/zh_Hant"
+	"github.com/go-playground/locales/zh_Hant_TW"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
@@ -20,14 +20,14 @@ var uni *ut.UniversalTranslator
 func main() {
 	validate := validator.New()
 	en := en.New()
-	uni = ut.New(en, en, zh.New(), zh_Hant.New())
+	uni = ut.New(en, en, zh.New(), zh_Hant_TW.New())
 
 	validate = validator.New()
 	enTrans, _ := uni.GetTranslator("en")
 	en_translations.RegisterDefaultTranslations(validate, enTrans)
 	zhTrans, _ := uni.GetTranslator("zh")
 	zh_translations.RegisterDefaultTranslations(validate, zhTrans)
-	zhHantTrans, _ := uni.GetTranslator("zh_Hant")
+	zhHantTrans, _ := uni.GetTranslator("zh_Hant_TW")
 	zh_tw_translations.RegisterDefaultTranslations(validate, zhHantTrans)
 
 	type User struct {
