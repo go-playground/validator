@@ -3,6 +3,7 @@ package validator
 import (
 	"bytes"
 	sql "database/sql/driver"
+	"errors"
 	"testing"
 	"time"
 )
@@ -1094,6 +1095,42 @@ func BenchmarkOneofParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = val.Struct(w)
+		}
+	})
+}
+
+type T struct{}
+
+func (*T) Validate() error { return errors.New("ops") }
+
+func BenchmarkValidateFnSequencial(b *testing.B) {
+	validate := New()
+
+	type Test struct {
+		T T `validate:"validateFn"`
+	}
+
+	test := &Test{}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Struct(test)
+	}
+}
+
+func BenchmarkValidateFnParallel(b *testing.B) {
+	validate := New()
+
+	type Test struct {
+		T T `validate:"validateFn"`
+	}
+
+	test := &Test{}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Struct(test)
 		}
 	})
 }
