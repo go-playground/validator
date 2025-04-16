@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+	"strings"
+
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	"github.com/go-playground/locales/zh_Hant_TW"
@@ -11,12 +14,15 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	zh_tw_translations "github.com/go-playground/validator/v10/translations/zh_tw"
-	"net/http"
-	"strings"
 )
 
 var uni *ut.UniversalTranslator
 
+// This example showcases how to use the Validator and UniversalTranslator with both Simplified and Traditional Chinese languages.
+// To run the example:
+// Step 1: go run _examples/http-transalations/main.go
+// Step 2 - Simplified Chinese: curl -d '{"first_name":"foo"}' -H "Accept-Language: zh" -H "Content-Type: application/json" -X POST http://localhost:8081/users
+// Step 3 - Traditional Chinese: curl -d '{"first_name":"foo"}' -H "Accept-Language: zh-Hant-TW" -H "Content-Type: application/json" -X POST http://localhost:8081/users
 func main() {
 	validate := validator.New()
 	en := en.New()
