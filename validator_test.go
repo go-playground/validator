@@ -14148,3 +14148,221 @@ func TestPrivateFieldsStruct(t *testing.T) {
 		Equal(t, len(errs), tc.errorNum)
 	}
 }
+
+type ValidatorValuerTypeWithPointerReceiver[T any] struct {
+	Data T
+}
+
+func (t *ValidatorValuerTypeWithPointerReceiver[T]) ValidatorValue() any {
+	return t.Data
+}
+
+type ValidatorValuerTypeWithValueReceiver[T any] struct {
+	Data T
+}
+
+func (t ValidatorValuerTypeWithValueReceiver[T]) ValidatorValue() any {
+	return t.Data
+}
+
+func TestValidatorValuerInterface(t *testing.T) {
+	t.Run("parent as ValidatorValuer (not called)", func(t *testing.T) {
+		errs := New().Struct(&ValidatorValuerTypeWithPointerReceiver[SubTest]{})
+		AssertError(t, errs,
+			"ValidatorValuerTypeWithPointerReceiver[github.com/go-playground/validator/v10.SubTest].Data.Test",
+			"ValidatorValuerTypeWithPointerReceiver[github.com/go-playground/validator/v10.SubTest].Data.Test",
+			"Test", "Test", "required")
+	})
+	t.Run("pointer parent, pointer nested, pointer receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested *ValidatorValuerTypeWithPointerReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(&Parent{})
+		AssertError(t, errs, "Parent.Nested", "Parent.Nested", "Nested", "Nested", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: &ValidatorValuerTypeWithPointerReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: &ValidatorValuerTypeWithPointerReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("pointer parent, pointer nested, value receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested *ValidatorValuerTypeWithValueReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(&Parent{})
+		AssertError(t, errs, "Parent.Nested", "Parent.Nested", "Nested", "Nested", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: &ValidatorValuerTypeWithValueReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: &ValidatorValuerTypeWithValueReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("pointer parent, value nested, pointer receiver (not called)", func(t *testing.T) {
+		type Parent struct {
+			Nested ValidatorValuerTypeWithPointerReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(&Parent{})
+		AssertError(t, errs, "Parent.Nested.Data.Test", "Parent.Nested.Data.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: ValidatorValuerTypeWithPointerReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Data.Test", "Parent.Nested.Data.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: ValidatorValuerTypeWithPointerReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("pointer parent, value nested, value receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested ValidatorValuerTypeWithValueReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(&Parent{})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: ValidatorValuerTypeWithValueReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(&Parent{
+			Nested: ValidatorValuerTypeWithValueReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("value parent, pointer nested, pointer receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested *ValidatorValuerTypeWithPointerReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(Parent{})
+		AssertError(t, errs, "Parent.Nested", "Parent.Nested", "Nested", "Nested", "required")
+
+		errs = New().Struct(Parent{
+			Nested: &ValidatorValuerTypeWithPointerReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: &ValidatorValuerTypeWithPointerReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("value parent, pointer nested, value receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested *ValidatorValuerTypeWithValueReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(Parent{})
+		AssertError(t, errs, "Parent.Nested", "Parent.Nested", "Nested", "Nested", "required")
+
+		errs = New().Struct(Parent{
+			Nested: &ValidatorValuerTypeWithValueReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: &ValidatorValuerTypeWithValueReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("value parent, value nested, pointer receiver (not called)", func(t *testing.T) {
+		type Parent struct {
+			Nested ValidatorValuerTypeWithPointerReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(Parent{})
+		AssertError(t, errs, "Parent.Nested.Data.Test", "Parent.Nested.Data.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: ValidatorValuerTypeWithPointerReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Data.Test", "Parent.Nested.Data.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: ValidatorValuerTypeWithPointerReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+	t.Run("value parent, value nested, value receiver (called)", func(t *testing.T) {
+		type Parent struct {
+			Nested ValidatorValuerTypeWithValueReceiver[SubTest] `validate:"required"`
+		}
+
+		errs := New().Struct(Parent{})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: ValidatorValuerTypeWithValueReceiver[SubTest]{},
+		})
+		AssertError(t, errs, "Parent.Nested.Test", "Parent.Nested.Test", "Test", "Test", "required")
+
+		errs = New().Struct(Parent{
+			Nested: ValidatorValuerTypeWithValueReceiver[SubTest]{
+				Data: SubTest{
+					Test: "Test",
+				},
+			},
+		})
+		if errs != nil {
+			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+}

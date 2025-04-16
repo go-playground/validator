@@ -231,23 +231,6 @@ func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationE
 	return v.registerValidation(tag, fn, false, nilCheckable)
 }
 
-func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
-	if len(tag) == 0 {
-		return errors.New("function Key cannot be empty")
-	}
-
-	if fn == nil {
-		return errors.New("function cannot be empty")
-	}
-
-	_, ok := restrictedTags[tag]
-	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
-		panic(fmt.Sprintf(restrictedTagErr, tag))
-	}
-	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
-	return nil
-}
-
 // RegisterAlias registers a mapping of a single validation tag that
 // defines a common or complex set of validation(s) to simplify adding validation
 // to structs.
@@ -696,4 +679,21 @@ func (v *Validate) VarWithValueCtx(ctx context.Context, field interface{}, other
 	}
 	v.pool.Put(vd)
 	return
+}
+
+func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
+	if len(tag) == 0 {
+		return errors.New("function Key cannot be empty")
+	}
+
+	if fn == nil {
+		return errors.New("function cannot be empty")
+	}
+
+	_, ok := restrictedTags[tag]
+	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
+		panic(fmt.Sprintf(restrictedTagErr, tag))
+	}
+	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
+	return nil
 }
