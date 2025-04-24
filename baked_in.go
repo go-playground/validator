@@ -1804,19 +1804,19 @@ func hasNotZeroValue(fl FieldLevel) bool {
 }
 
 // requireCheckFieldKind is a func for check field kind
-func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
+func requireCheckFieldKind(fl FieldLevel, param string) bool {
 	field := fl.Field()
 	kind := field.Kind()
 	var nullable, found bool
 	if len(param) > 0 {
 		field, kind, nullable, found = fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 		if !found {
-			return defaultNotFoundValue
+			return true
 		}
 	}
 	switch kind {
 	case reflect.Invalid:
-		return defaultNotFoundValue
+		return true
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return field.IsNil()
 	default:
@@ -1949,7 +1949,7 @@ func excludedUnless(fl FieldLevel) bool {
 func excludedWith(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if !requireCheckFieldKind(fl, param, true) {
+		if !requireCheckFieldKind(fl, param) {
 			return !hasValue(fl)
 		}
 	}
@@ -1961,7 +1961,7 @@ func excludedWith(fl FieldLevel) bool {
 func requiredWith(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if !requireCheckFieldKind(fl, param, true) {
+		if !requireCheckFieldKind(fl, param) {
 			return hasValue(fl)
 		}
 	}
@@ -1973,7 +1973,7 @@ func requiredWith(fl FieldLevel) bool {
 func excludedWithAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if requireCheckFieldKind(fl, param, true) {
+		if requireCheckFieldKind(fl, param) {
 			return true
 		}
 	}
@@ -1985,7 +1985,7 @@ func excludedWithAll(fl FieldLevel) bool {
 func requiredWithAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if requireCheckFieldKind(fl, param, true) {
+		if requireCheckFieldKind(fl, param) {
 			return true
 		}
 	}
@@ -1995,7 +1995,7 @@ func requiredWithAll(fl FieldLevel) bool {
 // excludedWithout is the validation function
 // The field under validation must not be present or is empty when any of the other specified fields are not present.
 func excludedWithout(fl FieldLevel) bool {
-	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
+	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param())) {
 		return !hasValue(fl)
 	}
 	return true
@@ -2004,7 +2004,7 @@ func excludedWithout(fl FieldLevel) bool {
 // requiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
-	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
+	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param())) {
 		return hasValue(fl)
 	}
 	return true
@@ -2015,7 +2015,7 @@ func requiredWithout(fl FieldLevel) bool {
 func excludedWithoutAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if !requireCheckFieldKind(fl, param, true) {
+		if !requireCheckFieldKind(fl, param) {
 			return true
 		}
 	}
@@ -2027,7 +2027,7 @@ func excludedWithoutAll(fl FieldLevel) bool {
 func requiredWithoutAll(fl FieldLevel) bool {
 	params := parseOneOfParam2(fl.Param())
 	for _, param := range params {
-		if !requireCheckFieldKind(fl, param, true) {
+		if !requireCheckFieldKind(fl, param) {
 			return true
 		}
 	}
