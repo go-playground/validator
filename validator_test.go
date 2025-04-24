@@ -351,7 +351,7 @@ func TestStructLevelInvalidError(t *testing.T) {
 	validate.RegisterStructValidation(StructLevelInvalidError, StructLevelInvalidErr{})
 
 	var test StructLevelInvalidErr
-
+	val := reflect.ValueOf(test)
 	err := validate.Struct(test)
 	NotEqual(t, err, nil)
 
@@ -367,6 +367,10 @@ func TestStructLevelInvalidError(t *testing.T) {
 	Equal(t, fe.ActualTag(), "required")
 	Equal(t, fe.Kind(), reflect.Invalid)
 	Equal(t, fe.Type(), reflect.TypeOf(nil))
+	top, ok := fe.(TopFieldError)
+	Equal(t, ok, true)
+	Equal(t, top.Top().Kind(), val.Kind())
+	Equal(t, top.Top().Type().Name(), val.Type().Name())
 }
 
 func TestNameNamespace(t *testing.T) {
