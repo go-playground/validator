@@ -1,23 +1,19 @@
-package en
+package ko
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	english "github.com/go-playground/locales/en"
+	ko_locale "github.com/go-playground/locales/ko"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
-type Foo struct{}
-
-func (Foo) IsBar() bool { return false }
-
 func TestTranslations(t *testing.T) {
-	eng := english.New()
-	uni := ut.New(eng, eng)
-	trans, _ := uni.GetTranslator("en")
+	korean := ko_locale.New()
+	uni := ut.New(korean, korean)
+	trans, _ := uni.GetTranslator("ko")
 
 	validate := validator.New()
 
@@ -179,13 +175,10 @@ func TestTranslations(t *testing.T) {
 		Datetime           string            `validate:"datetime=2006-01-02"`
 		PostCode           string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry    string
-		PostCodeByField    string        `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		BooleanString      string        `validate:"boolean"`
-		Image              string        `validate:"image"`
-		CveString          string        `validate:"cve"`
-		MinDuration        time.Duration `validate:"min=1h30m,max=2h"`
-		MaxDuration        time.Duration `validate:"min=1h30m,max=2h"`
-		ValidateFn         Foo           `validate:"validateFn=IsBar"`
+		PostCodeByField    string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString      string `validate:"boolean"`
+		Image              string `validate:"image"`
+		CveString          string `validate:"cve"`
 	}
 
 	var test Test
@@ -237,8 +230,8 @@ func TestTranslations(t *testing.T) {
 	test.ExcludesAll = "This is Great!"
 	test.ExcludesRune = "Love it ☻"
 
-	test.ASCII = "ｶﾀｶﾅ"
-	test.PrintableASCII = "ｶﾀｶﾅ"
+	test.ASCII = "가나다라"
+	test.PrintableASCII = "가나다라"
 
 	test.MultiByte = "1234feerf"
 
@@ -255,9 +248,6 @@ func TestTranslations(t *testing.T) {
 	test.BooleanString = "A"
 	test.CveString = "A"
 
-	test.MinDuration = 1 * time.Hour
-	test.MaxDuration = 3 * time.Hour
-
 	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
@@ -272,547 +262,535 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor must be a valid color",
+			expected: "IsColor은(는) 올바른 색이여야 합니다.",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC must contain a valid MAC address",
+			expected: "MAC은(는) 올바른 MAC 주소를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.FQDN",
-			expected: "FQDN must be a valid FQDN",
+			expected: "FQDN은(는) 유효한 FQDN이어야 합니다.",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr must be a resolvable IP address",
+			expected: "IPAddr은(는) 해석 가능한 IP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 must be a resolvable IPv4 address",
+			expected: "IPAddrv4은(는) 해석 가능한 IPv4 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 must be a resolvable IPv6 address",
+			expected: "IPAddrv6은(는) 해석 가능한 IPv6 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr must be a valid UDP address",
+			expected: "UDPAddr은(는) 올바른 UDP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 must be a valid IPv4 UDP address",
+			expected: "UDPAddrv4은(는) 올바른 IPv4의 UDP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 must be a valid IPv6 UDP address",
+			expected: "UDPAddrv6은(는) 올바른 IPv6의 UDP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr must be a valid TCP address",
+			expected: "TCPAddr은(는) 올바른 TCP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 must be a valid IPv4 TCP address",
+			expected: "TCPAddrv4은(는) 올바른 IPv4의 TCP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 must be a valid IPv6 TCP address",
+			expected: "TCPAddrv6은(는) 올바른 IPv6의 TCP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR must contain a valid CIDR notation",
+			expected: "CIDR은(는) 올바른 CIDR 표기를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 must contain a valid CIDR notation for an IPv4 address",
+			expected: "CIDRv4은(는) IPv4 주소의 올바른 CIDR 표기를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 must contain a valid CIDR notation for an IPv6 address",
+			expected: "CIDRv6은(는) IPv6 주소의 올바른 CIDR 표기를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN must be a valid SSN number",
+			expected: "SSN은(는) 올바른 사회 보장 번호여야 합니다.",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP must be a valid IP address",
+			expected: "IP은(는) 올바른 IP 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 must be a valid IPv4 address",
+			expected: "IPv4은(는) 올바른 IPv4 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 must be a valid IPv6 address",
+			expected: "IPv6은(는) 올바른 IPv6 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI must contain a valid Data URI",
+			expected: "DataURI은(는) 올바른 데이터 URI를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude must contain valid latitude coordinates",
+			expected: "Latitude은(는) 올바른 위도 좌표를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude must contain a valid longitude coordinates",
+			expected: "Longitude은(는) 올바른 경도 좌표를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte must contain multibyte characters",
+			expected: "MultiByte은(는) 멀티바이트 문자를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII must contain only ascii characters",
+			expected: "ASCII은(는) ASCII 문자만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII must contain only printable ascii characters",
+			expected: "PrintableASCII은(는) 인쇄 가능한 ASCII 문자만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID must be a valid UUID",
+			expected: "UUID은(는) 올바른 UUID여야 합니다.",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 must be a valid version 3 UUID",
+			expected: "UUID3은(는) 버전 3의 올바른 UUID여야 합니다.",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 must be a valid version 4 UUID",
+			expected: "UUID4은(는) 버전 4의 올바른 UUID여야 합니다.",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 must be a valid version 5 UUID",
+			expected: "UUID5은(는) 버전 5의 올바른 UUID여야 합니다.",
 		},
 		{
 			ns:       "Test.ULID",
-			expected: "ULID must be a valid ULID",
+			expected: "ULID은(는) 올바른 ULID여야 합니다.",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN must be a valid ISBN number",
+			expected: "ISBN은(는) 올바른 ISBN 번호여야 합니다.",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 must be a valid ISBN-10 number",
+			expected: "ISBN10은(는) 올바른 ISBN-10 번호여야 합니다.",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 must be a valid ISBN-13 number",
+			expected: "ISBN13은(는) 올바른 ISBN-13 번호여야 합니다.",
 		},
 		{
 			ns:       "Test.ISSN",
-			expected: "ISSN must be a valid ISSN number",
+			expected: "ISSN은(는) 올바른 ISSN 번호여야 합니다.",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes cannot contain the text 'text'",
+			expected: "Excludes에는 'text'라는 텍스트를 포함할 수 없습니다.",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll cannot contain any of the following characters '!@#$'",
+			expected: "ExcludesAll에는 '!@#$' 중 어느 것도 포함할 수 없습니다.",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune cannot contain the following '☻'",
+			expected: "ExcludesRune에는 '☻'을(를) 포함할 수 없습니다.",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny must contain at least one of the following characters '!@#$'",
+			expected: "ContainsAny은(는) '!@#$' 중 최소 하나를 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains must contain the text 'purpose'",
+			expected: "Contains은(는) 'purpose'을(를) 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 must be a valid Base64 string",
+			expected: "Base64은(는) 올바른 Base64 문자열여야 합니다.",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email must be a valid email address",
+			expected: "Email은(는) 올바른 이메일 주소여야 합니다.",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL must be a valid URL",
+			expected: "URL은(는) 올바른 URL여야 합니다.",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI must be a valid URI",
+			expected: "URI은(는) 올바른 URI여야 합니다.",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString must be a valid RGB color",
+			expected: "RGBColorString은(는) 올바른 RGB 색상 코드여야 합니다.",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString must be a valid RGBA color",
+			expected: "RGBAColorString은(는) 올바른 RGBA 색상 코드여야 합니다.",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString must be a valid HSL color",
+			expected: "HSLColorString은(는) 올바른 HSL 색상 코드여야 합니다.",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString must be a valid HSLA color",
+			expected: "HSLAColorString은(는) 올바른 HSLA 색상 코드여야 합니다.",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString must be a valid hexadecimal",
+			expected: "HexadecimalString은(는) 올바른 16진수 표기여야 합니다.",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString must be a valid HEX color",
+			expected: "HexColorString은(는) 올바른 HEX 색상 코드여야 합니다.",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString must be a valid number",
+			expected: "NumberString은(는) 올바른 수여야 합니다.",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString must be a valid numeric value",
+			expected: "NumericString은(는) 올바른 숫자여야 합니다.",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString can only contain alphanumeric characters",
+			expected: "AlphanumString은(는) 알파벳과 숫자만 포함할 수 있습니다.",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString can only contain alphabetic characters",
+			expected: "AlphaString은(는) 알파벳만 포함할 수 있습니다.",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString must be less than MaxString",
+			expected: "LtFieldString은(는) MaxString보다 작아야 합니다.",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString must be less than or equal to MaxString",
+			expected: "LteFieldString은(는) MaxString 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString must be greater than MaxString",
+			expected: "GtFieldString은(는) MaxString보다 커야 합니다.",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString must be greater than or equal to MaxString",
+			expected: "GteFieldString은(는) MaxString 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString cannot be equal to EqFieldString",
+			expected: "NeFieldString은(는) EqFieldString와(과) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString must be less than Inner.LtCSFieldString",
+			expected: "LtCSFieldString은(는) Inner.LtCSFieldString보다 작아야 합니다.",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString must be less than or equal to Inner.LteCSFieldString",
+			expected: "LteCSFieldString은(는) Inner.LteCSFieldString 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString must be greater than Inner.GtCSFieldString",
+			expected: "GtCSFieldString은(는) Inner.GtCSFieldString보다 커야 합니다.",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString must be greater than or equal to Inner.GteCSFieldString",
+			expected: "GteCSFieldString은(는) Inner.GteCSFieldString 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString cannot be equal to Inner.NeCSFieldString",
+			expected: "NeCSFieldString은(는) Inner.NeCSFieldString와(과) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString must be equal to Inner.EqCSFieldString",
+			expected: "EqCSFieldString은(는) Inner.EqCSFieldString와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString must be equal to MaxString",
+			expected: "EqFieldString은(는) MaxString와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString must be at least 3 characters in length",
+			expected: "GteString의 길이는 최소 3자 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber must be 5.56 or greater",
+			expected: "GteNumber은(는) 5.56 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple must contain at least 2 items",
+			expected: "GteMultiple은(는) 최소 2개의 항목을 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime must be greater than or equal to the current Date & Time",
+			expected: "GteTime은(는) 현재 시간 이후이어야 합니다.",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString must be greater than 3 characters in length",
+			expected: "GtString의 길이는 3자보다 길어야 합니다.",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber must be greater than 5.56",
+			expected: "GtNumber은(는) 5.56보다 커야 합니다.",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple must contain more than 2 items",
+			expected: "GtMultiple은(는) 2개의 항목보다 많은 항목을 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime must be greater than the current Date & Time",
+			expected: "GtTime은(는) 현재 시간 이후이어야 합니다.",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
+			expected: "LteString의 길이는 최대 3자여야 합니다.",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber must be 5.56 or less",
+			expected: "LteNumber은(는) 5.56 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "LteMultiple은(는) 최대 2개의 항목여야 합니다.",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "LteTime은(는) 현재 시간보다 이전이어야 합니다.",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString must be less than 3 characters in length",
+			expected: "LtString의 길이는 3자보다 작아야 합니다.",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber must be less than 5.56",
+			expected: "LtNumber은(는) 5.56보다 작아야 합니다.",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple must contain less than 2 items",
+			expected: "LtMultiple은(는) 2개의 항목보다 적은 항목여야 합니다.",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime은(는) 현재 시간보다 이전이어야 합니다.",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString should not be equal to ",
+			expected: "NeString은(는) 와(과) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber should not be equal to 0.00",
+			expected: "NeNumber은(는) 0.00와(과) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple should not be equal to 0",
+			expected: "NeMultiple의 항목 수는 0개와(과) 달라야 합니다.",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString is not equal to 3",
+			expected: "EqString은(는) 3와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber is not equal to 2.33",
+			expected: "EqNumber은(는) 2.33와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple is not equal to 7",
+			expected: "EqMultiple은(는) 7와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString must be a maximum of 3 characters in length",
+			expected: "MaxString의 길이는 최대 3자여야 합니다.",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber must be 1,113.00 or less",
+			expected: "MaxNumber은(는) 1,113.00 이하여야 합니다.",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "MaxMultiple은(는) 최대 7개의 항목여야 합니다.",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString must be at least 1 character in length",
+			expected: "MinString의 길이는 최소 1자여야 합니다.",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber must be 1,113.00 or greater",
+			expected: "MinNumber은(는) 1,113.00 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple must contain at least 7 items",
+			expected: "MinMultiple은(는) 최소 7개의 항목을 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString must be 1 character in length",
+			expected: "LenString의 길이는 1자여야 합니다.",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber must be equal to 1,113.00",
+			expected: "LenNumber은(는) 1,113.00와(과) 같아야 합니다.",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 items",
+			expected: "LenMultiple은(는) 7개의 항목을 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString is a required field",
+			expected: "RequiredString은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredIf",
-			expected: "RequiredIf is a required field",
+			expected: "RequiredIf은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber is a required field",
+			expected: "RequiredNumber은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple is a required field",
+			expected: "RequiredMultiple은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredUnless",
-			expected: "RequiredUnless is a required field",
+			expected: "RequiredUnless은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredWith",
-			expected: "RequiredWith is a required field",
+			expected: "RequiredWith은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredWithAll",
-			expected: "RequiredWithAll is a required field",
+			expected: "RequiredWithAll은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredWithout",
-			expected: "RequiredWithout is a required field",
+			expected: "RequiredWithout은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.RequiredWithoutAll",
-			expected: "RequiredWithoutAll is a required field",
+			expected: "RequiredWithoutAll은(는) 필수 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedIf",
-			expected: "ExcludedIf is an excluded field",
+			expected: "ExcludedIf은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedUnless",
-			expected: "ExcludedUnless is an excluded field",
+			expected: "ExcludedUnless은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedWith",
-			expected: "ExcludedWith is an excluded field",
+			expected: "ExcludedWith은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedWithAll",
-			expected: "ExcludedWithAll is an excluded field",
+			expected: "ExcludedWithAll은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedWithout",
-			expected: "ExcludedWithout is an excluded field",
+			expected: "ExcludedWithout은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.ExcludedWithoutAll",
-			expected: "ExcludedWithoutAll is an excluded field",
+			expected: "ExcludedWithoutAll은(는) 제외된 필드입니다.",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen must be at least 10 characters in length",
+			expected: "StrPtrMinLen의 길이는 최소 10자여야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+			expected: "StrPtrMaxLen의 길이는 최대 1자여야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen must be 2 characters in length",
+			expected: "StrPtrLen의 길이는 2자여야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt must be less than 1 character in length",
+			expected: "StrPtrLt의 길이는 1자보다 작아야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "StrPtrLte의 길이는 최대 1자여야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt must be greater than 10 characters in length",
+			expected: "StrPtrGt의 길이는 10자보다 길어야 합니다.",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte must be at least 10 characters in length",
+			expected: "StrPtrGte의 길이는 최소 10자 이상여야 합니다.",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString must be one of [red green]",
+			expected: "OneOfString은(는) [red green] 중 하나여야 합니다.",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt must be one of [5 63]",
+			expected: "OneOfInt은(는) [5 63] 중 하나여야 합니다.",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice must contain unique values",
+			expected: "UniqueSlice은(는) 고유한 값만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray must contain unique values",
+			expected: "UniqueArray은(는) 고유한 값만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap must contain unique values",
+			expected: "UniqueMap은(는) 고유한 값만 포함해야 합니다.",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString must be a valid json string",
+			expected: "JSONString은(는) 올바른 JSON 문자열여야 합니다.",
 		},
 		{
 			ns:       "Test.JWTString",
-			expected: "JWTString must be a valid jwt string",
+			expected: "JWTString은(는) 올바른 JWT 문자열여야 합니다.",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString must be a lowercase string",
+			expected: "LowercaseString은(는) 소문자여야 합니다.",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString must be an uppercase string",
+			expected: "UppercaseString은(는) 대문자여야 합니다.",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime does not match the 2006-01-02 format",
+			expected: "Datetime은(는) 2006-01-02 형식과 일치해야 합니다.",
 		},
 		{
 			ns:       "Test.PostCode",
-			expected: "PostCode does not match postcode format of SG country",
+			expected: "PostCode은(는) 국가 코드 SG의 우편번호 형식과 일치해야 합니다.",
 		},
 		{
 			ns:       "Test.PostCodeByField",
-			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+			expected: "PostCodeByField은(는) PostCodeCountry 필드에 지정된 국가 코드의 우편번호 형식과 일치해야 합니다.",
 		},
 		{
 			ns:       "Test.BooleanString",
-			expected: "BooleanString must be a valid boolean value",
+			expected: "BooleanString은(는) 올바른 부울 값여야 합니다.",
 		},
 		{
 			ns:       "Test.Image",
-			expected: "Image must be a valid image",
+			expected: "Image은(는) 유효한 이미지여야 합니다.",
 		},
 		{
 			ns:       "Test.CveString",
-			expected: "CveString must be a valid cve identifier",
-		},
-		{
-			ns:       "Test.MinDuration",
-			expected: "MinDuration must be 1h30m or greater",
-		},
-		{
-			ns:       "Test.MaxDuration",
-			expected: "MaxDuration must be 2h or less",
-		},
-		{
-			ns:       "Test.ValidateFn",
-			expected: "ValidateFn must be a valid object",
+			expected: "CveString은(는) 유효한 CVE 식별자여야 합니다.",
 		},
 	}
 

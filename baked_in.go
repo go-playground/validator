@@ -2,13 +2,16 @@ package validator
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net"
+	"net/mail"
 	"net/url"
 	"os"
 	"reflect"
@@ -50,6 +53,7 @@ var (
 		keysTag:           {},
 		endKeysTag:        {},
 		structOnlyTag:     {},
+		omitzero:          {},
 		omitempty:         {},
 		omitnil:           {},
 		skipValidationTag: {},
@@ -205,6 +209,7 @@ var (
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
+		"oneofci":                       isOneOfCI,
 		"html":                          isHTML,
 		"html_encoded":                  isHTMLEncoded,
 		"url_encoded":                   isURLEncoded,
@@ -213,6 +218,7 @@ var (
 		"json":                          isJSON,
 		"jwt":                           isJWT,
 		"hostname_port":                 isHostnamePort,
+		"port":                          isPort,
 		"lowercase":                     isLowercase,
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
@@ -239,6 +245,8 @@ var (
 		"mongodb_connection_string":     isMongoDBConnectionString,
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
+		"ein":                           isEIN,
+		"validateFn":                    isValidateFn,
 	}
 )
 
@@ -255,7 +263,7 @@ func parseOneOfParam2(s string) []string {
 		oneofValsCacheRWLock.Lock()
 		vals = splitParamsRegex().FindAllString(s, -1)
 		for i := 0; i < len(vals); i++ {
-			vals[i] = strings.Replace(vals[i], "'", "", -1)
+			vals[i] = strings.ReplaceAll(vals[i], "'", "")
 		}
 		oneofValsCache[s] = vals
 		oneofValsCacheRWLock.Unlock()
@@ -293,6 +301,23 @@ func isOneOf(fl FieldLevel) bool {
 	}
 	for i := 0; i < len(vals); i++ {
 		if vals[i] == v {
+			return true
+		}
+	}
+	return false
+}
+
+// isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).
+func isOneOfCI(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	}
+	v := field.String()
+	for _, val := range vals {
+		if strings.EqualFold(val, v) {
 			return true
 		}
 	}
@@ -923,7 +948,6 @@ func isNeField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() != currentField.Int()
 
@@ -944,7 +968,6 @@ func isNeField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Interface().(time.Time)
 			fieldTime := field.Interface().(time.Time)
 
@@ -983,7 +1006,6 @@ func isLteCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() <= topField.Int()
 
@@ -1001,7 +1023,6 @@ func isLteCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1030,7 +1051,6 @@ func isLtCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() < topField.Int()
 
@@ -1048,7 +1068,6 @@ func isLtCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1076,7 +1095,6 @@ func isGteCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() >= topField.Int()
 
@@ -1094,7 +1112,6 @@ func isGteCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1122,7 +1139,6 @@ func isGtCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() > topField.Int()
 
@@ -1140,7 +1156,6 @@ func isGtCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 			topTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1168,7 +1183,6 @@ func isNeCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return topField.Int() != field.Int()
 
@@ -1189,7 +1203,6 @@ func isNeCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			t := field.Convert(timeType).Interface().(time.Time)
 			fieldTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1217,7 +1230,6 @@ func isEqCrossStructField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return topField.Int() == field.Int()
 
@@ -1238,7 +1250,6 @@ func isEqCrossStructField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && topField.Type().ConvertibleTo(timeType) {
-
 			t := field.Convert(timeType).Interface().(time.Time)
 			fieldTime := topField.Convert(timeType).Interface().(time.Time)
 
@@ -1266,7 +1277,6 @@ func isEqField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() == currentField.Int()
 
@@ -1287,7 +1297,6 @@ func isEqField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -1310,7 +1319,6 @@ func isEq(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		return field.String() == param
 
@@ -1356,7 +1364,6 @@ func isEqIgnoreCase(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		return strings.EqualFold(field.String(), param)
 	}
@@ -1398,6 +1405,7 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", currentField.Interface()))
 	}
 
+	postcodeRegexInit.Do(initPostcodes)
 	reg, found := postCodeRegexDict[currentField.String()]
 	if !found {
 		return false
@@ -1585,7 +1593,6 @@ func isImage(fl FieldLevel) bool {
 	case reflect.String:
 		filePath := field.String()
 		fileInfo, err := os.Stat(filePath)
-
 		if err != nil {
 			return false
 		}
@@ -1598,7 +1605,9 @@ func isImage(fl FieldLevel) bool {
 		if err != nil {
 			return false
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		mime, err := mimetype.DetectReader(file)
 		if err != nil {
@@ -1614,7 +1623,6 @@ func isImage(fl FieldLevel) bool {
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
 func isFilePath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -1674,6 +1682,10 @@ func isE164(fl FieldLevel) bool {
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
 func isEmail(fl FieldLevel) bool {
+	_, err := mail.ParseAddress(fl.Field().String())
+	if err != nil {
+		return false
+	}
 	return emailRegex().MatchString(fl.Field().String())
 }
 
@@ -1777,6 +1789,20 @@ func hasValue(fl FieldLevel) bool {
 	}
 }
 
+// hasNotZeroValue is the validation function for validating if the current field's value is not the zero value for its type.
+func hasNotZeroValue(fl FieldLevel) bool {
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return !field.IsNil()
+	default:
+		if fl.(*validate).fldIsPointer && field.Interface() != nil {
+			return !field.IsZero()
+		}
+		return field.IsValid() && !field.IsZero()
+	}
+}
+
 // requireCheckFieldKind is a func for check field kind
 func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue bool) bool {
 	field := fl.Field()
@@ -1811,7 +1837,6 @@ func requireCheckFieldValue(
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return field.Int() == asInt(value)
 
@@ -1828,7 +1853,14 @@ func requireCheckFieldValue(
 		return int64(field.Len()) == asInt(value)
 
 	case reflect.Bool:
-		return field.Bool() == asBool(value)
+		return field.Bool() == (value == "true")
+
+	case reflect.Ptr:
+		if field.IsNil() {
+			return value == "nil"
+		}
+		// Handle non-nil pointers
+		return requireCheckFieldValue(fl, param, value, defaultNotFoundValue)
 	}
 
 	// default reflect.String:
@@ -1972,8 +2004,11 @@ func excludedWithout(fl FieldLevel) bool {
 // requiredWithout is the validation function
 // The field under validation must be present and not empty only when any of the other specified fields are not present.
 func requiredWithout(fl FieldLevel) bool {
-	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
-		return hasValue(fl)
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return hasValue(fl)
+		}
 	}
 	return true
 }
@@ -2013,7 +2048,6 @@ func isGteField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() >= currentField.Int()
@@ -2031,7 +2065,6 @@ func isGteField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2059,7 +2092,6 @@ func isGtField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() > currentField.Int()
@@ -2077,7 +2109,6 @@ func isGtField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2100,7 +2131,6 @@ func isGte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2134,7 +2164,6 @@ func isGte(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			now := time.Now().UTC()
 			t := field.Convert(timeType).Interface().(time.Time)
 
@@ -2151,7 +2180,6 @@ func isGt(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2185,7 +2213,6 @@ func isGt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).After(time.Now().UTC())
 		}
 	}
@@ -2199,7 +2226,6 @@ func hasLengthOf(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2250,7 +2276,6 @@ func isLteField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() <= currentField.Int()
@@ -2268,7 +2293,6 @@ func isLteField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2296,7 +2320,6 @@ func isLtField(fl FieldLevel) bool {
 	}
 
 	switch kind {
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 
 		return field.Int() < currentField.Int()
@@ -2314,7 +2337,6 @@ func isLtField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-
 			t := currentField.Convert(timeType).Interface().(time.Time)
 			fieldTime := field.Convert(timeType).Interface().(time.Time)
 
@@ -2337,7 +2359,6 @@ func isLte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2371,7 +2392,6 @@ func isLte(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			now := time.Now().UTC()
 			t := field.Convert(timeType).Interface().(time.Time)
 
@@ -2388,7 +2408,6 @@ func isLt(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
-
 	case reflect.String:
 		p := asInt(param)
 
@@ -2422,7 +2441,6 @@ func isLt(fl FieldLevel) bool {
 	case reflect.Struct:
 
 		if field.Type().ConvertibleTo(timeType) {
-
 			return field.Convert(timeType).Interface().(time.Time).Before(time.Now().UTC())
 		}
 	}
@@ -2602,7 +2620,6 @@ func isDir(fl FieldLevel) bool {
 
 // isDirPath is the validation function for validating if the current field's value is a valid directory.
 func isDirPath(fl FieldLevel) bool {
-
 	var exists bool
 	var err error
 
@@ -2702,6 +2719,13 @@ func isHostnamePort(fl FieldLevel) bool {
 		return hostnameRegexRFC1123().MatchString(host)
 	}
 	return true
+}
+
+// IsPort validates if the current field's value represents a valid port
+func isPort(fl FieldLevel) bool {
+	val := fl.Field().Uint()
+
+	return val >= 1 && val <= 65535
 }
 
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
@@ -2908,6 +2932,12 @@ func isCveFormat(fl FieldLevel) bool {
 // a valid dns RFC 1035 label, defined in RFC 1035.
 func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
 	val := fl.Field().String()
+
+	size := len(val)
+	if size > 63 {
+		return false
+	}
+
 	return dnsRegexRFC1035Label().MatchString(val)
 }
 
@@ -3010,4 +3040,72 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	cronString := fl.Field().String()
 	return cronRegex().MatchString(cronString)
+}
+
+// isEIN is the validation function for validating if the current field's value is a valid U.S. Employer Identification Number (EIN)
+func isEIN(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Len() != 10 {
+		return false
+	}
+
+	return einRegex().MatchString(field.String())
+}
+
+func isValidateFn(fl FieldLevel) bool {
+	const defaultParam = `Validate`
+
+	field := fl.Field()
+	validateFn := cmp.Or(fl.Param(), defaultParam)
+
+	ok, err := tryCallValidateFn(field, validateFn)
+	if err != nil {
+		return false
+	}
+
+	return ok
+}
+
+var (
+	errMethodNotFound          = errors.New(`method not found`)
+	errMethodReturnNoValues    = errors.New(`method return o values (void)`)
+	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
+)
+
+func tryCallValidateFn(field reflect.Value, validateFn string) (bool, error) {
+	method := field.MethodByName(validateFn)
+	if field.CanAddr() && !method.IsValid() {
+		method = field.Addr().MethodByName(validateFn)
+	}
+
+	if !method.IsValid() {
+		return false, fmt.Errorf("unable to call %q on type %q: %w",
+			validateFn, field.Type().String(), errMethodNotFound)
+	}
+
+	returnValues := method.Call([]reflect.Value{})
+	if len(returnValues) == 0 {
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w",
+			validateFn, field.Type().String(), errMethodReturnNoValues)
+	}
+
+	firstReturnValue := returnValues[0]
+
+	switch firstReturnValue.Kind() {
+	case reflect.Bool:
+		return firstReturnValue.Bool(), nil
+	case reflect.Interface:
+		errorType := reflect.TypeOf((*error)(nil)).Elem()
+
+		if firstReturnValue.Type().Implements(errorType) {
+			return firstReturnValue.IsNil(), nil
+		}
+
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got interface %v expect error)",
+			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+	default:
+		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got %v expect error or bool)",
+			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
+	}
 }

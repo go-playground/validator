@@ -1,23 +1,19 @@
-package en
+package de
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/go-playground/assert/v2"
-	english "github.com/go-playground/locales/en"
+	german "github.com/go-playground/locales/de"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
-type Foo struct{}
-
-func (Foo) IsBar() bool { return false }
-
 func TestTranslations(t *testing.T) {
-	eng := english.New()
-	uni := ut.New(eng, eng)
-	trans, _ := uni.GetTranslator("en")
+	ger := german.New()
+	uni := ut.New(ger, ger)
+	trans, _ := uni.GetTranslator("de")
 
 	validate := validator.New()
 
@@ -179,13 +175,10 @@ func TestTranslations(t *testing.T) {
 		Datetime           string            `validate:"datetime=2006-01-02"`
 		PostCode           string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry    string
-		PostCodeByField    string        `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		BooleanString      string        `validate:"boolean"`
-		Image              string        `validate:"image"`
-		CveString          string        `validate:"cve"`
-		MinDuration        time.Duration `validate:"min=1h30m,max=2h"`
-		MaxDuration        time.Duration `validate:"min=1h30m,max=2h"`
-		ValidateFn         Foo           `validate:"validateFn=IsBar"`
+		PostCodeByField    string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString      string `validate:"boolean"`
+		Image              string `validate:"image"`
+		CveString          string `validate:"cve"`
 	}
 
 	var test Test
@@ -255,9 +248,6 @@ func TestTranslations(t *testing.T) {
 	test.BooleanString = "A"
 	test.CveString = "A"
 
-	test.MinDuration = 1 * time.Hour
-	test.MaxDuration = 3 * time.Hour
-
 	test.Inner.RequiredIf = "abcd"
 
 	err = validate.Struct(test)
@@ -272,547 +262,535 @@ func TestTranslations(t *testing.T) {
 	}{
 		{
 			ns:       "Test.IsColor",
-			expected: "IsColor must be a valid color",
+			expected: "IsColor muss eine gültige Farbe sein",
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC must contain a valid MAC address",
+			expected: "MAC muss eine gültige MAC-Adresse sein",
 		},
 		{
 			ns:       "Test.FQDN",
-			expected: "FQDN must be a valid FQDN",
+			expected: "FQDN muss eine gültige FQDN sein",
 		},
 		{
 			ns:       "Test.IPAddr",
-			expected: "IPAddr must be a resolvable IP address",
+			expected: "IPAddr muss eine auflösbare IP-Adresse sein",
 		},
 		{
 			ns:       "Test.IPAddrv4",
-			expected: "IPAddrv4 must be a resolvable IPv4 address",
+			expected: "IPAddrv4 muss eine auflösbare IPv4-Adresse sein",
 		},
 		{
 			ns:       "Test.IPAddrv6",
-			expected: "IPAddrv6 must be a resolvable IPv6 address",
+			expected: "IPAddrv6 muss eine auflösbare IPv6-Adresse sein",
 		},
 		{
 			ns:       "Test.UDPAddr",
-			expected: "UDPAddr must be a valid UDP address",
+			expected: "UDPAddr muss eine gültige UDP-Adresse sein",
 		},
 		{
 			ns:       "Test.UDPAddrv4",
-			expected: "UDPAddrv4 must be a valid IPv4 UDP address",
+			expected: "UDPAddrv4 muss eine gültige IPv4-UDP-Adresse sein",
 		},
 		{
 			ns:       "Test.UDPAddrv6",
-			expected: "UDPAddrv6 must be a valid IPv6 UDP address",
+			expected: "UDPAddrv6 muss eine gültige IPv6-UDP-Adresse sein",
 		},
 		{
 			ns:       "Test.TCPAddr",
-			expected: "TCPAddr must be a valid TCP address",
+			expected: "TCPAddr muss eine gültige TCP-Adresse sein",
 		},
 		{
 			ns:       "Test.TCPAddrv4",
-			expected: "TCPAddrv4 must be a valid IPv4 TCP address",
+			expected: "TCPAddrv4 muss eine gültige IPv4-TCP-Adresse sein",
 		},
 		{
 			ns:       "Test.TCPAddrv6",
-			expected: "TCPAddrv6 must be a valid IPv6 TCP address",
+			expected: "TCPAddrv6 muss eine gültige IPv6-TCP-Adresse sein",
 		},
 		{
 			ns:       "Test.CIDR",
-			expected: "CIDR must contain a valid CIDR notation",
+			expected: "CIDR muss eine gültige CIDR-Notation enthalten",
 		},
 		{
 			ns:       "Test.CIDRv4",
-			expected: "CIDRv4 must contain a valid CIDR notation for an IPv4 address",
+			expected: "CIDRv4 muss eine gültige CIDR-Notation für eine IPv4-Adresse enthalten",
 		},
 		{
 			ns:       "Test.CIDRv6",
-			expected: "CIDRv6 must contain a valid CIDR notation for an IPv6 address",
+			expected: "CIDRv6 muss eine gültige CIDR-Notation für eine IPv6-Adresse enthalten",
 		},
 		{
 			ns:       "Test.SSN",
-			expected: "SSN must be a valid SSN number",
+			expected: "SSN muss eine gültige SSN-Nummer sein",
 		},
 		{
 			ns:       "Test.IP",
-			expected: "IP must be a valid IP address",
+			expected: "IP muss eine gültige IP-Adresse sein",
 		},
 		{
 			ns:       "Test.IPv4",
-			expected: "IPv4 must be a valid IPv4 address",
+			expected: "IPv4 muss eine gültige IPv4-Adresse sein",
 		},
 		{
 			ns:       "Test.IPv6",
-			expected: "IPv6 must be a valid IPv6 address",
+			expected: "IPv6 muss eine gültige IPv6-Adresse sein",
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI must contain a valid Data URI",
+			expected: "DataURI muss eine gültige Data-URI sein",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude must contain valid latitude coordinates",
+			expected: "Latitude muss gültige Breitengradkoordinaten enthalten",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude must contain a valid longitude coordinates",
+			expected: "Longitude muss gültige Längengradkoordinaten enthalten",
 		},
 		{
 			ns:       "Test.MultiByte",
-			expected: "MultiByte must contain multibyte characters",
+			expected: "MultiByte darf nur Mehrbyte-Zeichen enthalten",
 		},
 		{
 			ns:       "Test.ASCII",
-			expected: "ASCII must contain only ascii characters",
+			expected: "ASCII darf nur ASCII-Zeichen enthalten",
 		},
 		{
 			ns:       "Test.PrintableASCII",
-			expected: "PrintableASCII must contain only printable ascii characters",
+			expected: "PrintableASCII darf nur druckbare ASCII-Zeichen enthalten",
 		},
 		{
 			ns:       "Test.UUID",
-			expected: "UUID must be a valid UUID",
+			expected: "UUID muss eine gültige UUID sein",
 		},
 		{
 			ns:       "Test.UUID3",
-			expected: "UUID3 must be a valid version 3 UUID",
+			expected: "UUID3 muss eine gültige Version 3 UUID sein",
 		},
 		{
 			ns:       "Test.UUID4",
-			expected: "UUID4 must be a valid version 4 UUID",
+			expected: "UUID4 muss eine gültige Version 4 UUID sein",
 		},
 		{
 			ns:       "Test.UUID5",
-			expected: "UUID5 must be a valid version 5 UUID",
+			expected: "UUID5 muss eine gültige Version 5 UUID sein",
 		},
 		{
 			ns:       "Test.ULID",
-			expected: "ULID must be a valid ULID",
+			expected: "ULID muss eine gültige ULID sein",
 		},
 		{
 			ns:       "Test.ISBN",
-			expected: "ISBN must be a valid ISBN number",
+			expected: "ISBN muss eine gültige ISBN-Nummer sein",
 		},
 		{
 			ns:       "Test.ISBN10",
-			expected: "ISBN10 must be a valid ISBN-10 number",
+			expected: "ISBN10 muss eine gültige ISBN-10-Nummer sein",
 		},
 		{
 			ns:       "Test.ISBN13",
-			expected: "ISBN13 must be a valid ISBN-13 number",
+			expected: "ISBN13 muss eine gültige ISBN-13-Nummer sein",
 		},
 		{
 			ns:       "Test.ISSN",
-			expected: "ISSN must be a valid ISSN number",
+			expected: "ISSN muss eine gültige ISSN-Nummer sein",
 		},
 		{
 			ns:       "Test.Excludes",
-			expected: "Excludes cannot contain the text 'text'",
+			expected: "Excludes darf den Text 'text' nicht enthalten",
 		},
 		{
 			ns:       "Test.ExcludesAll",
-			expected: "ExcludesAll cannot contain any of the following characters '!@#$'",
+			expected: "ExcludesAll darf keines der folgenden Zeichen enthalten: '!@#$'",
 		},
 		{
 			ns:       "Test.ExcludesRune",
-			expected: "ExcludesRune cannot contain the following '☻'",
+			expected: "ExcludesRune darf die folgenden Runen nicht enthalten: '☻'",
 		},
 		{
 			ns:       "Test.ContainsAny",
-			expected: "ContainsAny must contain at least one of the following characters '!@#$'",
+			expected: "ContainsAny muss mindestens eines der folgenden Zeichen enthalten: '!@#$'",
 		},
 		{
 			ns:       "Test.Contains",
-			expected: "Contains must contain the text 'purpose'",
+			expected: "Contains muss den Text 'purpose' enthalten",
 		},
 		{
 			ns:       "Test.Base64",
-			expected: "Base64 must be a valid Base64 string",
+			expected: "Base64 muss eine gültige Base64-Zeichenkette sein",
 		},
 		{
 			ns:       "Test.Email",
-			expected: "Email must be a valid email address",
+			expected: "Email muss eine gültige E-Mail-Adresse sein",
 		},
 		{
 			ns:       "Test.URL",
-			expected: "URL must be a valid URL",
+			expected: "URL muss eine gültige URL sein",
 		},
 		{
 			ns:       "Test.URI",
-			expected: "URI must be a valid URI",
+			expected: "URI muss eine gültige URI sein",
 		},
 		{
 			ns:       "Test.RGBColorString",
-			expected: "RGBColorString must be a valid RGB color",
+			expected: "RGBColorString muss eine gültige RGB-Farbe sein",
 		},
 		{
 			ns:       "Test.RGBAColorString",
-			expected: "RGBAColorString must be a valid RGBA color",
+			expected: "RGBAColorString muss eine gültige RGBA-Farbe sein",
 		},
 		{
 			ns:       "Test.HSLColorString",
-			expected: "HSLColorString must be a valid HSL color",
+			expected: "HSLColorString muss eine gültige HSL-Farbe sein",
 		},
 		{
 			ns:       "Test.HSLAColorString",
-			expected: "HSLAColorString must be a valid HSLA color",
+			expected: "HSLAColorString muss eine gültige HSLA-Farbe sein",
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString must be a valid hexadecimal",
+			expected: "HexadecimalString muss eine gültige hexadezimale Zahl sein",
 		},
 		{
 			ns:       "Test.HexColorString",
-			expected: "HexColorString must be a valid HEX color",
+			expected: "HexColorString muss eine gültige Hexadezimalfarbe sein",
 		},
 		{
 			ns:       "Test.NumberString",
-			expected: "NumberString must be a valid number",
+			expected: "NumberString muss eine gültige Zahl sein",
 		},
 		{
 			ns:       "Test.NumericString",
-			expected: "NumericString must be a valid numeric value",
+			expected: "NumericString muss eine gültige Zahl sein",
 		},
 		{
 			ns:       "Test.AlphanumString",
-			expected: "AlphanumString can only contain alphanumeric characters",
+			expected: "AlphanumString darf nur alphanumerische Zeichen enthalten",
 		},
 		{
 			ns:       "Test.AlphaString",
-			expected: "AlphaString can only contain alphabetic characters",
+			expected: "AlphaString darf nur alphabetische Zeichen enthalten",
 		},
 		{
 			ns:       "Test.LtFieldString",
-			expected: "LtFieldString must be less than MaxString",
+			expected: "LtFieldString muss kleiner als MaxString sein",
 		},
 		{
 			ns:       "Test.LteFieldString",
-			expected: "LteFieldString must be less than or equal to MaxString",
+			expected: "LteFieldString muss kleiner als oder gleich MaxString sein",
 		},
 		{
 			ns:       "Test.GtFieldString",
-			expected: "GtFieldString must be greater than MaxString",
+			expected: "GtFieldString muss größer als MaxString sein",
 		},
 		{
 			ns:       "Test.GteFieldString",
-			expected: "GteFieldString must be greater than or equal to MaxString",
+			expected: "GteFieldString muss größer als oder gleich MaxString sein",
 		},
 		{
 			ns:       "Test.NeFieldString",
-			expected: "NeFieldString cannot be equal to EqFieldString",
+			expected: "NeFieldString darf nicht gleich EqFieldString sein",
 		},
 		{
 			ns:       "Test.LtCSFieldString",
-			expected: "LtCSFieldString must be less than Inner.LtCSFieldString",
+			expected: "LtCSFieldString muss kleiner als Inner.LtCSFieldString sein",
 		},
 		{
 			ns:       "Test.LteCSFieldString",
-			expected: "LteCSFieldString must be less than or equal to Inner.LteCSFieldString",
+			expected: "LteCSFieldString muss kleiner als oder gleich Inner.LteCSFieldString sein",
 		},
 		{
 			ns:       "Test.GtCSFieldString",
-			expected: "GtCSFieldString must be greater than Inner.GtCSFieldString",
+			expected: "GtCSFieldString muss größer als Inner.GtCSFieldString sein",
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString must be greater than or equal to Inner.GteCSFieldString",
+			expected: "GteCSFieldString muss größer als oder gleich Inner.GteCSFieldString sein",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
-			expected: "NeCSFieldString cannot be equal to Inner.NeCSFieldString",
+			expected: "NeCSFieldString darf nicht gleich Inner.NeCSFieldString sein",
 		},
 		{
 			ns:       "Test.EqCSFieldString",
-			expected: "EqCSFieldString must be equal to Inner.EqCSFieldString",
+			expected: "EqCSFieldString muss gleich Inner.EqCSFieldString sein",
 		},
 		{
 			ns:       "Test.EqFieldString",
-			expected: "EqFieldString must be equal to MaxString",
+			expected: "EqFieldString muss gleich MaxString sein",
 		},
 		{
 			ns:       "Test.GteString",
-			expected: "GteString must be at least 3 characters in length",
+			expected: "GteString muss mindestens 3 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.GteNumber",
-			expected: "GteNumber must be 5.56 or greater",
+			expected: "GteNumber muss 5,56 oder größer sein",
 		},
 		{
 			ns:       "Test.GteMultiple",
-			expected: "GteMultiple must contain at least 2 items",
+			expected: "GteMultiple muss mindestens 2 Elemente enthalten",
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime must be greater than or equal to the current Date & Time",
+			expected: "GteTime muss vor dem aktuellen Datum und Uhrzeit liegen oder gleich sein",
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString must be greater than 3 characters in length",
+			expected: "GtString muss größer als 3 Zeichen sein",
 		},
 		{
 			ns:       "Test.GtNumber",
-			expected: "GtNumber must be greater than 5.56",
+			expected: "GtNumber muss größer als 5,56 sein",
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple must contain more than 2 items",
+			expected: "GtMultiple muss 2 Elemente oder mehr enthalten",
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime must be greater than the current Date & Time",
+			expected: "GtTime muss vor dem aktuellen Datum und Uhrzeit liegen",
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
+			expected: "LteString darf maximal 3 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.LteNumber",
-			expected: "LteNumber must be 5.56 or less",
+			expected: "LteNumber darf 5,56 oder weniger sein",
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "LteMultiple darf maximal 2 Elemente enthalten",
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "LteTime muss vor dem aktuellen Datum und Uhrzeit liegen oder gleich sein",
 		},
 		{
 			ns:       "Test.LtString",
-			expected: "LtString must be less than 3 characters in length",
+			expected: "LtString muss kleiner als 3 Zeichen sein",
 		},
 		{
 			ns:       "Test.LtNumber",
-			expected: "LtNumber must be less than 5.56",
+			expected: "LtNumber muss kleiner als 5,56 sein",
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultiple must contain less than 2 items",
+			expected: "LtMultiple muss 2 Elemente oder weniger enthalten",
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime muss vor dem aktuellen Datum und Uhrzeit liegen",
 		},
 		{
 			ns:       "Test.NeString",
-			expected: "NeString should not be equal to ",
+			expected: "NeString darf nicht gleich  sein",
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber should not be equal to 0.00",
+			expected: "NeNumber darf nicht gleich 0.00 sein",
 		},
 		{
 			ns:       "Test.NeMultiple",
-			expected: "NeMultiple should not be equal to 0",
+			expected: "NeMultiple darf nicht gleich 0 sein",
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString is not equal to 3",
+			expected: "EqString ist nicht gleich 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber is not equal to 2.33",
+			expected: "EqNumber ist nicht gleich 2.33",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple is not equal to 7",
+			expected: "EqMultiple ist nicht gleich 7",
 		},
 		{
 			ns:       "Test.MaxString",
-			expected: "MaxString must be a maximum of 3 characters in length",
+			expected: "MaxString darf maximal 3 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.MaxNumber",
-			expected: "MaxNumber must be 1,113.00 or less",
+			expected: "MaxNumber darf 1.113,00 oder weniger sein",
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "MaxMultiple darf maximal 7 Elemente enthalten",
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString must be at least 1 character in length",
+			expected: "MinString muss mindestens 1 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber must be 1,113.00 or greater",
+			expected: "MinNumber muss 1.113,00 oder größer sein",
 		},
 		{
 			ns:       "Test.MinMultiple",
-			expected: "MinMultiple must contain at least 7 items",
+			expected: "MinMultiple muss mindestens 7 Elemente enthalten",
 		},
 		{
 			ns:       "Test.LenString",
-			expected: "LenString must be 1 character in length",
+			expected: "LenString darf nur 1 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.LenNumber",
-			expected: "LenNumber must be equal to 1,113.00",
+			expected: "LenNumber muss gleich 1.113,00 sein",
 		},
 		{
 			ns:       "Test.LenMultiple",
-			expected: "LenMultiple must contain 7 items",
+			expected: "LenMultiple muss 7 Elemente enthalten",
 		},
 		{
 			ns:       "Test.RequiredString",
-			expected: "RequiredString is a required field",
+			expected: "RequiredString ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredIf",
-			expected: "RequiredIf is a required field",
+			expected: "RequiredIf ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredNumber",
-			expected: "RequiredNumber is a required field",
+			expected: "RequiredNumber ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredMultiple",
-			expected: "RequiredMultiple is a required field",
+			expected: "RequiredMultiple ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredUnless",
-			expected: "RequiredUnless is a required field",
+			expected: "RequiredUnless ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredWith",
-			expected: "RequiredWith is a required field",
+			expected: "RequiredWith ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredWithAll",
-			expected: "RequiredWithAll is a required field",
+			expected: "RequiredWithAll ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredWithout",
-			expected: "RequiredWithout is a required field",
+			expected: "RequiredWithout ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.RequiredWithoutAll",
-			expected: "RequiredWithoutAll is a required field",
+			expected: "RequiredWithoutAll ist ein Pflichtfeld",
 		},
 		{
 			ns:       "Test.ExcludedIf",
-			expected: "ExcludedIf is an excluded field",
+			expected: "ExcludedIf ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.ExcludedUnless",
-			expected: "ExcludedUnless is an excluded field",
+			expected: "ExcludedUnless ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.ExcludedWith",
-			expected: "ExcludedWith is an excluded field",
+			expected: "ExcludedWith ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.ExcludedWithAll",
-			expected: "ExcludedWithAll is an excluded field",
+			expected: "ExcludedWithAll ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.ExcludedWithout",
-			expected: "ExcludedWithout is an excluded field",
+			expected: "ExcludedWithout ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.ExcludedWithoutAll",
-			expected: "ExcludedWithoutAll is an excluded field",
+			expected: "ExcludedWithoutAll ist ein ausgeschlossenes Feld",
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen must be at least 10 characters in length",
+			expected: "StrPtrMinLen muss mindestens 10 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
-			expected: "StrPtrMaxLen must be a maximum of 1 character in length",
+			expected: "StrPtrMaxLen darf maximal 1 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.StrPtrLen",
-			expected: "StrPtrLen must be 2 characters in length",
+			expected: "StrPtrLen darf nur 2 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.StrPtrLt",
-			expected: "StrPtrLt must be less than 1 character in length",
+			expected: "StrPtrLt muss kleiner als 1 Zeichen sein",
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "StrPtrLte darf maximal 1 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.StrPtrGt",
-			expected: "StrPtrGt must be greater than 10 characters in length",
+			expected: "StrPtrGt muss größer als 10 Zeichen sein",
 		},
 		{
 			ns:       "Test.StrPtrGte",
-			expected: "StrPtrGte must be at least 10 characters in length",
+			expected: "StrPtrGte muss mindestens 10 Zeichen lang sein",
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString must be one of [red green]",
+			expected: "OneOfString muss einer der folgenden sein: [red green]",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt must be one of [5 63]",
+			expected: "OneOfInt muss einer der folgenden sein: [5 63]",
 		},
 		{
 			ns:       "Test.UniqueSlice",
-			expected: "UniqueSlice must contain unique values",
+			expected: "UniqueSlice darf nur einmal vorkommen",
 		},
 		{
 			ns:       "Test.UniqueArray",
-			expected: "UniqueArray must contain unique values",
+			expected: "UniqueArray darf nur einmal vorkommen",
 		},
 		{
 			ns:       "Test.UniqueMap",
-			expected: "UniqueMap must contain unique values",
+			expected: "UniqueMap darf nur einmal vorkommen",
 		},
 		{
 			ns:       "Test.JSONString",
-			expected: "JSONString must be a valid json string",
+			expected: "JSONString muss eine gültige JSON-Zeichenkette sein",
 		},
 		{
 			ns:       "Test.JWTString",
-			expected: "JWTString must be a valid jwt string",
+			expected: "JWTString muss eine gültige JWT-Zeichenkette sein",
 		},
 		{
 			ns:       "Test.LowercaseString",
-			expected: "LowercaseString must be a lowercase string",
+			expected: "LowercaseString darf nur Kleinbuchstaben enthalten",
 		},
 		{
 			ns:       "Test.UppercaseString",
-			expected: "UppercaseString must be an uppercase string",
+			expected: "UppercaseString darf nur Großbuchstaben enthalten",
 		},
 		{
 			ns:       "Test.Datetime",
-			expected: "Datetime does not match the 2006-01-02 format",
+			expected: "Datetime entspricht nicht dem 2006-01-02-Format",
 		},
 		{
 			ns:       "Test.PostCode",
-			expected: "PostCode does not match postcode format of SG country",
+			expected: "PostCode entspricht nicht dem Postleitzahlformat von SG",
 		},
 		{
 			ns:       "Test.PostCodeByField",
-			expected: "PostCodeByField does not match postcode format of country in PostCodeCountry field",
+			expected: "PostCodeByField entspricht nicht dem Postleitzahlformat des Feldes PostCodeCountry",
 		},
 		{
 			ns:       "Test.BooleanString",
-			expected: "BooleanString must be a valid boolean value",
+			expected: "BooleanString muss eine gültige Booleanwert sein",
 		},
 		{
 			ns:       "Test.Image",
-			expected: "Image must be a valid image",
+			expected: "Image muss ein Bild sein",
 		},
 		{
 			ns:       "Test.CveString",
-			expected: "CveString must be a valid cve identifier",
-		},
-		{
-			ns:       "Test.MinDuration",
-			expected: "MinDuration must be 1h30m or greater",
-		},
-		{
-			ns:       "Test.MaxDuration",
-			expected: "MaxDuration must be 2h or less",
-		},
-		{
-			ns:       "Test.ValidateFn",
-			expected: "ValidateFn must be a valid object",
+			expected: "CveString muss eine gültige CVE-Kennung sein",
 		},
 	}
 
