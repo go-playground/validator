@@ -296,7 +296,8 @@ func fieldMatchesRegexByStringerValOrString(regexFn func() *regexp.Regexp, fl Fi
 	case reflect.String:
 		return regex.MatchString(fl.Field().String())
 	default:
-		if stringer, ok := fl.Field().Interface().(fmt.Stringer); ok {
+		// TODO: return regex.MatchString(fmt.Sprintf("%s", fl.Field())) // should be enoungh, add tests to check
+		if stringer, ok := getValue(fl.Field()).(fmt.Stringer); ok {
 			return regex.MatchString(stringer.String())
 		} else {
 			return regex.MatchString(fl.Field().String())
