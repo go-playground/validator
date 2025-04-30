@@ -14163,6 +14163,16 @@ func TestPrivateFieldsStruct(t *testing.T) {
 			}{},
 			errorNum: 2,
 		},
+		{
+			stct: &struct {
+				f1 map[string]string `validate:"required,dive,required"`
+				f2 *int              `validate:"omitnil,min=2"`
+			}{
+				f1: map[string]string{"key": ""},
+				f2: intPtr(1),
+			},
+			errorNum: 2,
+		},
 	}
 
 	validate := New(WithPrivateFieldValidation())
