@@ -260,7 +260,7 @@ OUTER:
 					return
 				}
 			default:
-				if v.fldIsPointer && field.Interface() == nil {
+				if v.fldIsPointer && getValue(field) == nil {
 					return
 				}
 			}
@@ -312,7 +312,7 @@ OUTER:
 				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
-					pv = fmt.Sprintf("%v", key.Interface())
+					pv = fmt.Sprintf("%v", key)
 
 					v.misc = append(v.misc[0:0], cf.name...)
 					v.misc = append(v.misc, '[')
