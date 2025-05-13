@@ -1230,6 +1230,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "urn_rfc2141",
+			translation: "{0} must be a valid RFC 2141 URN",
+			override:    false,
+		},
+		{
 			tag:         "uuid",
 			translation: "{0} must be a valid UUID",
 			override:    false,
