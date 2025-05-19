@@ -129,6 +129,7 @@ func TestTranslations(t *testing.T) {
 		ISBN10             string            `validate:"isbn10"`
 		ISBN13             string            `validate:"isbn13"`
 		ISSN               string            `validate:"issn"`
+		URN                string            `validate:"urn_rfc2141"`
 		UUID               string            `validate:"uuid"`
 		UUID3              string            `validate:"uuid3"`
 		UUID4              string            `validate:"uuid4"`
@@ -405,6 +406,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.ISSN",
 			expected: "ISSN must be a valid ISSN number",
+		},
+		{
+			ns:       "Test.URN",
+			expected: "URN must be a valid RFC 2141 URN",
 		},
 		{
 			ns:       "Test.Excludes",
