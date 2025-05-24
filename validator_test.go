@@ -6010,7 +6010,7 @@ func TestImageValidation(t *testing.T) {
 	}
 
 	PanicMatches(t, func() {
-		_ = validate.Var(6, "file")
+		_ = validate.Var(6, "image")
 	}, "Bad field type int")
 }
 
@@ -14163,6 +14163,16 @@ func TestPrivateFieldsStruct(t *testing.T) {
 			}{},
 			errorNum: 2,
 		},
+		{
+			stct: &struct {
+				f1 map[string]string `validate:"required,dive,required"`
+				f2 *int              `validate:"omitnil,min=2"`
+			}{
+				f1: map[string]string{"key": ""},
+				f2: intPtr(1),
+			},
+			errorNum: 2,
+		},
 	}
 
 	validate := New(WithPrivateFieldValidation())
@@ -14174,6 +14184,12 @@ func TestPrivateFieldsStruct(t *testing.T) {
 		errs := err.(ValidationErrors)
 		Equal(t, len(errs), tc.errorNum)
 	}
+
+	stct := &struct {
+		f1 int `validate:"uri"`
+	}{}
+
+	PanicMatches(t, func() { _ = validate.Struct(stct) }, "Bad field type int")
 }
 
 type NotRed struct {
