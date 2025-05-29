@@ -147,7 +147,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			structNs:       v.str2,
 			fieldLen:       uint8(len(fieldName)),
 			structfieldLen: uint8(len(structFieldName)),
-			value:          fv.Interface(),
+			value:          getValue(fv),
 			param:          param,
 			kind:           kind,
 			typ:            fv.Type(),
