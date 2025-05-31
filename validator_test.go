@@ -14335,3 +14335,23 @@ func TestValidateFn(t *testing.T) {
 		Equal(t, fe.Tag(), "validateFn")
 	})
 }
+func Test_MapStructValueValidation(t *testing.T) {
+	type Inner struct {
+		Value string `validate:"max=5"`
+	}
+	type Outer struct {
+		Inner map[string]Inner `validate:"dive,keys,max=10,endkeys"`
+	}
+
+	obj := Outer{
+		Inner: map[string]Inner{
+			"valid": {Value: "toolongvalue"}, //Should fail as value is too long
+		},
+	}
+
+	validate := New()
+	err := validate.Struct(obj)
+	if err == nil {
+		t.Fatal("Expected error due to struct field 'Value' being too long, but got nil")
+	}
+}
