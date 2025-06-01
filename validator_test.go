@@ -14335,23 +14335,138 @@ func TestValidateFn(t *testing.T) {
 		Equal(t, fe.Tag(), "validateFn")
 	})
 }
-func Test_MapStructValueValidation(t *testing.T) {
+func TestMapStructBasicValidation(t *testing.T) {
 	type Inner struct {
 		Value string `validate:"max=5"`
 	}
 	type Outer struct {
-		Inner map[string]Inner `validate:"dive,keys,max=10,endkeys"`
+		Data map[string]Inner `validate:"dive"`
 	}
-
 	obj := Outer{
-		Inner: map[string]Inner{
-			"valid": {Value: "toolongvalue"}, //Should fail as value is too long
+		Data: map[string]Inner{
+			"key1": {Value: "exceeds"},
 		},
 	}
-
 	validate := New()
 	err := validate.Struct(obj)
 	if err == nil {
-		t.Fatal("Expected error due to struct field 'Value' being too long, but got nil")
+		t.Fatal("Expected validation error due to Value > 5 chars")
+	}
+}
+func TestMapStructPointerValidation(t *testing.T) {
+	type Inner struct {
+		Count int `validate:"gt=10"`
+	}
+	type Outer struct {
+		Items map[string]*Inner `validate:"dive"`
+	}
+	obj := Outer{
+		Items: map[string]*Inner{
+			"a": {Count: 5},
+		},
+	}
+	validate := New()
+	err := validate.Struct(obj)
+	if err == nil {
+		t.Fatal("Expected error due to Count <= 10")
+	}
+}
+func TestMapStructWithKeyValidationOnly(t *testing.T) {
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+	type Outer struct {
+		Things map[string]Inner `validate:"dive,keys,min=3,endkeys"`
+	}
+	obj := Outer{
+		Things: map[string]Inner{
+			"ab": {Name: "valid"},
+		},
+	}
+	validate := New()
+	err := validate.Struct(obj)
+	if err == nil {
+		t.Fatal("Expected key validation error due to short key")
+	}
+}
+func TestMapStructWithKeyAndValueValidation(t *testing.T) {
+	type Inner struct {
+		Name string `validate:"min=3"`
+	}
+	type Outer struct {
+		Stuff map[string]Inner `validate:"dive,keys,min=2,endkeys"`
+	}
+	obj := Outer{
+		Stuff: map[string]Inner{
+			"ok":  {Name: "xy"},
+			"bad": {Name: "valid"},
+		},
+	}
+	validate := New()
+	err := validate.Struct(obj)
+	if err == nil {
+		t.Fatal("Expected validation error due to key too short")
+	}
+}
+func TestMapPointerStructWithNilValue(t *testing.T) {
+	type Inner struct {
+		Count int `validate:"min=1"`
+	}
+	type Outer struct {
+		Items map[string]*Inner `validate:"dive"`
+	}
+	obj := Outer{
+		Items: map[string]*Inner{
+			"x": nil,
+		},
+	}
+	validate := New()
+	err := validate.Struct(obj)
+	if err != nil {
+		t.Fatal("Did not expect error for nil pointer")
+	}
+}
+func TestThreeLevelNestedStructs(t *testing.T) {
+	type Level3 struct {
+		Code string `validate:"len=3"`
+	}
+
+	type Level2 struct {
+		Items map[string]Level3 `validate:"dive,keys,required,endkeys"`
+	}
+
+	type Level1 struct {
+		Levels map[string]Level2 `validate:"dive,keys,required,endkeys"`
+	}
+
+	validate := New()
+
+	// Valid case: all Level3.Code are exactly 3 chars
+	valid := Level1{Levels: map[string]Level2{
+		"first": {Items: map[string]Level3{
+			"item1": {Code: "abc"},
+			"item2": {Code: "xyz"},
+		},
+		},
+	},
+	}
+
+	if err := validate.Struct(valid); err != nil {
+		t.Fatalf("expected valid struct, got error: %v", err)
+	}
+
+	// Invalid case: one Level3.Code is wrong length
+	invalid := Level1{Levels: map[string]Level2{
+		"first": {Items: map[string]Level3{
+			"item1": {Code: "abcd"}, // Should fail here because length is 4
+			"item2": {Code: "xyz"},
+		},
+		},
+	},
+	}
+
+	err := validate.Struct(invalid)
+	if err == nil {
+		t.Fatal("expected error due to invalid Level3.Code length, got nil")
 	}
 }
