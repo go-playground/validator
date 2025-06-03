@@ -14335,3 +14335,301 @@ func TestValidateFn(t *testing.T) {
 		Equal(t, fe.Tag(), "validateFn")
 	})
 }
+func TestMapStructBasicValidation(t *testing.T) {
+	// Tests basic validation of a map with struct values
+	type Inner struct {
+		Value string `validate:"max=5"`
+	}
+	type Outer struct {
+		Data map[string]Inner `validate:"dive"`
+	}
+	obj := Outer{
+		Data: map[string]Inner{
+			"key1": {Value: "exceeds"}, // Should fail because Value is longer than 5 characters
+		},
+	}
+	validate := New()
+	errs := validate.Struct(obj)
+	NotEqual(t, errs, nil)
+}
+func TestMapStructPointerValidation(t *testing.T) {
+	// Tests validation of a map with pointer to struct values
+	type Inner struct {
+		Count int `validate:"gt=10"`
+	}
+	type Outer struct {
+		Items map[string]*Inner `validate:"dive"`
+	}
+	obj := Outer{
+		Items: map[string]*Inner{
+			"a": {Count: 5},
+		},
+	}
+	validate := New()
+	errs := validate.Struct(obj)
+	NotEqual(t, errs, nil)
+}
+func TestMapStructWithKeyValidationOnly(t *testing.T) {
+	// Tests validation of a map with struct values, focusing on key validation
+	type Inner struct {
+		Name string `validate:"required"`
+	}
+	type Outer struct {
+		Things map[string]Inner `validate:"dive,keys,min=3,endkeys"`
+	}
+	obj := Outer{
+		Things: map[string]Inner{
+			"ab": {Name: "valid"}, //Should fail because key is too short
+		},
+	}
+	validate := New()
+	errs := validate.Struct(obj)
+	NotEqual(t, errs, nil)
+}
+func TestMapStructWithKeyAndValueValidation(t *testing.T) {
+	// Tests validation of a map with struct values, validating both keys and values
+	type Inner struct {
+		Name string `validate:"min=3"`
+	}
+	type Outer struct {
+		Stuff map[string]Inner `validate:"dive,keys,min=2,endkeys"`
+	}
+	obj := Outer{
+		Stuff: map[string]Inner{
+			"ok":  {Name: "xy"},
+			"bad": {Name: "valid"},
+		},
+	}
+	validate := New()
+	errs := validate.Struct(obj)
+	NotEqual(t, errs, nil)
+}
+func TestMapPointerStructWithNilValue(t *testing.T) {
+	// Tests validation of a map with pointer to struct values where value is nil
+	type Inner struct {
+		Count int `validate:"min=1"`
+	}
+	type Outer struct {
+		Items map[string]*Inner `validate:"dive"`
+	}
+	obj := Outer{
+		Items: map[string]*Inner{
+			"x": nil,
+		},
+	}
+	validate := New()
+	errs := validate.Struct(obj)
+	Equal(t, errs, nil)
+}
+func TestThreeLevelNestedStructs(t *testing.T) {
+	// Tests validation of three levels of nested structs with map keys and values
+	type Level3 struct {
+		Code string `validate:"len=3"`
+	}
+
+	type Level2 struct {
+		Items map[string]Level3 `validate:"dive,keys,required,endkeys"`
+	}
+
+	type Level1 struct {
+		Levels map[string]Level2 `validate:"dive,keys,required,endkeys"`
+	}
+
+	validate := New()
+
+	// Valid case: all Level3.Code are exactly 3 chars
+	valid := Level1{Levels: map[string]Level2{
+		"first": {Items: map[string]Level3{
+			"item1": {Code: "abc"},
+			"item2": {Code: "xyz"},
+		},
+		},
+	},
+	}
+
+	errs := validate.Struct(valid)
+	Equal(t, errs, nil)
+
+	// Invalid case: one Level3.Code is wrong length
+	invalid := Level1{Levels: map[string]Level2{
+		"first": {Items: map[string]Level3{
+			"item1": {Code: "abcd"}, // Should fail here because length is 4
+			"item2": {Code: "xyz"},
+		},
+		},
+	},
+	}
+
+	errs = validate.Struct(invalid)
+	NotEqual(t, errs, nil)
+}
+func TestMapStructFallbackWithKeysOnly(t *testing.T) {
+	// Tests fallback behavior when validating map keys and struct values
+	type Inner struct {
+		Value string `validate:"max=3"`
+	}
+	type Outer struct {
+		Data map[string]Inner `validate:"dive,keys,max=2,endkeys"`
+	}
+	validate := New()
+
+	// Key too long: should fail on key before fallback
+	obj1 := Outer{Data: map[string]Inner{"toolong": {Value: "ok"}}}
+	errs := validate.Struct(obj1)
+	NotEqual(t, errs, nil)
+
+	// Key OK, value too long: should fallback and fail on Inner.Value
+	obj2 := Outer{Data: map[string]Inner{"ok": {Value: "toolong"}}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+
+	// Both key and value OK: should pass
+	obj3 := Outer{Data: map[string]Inner{"ok": {Value: "abc"}}}
+	errs = validate.Struct(obj3)
+	Equal(t, errs, nil)
+}
+
+func TestMapPointerStructFallback(t *testing.T) {
+	// Tests fallback behavior when validating map keys and pointer to struct values
+	type Inner struct {
+		Count int `validate:"gt=0"`
+	}
+	type Outer struct {
+		Data map[string]*Inner `validate:"dive,keys,max=3,endkeys"`
+	}
+	validate := New()
+
+	// Key OK, pointer is nil: no fallback error
+	obj1 := Outer{Data: map[string]*Inner{"ok": nil}}
+	errs := validate.Struct(obj1)
+	Equal(t, errs, nil)
+
+	// Key OK, pointer non-nil but field invalid: fallback should validate Inner.Count
+	obj2 := Outer{Data: map[string]*Inner{"ok": {Count: 0}}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+
+	// Key OK, pointer non-nil and valid: should pass
+	obj3 := Outer{Data: map[string]*Inner{"ok": {Count: 5}}}
+	errs = validate.Struct(obj3)
+	Equal(t, errs, nil)
+}
+
+func TestMapNonStructValueSkipsFallback(t *testing.T) {
+	// Tests that fallback is skipped for non-struct values in maps
+	type Outer struct {
+		Data map[string]int `validate:"dive,keys,min=1,endkeys"`
+	}
+	validate := New()
+
+	// Key OK, value is primitive: no fallback needed, should pass
+	obj1 := Outer{Data: map[string]int{"a": 0}}
+	errs := validate.Struct(obj1)
+	Equal(t, errs, nil)
+
+	// Key too short: should fail on key
+	obj2 := Outer{Data: map[string]int{"": 0}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+}
+
+func TestMapSliceValueNoFallback(t *testing.T) {
+	// Tests that fallback is skipped for slice values in maps
+	type Outer struct {
+		Data map[string][]string `validate:"dive,keys,max=1,endkeys"`
+	}
+	validate := New()
+
+	// Key OK, value is slice: skip fallback, should pass
+	obj1 := Outer{Data: map[string][]string{"a": {"x", "y"}}}
+	errs := validate.Struct(obj1)
+	Equal(t, errs, nil)
+
+	// Key too long: should fail on key
+	obj2 := Outer{Data: map[string][]string{"ab": {"x"}}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+}
+func TestMapEmptyStructValueNoError(t *testing.T) {
+	// Tests that empty struct values in maps do not trigger validation errors
+	type Inner struct{} // no validation tags
+
+	type Outer struct {
+		Data map[string]Inner `validate:"dive,keys,max=3,endkeys"`
+	}
+	validate := New()
+
+	// Key OK, value is empty struct: no fields to validate, should pass
+	obj1 := Outer{Data: map[string]Inner{"ok": {}}}
+	errs := validate.Struct(obj1)
+	Equal(t, errs, nil)
+
+	// Key too long: should fail on key, skip struct
+	obj2 := Outer{Data: map[string]Inner{"toolong": {}}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+}
+
+func TestMapNestedEmptyStructs(t *testing.T) {
+	// Tests that nested empty structs in maps validate correctly
+	type Level3 struct{}
+	type Level2 struct {
+		Items map[string]Level3 `validate:"dive,keys,max=2,endkeys"`
+	}
+	type Level1 struct {
+		Levels map[string]Level2 `validate:"dive,keys,max=2,endkeys"`
+	}
+
+	validate := New()
+
+	// All keys within max=2, and inner structs are empty → should pass
+	obj := Level1{Levels: map[string]Level2{
+		"a": {Items: map[string]Level3{"b": {}}},
+	}}
+	errs := validate.Struct(obj)
+	Equal(t, errs, nil)
+
+	// Top-level key too long: should fail on Level1 key, skip deeper
+	obj2 := Level1{Levels: map[string]Level2{
+		"too": {Items: map[string]Level3{"b": {}}}, // "too" length=3 > max=2
+	}}
+	errs = validate.Struct(obj2)
+	NotEqual(t, errs, nil)
+}
+
+func TestMapEmptyValueMap(t *testing.T) {
+	// Tests that an empty map with struct values does not trigger validation errors
+	type Inner struct {
+		Value string `validate:"required"`
+	}
+
+	type Outer struct {
+		Data map[string]Inner `validate:"dive,keys,max=3,endkeys"`
+	}
+	validate := New()
+
+	// Empty map: nothing to validate, should pass
+	obj := Outer{Data: map[string]Inner{}}
+	errs := validate.Struct(obj)
+	Equal(t, errs, nil)
+}
+
+func TestMapEmptyPointerStructValueNoError(t *testing.T) {
+	// Tests that empty pointer struct values in maps do not trigger validation errors
+	type Inner struct{}
+
+	type Outer struct {
+		Data map[string]*Inner `validate:"dive,keys,max=3,endkeys"`
+	}
+	validate := New()
+
+	// Key OK, pointer is non-nil empty struct: should pass
+	obj1 := Outer{Data: map[string]*Inner{"ok": {}}}
+	errs := validate.Struct(obj1)
+	Equal(t, errs, nil)
+
+	// Key OK, pointer is nil: no tags on Inner, so should pass
+	obj2 := Outer{Data: map[string]*Inner{"ok": nil}}
+	errs = validate.Struct(obj2)
+	Equal(t, errs, nil)
+}

@@ -337,6 +337,18 @@ OUTER:
 						// can be nil when just keys being validated
 						if ct.next != nil {
 							v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct.next)
+						} else {
+							// Struct fallback when map values are structs
+							val := current.MapIndex(key)
+							switch val.Kind() {
+							case reflect.Ptr:
+								if val.Elem().Kind() == reflect.Struct {
+									// Dive into the struct so its own tags run
+									v.traverseField(ctx, parent, val, ns, structNs, reusableCF, nil)
+								}
+							case reflect.Struct:
+								v.traverseField(ctx, parent, val, ns, structNs, reusableCF, nil)
+							}
 						}
 					} else {
 						v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
