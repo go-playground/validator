@@ -1330,6 +1330,12 @@ can be used to validate fields typically passed to sockets and connections.
 
 	Usage: hostname_port
 
+# Port
+
+This validates that the value falls within the valid port number range of 1 to 65,535.
+
+	Usage: port
+
 # Datetime
 
 This validates that a string value is a valid datetime based on the supplied datetime format.
