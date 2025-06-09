@@ -1,6 +1,6 @@
 module github.com/go-playground/validator/v10
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.8
@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/leodido/go-urn v1.4.0
 	golang.org/x/crypto v0.33.0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.26.0
 )
 
 require (
