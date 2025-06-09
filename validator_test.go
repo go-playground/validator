@@ -14633,3 +14633,123 @@ func TestMapEmptyPointerStructValueNoError(t *testing.T) {
 	errs = validate.Struct(obj2)
 	Equal(t, errs, nil)
 }
+func TestOmitZeroWithSlices(t *testing.T) {
+	// Tests the behavior of omitempty and omitzero with slices
+	type OmitEmptyExample struct {
+		Data []string `validate:"omitempty,min=2"`
+	}
+
+	type OmitZeroExample struct {
+		Data []string `validate:"omitzero,min=2"`
+	}
+
+	validate := New()
+
+	t.Run("nil slices", func(t *testing.T) {
+		// Test 1: nil slices
+		test1Empty := OmitEmptyExample{Data: nil}
+		test1Zero := OmitZeroExample{Data: nil}
+
+		err1 := validate.Struct(test1Empty)
+		err2 := validate.Struct(test1Zero)
+
+		Equal(t, err1, nil) // No error (skipped)
+		Equal(t, err2, nil) // No error (skipped)
+	})
+
+	t.Run("empty but non-nil slices", func(t *testing.T) {
+		// Test 2: empty but non-nil slices
+		test2Empty := OmitEmptyExample{Data: []string{}}
+		test2Zero := OmitZeroExample{Data: []string{}}
+
+		err1 := validate.Struct(test2Empty)
+		err2 := validate.Struct(test2Zero)
+
+		NotEqual(t, err1, nil) // Error (min=2)
+		Equal(t, err2, nil)    // No error (should be skipped)
+	})
+
+	t.Run("single item slices", func(t *testing.T) {
+		// Test 3: single item slices (still not meeting min=2)
+		test3Empty := OmitEmptyExample{Data: []string{"one"}}
+		test3Zero := OmitZeroExample{Data: []string{"one"}}
+
+		err1 := validate.Struct(test3Empty)
+		err2 := validate.Struct(test3Zero)
+
+		NotEqual(t, err1, nil) // Error (min=2)
+		NotEqual(t, err2, nil) // Error (min=2)
+	})
+
+	t.Run("valid slices", func(t *testing.T) {
+		// Test 4: valid slices (min=2 satisfied)
+		test4Empty := OmitEmptyExample{Data: []string{"one", "two"}}
+		test4Zero := OmitZeroExample{Data: []string{"one", "two"}}
+
+		err1 := validate.Struct(test4Empty)
+		err2 := validate.Struct(test4Zero)
+
+		Equal(t, err1, nil) // No error
+		Equal(t, err2, nil) // No error
+	})
+}
+func TestOmitZeroWithMaps(t *testing.T) {
+	// Tests the behavior of omitempty and omitzero with maps
+	type OmitEmptyExample struct {
+		Data map[string]string `validate:"omitempty,min=2"`
+	}
+
+	type OmitZeroExample struct {
+		Data map[string]string `validate:"omitzero,min=2"`
+	}
+
+	validate := New()
+
+	t.Run("nil maps", func(t *testing.T) {
+		// Test 1: nil maps
+		test1Empty := OmitEmptyExample{Data: nil}
+		test1Zero := OmitZeroExample{Data: nil}
+
+		err1 := validate.Struct(test1Empty)
+		err2 := validate.Struct(test1Zero)
+
+		Equal(t, err1, nil) // No error (skipped)
+		Equal(t, err2, nil) // No error (skipped)
+	})
+
+	t.Run("empty but non-nil maps", func(t *testing.T) {
+		// Test 2: empty but non-nil maps
+		test2Empty := OmitEmptyExample{Data: map[string]string{}}
+		test2Zero := OmitZeroExample{Data: map[string]string{}}
+
+		err1 := validate.Struct(test2Empty)
+		err2 := validate.Struct(test2Zero)
+
+		NotEqual(t, err1, nil) // Error (min=2)
+		Equal(t, err2, nil)    // No error (should be skipped)
+	})
+
+	t.Run("single item maps", func(t *testing.T) {
+		// Test 3: single item maps (still not meeting min=2)
+		test3Empty := OmitEmptyExample{Data: map[string]string{"key1": "value1"}}
+		test3Zero := OmitZeroExample{Data: map[string]string{"key1": "value1"}}
+
+		err1 := validate.Struct(test3Empty)
+		err2 := validate.Struct(test3Zero)
+
+		NotEqual(t, err1, nil) // Error (min=2)
+		NotEqual(t, err2, nil) // Error (min=2)
+	})
+
+	t.Run("valid maps", func(t *testing.T) {
+		// Test 4: valid maps (min=2 satisfied)
+		test4Empty := OmitEmptyExample{Data: map[string]string{"key1": "value1", "key2": "value2"}}
+		test4Zero := OmitZeroExample{Data: map[string]string{"key1": "value1", "key2": "value2"}}
+
+		err1 := validate.Struct(test4Empty)
+		err2 := validate.Struct(test4Zero)
+
+		Equal(t, err1, nil) // No error
+		Equal(t, err2, nil) // No error
+	})
+}

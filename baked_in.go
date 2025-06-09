@@ -1794,7 +1794,10 @@ func hasValue(fl FieldLevel) bool {
 func hasNotZeroValue(fl FieldLevel) bool {
 	field := fl.Field()
 	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map:
+		// For slices and maps, consider them "not zero" only if they're both non-nil AND have elements
+		return !field.IsNil() && field.Len() > 0
+	case reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
 		if fl.(*validate).fldIsPointer && getValue(field) != nil {
