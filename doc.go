@@ -188,7 +188,7 @@ Same as structonly tag except that any struct level validations will not run.
 
 # Omit Empty
 
-Allows conditional validation, for example if a field is not set with
+Allows conditional validation, for example, if a field is not set with
 a value (Determined by the "required" validator) then other validation
 such as min or max won't run, but if a value is set validation will run.
 
