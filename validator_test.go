@@ -14753,3 +14753,19 @@ func TestOmitZeroWithMaps(t *testing.T) {
 		Equal(t, err2, nil) // No error
 	})
 }
+func TestTextOrBytesNoPanic(t *testing.T) {
+	// Tests that the TextOrBytes struct does not panic when both fields are nil
+	type TextOrBytes struct {
+		Text  string `validate:"required_if=Bytes nil"`
+		Bytes []byte `validate:"required_if=Text nil"`
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Unexpected panic occurred: %v", r)
+		}
+	}()
+
+	validate := New(WithRequiredStructEnabled())
+	validate.Struct(&TextOrBytes{})
+}
