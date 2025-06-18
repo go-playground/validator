@@ -14753,3 +14753,223 @@ func TestOmitZeroWithMaps(t *testing.T) {
 		Equal(t, err2, nil) // No error
 	})
 }
+func TestRequiredIfWithNilBytesSlice(t *testing.T) {
+	// Tests the behavior of required_if with nil byte slices
+	type TextOrBytes struct {
+		Text  string `validate:"required_if=Bytes nil"`
+		Bytes []byte `validate:"required_if=Text nil"`
+	}
+
+	validate := New(WithRequiredStructEnabled())
+
+	t.Run("Text empty, Bytes empty but not nil", func(t *testing.T) {
+		// Test 1: Text empty, Bytes empty but not nil
+		obj := TextOrBytes{
+			Text:  "",
+			Bytes: []byte{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Bytes is not nil, just empty
+	})
+
+	t.Run("Text empty, Bytes nil", func(t *testing.T) {
+		// Test 2: Text empty, Bytes nil
+		obj := TextOrBytes{
+			Text:  "",
+			Bytes: nil,
+		}
+		err := validate.Struct(obj)
+
+		NotEqual(t, err, nil) // Error - Text is required when Bytes is nil
+	})
+
+	t.Run("Text populated, Bytes nil", func(t *testing.T) {
+		// Test 3: Text populated, Bytes nil
+		obj := TextOrBytes{
+			Text:  "Hello",
+			Bytes: nil,
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Text has value when Bytes is nil
+	})
+
+	t.Run("Text populated, Bytes empty but not nil", func(t *testing.T) {
+		// Test 4: Text populated, Bytes empty but not nil
+		obj := TextOrBytes{
+			Text:  "Hello",
+			Bytes: []byte{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Neither field is nil
+	})
+
+	t.Run("Text empty, Bytes populated", func(t *testing.T) {
+		// Test 5: Text empty, Bytes populated
+		obj := TextOrBytes{
+			Text:  "",
+			Bytes: []byte("World"),
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Bytes has value when Text is empty
+	})
+
+	t.Run("Both fields populated", func(t *testing.T) {
+		// Test 6: Both fields populated
+		obj := TextOrBytes{
+			Text:  "Hello",
+			Bytes: []byte("World"),
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Both fields have values
+	})
+}
+func TestRequiredIfWithMaps(t *testing.T) {
+	// Tests the behavior of required_if with maps
+	type TextOrMap struct {
+		Text string                 `validate:"required_if=Data nil"`
+		Data map[string]interface{} `validate:"required_if=Text nil"`
+	}
+
+	validate := New(WithRequiredStructEnabled())
+
+	t.Run("Text empty, Map nil", func(t *testing.T) {
+		// Test 1: Text empty, Map nil
+		obj := TextOrMap{
+			Text: "",
+			Data: nil,
+		}
+		err := validate.Struct(obj)
+
+		NotEqual(t, err, nil) // Error - Text is required when Data is nil
+	})
+
+	t.Run("Text populated, Map nil", func(t *testing.T) {
+		// Test 2: Text populated, Map nil
+		obj := TextOrMap{
+			Text: "Hello",
+			Data: nil,
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Text has value when Data is nil
+	})
+
+	t.Run("Text empty, Map empty but not nil", func(t *testing.T) {
+		// Test 3: Text empty, Map empty but not nil
+		obj := TextOrMap{
+			Text: "",
+			Data: map[string]interface{}{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Data is not nil, just empty
+	})
+
+	t.Run("Text populated, Map empty but not nil", func(t *testing.T) {
+		// Test 4: Text populated, Map empty but not nil
+		obj := TextOrMap{
+			Text: "Hello",
+			Data: map[string]interface{}{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Neither field is nil
+	})
+
+	t.Run("Text empty, Map populated", func(t *testing.T) {
+		// Test 5: Text empty, Map populated
+		obj := TextOrMap{
+			Text: "",
+			Data: map[string]interface{}{"key": "value"},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Data has value when Text is empty
+	})
+
+	t.Run("Both fields populated", func(t *testing.T) {
+		// Test 6: Both fields populated
+		obj := TextOrMap{
+			Text: "Hello",
+			Data: map[string]interface{}{"key": "value"},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Both fields have values
+	})
+}
+func TestRequiredIfWithArrays(t *testing.T) {
+	// Tests the behavior of required_if with arrays
+	type TextOrArray struct {
+		Text string    `validate:"required_if=Data 3"`   // Check if array length is 3
+		Data [3]string `validate:"required_if=Text nil"` // Check if Text is empty
+	}
+
+	// Also test with a different length to verify behavior
+	type TextOrSmallArray struct {
+		Text string    `validate:"required_if=Data 2"`   // Check if array length is 2 (which it never will be for [3]string)
+		Data [3]string `validate:"required_if=Text nil"` // Check if Text is empty
+	}
+
+	validate := New(WithRequiredStructEnabled())
+
+	t.Run("Array length always matches declared size", func(t *testing.T) {
+		// Test 1: Text empty, Array has length 3
+		obj := TextOrArray{
+			Text: "",
+			Data: [3]string{}, // Zero values but length is 3
+		}
+		err := validate.Struct(obj)
+
+		NotEqual(t, err, nil) // Error - Text is required when Data length equals 3
+	})
+
+	t.Run("Text populated, Array always has declared length", func(t *testing.T) {
+		// Test 2: Text populated, Array has length 3
+		obj := TextOrArray{
+			Text: "Hello",
+			Data: [3]string{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Text has value
+	})
+
+	t.Run("Length check that never matches doesn't trigger validation", func(t *testing.T) {
+		// Test 3: Text empty, Array has length 3 but we check for length 2
+		obj := TextOrSmallArray{
+			Text: "",
+			Data: [3]string{},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Data length never equals 2
+	})
+
+	t.Run("Array values don't affect length check", func(t *testing.T) {
+		// Test 4: Text empty, Array partially populated but still length 3
+		obj := TextOrArray{
+			Text: "",
+			Data: [3]string{"One", "Two", ""},
+		}
+		err := validate.Struct(obj)
+
+		NotEqual(t, err, nil) // Error - Text is required when Data length equals 3
+	})
+
+	t.Run("Array values with Text populated passes validation", func(t *testing.T) {
+		// Test 5: Text populated, Array with values
+		obj := TextOrArray{
+			Text: "Hello",
+			Data: [3]string{"One", "Two", "Three"},
+		}
+		err := validate.Struct(obj)
+
+		Equal(t, err, nil) // No error - Text has value
+	})
+}

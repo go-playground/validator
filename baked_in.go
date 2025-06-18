@@ -1853,7 +1853,13 @@ func requireCheckFieldValue(
 	case reflect.Float64:
 		return field.Float() == asFloat64(value)
 
-	case reflect.Slice, reflect.Map, reflect.Array:
+	case reflect.Slice, reflect.Map:
+		if value == "nil" {
+			return field.IsNil()
+		}
+		return int64(field.Len()) == asInt(value)
+	case reflect.Array:
+		// Arrays can't be nil, so only compare lengths
 		return int64(field.Len()) == asInt(value)
 
 	case reflect.Bool:
