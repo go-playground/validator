@@ -149,8 +149,17 @@ func TestTranslations(t *testing.T) {
 		Datetime          string            `validate:"datetime=2006-01-02"`
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
-		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		Image			  string			`validate:"image"`
+		PostCodeByField   string        `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		Image             string        `validate:"image"`
+		BooleanString     string        `validate:"boolean"`
+		CveString         string        `validate:"cve"`
+		FQDN              string        `validate:"fqdn"`
+		MinDuration       time.Duration `validate:"min=1h30m"`
+		MaxDuration       time.Duration `validate:"max=2h"`
+		CronString        string        `validate:"cron"`
+		MD5String         string        `validate:"md5"`
+		SHA256String      string        `validate:"sha256"`
+		Semver            string        `validate:"semver"`
 	}
 
 	var test Test
@@ -203,6 +212,20 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.PostCode = "invalid"
+	test.PostCodeCountry = "SG"
+	test.PostCodeByField = "invalid"
+	test.Image = "not-an-image-data"
+
+	test.BooleanString = "invalid-boolean"
+	test.CveString = "invalid-cve"
+	test.FQDN = "invalid-fqdn"
+	test.MinDuration = 1 * time.Hour
+	test.MaxDuration = 3 * time.Hour
+	test.CronString = "invalid-cron"
+	test.MD5String = "invalid-md5"
+	test.SHA256String = "invalid-sha256"
+	test.Semver = "invalid-semver"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -572,11 +595,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MinString",
-			expected: "MinString يجب أن يكون 1 حرف أو اقل",
+			expected: "MinString يجب أن يكون 1 حرف على الأقل",
 		},
 		{
 			ns:       "Test.MinNumber",
-			expected: "MinNumber يجب أن يكون 1,113.00 أو اقل",
+			expected: "MinNumber يجب أن يكون 1,113.00 أو أكثر",
 		},
 		{
 			ns:       "Test.MinMultiple",
@@ -608,7 +631,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrMinLen",
-			expected: "StrPtrMinLen يجب أن يكون 10 أحرف أو اقل",
+			expected: "StrPtrMinLen يجب أن يكون 10 أحرف على الأقل",
 		},
 		{
 			ns:       "Test.StrPtrMaxLen",
@@ -683,13 +706,48 @@ func TestTranslations(t *testing.T) {
 			expected: "لا يتطابق PostCodeByField مع تنسيق الرمز البريدي للبلد في حقل PostCodeCountry",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "يجب أن تكون Image صورة صالحة",
+		},
+		{
+			ns:       "Test.BooleanString",
+			expected: "يجب أن يكون BooleanString قيمة منطقية صالحة",
+		},
+		{
+			ns:       "Test.CveString",
+			expected: "يجب أن يكون CveString معرف CVE صالح",
+		},
+		{
+			ns:       "Test.FQDN",
+			expected: "يجب أن يكون FQDN اسم نطاق مؤهل بالكامل صالح",
+		},
+		{
+			ns:       "Test.MinDuration",
+			expected: "يجب أن تكون مدة MinDuration 1h30m أو أكبر",
+		},
+		{
+			ns:       "Test.MaxDuration",
+			expected: "يجب أن تكون مدة MaxDuration 2h أو أقل",
+		},
+		{
+			ns:       "Test.CronString",
+			expected: "يجب أن يكون CronString تعبير cron صالح",
+		},
+		{
+			ns:       "Test.MD5String",
+			expected: "يجب أن يكون MD5String تجزئة MD5 صالحة",
+		},
+		{
+			ns:       "Test.SHA256String",
+			expected: "يجب أن يكون SHA256String تجزئة SHA256 صالحة",
+		},
+		{
+			ns:       "Test.Semver",
+			expected: "يجب أن يكون Semver إصدار دلالي صالح",
 		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
