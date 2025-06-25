@@ -1459,11 +1459,11 @@ func isURL(fl FieldLevel) bool {
 	case reflect.String:
 		s = strings.ToLower(field.String())
 	default:
-		if stringer, ok := field.Interface().(fmt.Stringer); ok {
-			s = stringer.String()
-		} else {
-			panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		if stringer, ok := field.Interface().(fmt.Stringer); !ok {
+		        panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 		}
+		s = stringer.String()
+
 	}
 
 	if len(s) == 0 {
