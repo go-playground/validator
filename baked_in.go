@@ -1479,7 +1479,7 @@ func isURL(fl FieldLevel) bool {
 		return false
 	}
 
-	if url.Host == "" && url.Fragment == "" && url.Opaque == "" {
+	if url.Scheme == "" || (url.Host == "" && url.Fragment == "" && url.Opaque == "") {
 		return false
 	}
 
