@@ -217,7 +217,7 @@ BEGIN:
 	panic("Invalid field namespace")
 }
 
-// asInt returns the parameter as a int64
+// asInt returns the parameter as an int64
 // or panics if it can't convert
 func asInt(param string) int64 {
 	i, err := strconv.ParseInt(param, 0, 64)
