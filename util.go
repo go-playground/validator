@@ -127,6 +127,9 @@ BEGIN:
 	case reflect.Map:
 		idx := strings.Index(namespace, leftBracket) + 1
 		idx2 := strings.Index(namespace, rightBracket)
+		if idx2 == -1 {
+			idx2 = len(namespace)
+		}
 
 		endIdx := idx2
 
@@ -207,7 +210,13 @@ BEGIN:
 		// reflect.Type = string
 		default:
 			val = current.MapIndex(reflect.ValueOf(key))
-			namespace = namespace[endIdx+1:]
+			// If we exceeded the length of the namespace, then we're at the end
+			// of the namespace traversal, so set it to empty value to break loop
+			if endIdx+1 > len(namespace) {
+				namespace = ""
+			} else {
+				namespace = namespace[endIdx+1:]
+			}
 		}
 
 		goto BEGIN
