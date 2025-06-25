@@ -1475,7 +1475,7 @@ func isURL(fl FieldLevel) bool {
 	}
 
 	url, err := url.Parse(s)
-	if err != nil || url.Scheme == "" {
+	if err != nil {
 		return false
 	}
 
