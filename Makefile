@@ -7,7 +7,7 @@ linters-install:
 	}
 
 lint: linters-install
-	golangci-lint --disable noinlineerr,wsl_v5 run
+	golangci-lint run
 
 test:
 	$(GOCMD) test -cover -race ./...

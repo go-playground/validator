@@ -41,4 +41,3 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
-          args: --disable noinlineerr,wsl_v5
