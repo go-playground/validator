@@ -106,8 +106,9 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | datauri | Data URL |
 | fqdn | Full Qualified Domain Name (FQDN) |
 | hostname | Hostname RFC 952 |
-| hostname_port | HostPort |
 | hostname_rfc1123 | Hostname RFC 1123 |
+| hostname_port | HostPort |
+| port | Port number |
 | ip | Internet Protocol Address IP |
 | ip4_addr | Internet Protocol Address IPv4 |
 | ip6_addr | Internet Protocol Address IPv6 |
