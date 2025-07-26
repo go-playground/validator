@@ -10,8 +10,11 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func TestTranslations(t *testing.T) {
+type Foo struct{}
 
+func (Foo) IsBar() bool { return false }
+
+func TestTranslations(t *testing.T) {
 	ptbr := brazilian_portuguese.New()
 	uni := ut.New(ptbr, ptbr)
 	trans, _ := uni.GetTranslator("pt_BR")
@@ -143,6 +146,7 @@ func TestTranslations(t *testing.T) {
 		BooleanString     string    `validate:"boolean"`
 		Image             string    `validate:"image"`
 		CveString         string    `validate:"cve"`
+		ValidateFn        Foo       `validate:"validateFn=IsBar"`
 	}
 
 	var test Test
@@ -641,10 +645,13 @@ func TestTranslations(t *testing.T) {
 			ns:       "Test.CveString",
 			expected: "CveString deve ser um identificador cve válido",
 		},
+		{
+			ns:       "Test.ValidateFn",
+			expected: "ValidateFn deve ser um objeto válido",
+		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -657,5 +664,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
