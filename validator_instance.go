@@ -681,23 +681,6 @@ func (v *Validate) VarWithValueCtx(ctx context.Context, field interface{}, other
 	return
 }
 
-func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
-	if len(tag) == 0 {
-		return errors.New("function Key cannot be empty")
-	}
-
-	if fn == nil {
-		return errors.New("function cannot be empty")
-	}
-
-	_, ok := restrictedTags[tag]
-	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
-		panic(fmt.Sprintf(restrictedTagErr, tag))
-	}
-	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
-	return nil
-}
-
 // VarWithKey validates a single variable with a key to be included in the returned error using tag style validation
 // eg.
 // var s string
@@ -754,4 +737,21 @@ func (v *Validate) VarWithKeyCtx(ctx context.Context, key string, field interfac
 	}
 	v.pool.Put(vd)
 	return
+}
+
+func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
+	if len(tag) == 0 {
+		return errors.New("function Key cannot be empty")
+	}
+
+	if fn == nil {
+		return errors.New("function cannot be empty")
+	}
+
+	_, ok := restrictedTags[tag]
+	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
+		panic(fmt.Sprintf(restrictedTagErr, tag))
+	}
+	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
+	return nil
 }
