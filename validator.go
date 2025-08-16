@@ -169,7 +169,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 
 	case reflect.Struct:
-		isNestedStruct = !current.Type().ConvertibleTo(timeType)
+		isNestedStruct = !current.Type().ConvertibleTo(timeType) && !current.Type().ConvertibleTo(urlType)
 		// For backward compatibility before struct level validation tags were supported
 		// as there were a number of projects relying on `required` not failing on non-pointer
 		// structs. Since it's basically nonsensical to use `required` with a non-pointer struct
@@ -460,7 +460,6 @@ OUTER:
 			}
 
 		default:
-
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
