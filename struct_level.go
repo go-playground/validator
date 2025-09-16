@@ -133,6 +133,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 				structfieldLen: uint8(len(structFieldName)),
 				param:          param,
 				kind:           kind,
+				top:            v.top,
 			},
 		)
 		return
@@ -151,6 +152,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 			param:          param,
 			kind:           kind,
 			typ:            fv.Type(),
+			top:            v.top,
 		},
 	)
 }
