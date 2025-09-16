@@ -8360,6 +8360,80 @@ func TestHttpUrl(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
 }
 
+func TestHttpsUrl(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"https://foo.bar#com", true},
+		{"https://foobar.com", true},
+		{"HTTPS://foobar.com", true},
+		{"http://foobar.com", false},
+		{"foobar.com", false},
+		{"https://foobar.coffee/", true},
+		{"https://foobar.中文网/", true},
+		{"https://foobar.org/", true},
+		{"https://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", false},
+		{"file:///etc/passwd", false},
+		{"file://C:/windows/win.ini", false},
+		{"https://user:pass@www.foobar.com/", true},
+		{"https://127.0.0.1/", true},
+		{"https://duckduckgo.com/?q=%2F", true},
+		{"https://localhost:3000/", true},
+		{"https://foobar.com/?foo=bar#baz=qux", true},
+		{"https://foobar.com?foo=bar", true},
+		{"https://www.xn--froschgrn-x9a.net/", true},
+		{"", false},
+		{"a://b", false},
+		{"xyz://foobar.com", false},
+		{"invalid.", false},
+		{".com", false},
+		{"rtmp://foobar.com", false},
+		{"https://www.foo_bar.com/", true},
+		{"https://localhost:3000/", true},
+		{"https://foobar.com/#baz", true},
+		{"https://foobar.com#baz=qux", true},
+		{"https://foobar.com/t$-_.+!*\\'(),", true},
+		{"https://www.foobar.com/~foobar", true},
+		{"https://www.-foobar.com/", true},
+		{"https://www.foo---bar.com/", true},
+		{"mailto:someone@example.com", false},
+		{"irc://irc.server.org/channel", false},
+		{"irc://#channel@network", false},
+		{"/abs/test/dir", false},
+		{"./rel/test/dir", false},
+		{"https:", false},
+		{"https://", false},
+		{"https://#invalid", false},
+		{"http://1.1.1.1", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "https_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTPS URL failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d HTTPS URL failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "https_url" {
+					t.Fatalf("Index: %d HTTPS URL failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "https_url") }, "Bad field type int")
+}
+
 func TestUri(t *testing.T) {
 	tests := []struct {
 		param    string

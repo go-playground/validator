@@ -134,6 +134,7 @@ var (
 		"email":                         isEmail,
 		"url":                           isURL,
 		"http_url":                      isHttpURL,
+		"https_url":                     isHttpsURL,
 		"uri":                           isURI,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
@@ -1508,6 +1509,29 @@ func isHttpURL(fl FieldLevel) bool {
 		}
 
 		return url.Scheme == "http" || url.Scheme == "https"
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+// isHttpsURL is the validation function for validating if the current field's value is a valid HTTPS-only URL.
+func isHttpsURL(fl FieldLevel) bool {
+	if !isURL(fl) {
+		return false
+	}
+
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.String:
+
+		s := strings.ToLower(field.String())
+
+		url, err := url.Parse(s)
+		if err != nil || url.Host == "" {
+			return false
+		}
+
+		return url.Scheme == "https"
 	}
 
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))

@@ -124,7 +124,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | unix_addr | Unix domain socket end point Address |
 | uri | URI String |
 | url | URL String |
-| http_url | HTTP URL String |
+| http_url | HTTP(s) URL String |
+| https_url | HTTPS-only URL String |
 | url_encoded | URL Encoded |
 | urn_rfc2141 | Urn RFC 2141 String |
 
