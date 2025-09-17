@@ -11099,6 +11099,49 @@ func TestRequiredIf(t *testing.T) {
 	_ = validate.Struct(test3)
 }
 
+func TestRequiredIfDuplicateParams(t *testing.T) {
+	validate := New()
+
+	PanicMatches(t, func() {
+		type TestStruct struct {
+			Field1 string `validate:"required_if=Field2 value1 Field2 value2"`
+			Field2 string
+		}
+		test := TestStruct{
+			Field1: "",
+			Field2: "value1",
+		}
+		_ = validate.Struct(test)
+	}, "Duplicate param Field2 for required_if Field1")
+
+	PanicMatches(t, func() {
+		type TestStruct struct {
+			Field1 string `validate:"required_if=Field2 val1 Field3 val2 Field2 val3"`
+			Field2 string
+			Field3 string
+		}
+		test := TestStruct{
+			Field1: "",
+			Field2: "val1",
+			Field3: "val2",
+		}
+		_ = validate.Struct(test)
+	}, "Duplicate param Field2 for required_if Field1")
+
+	type TestStruct struct {
+		Field1 string `validate:"required_if=Field2 val1 Field3 val2"`
+		Field2 string
+		Field3 string
+	}
+	test := TestStruct{
+		Field1: "",
+		Field2: "val1",
+		Field3: "val2",
+	}
+	errs := validate.Struct(test)
+	NotEqual(t, errs, nil)
+}
+
 func TestRequiredUnless(t *testing.T) {
 	type Inner struct {
 		Field *string
