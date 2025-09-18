@@ -267,6 +267,8 @@ interfaces, channels and functions ensures the value is not nil. For structs ens
 
 	Usage: required_if
 
+NOTE: Duplicate field names in the parameters will cause a panic error.
+
 Examples:
 
 	// require the field if the Field1 is equal to the parameter given:
@@ -275,7 +277,8 @@ Examples:
 	// require the field if the Field1 and Field2 is equal to the value respectively:
 	Usage: required_if=Field1 foo Field2 bar
 
-Note: Duplicate field names in the parameters will cause a panic error issue
+	// INVALID: duplicate field names will cause a panic error:
+	Usage: required_if=Field1 foo Field1 bar
 
 # Required Unless
 
