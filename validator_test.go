@@ -11212,19 +11212,40 @@ func TestRequiredUnless(t *testing.T) {
 	AssertError(t, errs, "Field10", "Field10", "Field10", "Field10", "required_unless")
 	AssertError(t, errs, "Field11", "Field11", "Field11", "Field11", "required_unless")
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("test3 should have panicked!")
+	PanicMatches(t, func() {
+		test3 := struct {
+			Inner  *Inner
+			Field1 string `validate:"required_unless=Inner.Field" json:"field_1"`
+		}{
+			Inner: &Inner{Field: &fieldVal},
 		}
-	}()
+		_ = validate.Struct(test3)
+	}, "Bad param number for required_unless Field1")
 
-	test3 := struct {
-		Inner  *Inner
-		Field1 string `validate:"required_unless=Inner.Field" json:"field_1"`
-	}{
-		Inner: &Inner{Field: &fieldVal},
+	type DuplicateStruct struct {
+		Field1 string `validate:"required_unless=Field2 value1 Field2 value2"`
+		Field2 string
 	}
-	_ = validate.Struct(test3)
+	test4 := DuplicateStruct{
+		Field1: "",
+		Field2: "value1",
+	}
+	errs = validate.Struct(test4)
+	Equal(t, errs, nil)
+
+	test5 := DuplicateStruct{
+		Field1: "",
+		Field2: "value2",
+	}
+	errs = validate.Struct(test5)
+	Equal(t, errs, nil)
+
+	test6 := DuplicateStruct{
+		Field1: "",
+		Field2: "value3",
+	}
+	errs = validate.Struct(test6)
+	NotEqual(t, errs, nil)
 }
 
 func TestSkipUnless(t *testing.T) {
