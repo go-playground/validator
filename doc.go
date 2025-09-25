@@ -276,9 +276,6 @@ Examples:
 	// require the field if the Field1 and Field2 is equal to the value respectively:
 	Usage: required_if=Field1 foo Field2 bar
 
-	// INVALID: duplicate field names will cause a panic error:
-	Usage: required_if=Field1 foo Field1 bar
-
 # Required Unless
 
 The field under validation must be present and not empty unless all
