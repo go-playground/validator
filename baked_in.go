@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"context"
 	"crypto/sha256"
+	"encoding/base32"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -1416,7 +1417,13 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 
 // isBase32 is the validation function for validating if the current field's value is a valid base 32.
 func isBase32(fl FieldLevel) bool {
-	return base32Regex().MatchString(fl.Field().String())
+	if fl.Field().String() == "" {
+		return false
+	}
+
+	_, err := base32.StdEncoding.DecodeString(fl.Field().String())
+
+	return err == nil
 }
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.
