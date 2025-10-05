@@ -1872,6 +1872,15 @@ func requiredIf(fl FieldLevel) bool {
 	if len(params)%2 != 0 {
 		panic(fmt.Sprintf("Bad param number for required_if %s", fl.FieldName()))
 	}
+
+	seen := make(map[string]struct{})
+	for i := 0; i < len(params); i += 2 {
+		if _, ok := seen[params[i]]; ok {
+			panic(fmt.Sprintf("Duplicate param %s for required_if %s", params[i], fl.FieldName()))
+		}
+		seen[params[i]] = struct{}{}
+	}
+
 	for i := 0; i < len(params); i += 2 {
 		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
 			return true
