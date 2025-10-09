@@ -1519,7 +1519,7 @@ This package panics when bad input is provided, this is by design, bad code like
 that should not make it to production.
 
 	type Test struct {
-		TestField string `validate:"nonexistantfunction=1"`
+		TestField string `validate:"nonexistentfunction=1"`
 	}
 
 	t := &Test{
