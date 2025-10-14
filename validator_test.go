@@ -13212,6 +13212,7 @@ func TestBicIsoFormatValidation(t *testing.T) {
 		{"SBICKEN1", "bic", true},
 		{"SBICKENY", "bic", true},
 		{"SBICKEN1YYP", "bic", true},
+		{"E097AEXX", "bic", true}, // valid under https://www.iso.org/standard/84108.html
 		{"SBIC23NXXX", "bic", false},
 		{"S23CKENXXXX", "bic", false},
 		{"SBICKENXX", "bic", false},
