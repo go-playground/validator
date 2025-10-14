@@ -186,6 +186,18 @@ Same as structonly tag except that any struct level validations will not run.
 
 	Usage: nostructlevel
 
+# Skip Namespace
+
+Instruct validator to skip name of embedded structure into field namespace.
+
+	Usage: skipns
+
+Example #1
+
+	type Outer struct {
+	    Embedded `validate:"skipns"`
+	}
+
 # Omit Empty
 
 Allows conditional validation, for example, if a field is not set with
