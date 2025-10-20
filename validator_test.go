@@ -13911,14 +13911,14 @@ func TestLuhnChecksumValidation(t *testing.T) {
 		expected bool
 	}{
 		{uint64(586824160825533338), "luhn_checksum", true}, // credit card numbers are just special cases of numbers with luhn checksum
-		{586824160825533338, "luhn_checksum", true},
+		{int64(586824160825533338), "luhn_checksum", true},
 		{"586824160825533338", "luhn_checksum", true},
 		{uint64(586824160825533328), "luhn_checksum", false},
-		{586824160825533328, "luhn_checksum", false},
+		{int64(586824160825533328), "luhn_checksum", false},
 		{"586824160825533328", "luhn_checksum", false},
-		{10000000116, "luhn_checksum", true}, // but there may be shorter numbers (11 digits)
+		{int64(10000000116), "luhn_checksum", true}, // but there may be shorter numbers (11 digits)
 		{"10000000116", "luhn_checksum", true},
-		{10000000117, "luhn_checksum", false},
+		{int64(10000000117), "luhn_checksum", false},
 		{"10000000117", "luhn_checksum", false},
 		{uint64(12345678123456789011), "luhn_checksum", true}, // or longer numbers (19 digits)
 		{"12345678123456789011", "luhn_checksum", true},
