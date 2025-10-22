@@ -115,7 +115,8 @@ func main() {
 		// this check is only needed when your code could produce
 		// an invalid value for validation such as interface with nil
 		// value most including myself do not usually have code like this.
-		if errors.As(err, &validator.InvalidValidationError{}) {
+		var invalidValidationError *validator.InvalidValidationError
+		if errors.As(err, &invalidValidationError) {
 			fmt.Println(err)
 			return
 		}
@@ -155,7 +156,7 @@ func main() {
 }
 
 // UserStructLevelValidation contains custom struct level validations that don't always
-// make sense at the field validation level. For Example this function validates that either
+// make sense at the field validation level. For example, this function validates that either
 // FirstName or LastName exist; could have done that with a custom field validation but then
 // would have had to add it to both fields duplicating the logic + overhead, this way it's
 // only validated once.
