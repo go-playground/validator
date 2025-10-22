@@ -8734,6 +8734,33 @@ func TestRgb(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "rgb")
 }
 
+func TestE164(t *testing.T) {
+	validate := New()
+
+	s := "+12025550123"
+	errs := validate.Var(s, "e164")
+	Equal(t, errs, nil)
+
+	s = "+447911123456"
+	errs = validate.Var(s, "e164")
+	Equal(t, errs, nil)
+
+	s = "0123456789" // invalid: starts with 0
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+
+	s = "++12025550123" // invalid: double +
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+
+	s = "+1 202-555-0123" // invalid: contains spaces or dashes
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+}
+
 func TestEmail(t *testing.T) {
 	validate := New()
 
