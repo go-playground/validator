@@ -13202,7 +13202,47 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
-func TestBicIsoFormatValidation(t *testing.T) {
+func TestBicIso2014FormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"bic_iso_9362_2014"`
+		tag      string
+		expected bool
+	}{
+		{"SBICKEN1345", "bic_iso_9362_2014", true},
+		{"SBICKEN1", "bic_iso_9362_2014", true},
+		{"SBICKENY", "bic_iso_9362_2014", true},
+		{"SBICKEN1YYP", "bic_iso_9362_2014", true},
+		{"SBIC23NXXX", "bic_iso_9362_2014", false},
+		{"S23CKENXXXX", "bic_iso_9362_2014", false},
+		{"SBICKENXX", "bic_iso_9362_2014", false},
+		{"SBICKENXX9", "bic_iso_9362_2014", false},
+		{"SBICKEN13458", "bic_iso_9362_2014", false},
+		{"SBICKEN", "bic_iso_9362_2014", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bic_iso_9362_2014" {
+					t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBicIso2022FormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"bic"`
 		tag      string

@@ -68,7 +68,8 @@ const (
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
 	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
-	bicRegexString                   = `^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$`
+	bic2014RegexString               = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	bic2022RegexString               = `^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$`
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9])?$"
 	cveRegexString                   = `^CVE-(1999|2\d{3})-(0[^0]\d{2}|0\d[^0]\d{1}|0\d{2}[^0]|[1-9]{1}\d{3,})$` // CVE Format Id https://cve.mitre.org/cve/identifiers/syntaxchange.html
@@ -153,7 +154,8 @@ var (
 	hTMLRegex                  = lazyRegexCompile(hTMLRegexString)
 	jWTRegex                   = lazyRegexCompile(jWTRegexString)
 	splitParamsRegex           = lazyRegexCompile(splitParamsRegexString)
-	bicRegex                   = lazyRegexCompile(bicRegexString)
+	bic2014Regex               = lazyRegexCompile(bic2014RegexString)
+	bic2022Regex               = lazyRegexCompile(bic2022RegexString)
 	semverRegex                = lazyRegexCompile(semverRegexString)
 	dnsRegexRFC1035Label       = lazyRegexCompile(dnsRegexStringRFC1035Label)
 	cveRegex                   = lazyRegexCompile(cveRegexString)
