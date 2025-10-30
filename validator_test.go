@@ -3,7 +3,9 @@ package validator
 import (
 	"bytes"
 	"context"
+	"net"
 	"database/sql"
+	"runtime"
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
@@ -12,11 +14,9 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"net"
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -854,7 +854,7 @@ func TestStructPartial(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructPartialCtx(t.Context(), tPartial, p1...)
+	errs := validate.StructPartialCtx(context.Background(), tPartial, p1...)
 	Equal(t, errs, nil)
 
 	errs = validate.StructPartial(tPartial, p2...)
@@ -864,7 +864,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	Equal(t, errs, nil)
 
-	errs = validate.StructExceptCtx(t.Context(), tPartial, p1...)
+	errs = validate.StructExceptCtx(context.Background(), tPartial, p1...)
 	Equal(t, errs, nil)
 
 	errs = validate.StructExcept(tPartial, p2...)
@@ -1102,7 +1102,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
 
-	errs = validate.VarWithValueCtx(t.Context(), 1, "", "ltecsfield")
+	errs = validate.VarWithValueCtx(context.Background(), 1, "", "ltecsfield")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
@@ -2299,7 +2299,7 @@ func TestSQLValue2Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "required")
 
 	val.Name = "Valid Name"
-	errs = validate.VarCtx(t.Context(), val, "required")
+	errs = validate.VarCtx(context.Background(), val, "required")
 	Equal(t, errs, nil)
 
 	val.Name = "errorme"
@@ -3019,25 +3019,23 @@ func TestUnixAddrValidation(t *testing.T) {
 }
 
 func TestUnixDomainSocketExistsValidation(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix domain sockets are not supported on Windows")
+	}
+
 	validate := New()
 
-	// Test with empty string - should fail
 	errs := validate.Var("", "uds_exists")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "uds_exists")
 
-	// Test with non-existent path - should fail
 	errs = validate.Var("/tmp/nonexistent.sock", "uds_exists")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "uds_exists")
 
-	// Test with a real socket file
-	// Create a temporary socket file for testing
-	// Use /tmp directly to avoid path length issues on macOS
 	sockPath := "/tmp/test_validator.sock"
-
-	// Create a Unix domain socket
-	listener, err := net.Listen("unix", sockPath)
+	var lc net.ListenConfig
+	listener, err := lc.Listen(t.Context(), "unix", sockPath)
 	if err != nil {
 		t.Fatalf("Failed to create test socket: %v", err)
 	}
@@ -3047,12 +3045,9 @@ func TestUnixDomainSocketExistsValidation(t *testing.T) {
 	defer func() {
 		_ = os.Remove(sockPath)
 	}()
-
-	// Test with existing socket - should pass
 	errs = validate.Var(sockPath, "uds_exists")
 	Equal(t, errs, nil)
 
-	// Test with regular file (not a socket) - should fail
 	regularFile := "/tmp/test_validator_regular.txt"
 	if err := os.WriteFile(regularFile, []byte("test"), 0644); err != nil {
 		t.Fatalf("Failed to create regular file: %v", err)
@@ -3060,12 +3055,10 @@ func TestUnixDomainSocketExistsValidation(t *testing.T) {
 	defer func() {
 		_ = os.Remove(regularFile)
 	}()
-
 	errs = validate.Var(regularFile, "uds_exists")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "uds_exists")
 
-	// Test with directory - should fail
 	dirPath := "/tmp/test_validator_dir"
 	if err := os.Mkdir(dirPath, 0755); err != nil && !os.IsExist(err) {
 		t.Fatalf("Failed to create directory: %v", err)
@@ -3073,31 +3066,22 @@ func TestUnixDomainSocketExistsValidation(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dirPath)
 	}()
-
 	errs = validate.Var(dirPath, "uds_exists")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "uds_exists")
 
-	// Linux-specific test for abstract sockets
 	if runtime.GOOS == "linux" {
-		// Create an abstract socket (prefixed with @)
 		abstractSockName := "@test_abstract_socket_" + fmt.Sprintf("%d", time.Now().UnixNano())
-
-		// In Go, abstract sockets are created by using a null byte prefix
-		// but for testing, we need to use the actual implementation
-		abstractListener, err := net.Listen("unix", "\x00"+abstractSockName[1:])
+		var lc net.ListenConfig
+		abstractListener, err := lc.Listen(t.Context(), "unix", "\x00"+abstractSockName[1:])
 		if err != nil {
 			t.Fatalf("Failed to create abstract socket: %v", err)
 		}
 		defer func() {
 			_ = abstractListener.Close()
 		}()
-
-		// Test with existing abstract socket - should pass
 		errs = validate.Var(abstractSockName, "uds_exists")
 		Equal(t, errs, nil)
-
-		// Test with non-existent abstract socket - should fail
 		errs = validate.Var("@nonexistent_abstract_socket", "uds_exists")
 		NotEqual(t, errs, nil)
 		AssertError(t, errs, "", "", "", "", "uds_exists")
@@ -10004,7 +9988,7 @@ func TestStructFiltered(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructFilteredCtx(t.Context(), tPartial, p1)
+	errs := validate.StructFilteredCtx(context.Background(), tPartial, p1)
 	Equal(t, errs, nil)
 
 	errs = validate.StructFiltered(tPartial, p2)
@@ -10417,7 +10401,7 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 
 	validate.RegisterStructValidationCtx(slFn, Test{})
 
-	ctx := context.WithValue(t.Context(), &ctxVal, "testval")
+	ctx := context.WithValue(context.Background(), &ctxVal, "testval")
 	ctx = context.WithValue(ctx, &ctxSlVal, "slVal")
 	errs := validate.StructCtx(ctx, tst)
 	Equal(t, errs, nil)
@@ -13978,7 +13962,7 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validate := New()
-			if got := validate.ValidateMapCtx(t.Context(), tt.args.data, tt.args.rules); len(got) != tt.want {
+			if got := validate.ValidateMapCtx(context.Background(), tt.args.data, tt.args.rules); len(got) != tt.want {
 				t.Errorf("ValidateMapCtx() = %v, want %v", got, tt.want)
 			}
 		})
@@ -14049,7 +14033,7 @@ func TestValidate_ValidateMapCtxWithKeys(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			validate := New()
-			errs := validate.ValidateMapCtx(t.Context(), tt.args.data, tt.args.rules)
+			errs := validate.ValidateMapCtx(context.Background(), tt.args.data, tt.args.rules)
 			NotEqual(t, errs, nil)
 			Equal(t, len(errs), tt.want)
 			for key, err := range errs {
@@ -14143,7 +14127,7 @@ func TestValidate_VarWithKey(t *testing.T) {
 
 func TestValidate_VarWithKeyCtx(t *testing.T) {
 	validate := New()
-	errs := validate.VarWithKeyCtx(t.Context(), "age", 15, "required,gt=16")
+	errs := validate.VarWithKeyCtx(context.Background(), "age", 15, "required,gt=16")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "age", "age", "age", "age", "gt")
 

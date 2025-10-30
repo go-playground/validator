@@ -2616,7 +2616,12 @@ func isUnixAddrResolvable(fl FieldLevel) bool {
 
 // isUnixDomainSocketExists is the validation function for validating if the field's value is an existing Unix domain socket.
 // It handles both filesystem-based sockets and Linux abstract sockets.
+// It always returns false for Windows.
 func isUnixDomainSocketExists(fl FieldLevel) bool {
+	if runtime.GOOS == "windows" {
+		return false
+	}
+
 	sockpath := fl.Field().String()
 
 	if sockpath == "" {
