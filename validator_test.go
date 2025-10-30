@@ -12,9 +12,11 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -3013,6 +3015,82 @@ func TestUnixAddrValidation(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestUnixDomainSocketExistsValidation(t *testing.T) {
+	validate := New()
+
+	// Test with empty string - should fail
+	errs := validate.Var("", "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	// Test with non-existent path - should fail
+	errs = validate.Var("/tmp/nonexistent.sock", "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	// Test with a real socket file
+	// Create a temporary socket file for testing
+	// Use /tmp directly to avoid path length issues on macOS
+	sockPath := "/tmp/test_validator.sock"
+
+	// Create a Unix domain socket
+	listener, err := net.Listen("unix", sockPath)
+	if err != nil {
+		t.Fatalf("Failed to create test socket: %v", err)
+	}
+	defer listener.Close()
+	defer os.Remove(sockPath)
+
+	// Test with existing socket - should pass
+	errs = validate.Var(sockPath, "uds_exists")
+	Equal(t, errs, nil)
+
+	// Test with regular file (not a socket) - should fail
+	regularFile := "/tmp/test_validator_regular.txt"
+	if err := os.WriteFile(regularFile, []byte("test"), 0644); err != nil {
+		t.Fatalf("Failed to create regular file: %v", err)
+	}
+	defer os.Remove(regularFile)
+
+	errs = validate.Var(regularFile, "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	// Test with directory - should fail
+	dirPath := "/tmp/test_validator_dir"
+	if err := os.Mkdir(dirPath, 0755); err != nil && !os.IsExist(err) {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer os.RemoveAll(dirPath)
+
+	errs = validate.Var(dirPath, "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	// Linux-specific test for abstract sockets
+	if runtime.GOOS == "linux" {
+		// Create an abstract socket (prefixed with @)
+		abstractSockName := "@test_abstract_socket_" + fmt.Sprintf("%d", time.Now().UnixNano())
+
+		// In Go, abstract sockets are created by using a null byte prefix
+		// but for testing, we need to use the actual implementation
+		abstractListener, err := net.Listen("unix", "\x00"+abstractSockName[1:])
+		if err != nil {
+			t.Fatalf("Failed to create abstract socket: %v", err)
+		}
+		defer abstractListener.Close()
+
+		// Test with existing abstract socket - should pass
+		errs = validate.Var(abstractSockName, "uds_exists")
+		Equal(t, errs, nil)
+
+		// Test with non-existent abstract socket - should fail
+		errs = validate.Var("@nonexistent_abstract_socket", "uds_exists")
+		NotEqual(t, errs, nil)
+		AssertError(t, errs, "", "", "", "", "uds_exists")
 	}
 }
 
