@@ -2,8 +2,6 @@ version: "2"
 linters:
   default: all
   disable:
-    - noinlineerr
-    - wsl_v5
     - copyloopvar
     - cyclop
     - depguard
