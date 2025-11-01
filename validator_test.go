@@ -9100,6 +9100,73 @@ func TestAlphaSpace(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "alphaspace")
 }
 
+func TestAlphaNumericSpace(t *testing.T) {
+	validate := New()
+
+	s := "abcd 123"
+	errs := validate.Var(s, "alphanumspace")
+	Equal(t, errs, nil)
+
+	s = "  "
+	errs = validate.Var(s, "alphanumspace")
+	Equal(t, errs, nil)
+
+	s = "abc123"
+	errs = validate.Var(s, "alphanumspace")
+	Equal(t, errs, nil)
+
+	s = "123"
+	errs = validate.Var(s, "alphanumspace")
+	Equal(t, errs, nil)
+
+	s = "abc"
+	errs = validate.Var(s, "alphanumspace")
+	Equal(t, errs, nil)
+
+	s = "áçć 123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "日本 123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "abc!"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "abc\t123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "abc\n123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "abc-123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	s = "abc🙂123"
+	errs = validate.Var(s, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	errs = validate.Var(1, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+
+	errs = validate.Var(1.23, "alphanumspace")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanumspace")
+}
+
 func TestStructStringValidation(t *testing.T) {
 	validate := New()
 
