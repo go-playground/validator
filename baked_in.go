@@ -120,6 +120,7 @@ var (
 		"alpha":                         isAlpha,
 		"alphaspace":                    isAlphaSpace,
 		"alphanum":                      isAlphanum,
+		"alphanumspace":                 isAlphaNumericSpace,
 		"alphaunicode":                  isAlphaUnicode,
 		"alphanumunicode":               isAlphanumUnicode,
 		"boolean":                       isBoolean,
@@ -1771,6 +1772,11 @@ func isAlphanumUnicode(fl FieldLevel) bool {
 // isAlphaSpace is the validation function for validating if the current field's value is a valid alpha value with spaces.
 func isAlphaSpace(fl FieldLevel) bool {
 	return alphaSpaceRegex().MatchString(fl.Field().String())
+}
+
+// isAlphaNumericSpace is the validation function for validating if the current field's value is a valid alphanumeric value with spaces.
+func isAlphaNumericSpace(fl FieldLevel) bool {
+	return alphanNumericSpaceRegex().MatchString(fl.Field().String())
 }
 
 // isAlphaUnicode is the validation function for validating if the current field's value is a valid alpha unicode value.
