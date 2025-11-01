@@ -53,3 +53,4 @@ linters:
     - varnamelen
     - wrapcheck
     - wsl
+    - modernize
