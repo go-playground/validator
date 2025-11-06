@@ -1378,6 +1378,14 @@ More information on https://pkg.go.dev/golang.org/x/text/language
 
 	Usage: bcp47_language_tag
 
+# BCP 47 Strict Language Tag
+
+This validates that a string value is a valid BCP 47 language tag strictly following RFC 5646 rules,
+unlike language.Parse which also accepts Unicode extensions.
+see https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+
+	Usage: bcp47_strict_language_tag
+
 BIC (SWIFT code)
 
 This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.

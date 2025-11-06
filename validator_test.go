@@ -13174,6 +13174,7 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 		{"az-Cyrl-AZ", "bcp47_language_tag", true},
 		{"en-029", "bcp47_language_tag", true},
 		{"xog", "bcp47_language_tag", true},
+		{"i-klingon", "bcp47_language_tag", true},
 	}
 
 	validate := New()
@@ -13199,6 +13200,143 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "bcp47_language_tag")
+	}, "Bad field type int")
+}
+
+func TestBCP47StrictLanguageTagValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"bcp47_strict_language_tag"`
+		expected bool
+	}{
+		// VALID
+		//
+		{"en-US", true},
+		{"es", true},
+		{"az-Cyrl-AZ", true},
+		{"en-029", true},
+		{"xog", true},
+		{"i-klingon", true},
+		{"zh-min-nan", true},
+		{"x-foobar", true}, //
+
+		// script
+		{"it-Aran", true},
+
+		// region
+		{"it-Aran-142", true},
+		{"it-Aran-IT", true},
+
+		// variant
+		{"frm-Aran-FR-1606nict", true},
+
+		// extension
+		{"frm-Aran-FR-a-1234567c", true},
+		{"frm-Aran-FR-b-ab", true},
+		{"frm-Aran-FR-a-12345678-12345678", true},
+
+		// privateuse
+		{"frm-Aran-FR-x-a", true},
+		{"frm-Aran-FR-x-1234567a", true},
+		{"frm-Aran-FR-x-1234567a-abcde", true},
+
+		// From RFC Appendix A.
+		//
+		// Simple language subtag:
+		{"de", true},         // German
+		{"fr", true},         // French
+		{"ja", true},         // Japanese
+		{"i-enochian", true}, // example of a grandfathered tag
+		// Language subtag plus Script subtag:
+		{"zh-Hant", true}, // Chinese written using the Traditional Chinese script
+		{"zh-Hans", true}, // Chinese written using the Simplified Chinese script
+		{"sr-Cyrl", true}, // Serbian written using the Cyrillic script
+		{"sr-Latn", true}, // Serbian written using the Latin script
+		// Extended language subtags and their primary language subtag counterparts:
+		{"zh-cmn-Hans-CN", true}, // Chinese, Mandarin, Simplified script, as used in China
+		{"cmn-Hans-CN", true},    // Mandarin Chinese, Simplified script, as used in China
+		{"zh-yue-HK", true},      // Chinese, Cantonese, as used in Hong Kong SAR
+		{"yue-HK", true},         // Cantonese Chinese, as used in Hong Kong SAR
+		// Language-Script-Region:
+		{"zh-Hans-CN", true}, // Chinese written using the Simplified script as used in mainland China
+		{"sr-Latn-RS", true}, // Serbian written using the Latin script as used in Serbia
+		// Language-Variant:
+		{"sl-rozaj", true},       // Resian dialect of Slovenian
+		{"sl-rozaj-biske", true}, // San Giorgio dialect of Resian dialect of Slovenian
+		{"sl-nedis", true},       // Nadiza dialect of Slovenian
+		// Language-Region-Variant:
+		{"de-CH-1901", true},  // German as used in Switzerland using the 1901 variant (orthography)
+		{"sl-IT-nedis", true}, // Slovenian as used in Italy, Nadiza dialect
+		// Language-Script-Region-Variant:
+		{"hy-Latn-IT-arevela", true}, // Eastern Armenian written in Latin script, as used in Italy
+		// Language-Region:
+		{"de-DE", true},  // German for Germany
+		{"en-US", true},  // English as used in the United States
+		{"es-419", true}, // Spanish appropriate for the Latin America and Caribbean region using the UN region code
+		// Private use subtags:
+		{"de-CH-x-phonebk", true},       // private use subtag
+		{"az-Arab-x-AZE-derbend", true}, // private use subtag
+		// Private use registry values:
+		{"x-whatever", true},             // private use using the singleton 'x'
+		{"qaa-Qaaa-QM-x-southern", true}, // all private tags
+		{"de-Qaaa", true},                // German, with a private script
+		{"sr-Latn-QM", true},             // Serbian, Latin script, private region
+		{"sr-Qaaa-RS", true},             // Serbian, private script, for Serbia
+
+		// INVALID
+		//
+		// language
+		{"English", false},
+		{"AmericanEnglish", false}, // too long
+		{"ESES", false},            // 4 chars are reserved for future use
+		{"ita", false},             // valid but not shortest ISO 639 code
+		{"en_GB", false},
+		{"eng", false},
+		{"xfoobar", false},
+		{"x-123456789", false},
+
+		// script
+		{"it-Aram", false}, // "Aram" is not a valid script
+
+		// region
+		{"it-Aran-ITA", false}, // "ITA" is not a valid ISO 3166-1 alpha2 code
+		{"it-Aran-380", false}, // "380" is a valid UN M.49 region code, but it's not in the IANA language subtag registry
+
+		// variant
+		{"it-Aran-FR-1606nict", false}, // "1606nict" must be used prefix "frm"
+
+		// extension
+		{"frm-Aran-FR-a-12345678a", false},          // too long
+		{"frm-Aran-FR-b-a", false},                  // too short
+		{"frm-Aran-FR-a-12345678-12345678a", false}, // second extension too long
+
+		// privateuse
+		{"frm-Aran-FR-x-12345678a", false}, // too long
+		{"frm-Aran-FR-x-", false},          // too short
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, "bcp47_strict_language_tag")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' should be valid (index %d). Error: %s", test.value, i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' should not be valid (index %d)", test.value, i)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bcp47_strict_language_tag" {
+					t.Fatalf("'%s' (index %d) failed with validator other than 'bcp47_strict_language_tag'. Error: %s", test.value, i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "bcp47_strict_language_tag")
 	}, "Bad field type int")
 }
 

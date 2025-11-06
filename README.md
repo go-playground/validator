@@ -166,6 +166,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | base64rawurl | Base64RawURL String |
 | bic | Business Identifier Code (ISO 9362) |
 | bcp47_language_tag | Language tag (BCP 47) |
+| bcp47_strict_language_tag | Language tag (BCP 47), strictly following RFC 5646 |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | credit_card | Credit Card Number |

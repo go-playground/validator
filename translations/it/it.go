@@ -1213,6 +1213,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} deve essere un'immagine valida",
 			override:    false,
 		},
+		{
+			tag:         "bcp47_strict_language_tag",
+			translation: "{0} deve essere uno specificatore di lingua BCP47 valido",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
