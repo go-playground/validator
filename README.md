@@ -123,6 +123,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | udp6_addr | User Datagram Protocol Address UDPv6 |
 | udp_addr | User Datagram Protocol Address UDP |
 | unix_addr | Unix domain socket end point Address |
+| uds_exists | Unix domain socket exists (checks filesystem sockets and Linux abstract sockets) |
 | uri | URI String |
 | url | URL String |
 | http_url | HTTP(s) URL String |
