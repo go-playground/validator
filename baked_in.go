@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -235,6 +236,7 @@ var (
 		"iso4217":                       isIso4217,
 		"iso4217_numeric":               isIso4217Numeric,
 		"bcp47_language_tag":            isBCP47LanguageTag,
+		"bcp47_strict_language_tag":     isBCP47StrictLanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic":                           isIsoBicFormat,
@@ -2938,6 +2940,188 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 	if field.Kind() == reflect.String {
 		_, err := language.Parse(field.String())
 		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+// isBCP47StrictLanguageTag is the validation function for validating if the current field's value is a valid BCP 47 language tag
+// according to https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+func isBCP47StrictLanguageTag(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		var languageTagRe = regexp.MustCompile(strings.Join([]string{
+			// group 1:
+			`^(`,
+			// irregular
+			`EN-GB-OED|I-AMI|I-BNN|I-DEFAULT|I-ENOCHIAN|I-HAK|I-KLINGON|I-LUX|I-MINGO|I-NAVAJO|I-PWN|I-TAO|I-TAY|I-TSU|`,
+			`SGN-BE-FR|SGN-BE-NL|SGN-CH-DE|`,
+			// regular
+			`ART-LOJBAN|CEL-GAULISH|NO-BOK|NO-NYN|ZH-GUOYU|ZH-HAKKA|ZH-MIN|ZH-MIN-NAN|ZH-XIANG|`,
+			// privateuse
+			`X-[A-Z0-9]{1,8}`,
+			`)$`,
+
+			`|`,
+
+			// langtag
+			`^`,
+			`((?:[A-Z]{2,3}(?:-[A-Z]{3}){0,3})|[A-Z]{4}|[A-Z]{5,8})`, // group 2: language
+			`(?:-([A-Z]{4}))?`,          // group 3: script
+			`(?:-([A-Z]{2}|[0-9]{3}))?`, // group 4: region
+			`(?:-((?:[A-Z0-9]{5,8}|[0-9][A-Z0-9]{3})(?:-(?:[A-Z0-9]{5,8}|[0-9][A-Z0-9]{3}))*))?`, // group 5: variant
+			`(?:-((?:[A-WYZ0-9](?:-[A-Z0-9]{2,8})+)(?:-(?:[A-WYZ0-9](?:-[A-Z0-9]{2,8})+))*))?`,   // group 6: extension
+			`(?:-X(?:-[A-Z0-9]{1,8})+)?`,
+			`$`,
+		}, ""))
+
+		languageTag := strings.ToUpper(field.String())
+
+		m := languageTagRe.FindStringSubmatch(languageTag)
+		if m == nil {
+			return false
+		}
+
+		grandfatheredOrPrivateuse := m[1]
+		lang := m[2]
+		script := m[3]
+		region := m[4]
+		variant := m[5]
+		extension := m[6]
+
+		if grandfatheredOrPrivateuse != "" {
+			return true
+		}
+
+		// language      = 2*3ALPHA            ; shortest ISO 639 code
+		//                 ["-" extlang]       ; sometimes followed by
+		//                                     ; extended language subtags
+		//               / 4ALPHA              ; or reserved for future use
+		//               / 5*8ALPHA            ; or registered language subtag
+		switch n := len(lang); {
+		// 2*3ALPHA "-" extlang
+		case strings.Contains(lang, "-"):
+			parts := strings.Split(lang, "-")
+
+			baseLang := parts[0]
+			base, err := language.ParseBase(baseLang)
+			if err != nil {
+				return false
+			}
+			// base.String() normalizes the base to the shortest code
+			// for the language
+			if strings.ToUpper(base.String()) != baseLang {
+				return false
+			}
+
+			for _, e := range parts[1:] {
+				prefixes, ok := iana_subtag_registry_extlangs[strings.ToLower(e)]
+				if !ok {
+					return false
+				}
+
+				if len(prefixes) > 0 {
+					found := false
+					for _, p := range prefixes {
+						if strings.HasPrefix(strings.ToLower(languageTag)+"-", strings.ToLower(p)) {
+							found = true
+							break
+						}
+					}
+					if !found {
+						return false
+					}
+				}
+			}
+		// 2*3ALPHA            ; shortest ISO 639 code
+		case n <= 3:
+			base, err := language.ParseBase(lang)
+			if err != nil {
+				return false
+			}
+
+			// base.String() normalizes the base to the shortest code
+			// for the language
+			if strings.ToUpper(base.String()) != lang {
+				return false
+			}
+		// 4ALPHA              ; or reserved for future use
+		case n == 4:
+			return false
+		// 5*8ALPHA            ; or registered language subtag
+		default:
+			// registered language subtag with 5+ characters.
+			// As of today there aren't any.
+			// https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+			return false
+		}
+
+		// script        = 4ALPHA              ; ISO 15924 code
+		if script != "" {
+			_, err := language.ParseScript(script)
+			if err != nil {
+				return false
+			}
+		}
+
+		//  region        = 2ALPHA              ; ISO 3166-1 code
+		//                  3DIGIT              ; UN M.49 code
+		if region != "" {
+			if len(region) == 2 {
+				_, err := language.ParseRegion(region)
+				if err != nil {
+					return false
+				}
+			} else {
+				// Can't use language.ParseRegion() here because not all
+				// UN M.49 region codes are allowed, just the subset present
+				// in the IANA subtag registry.
+				_, ok := iana_subtag_registry_m49_codes[region]
+				if !ok {
+					return false
+				}
+			}
+		}
+
+		//  variant       = 5*8alphanum         ; registered variants
+		//                  / (DIGIT 3alphanum)
+		if variant != "" {
+			for v := range strings.SplitSeq(variant, "-") {
+				lowerVariant := strings.ToLower(v)
+				_, err := language.ParseVariant(lowerVariant)
+				if err != nil {
+					return false
+				}
+
+				prefixes, ok := iana_subtag_registry_variants[lowerVariant]
+				if !ok {
+					return false
+				}
+
+				if len(prefixes) > 0 {
+					found := false
+					for _, p := range prefixes {
+						if strings.HasPrefix(strings.ToLower(languageTag)+"-", strings.ToLower(p)) {
+							found = true
+							break
+						}
+					}
+					if !found {
+						return false
+					}
+				}
+			}
+		}
+
+		if extension != "" {
+			_, err := language.ParseExtension(extension)
+			if err != nil {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))

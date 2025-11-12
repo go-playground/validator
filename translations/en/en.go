@@ -1490,6 +1490,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "bcp47_strict_language_tag",
+			translation: "{0} must be a valid BCP 47 language tag",
+			override:    false,
+		},
+		{
 			tag:         "validateFn",
 			translation: "{0} must be a valid object",
 			override:    false,
