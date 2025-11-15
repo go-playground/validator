@@ -13202,7 +13202,47 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
-func TestBicIsoFormatValidation(t *testing.T) {
+func TestBicIso2014FormatValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"bic_iso_9362_2014"`
+		tag      string
+		expected bool
+	}{
+		{"SBICKEN1345", "bic_iso_9362_2014", true},
+		{"SBICKEN1", "bic_iso_9362_2014", true},
+		{"SBICKENY", "bic_iso_9362_2014", true},
+		{"SBICKEN1YYP", "bic_iso_9362_2014", true},
+		{"SBIC23NXXX", "bic_iso_9362_2014", false},
+		{"S23CKENXXXX", "bic_iso_9362_2014", false},
+		{"SBICKENXX", "bic_iso_9362_2014", false},
+		{"SBICKENXX9", "bic_iso_9362_2014", false},
+		{"SBICKEN13458", "bic_iso_9362_2014", false},
+		{"SBICKEN", "bic_iso_9362_2014", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bic_iso_9362_2014" {
+					t.Fatalf("Index: %d bic_iso_9362_2014 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestBicIso2022FormatValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"bic"`
 		tag      string
@@ -13212,12 +13252,46 @@ func TestBicIsoFormatValidation(t *testing.T) {
 		{"SBICKEN1", "bic", true},
 		{"SBICKENY", "bic", true},
 		{"SBICKEN1YYP", "bic", true},
+		{"E097AEXX", "bic", true}, // valid under https://www.iso.org/standard/84108.html
 		{"SBIC23NXXX", "bic", false},
-		{"S23CKENXXXX", "bic", false},
+		{"S23CKENXXXX", "bic", true},
 		{"SBICKENXX", "bic", false},
 		{"SBICKENXX9", "bic", false},
 		{"SBICKEN13458", "bic", false},
 		{"SBICKEN", "bic", false},
+		{"DEUTDEFF", "bic", true},         // 8-char classic (Germany)
+		{"DEUTDEFF500", "bic", true},      // 11-char with numeric branch
+		{"A1B2US33", "bic", true},         // digits allowed in 4!c (bank code)
+		{"1234US33", "bic", true},         // all digits in 4!c (2022)
+		{"ZZZ1USAA", "bic", true},         // mixed alnum bank + alnum location
+		{"AB12AE00", "bic", true},         // UAE 8-char
+		{"AB12AE009Z9", "bic", true},      // UAE 11-char with mixed branch
+		{"WG11US335AB", "bic", true},      // example-style with digits in branch
+		{"BNPAFRPP", "bic", true},         // France (BNP Paribas style)
+		{"BOFAUS3NXXX", "bic", true},      // US with default XXX branch
+		{"HSBCHKHHXXX", "bic", true},      // Hong Kong, default branch
+		{"NEDSZAJJ", "bic", true},         // South Africa 8-char
+		{"BARCGB22", "bic", true},         // GB 8-char
+		{"BARCGB22XXX", "bic", true},      // GB 11-char with XXX branch
+		{"0000GB00", "bic", true},         // 4!c all digits + 2!c all digits (allowed)
+		{"A1B2GB00XXX", "bic", true},      // valid 11-char with numeric location and XXX
+		{"TATRAEBX", "bic", true},         // UAE 8-char
+		{"TATRSABX", "bic", true},         // Saudi 8-char
+		{"TATREGBX", "bic", true},         // Egypt 8-char
+		{"TATRBHBX", "bic", true},         // Bahrain 8-char
+		
+		{"DEUTDEFFF", "bic", false},       // 9-char (invalid length)
+		{"DEUTDEFF5", "bic", false},       // 9-char (invalid length)
+		{"DEUTDE", "bic", false},          // 6-char (invalid length)
+		{"DEUTDEFF50", "bic", false},      // 10-char (invalid length)
+		{"DEUTDEFF5000", "bic", false},    // 12-char (invalid length)
+		{"deUTDEFF", "bic", false},        // lowercase not allowed
+		{"DEUTDEfF", "bic", false},        // lowercase in location
+		{"DEU@DEFF", "bic", false},        // special char in bank
+		{"ABCD12FF", "bic", false},        // digits in 2!a country (invalid)
+		{"ABCDDE1-", "bic", false},        // hyphen in location
+		{"ABCDDE1_", "bic", false},        // underscore in location
+		{"ABCDDE١٢", "bic", false},        // non-ASCII digits in location
 	}
 
 	validate := New()

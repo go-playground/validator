@@ -1378,12 +1378,19 @@ More information on https://pkg.go.dev/golang.org/x/text/language
 
 	Usage: bcp47_language_tag
 
-BIC (SWIFT code)
+BIC (SWIFT code - 2022 standard)
 
-This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.
-More information on https://www.iso.org/standard/60390.html
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362:2022.
+More information on https://www.iso.org/standard/84108.html
 
 	Usage: bic
+
+BIC (SWIFT code - 2014 standard)
+
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362:2014.
+More information on https://www.iso.org/standard/60390.html
+
+	Usage: bic_iso_9362_2014
 
 # RFC 1035 label
 
