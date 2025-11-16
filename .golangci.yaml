@@ -32,6 +32,7 @@ linters:
     - maintidx
     - misspell
     - mnd
+    - modernize
     - nakedret
     - nestif
     - nilnil

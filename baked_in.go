@@ -238,7 +238,8 @@ var (
 		"bcp47_language_tag":            isBCP47LanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
-		"bic":                           isIsoBicFormat,
+		"bic_iso_9362_2014":             isIsoBic2014Format,
+		"bic":                           isIsoBic2022Format,
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 		"credit_card":                   isCreditCard,
@@ -2949,11 +2950,18 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
-// isIsoBicFormat is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
-func isIsoBicFormat(fl FieldLevel) bool {
+// isIsoBic2014Format is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362 2014
+func isIsoBic2014Format(fl FieldLevel) bool {
 	bicString := fl.Field().String()
 
-	return bicRegex().MatchString(bicString)
+	return bic2014Regex().MatchString(bicString)
+}
+
+// isIsoBic2022Format is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362 2022
+func isIsoBic2022Format(fl FieldLevel) bool {
+	bicString := fl.Field().String()
+
+	return bic2022Regex().MatchString(bicString)
 }
 
 // isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
