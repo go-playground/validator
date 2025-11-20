@@ -3,7 +3,9 @@ package validator
 import (
 	"bytes"
 	"context"
+	"net"
 	"database/sql"
+	"runtime"
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
@@ -2947,6 +2949,76 @@ func TestUnixAddrValidation(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestUnixDomainSocketExistsValidation(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix domain sockets are not supported on Windows")
+	}
+
+	validate := New()
+
+	errs := validate.Var("", "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	errs = validate.Var("/tmp/nonexistent.sock", "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	sockPath := "/tmp/test_validator.sock"
+	var lc net.ListenConfig
+	listener, err := lc.Listen(t.Context(), "unix", sockPath)
+	if err != nil {
+		t.Fatalf("Failed to create test socket: %v", err)
+	}
+	defer func() {
+		_ = listener.Close()
+	}()
+	defer func() {
+		_ = os.Remove(sockPath)
+	}()
+	errs = validate.Var(sockPath, "uds_exists")
+	Equal(t, errs, nil)
+
+	regularFile := "/tmp/test_validator_regular.txt"
+	if err := os.WriteFile(regularFile, []byte("test"), 0644); err != nil {
+		t.Fatalf("Failed to create regular file: %v", err)
+	}
+	defer func() {
+		_ = os.Remove(regularFile)
+	}()
+	errs = validate.Var(regularFile, "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	dirPath := "/tmp/test_validator_dir"
+	if err := os.Mkdir(dirPath, 0755); err != nil && !os.IsExist(err) {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(dirPath)
+	}()
+	errs = validate.Var(dirPath, "uds_exists")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "uds_exists")
+
+	if runtime.GOOS == "linux" {
+		abstractSockName := "@test_abstract_socket_" + fmt.Sprintf("%d", time.Now().UnixNano())
+		var lc net.ListenConfig
+		abstractListener, err := lc.Listen(t.Context(), "unix", "\x00"+abstractSockName[1:])
+		if err != nil {
+			t.Fatalf("Failed to create abstract socket: %v", err)
+		}
+		defer func() {
+			_ = abstractListener.Close()
+		}()
+		errs = validate.Var(abstractSockName, "uds_exists")
+		Equal(t, errs, nil)
+		errs = validate.Var("@nonexistent_abstract_socket", "uds_exists")
+		NotEqual(t, errs, nil)
+		AssertError(t, errs, "", "", "", "", "uds_exists")
 	}
 }
 
