@@ -538,7 +538,7 @@ func isPrintableASCII(fl FieldLevel) bool {
 	if field.Kind() == reflect.String {
 		return printableASCIIRegex().MatchString(field.String())
 	}
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
 // isASCII is the validation function for validating if the field's value is a valid ASCII character.
@@ -547,7 +547,7 @@ func isASCII(fl FieldLevel) bool {
 	if field.Kind() == reflect.String {
 		return aSCIIRegex().MatchString(field.String())
 	}
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
 // isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
