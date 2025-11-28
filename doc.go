@@ -789,6 +789,12 @@ This validates that a string value contains ASCII alphanumeric characters only
 
 	Usage: alphanum
 
+# Alphanumeric Space
+
+This validates that a string value contains ASCII alphanumeric characters and spaces only
+
+	Usage: alphanumspace
+
 # Alpha Unicode
 
 This validates that a string value contains unicode alpha characters only
