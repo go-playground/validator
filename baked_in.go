@@ -534,12 +534,20 @@ func hasMultiByteCharacter(fl FieldLevel) bool {
 
 // isPrintableASCII is the validation function for validating if the field's value is a valid printable ASCII character.
 func isPrintableASCII(fl FieldLevel) bool {
-	return printableASCIIRegex().MatchString(fl.Field().String())
+	field := fl.Field()
+	if field.Kind() == reflect.String {
+		return printableASCIIRegex().MatchString(field.String())
+	}
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isASCII is the validation function for validating if the field's value is a valid ASCII character.
 func isASCII(fl FieldLevel) bool {
-	return aSCIIRegex().MatchString(fl.Field().String())
+	field := fl.Field()
+	if field.Kind() == reflect.String {
+		return aSCIIRegex().MatchString(field.String())
+	}
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
