@@ -3904,7 +3904,7 @@ func TestMultibyteValidation(t *testing.T) {
 
 func TestPrintableASCIIValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", true},
@@ -3918,6 +3918,8 @@ func TestPrintableASCIIValidation(t *testing.T) {
 		{"1234abcDEF", true},
 		{"newline\n", false},
 		{"\x19test\x7F", false},
+		{[]int{3000}, false},
+		{1, false},
 	}
 
 	validate := New()
@@ -3940,13 +3942,11 @@ func TestPrintableASCIIValidation(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { _ = validate.Var([]int{3000}, "printascii") }, "Bad field type []int")
-	PanicMatches(t, func() { _ = validate.Var(1, "printascii") }, "Bad field type int")
 }
 
 func TestASCIIValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", true},
@@ -3959,6 +3959,8 @@ func TestASCIIValidation(t *testing.T) {
 		{"test@example.com", true},
 		{"1234abcDEF", true},
 		{"", true},
+		{[]int{3000}, false},
+		{1, false},
 	}
 
 	validate := New()
@@ -3981,8 +3983,6 @@ func TestASCIIValidation(t *testing.T) {
 			}
 		}
 	}
-	PanicMatches(t, func() { _ = validate.Var([]int{3000}, "ascii") }, "Bad field type []int")
-	PanicMatches(t, func() { _ = validate.Var(1, "ascii") }, "Bad field type int")
 }
 
 func TestUUID5Validation(t *testing.T) {
