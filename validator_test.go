@@ -13060,6 +13060,15 @@ func TestIsIso4217Validation(t *testing.T) {
 		{"USA", false},
 		{"SLE", true},
 		{"SLL", false},
+		// New codes added
+		{"VED", true},  // Venezuelan Bolívar Digital
+		{"XCG", true},  // Caribbean Guilder
+		{"ZWG", true},  // Zimbabwe Gold
+		// Obsolete codes removed
+		{"ANG", false}, // Netherlands Antillean Guilder (withdrawn 2025-03)
+		{"CUC", false}, // Cuban Convertible Peso (withdrawn 2021-06)
+		{"HRK", false}, // Croatian Kuna (withdrawn 2023-01)
+		{"ZWL", false}, // Zimbabwean Dollar (withdrawn 2024-09)
 	}
 
 	validate := New()
@@ -13089,6 +13098,14 @@ func TestIsIso4217NumericValidation(t *testing.T) {
 		{13, false},
 		{925, true},
 		{694, false},
+		// New numeric codes added
+		{924, true},  // ZWG - Zimbabwe Gold
+		{926, true},  // VED - Venezuelan Bolívar Digital
+		{532, true},  // XCG - Caribbean Guilder (same numeric as ANG)
+		// Obsolete numeric codes removed
+		{191, false}, // HRK - Croatian Kuna (withdrawn 2023-01)
+		{931, false}, // CUC - Cuban Convertible Peso (withdrawn 2021-06)
+		{932, false}, // ZWL - Zimbabwean Dollar (withdrawn 2024-09)
 	}
 
 	validate := New()
