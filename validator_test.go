@@ -3904,7 +3904,7 @@ func TestMultibyteValidation(t *testing.T) {
 
 func TestPrintableASCIIValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", true},
@@ -3918,6 +3918,8 @@ func TestPrintableASCIIValidation(t *testing.T) {
 		{"1234abcDEF", true},
 		{"newline\n", false},
 		{"\x19test\x7F", false},
+		{[]int{3000}, false},
+		{1, false},
 	}
 
 	validate := New()
@@ -3944,7 +3946,7 @@ func TestPrintableASCIIValidation(t *testing.T) {
 
 func TestASCIIValidation(t *testing.T) {
 	tests := []struct {
-		param    string
+		param    interface{}
 		expected bool
 	}{
 		{"", true},
@@ -3957,6 +3959,8 @@ func TestASCIIValidation(t *testing.T) {
 		{"test@example.com", true},
 		{"1234abcDEF", true},
 		{"", true},
+		{[]int{3000}, false},
+		{1, false},
 	}
 
 	validate := New()
@@ -8734,6 +8738,33 @@ func TestRgb(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "rgb")
 }
 
+func TestE164(t *testing.T) {
+	validate := New()
+
+	s := "+12025550123"
+	errs := validate.Var(s, "e164")
+	Equal(t, errs, nil)
+
+	s = "+447911123456"
+	errs = validate.Var(s, "e164")
+	Equal(t, errs, nil)
+
+	s = "0123456789" // invalid: starts with 0
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+
+	s = "++12025550123" // invalid: double +
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+
+	s = "+1 202-555-0123" // invalid: contains spaces or dashes
+	errs = validate.Var(s, "e164")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "e164")
+}
+
 func TestEmail(t *testing.T) {
 	validate := New()
 
@@ -13098,6 +13129,8 @@ func TestIsIso4217Validation(t *testing.T) {
 		{"TRY", true},
 		{"EUR", true},
 		{"USA", false},
+		{"SLE", true},
+		{"SLL", false},
 	}
 
 	validate := New()
@@ -13125,6 +13158,8 @@ func TestIsIso4217NumericValidation(t *testing.T) {
 		{8, true},
 		{12, true},
 		{13, false},
+		{925, true},
+		{694, false},
 	}
 
 	validate := New()
