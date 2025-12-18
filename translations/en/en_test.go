@@ -106,9 +106,13 @@ func TestTranslations(t *testing.T) {
 		GteFieldString     string            `validate:"gtefield=MaxString"`
 		LtFieldString      string            `validate:"ltfield=MaxString"`
 		LteFieldString     string            `validate:"ltefield=MaxString"`
-		AlphaString        string            `validate:"alpha"`
-		AlphanumString     string            `validate:"alphanum"`
-		NumericString      string            `validate:"numeric"`
+		AlphaString           string            `validate:"alpha"`
+		AlphanumString        string            `validate:"alphanum"`
+		AlphaSpaceString      string            `validate:"alphaspace"`
+		AlphaNumSpaceString   string            `validate:"alphanumspace"`
+		AlphaUnicodeString    string            `validate:"alphaunicode"`
+		AlphaNumUnicodeString string            `validate:"alphanumunicode"`
+		NumericString         string            `validate:"numeric"`
 		NumberString       string            `validate:"number"`
 		HexadecimalString  string            `validate:"hexadecimal"`
 		HexColorString     string            `validate:"hexcolor"`
@@ -486,6 +490,22 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.AlphaString",
 			expected: "AlphaString can only contain alphabetic characters",
+		},
+		{
+			ns:       "Test.AlphaSpaceString",
+			expected: "AlphaSpaceString can only contain alphabetic and space characters",
+		},
+		{
+			ns:       "Test.AlphaNumSpaceString",
+			expected: "AlphaNumSpaceString can only contain alphanumeric and space characters",
+		},
+		{
+			ns:       "Test.AlphaUnicodeString",
+			expected: "AlphaUnicodeString can only contain unicode alphabetic characters",
+		},
+		{
+			ns:       "Test.AlphaNumUnicodeString",
+			expected: "AlphaNumUnicodeString can only contain unicode alphanumeric characters",
 		},
 		{
 			ns:       "Test.LtFieldString",
