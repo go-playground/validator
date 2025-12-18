@@ -201,6 +201,15 @@ only for the nil-values).
 
 	Usage: omitnil
 
+# Omit Zero
+
+Allows to skip the validation if the value is a zero value.
+For pointers, it checks if the pointer is nil or the underlying value is a zero value.
+For slices and maps, it checks if the value is nil or empty.
+Otherwise, behaves the same as omitempty.
+
+	Usage: omitzero
+
 # Dive
 
 This tells the validator to dive into a slice, array or map and validate that
