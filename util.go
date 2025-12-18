@@ -214,7 +214,9 @@ BEGIN:
 	}
 
 	// if got here there was more namespace, cannot go any deeper
-	panic("Invalid field namespace")
+	// return found=false instead of panicking to handle cases like ValidateMap
+	// where cross-field validators (required_if, etc.) can't navigate non-struct parents
+	return
 }
 
 // asInt returns the parameter as an int64
