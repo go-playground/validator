@@ -696,6 +696,68 @@ func TestAliasTags(t *testing.T) {
 	PanicMatches(t, func() { validate.RegisterAlias("exists!", "gt=5,lt=10") }, "Alias 'exists!' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
+func TestAliasWithOrOperator(t *testing.T) {
+	validate := New()
+	validate.RegisterAlias("customnum", "numeric")
+	validate.RegisterAlias("customalpha", "alpha")
+	validate.RegisterAlias("customgt5", "gt=5")
+
+	t.Run("numeric|iscolor", func(t *testing.T) {
+		type S struct {
+			F string `validate:"numeric|iscolor"`
+		}
+		Equal(t, validate.Struct(S{"#fff"}), nil)
+		Equal(t, validate.Struct(S{"123"}), nil)
+		NotEqual(t, validate.Struct(S{"invalid!"}), nil)
+	})
+
+	t.Run("iscolor|numeric", func(t *testing.T) {
+		type S struct {
+			F string `validate:"iscolor|numeric"`
+		}
+		Equal(t, validate.Struct(S{"456"}), nil)
+		Equal(t, validate.Struct(S{"rgb(255,0,0)"}), nil)
+	})
+
+	t.Run("alpha|customnum", func(t *testing.T) {
+		type S struct {
+			F string `validate:"alpha|customnum"`
+		}
+		Equal(t, validate.Struct(S{"789"}), nil)
+		Equal(t, validate.Struct(S{"abc"}), nil)
+	})
+
+	t.Run("customnum|customalpha", func(t *testing.T) {
+		type S struct {
+			F string `validate:"customnum|customalpha"`
+		}
+		Equal(t, validate.Struct(S{"xyz"}), nil)
+	})
+
+	t.Run("alpha|customnum|email", func(t *testing.T) {
+		type S struct {
+			F string `validate:"alpha|customnum|email"`
+		}
+		Equal(t, validate.Struct(S{"test@example.com"}), nil)
+	})
+
+	t.Run("eq=0|customgt5", func(t *testing.T) {
+		type S struct {
+			F int `validate:"eq=0|customgt5"`
+		}
+		Equal(t, validate.Struct(S{0}), nil)
+		Equal(t, validate.Struct(S{10}), nil)
+		NotEqual(t, validate.Struct(S{3}), nil)
+	})
+
+	t.Run("numeric|country_code", func(t *testing.T) {
+		type S struct {
+			F string `validate:"numeric|country_code"`
+		}
+		Equal(t, validate.Struct(S{"US"}), nil)
+	})
+}
+
 func TestNilValidator(t *testing.T) {
 	type TestStruct struct {
 		Test string `validate:"required"`
