@@ -2245,7 +2245,11 @@ func TestCrossNamespaceFieldValidation(t *testing.T) {
 	Equal(t, current.String(), "<*validator.SliceStruct Value>")
 	Equal(t, current.IsNil(), true)
 
-	PanicMatches(t, func() { v.getStructFieldOKInternal(reflect.ValueOf(1), "crazyinput") }, "Invalid field namespace")
+	// Test that invalid namespace on primitive type returns found=false instead of panicking
+	// This enables cross-field validators like required_if to work with ValidateMap
+	_, kind, _, ok = v.getStructFieldOKInternal(reflect.ValueOf(1), "crazyinput")
+	Equal(t, ok, false)
+	Equal(t, kind, reflect.Int)
 }
 
 func TestExistsValidation(t *testing.T) {
@@ -13965,6 +13969,78 @@ func TestValidate_ValidateMapCtxWithKeys(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestValidateMapWithCrossFieldValidators tests that cross-field validators
+// like required_if, required_unless, etc. don't panic when used with ValidateMap.
+// This is a regression test for issue #893.
+//
+// Note: With ValidateMap, cross-field lookups return "not found" since there's no
+// struct context. Validators handle this by using their defaultNotFoundValue:
+// - required_if: condition not met (returns false) → field not required
+// - required_unless: condition not met (returns false) → field required
+// - excluded_if: condition not met (returns false) → field not excluded
+// - excluded_unless: condition not met (returns false) → field must be excluded
+func TestValidateMapWithCrossFieldValidators(t *testing.T) {
+	validate := New()
+
+	// Test required_if - should not panic
+	// Cross-field lookup returns not found → condition not met → field not required
+	data := map[string]interface{}{
+		"name": "hello",
+		"id":   123,
+	}
+	rules := map[string]interface{}{
+		"name": "required_if=id 345",
+		"id":   "required",
+	}
+	errs := validate.ValidateMap(data, rules)
+	Equal(t, len(errs), 0)
+
+	// Test required_unless - should not panic
+	// Cross-field lookup returns not found → condition not met → field required
+	// Since name has a value, validation passes
+	rules2 := map[string]interface{}{
+		"name": "required_unless=id 345",
+		"id":   "required",
+	}
+	errs = validate.ValidateMap(data, rules2)
+	Equal(t, len(errs), 0)
+
+	// Test excluded_if - should not panic
+	// Cross-field lookup returns not found → condition not met → field not excluded
+	rules3 := map[string]interface{}{
+		"name": "excluded_if=id 123",
+		"id":   "required",
+	}
+	errs = validate.ValidateMap(data, rules3)
+	Equal(t, len(errs), 0)
+
+	// Test excluded_unless - should not panic
+	// Cross-field lookup returns not found → condition not met → field must be excluded
+	// Since name has a value, validation FAILS (this is expected behavior)
+	rules4 := map[string]interface{}{
+		"name": "excluded_unless=id 123",
+		"id":   "required",
+	}
+	errs = validate.ValidateMap(data, rules4)
+	Equal(t, len(errs), 1) // Fails because name has value but condition can't be verified
+
+	// Test excluded_unless with empty value - should pass since field is excluded
+	dataEmpty := map[string]interface{}{
+		"name": "",
+		"id":   123,
+	}
+	errs = validate.ValidateMap(dataEmpty, rules4)
+	Equal(t, len(errs), 0)
+
+	// Test with empty name - required_if condition not met, so empty is ok
+	data2 := map[string]interface{}{
+		"name": "",
+		"id":   123,
+	}
+	errs = validate.ValidateMap(data2, rules)
+	Equal(t, len(errs), 0)
 }
 
 func TestValidate_VarWithKey(t *testing.T) {
