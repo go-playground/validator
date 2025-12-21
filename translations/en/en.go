@@ -1075,6 +1075,26 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "alphaspace",
+			translation: "{0} can only contain alphabetic and space characters",
+			override:    false,
+		},
+		{
+			tag:         "alphanumspace",
+			translation: "{0} can only contain alphanumeric and space characters",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0} can only contain unicode alphabetic characters",
+			override:    false,
+		},
+		{
+			tag:         "alphanumunicode",
+			translation: "{0} can only contain unicode alphanumeric characters",
+			override:    false,
+		},
+		{
 			tag:         "numeric",
 			translation: "{0} must be a valid numeric value",
 			override:    false,

@@ -102,9 +102,13 @@ func TestTranslations(t *testing.T) {
 		GteFieldString     string            `validate:"gtefield=MaxString"`
 		LtFieldString      string            `validate:"ltfield=MaxString"`
 		LteFieldString     string            `validate:"ltefield=MaxString"`
-		AlphaString        string            `validate:"alpha"`
-		AlphanumString     string            `validate:"alphanum"`
-		NumericString      string            `validate:"numeric"`
+		AlphaString           string            `validate:"alpha"`
+		AlphanumString        string            `validate:"alphanum"`
+		AlphaSpaceString      string            `validate:"alphaspace"`
+		AlphaNumSpaceString   string            `validate:"alphanumspace"`
+		AlphaUnicodeString    string            `validate:"alphaunicode"`
+		AlphaNumUnicodeString string            `validate:"alphanumunicode"`
+		NumericString         string            `validate:"numeric"`
 		NumberString       string            `validate:"number"`
 		HexadecimalString  string            `validate:"hexadecimal"`
 		HexColorString     string            `validate:"hexcolor"`
@@ -223,6 +227,10 @@ func TestTranslations(t *testing.T) {
 
 	test.AlphaString = "abc3"
 	test.AlphanumString = "abc3!"
+	test.AlphaSpaceString = "abc3"
+	test.AlphaNumSpaceString = "abc!"
+	test.AlphaUnicodeString = "abc3"
+	test.AlphaNumUnicodeString = "abc!"
 	test.NumericString = "12E.00"
 	test.NumberString = "12E"
 
@@ -471,6 +479,22 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.AlphaString",
 			expected: "AlphaString은(는) 알파벳만 포함할 수 있습니다.",
+		},
+		{
+			ns:       "Test.AlphaSpaceString",
+			expected: "AlphaSpaceString은(는) 알파벳과 공백만 포함할 수 있습니다.",
+		},
+		{
+			ns:       "Test.AlphaNumSpaceString",
+			expected: "AlphaNumSpaceString은(는) 알파벳, 숫자, 공백만 포함할 수 있습니다.",
+		},
+		{
+			ns:       "Test.AlphaUnicodeString",
+			expected: "AlphaUnicodeString은(는) 유니코드 문자만 포함할 수 있습니다.",
+		},
+		{
+			ns:       "Test.AlphaNumUnicodeString",
+			expected: "AlphaNumUnicodeString은(는) 유니코드 문자와 숫자만 포함할 수 있습니다.",
 		},
 		{
 			ns:       "Test.LtFieldString",
