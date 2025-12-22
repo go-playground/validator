@@ -12,6 +12,7 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -111,6 +112,12 @@ type TestSlice struct {
 	Max       []int `validate:"max=10"`
 	MinMax    []int `validate:"min=1,max=10"`
 	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
+}
+
+type TestStringer string
+
+func (s TestStringer) String() string {
+	return string(s)
 }
 
 func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag string) {
@@ -8338,15 +8345,253 @@ func TestUrl(t *testing.T) {
 
 		if test.expected {
 			if !IsEqual(errs, nil) {
-				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+				t.Fatalf("'%s' URL should be valid (index %d). Error: %s", test.param, i, errs)
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+				t.Fatalf("'%s' URL should be invalid (index %d). Error: %s", test.param, i, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "url" {
-					t.Fatalf("Index: %d URL failed Error: %s", i, errs)
+					t.Fatalf("'%s' URL failed (index %d). Error: %s", test.param, i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
+}
+
+func TestUrlWithStringer(t *testing.T) {
+	tests := []struct {
+		param    fmt.Stringer
+		expected bool
+	}{
+		{TestStringer("http://foo.bar#com"), true},
+		{TestStringer("http://foobar.com"), true},
+		{TestStringer("https://foobar.com"), true},
+		{TestStringer("foobar.com"), false},
+		{TestStringer("http://foobar.coffee/"), true},
+		{TestStringer("http://foobar.中文网/"), true},
+		{TestStringer("http://foobar.org/"), true},
+		{TestStringer("http://foobar.org:8080/"), true},
+		{TestStringer("ftp://foobar.ru/"), true},
+		{TestStringer("http://user:pass@www.foobar.com/"), true},
+		{TestStringer("http://127.0.0.1/"), true},
+		{TestStringer("http://duckduckgo.com/?q=%2F"), true},
+		{TestStringer("http://localhost:3000/"), true},
+		{TestStringer("http://foobar.com/?foo=bar#baz=qux"), true},
+		{TestStringer("http://foobar.com?foo=bar"), true},
+		{TestStringer("http://www.xn--froschgrn-x9a.net/"), true},
+		{TestStringer(""), false},
+		{TestStringer("xyz://foobar.com"), true},
+		{TestStringer("invalid."), false},
+		{TestStringer(".com"), false},
+		{TestStringer("rtmp://foobar.com"), true},
+		{TestStringer("http://www.foo_bar.com/"), true},
+		{TestStringer("http://localhost:3000/"), true},
+		{TestStringer("http://foobar.com/#baz"), true},
+		{TestStringer("http://foobar.com#baz=qux"), true},
+		{TestStringer("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{TestStringer("http://www.foobar.com/~foobar"), true},
+		{TestStringer("http://www.-foobar.com/"), true},
+		{TestStringer("http://www.foo---bar.com/"), true},
+		{TestStringer("mailto:someone@example.com"), true},
+		{TestStringer("irc://irc.server.org/channel"), true},
+		{TestStringer("irc://#channel@network"), true},
+		{TestStringer("/abs/test/dir"), false},
+		{TestStringer("./rel/test/dir"), false},
+		{TestStringer("irc:"), false},
+		{TestStringer("http://"), false},
+		{TestStringer("file://path/to/file.txt"), true},
+		{TestStringer("file:///c:/Windows/file.txt"), true},
+		{TestStringer("file://localhost/path/to/file.txt"), true},
+		{TestStringer("file://localhost/c:/WINDOWS/file.txt"), true},
+		{TestStringer("file:"), false},
+		{TestStringer("file:/"), false},
+		{TestStringer("file://"), false},
+		{TestStringer("file:////remotehost/path/file.txt"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be valid (index %d). Error: %s", test.param, i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be invalid (index %d). Error: %s", test.param, i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "url" {
+					t.Fatalf("'%s' URL failed (index %d). Error: %s", test.param, i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
+}
+
+func TestUrlWithNetURL(t *testing.T) {
+	makeUrl := func(s string) url.URL {
+		u, _ := url.Parse(s)
+		return *u
+	}
+
+	tests := []struct {
+		param    url.URL
+		expected bool
+	}{
+		{makeUrl("http://foo.bar#com"), true},
+		{makeUrl("http://foobar.com"), true},
+		{makeUrl("https://foobar.com"), true},
+		{makeUrl("foobar.com"), false},
+		{makeUrl("http://foobar.coffee/"), true},
+		{makeUrl("http://foobar.中文网/"), true},
+		{makeUrl("http://foobar.org/"), true},
+		{makeUrl("http://foobar.org:8080/"), true},
+		{makeUrl("ftp://foobar.ru/"), true},
+		{makeUrl("http://user:pass@www.foobar.com/"), true},
+		{makeUrl("http://127.0.0.1/"), true},
+		{makeUrl("http://duckduckgo.com/?q=%2F"), true},
+		{makeUrl("http://localhost:3000/"), true},
+		{makeUrl("http://foobar.com/?foo=bar#baz=qux"), true},
+		{makeUrl("http://foobar.com?foo=bar"), true},
+		{makeUrl("http://www.xn--froschgrn-x9a.net/"), true},
+		{makeUrl(""), false},
+		{makeUrl("xyz://foobar.com"), true},
+		{makeUrl("invalid."), false},
+		{makeUrl(".com"), false},
+		{makeUrl("rtmp://foobar.com"), true},
+		{makeUrl("http://www.foo_bar.com/"), true},
+		{makeUrl("http://localhost:3000/"), true},
+		{makeUrl("http://foobar.com/#baz"), true},
+		{makeUrl("http://foobar.com#baz=qux"), true},
+		{makeUrl("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{makeUrl("http://www.foobar.com/~foobar"), true},
+		{makeUrl("http://www.-foobar.com/"), true},
+		{makeUrl("http://www.foo---bar.com/"), true},
+		{makeUrl("mailto:someone@example.com"), true},
+		{makeUrl("irc://irc.server.org/channel"), true},
+		{makeUrl("irc://#channel@network"), true},
+		{makeUrl("/abs/test/dir"), false},
+		{makeUrl("./rel/test/dir"), false},
+		{makeUrl("irc:"), false},
+		{makeUrl("http://"), false},
+		{makeUrl("file://path/to/file.txt"), true},
+		{makeUrl("file:///c:/Windows/file.txt"), true},
+		{makeUrl("file://localhost/path/to/file.txt"), true},
+		{makeUrl("file://localhost/c:/WINDOWS/file.txt"), true},
+		{makeUrl("file:"), false},
+		{makeUrl("file:/"), false},
+		{makeUrl("file://"), false},
+		{makeUrl("file:////remotehost/path/file.txt"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be valid (index %d). Error: %s", test.param.String(), i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be invalid (index %d). Error: %s", test.param.String(), i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "url" {
+					t.Fatalf("'%s' URL failed (index %d). Error: %s", test.param.String(), i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
+}
+
+func TestUrlWithRefToNetURL(t *testing.T) {
+	makeRefToUrl := func(s string) (u *url.URL) {
+		u, _ = url.Parse(s)
+		return
+	}
+
+	tests := []struct {
+		param    *url.URL
+		expected bool
+	}{
+		{makeRefToUrl("http://foo.bar#com"), true},
+		{makeRefToUrl("http://foobar.com"), true},
+		{makeRefToUrl("https://foobar.com"), true},
+		{makeRefToUrl("foobar.com"), false},
+		{makeRefToUrl("http://foobar.coffee/"), true},
+		{makeRefToUrl("http://foobar.中文网/"), true},
+		{makeRefToUrl("http://foobar.org/"), true},
+		{makeRefToUrl("http://foobar.org:8080/"), true},
+		{makeRefToUrl("ftp://foobar.ru/"), true},
+		{makeRefToUrl("http://user:pass@www.foobar.com/"), true},
+		{makeRefToUrl("http://127.0.0.1/"), true},
+		{makeRefToUrl("http://duckduckgo.com/?q=%2F"), true},
+		{makeRefToUrl("http://localhost:3000/"), true},
+		{makeRefToUrl("http://foobar.com/?foo=bar#baz=qux"), true},
+		{makeRefToUrl("http://foobar.com?foo=bar"), true},
+		{makeRefToUrl("http://www.xn--froschgrn-x9a.net/"), true},
+		{makeRefToUrl(""), false},
+		{makeRefToUrl("xyz://foobar.com"), true},
+		{makeRefToUrl("invalid."), false},
+		{makeRefToUrl(".com"), false},
+		{makeRefToUrl("rtmp://foobar.com"), true},
+		{makeRefToUrl("http://www.foo_bar.com/"), true},
+		{makeRefToUrl("http://localhost:3000/"), true},
+		{makeRefToUrl("http://foobar.com/#baz"), true},
+		{makeRefToUrl("http://foobar.com#baz=qux"), true},
+		{makeRefToUrl("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{makeRefToUrl("http://www.foobar.com/~foobar"), true},
+		{makeRefToUrl("http://www.-foobar.com/"), true},
+		{makeRefToUrl("http://www.foo---bar.com/"), true},
+		{makeRefToUrl("mailto:someone@example.com"), true},
+		{makeRefToUrl("irc://irc.server.org/channel"), true},
+		{makeRefToUrl("irc://#channel@network"), true},
+		{makeRefToUrl("/abs/test/dir"), false},
+		{makeRefToUrl("./rel/test/dir"), false},
+		{makeRefToUrl("irc:"), false},
+		{makeRefToUrl("http://"), false},
+		{makeRefToUrl("file://path/to/file.txt"), true},
+		{makeRefToUrl("file:///c:/Windows/file.txt"), true},
+		{makeRefToUrl("file://localhost/path/to/file.txt"), true},
+		{makeRefToUrl("file://localhost/c:/WINDOWS/file.txt"), true},
+		{makeRefToUrl("file:"), false},
+		{makeRefToUrl("file:/"), false},
+		{makeRefToUrl("file://"), false},
+		{makeRefToUrl("file:////remotehost/path/file.txt"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be valid (index %d). Error: %s", test.param.String(), i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' URL should be invalid (index %d). Error: %s", test.param.String(), i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "url" {
+					t.Fatalf("'%s' URL failed (index %d). Error: %s", test.param.String(), i, errs)
 				}
 			}
 		}
@@ -8412,15 +8657,247 @@ func TestHttpUrl(t *testing.T) {
 
 		if test.expected {
 			if !IsEqual(errs, nil) {
-				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+				t.Fatalf("'%s' HTTP URL should be valid (index %d). Error: %s", test.param, i, errs)
 			}
 		} else {
 			if IsEqual(errs, nil) {
-				t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+				t.Fatalf("'%s' HTTP URL should be invalid (index %d). Error: %s", test.param, i, errs)
 			} else {
 				val := getError(errs, "", "")
 				if val.Tag() != "http_url" {
-					t.Fatalf("Index: %d HTTP URL failed Error: %s", i, errs)
+					t.Fatalf("'%s' HTTP URL failed (index %d). Error: %s", test.param, i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
+}
+
+func TestHttpUrlWithStringer(t *testing.T) {
+	tests := []struct {
+		param    fmt.Stringer
+		expected bool
+	}{
+		{TestStringer("http://foo.bar#com"), true},
+		{TestStringer("http://foobar.com"), true},
+		{TestStringer("HTTP://foobar.com"), true},
+		{TestStringer("https://foobar.com"), true},
+		{TestStringer("foobar.com"), false},
+		{TestStringer("http://foobar.coffee/"), true},
+		{TestStringer("http://foobar.中文网/"), true},
+		{TestStringer("http://foobar.org/"), true},
+		{TestStringer("http://foobar.org:8080/"), true},
+		{TestStringer("ftp://foobar.ru/"), false},
+		{TestStringer("file:///etc/passwd"), false},
+		{TestStringer("file://C:/windows/win.ini"), false},
+		{TestStringer("http://user:pass@www.foobar.com/"), true},
+		{TestStringer("http://127.0.0.1/"), true},
+		{TestStringer("http://duckduckgo.com/?q=%2F"), true},
+		{TestStringer("http://localhost:3000/"), true},
+		{TestStringer("http://foobar.com/?foo=bar#baz=qux"), true},
+		{TestStringer("http://foobar.com?foo=bar"), true},
+		{TestStringer("http://www.xn--froschgrn-x9a.net/"), true},
+		{TestStringer(""), false},
+		{TestStringer("a://b"), false},
+		{TestStringer("xyz://foobar.com"), false},
+		{TestStringer("invalid."), false},
+		{TestStringer(".com"), false},
+		{TestStringer("rtmp://foobar.com"), false},
+		{TestStringer("http://www.foo_bar.com/"), true},
+		{TestStringer("http://localhost:3000/"), true},
+		{TestStringer("http://foobar.com/#baz"), true},
+		{TestStringer("http://foobar.com#baz=qux"), true},
+		{TestStringer("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{TestStringer("http://www.foobar.com/~foobar"), true},
+		{TestStringer("http://www.-foobar.com/"), true},
+		{TestStringer("http://www.foo---bar.com/"), true},
+		{TestStringer("mailto:someone@example.com"), false},
+		{TestStringer("irc://irc.server.org/channel"), false},
+		{TestStringer("irc://#channel@network"), false},
+		{TestStringer("/abs/test/dir"), false},
+		{TestStringer("./rel/test/dir"), false},
+		{TestStringer("http:"), false},
+		{TestStringer("http://"), false},
+		{TestStringer("http://#invalid"), false},
+		{TestStringer("https://1.1.1.1"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be valid (index %d). Error: %s", test.param, i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be invalid (index %d). Error: %s", test.param, i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("'%s' HTTP URL failed (index %d). Error: %s", test.param, i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
+}
+
+func TestHttpUrlWithNetUrl(t *testing.T) {
+	makeUrl := func(s string) url.URL {
+		u, _ := url.Parse(s)
+		return *u
+	}
+
+	tests := []struct {
+		param    url.URL
+		expected bool
+	}{
+		{makeUrl("http://foo.bar#com"), true},
+		{makeUrl("http://foobar.com"), true},
+		{makeUrl("HTTP://foobar.com"), true},
+		{makeUrl("https://foobar.com"), true},
+		{makeUrl("foobar.com"), false},
+		{makeUrl("http://foobar.coffee/"), true},
+		{makeUrl("http://foobar.中文网/"), true},
+		{makeUrl("http://foobar.org/"), true},
+		{makeUrl("http://foobar.org:8080/"), true},
+		{makeUrl("ftp://foobar.ru/"), false},
+		{makeUrl("file:///etc/passwd"), false},
+		{makeUrl("file://C:/windows/win.ini"), false},
+		{makeUrl("http://user:pass@www.foobar.com/"), true},
+		{makeUrl("http://127.0.0.1/"), true},
+		{makeUrl("http://duckduckgo.com/?q=%2F"), true},
+		{makeUrl("http://localhost:3000/"), true},
+		{makeUrl("http://foobar.com/?foo=bar#baz=qux"), true},
+		{makeUrl("http://foobar.com?foo=bar"), true},
+		{makeUrl("http://www.xn--froschgrn-x9a.net/"), true},
+		{makeUrl(""), false},
+		{makeUrl("a://b"), false},
+		{makeUrl("xyz://foobar.com"), false},
+		{makeUrl("invalid."), false},
+		{makeUrl(".com"), false},
+		{makeUrl("rtmp://foobar.com"), false},
+		{makeUrl("http://www.foo_bar.com/"), true},
+		{makeUrl("http://localhost:3000/"), true},
+		{makeUrl("http://foobar.com/#baz"), true},
+		{makeUrl("http://foobar.com#baz=qux"), true},
+		{makeUrl("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{makeUrl("http://www.foobar.com/~foobar"), true},
+		{makeUrl("http://www.-foobar.com/"), true},
+		{makeUrl("http://www.foo---bar.com/"), true},
+		{makeUrl("mailto:someone@example.com"), false},
+		{makeUrl("irc://irc.server.org/channel"), false},
+		{makeUrl("irc://#channel@network"), false},
+		{makeUrl("/abs/test/dir"), false},
+		{makeUrl("./rel/test/dir"), false},
+		{makeUrl("http:"), false},
+		{makeUrl("http://"), false},
+		{makeUrl("http://#invalid"), false},
+		{makeUrl("https://1.1.1.1"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be valid (index %d). Error: %s", test.param.String(), i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be invalid (index %d). Error: %s", test.param.String(), i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("'%s' HTTP URL failed (index %d). Error: %s", test.param.String(), i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "http_url") }, "Bad field type int")
+}
+
+func TestHttpUrlWithRefToNetUrl(t *testing.T) {
+	makeRefToUrl := func(s string) (u *url.URL) {
+		u, _ = url.Parse(s)
+		return
+	}
+
+	tests := []struct {
+		param    *url.URL
+		expected bool
+	}{
+		{makeRefToUrl("http://foo.bar#com"), true},
+		{makeRefToUrl("http://foobar.com"), true},
+		{makeRefToUrl("HTTP://foobar.com"), true},
+		{makeRefToUrl("https://foobar.com"), true},
+		{makeRefToUrl("foobar.com"), false},
+		{makeRefToUrl("http://foobar.coffee/"), true},
+		{makeRefToUrl("http://foobar.中文网/"), true},
+		{makeRefToUrl("http://foobar.org/"), true},
+		{makeRefToUrl("http://foobar.org:8080/"), true},
+		{makeRefToUrl("ftp://foobar.ru/"), false},
+		{makeRefToUrl("file:///etc/passwd"), false},
+		{makeRefToUrl("file://C:/windows/win.ini"), false},
+		{makeRefToUrl("http://user:pass@www.foobar.com/"), true},
+		{makeRefToUrl("http://127.0.0.1/"), true},
+		{makeRefToUrl("http://duckduckgo.com/?q=%2F"), true},
+		{makeRefToUrl("http://localhost:3000/"), true},
+		{makeRefToUrl("http://foobar.com/?foo=bar#baz=qux"), true},
+		{makeRefToUrl("http://foobar.com?foo=bar"), true},
+		{makeRefToUrl("http://www.xn--froschgrn-x9a.net/"), true},
+		{makeRefToUrl(""), false},
+		{makeRefToUrl("a://b"), false},
+		{makeRefToUrl("xyz://foobar.com"), false},
+		{makeRefToUrl("invalid."), false},
+		{makeRefToUrl(".com"), false},
+		{makeRefToUrl("rtmp://foobar.com"), false},
+		{makeRefToUrl("http://www.foo_bar.com/"), true},
+		{makeRefToUrl("http://localhost:3000/"), true},
+		{makeRefToUrl("http://foobar.com/#baz"), true},
+		{makeRefToUrl("http://foobar.com#baz=qux"), true},
+		{makeRefToUrl("http://foobar.com/t$-_.+!*\\'(),"), true},
+		{makeRefToUrl("http://www.foobar.com/~foobar"), true},
+		{makeRefToUrl("http://www.-foobar.com/"), true},
+		{makeRefToUrl("http://www.foo---bar.com/"), true},
+		{makeRefToUrl("mailto:someone@example.com"), false},
+		{makeRefToUrl("irc://irc.server.org/channel"), false},
+		{makeRefToUrl("irc://#channel@network"), false},
+		{makeRefToUrl("/abs/test/dir"), false},
+		{makeRefToUrl("./rel/test/dir"), false},
+		{makeRefToUrl("http:"), false},
+		{makeRefToUrl("http://"), false},
+		{makeRefToUrl("http://#invalid"), false},
+		{makeRefToUrl("https://1.1.1.1"), true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "http_url")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be valid (index %d). Error: %s", test.param.String(), i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' HTTP URL should be invalid (index %d). Error: %s", test.param.String(), i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "http_url" {
+					t.Fatalf("'%s' HTTP URL failed (index %d). Error: %s", test.param.String(), i, errs)
 				}
 			}
 		}

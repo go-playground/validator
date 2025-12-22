@@ -1477,29 +1477,49 @@ func isURI(fl FieldLevel) bool {
 func isURL(fl FieldLevel) bool {
 	field := fl.Field()
 
+	var s string
+	var uri *url.URL
+	var ok bool
+
 	switch field.Kind() {
 	case reflect.String:
-
-		s := strings.ToLower(field.String())
-
-		if len(s) == 0 {
-			return false
+		s = strings.ToLower(field.String())
+	case reflect.Struct:
+		var u url.URL
+		if u, ok = field.Interface().(url.URL); !ok {
+			panic(fmt.Sprintf("Bad field type %s", field.Type()))
 		}
-
-		url, err := url.Parse(s)
-		if err != nil || url.Scheme == "" {
-			return false
+		uri = &u
+	default:
+		var stringer fmt.Stringer
+		if stringer, ok = field.Interface().(fmt.Stringer); !ok {
+			panic(fmt.Sprintf("Bad field type %s", field.Type()))
 		}
-		isFileScheme := url.Scheme == "file"
-
-		if (isFileScheme && (len(url.Path) == 0 || url.Path == "/")) || (!isFileScheme && len(url.Host) == 0 && len(url.Fragment) == 0 && len(url.Opaque) == 0) {
-			return false
-		}
-
-		return true
+		s = stringer.String()
 	}
 
-	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	if len(s) == 0 && uri == nil {
+		return false
+	}
+
+	if uri == nil {
+		var err error
+		if uri, err = url.Parse(s); err != nil {
+			return false
+		}
+	}
+
+	if uri.Scheme == "" {
+		return false
+	}
+
+	isFileScheme := uri.Scheme == "file"
+
+	if (isFileScheme && (len(uri.Path) == 0 || uri.Path == "/")) || (!isFileScheme && len(uri.Host) == 0 && len(uri.Fragment) == 0 && len(uri.Opaque) == 0) {
+		return false
+	}
+
+	return true
 }
 
 // isHttpURL is the validation function for validating if the current field's value is a valid HTTP(s) URL.
@@ -1509,20 +1529,32 @@ func isHttpURL(fl FieldLevel) bool {
 	}
 
 	field := fl.Field()
+	var s string
+	var ok bool
 	switch field.Kind() {
 	case reflect.String:
+		s = strings.ToLower(field.String())
+	case reflect.Struct:
+		var u url.URL
 
-		s := strings.ToLower(field.String())
-
-		url, err := url.Parse(s)
-		if err != nil || url.Host == "" {
-			return false
+		if u, ok = field.Interface().(url.URL); !ok {
+			panic(fmt.Sprintf("Bad field type %s", field.Type()))
 		}
-
-		return url.Scheme == "http" || url.Scheme == "https"
+		s = u.String()
+	default:
+		if stringer, ok := fl.Field().Interface().(fmt.Stringer); ok {
+			s = stringer.String()
+		} else {
+			panic(fmt.Sprintf("Bad field type %s", field.Type()))
+		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	url, err := url.Parse(s)
+	if err != nil || url.Host == "" {
+		return false
+	}
+
+	return url.Scheme == "http" || url.Scheme == "https"
 }
 
 // isHttpsURL is the validation function for validating if the current field's value is a valid HTTPS-only URL.
