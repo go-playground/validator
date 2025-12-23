@@ -1278,6 +1278,15 @@ This validates that a string value contains a valid Unix Address.
 
 	Usage: unix_addr
 
+# Unix Domain Socket Exists
+
+This validates that a Unix domain socket file exists at the specified path.
+It checks both filesystem-based sockets and Linux abstract sockets (prefixed with @).
+For filesystem sockets, it verifies the path exists and is a socket file.
+For abstract sockets on Linux, it checks /proc/net/unix.
+
+	Usage: uds_exists
+
 # Media Access Control Address MAC
 
 This validates that a string value contains a valid MAC Address.

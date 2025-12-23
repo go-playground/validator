@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bufio"
 	"bytes"
 	"cmp"
 	"context"
@@ -15,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -206,6 +208,7 @@ var (
 		"ip6_addr":                      isIP6AddrResolvable,
 		"ip_addr":                       isIPAddrResolvable,
 		"unix_addr":                     isUnixAddrResolvable,
+		"uds_exists":                    isUnixDomainSocketExists,
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
@@ -2609,6 +2612,70 @@ func isUnixAddrResolvable(fl FieldLevel) bool {
 	_, err := net.ResolveUnixAddr("unix", fl.Field().String())
 
 	return err == nil
+}
+
+// isUnixDomainSocketExists is the validation function for validating if the field's value is an existing Unix domain socket.
+// It handles both filesystem-based sockets and Linux abstract sockets.
+// It always returns false for Windows.
+func isUnixDomainSocketExists(fl FieldLevel) bool {
+	if runtime.GOOS == "windows" {
+		return false
+	}
+
+	sockpath := fl.Field().String()
+
+	if sockpath == "" {
+		return false
+	}
+
+	// On Linux, check for abstract sockets (prefixed with @)
+	if runtime.GOOS == "linux" && strings.HasPrefix(sockpath, "@") {
+		return isAbstractSocketExists(sockpath)
+	}
+
+	// For filesystem-based sockets, check if the path exists and is a socket
+	stats, err := os.Stat(sockpath)
+	if err != nil {
+		return false
+	}
+
+	return stats.Mode().Type() == fs.ModeSocket
+}
+
+// isAbstractSocketExists checks if a Linux abstract socket exists by reading /proc/net/unix.
+// Abstract sockets are identified by an @ prefix in human-readable form.
+func isAbstractSocketExists(sockpath string) bool {
+	file, err := os.Open("/proc/net/unix")
+	if err != nil {
+		return false
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	scanner := bufio.NewScanner(file)
+
+	// Skip the header line
+	if !scanner.Scan() {
+		return false
+	}
+
+	// Abstract sockets in /proc/net/unix are represented with @ prefix
+	// The socket path is the last field in each line
+	for scanner.Scan() {
+		line := scanner.Text()
+		fields := strings.Fields(line)
+
+		// The path is the last field (8th field typically)
+		if len(fields) >= 8 {
+			path := fields[len(fields)-1]
+			if path == sockpath {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func isIP4Addr(fl FieldLevel) bool {
