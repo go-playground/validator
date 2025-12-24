@@ -422,6 +422,63 @@ func TestNameNamespace(t *testing.T) {
 	Equal(t, fe.StructNamespace(), "Namespace.Inner1.Inner2.String[1]")
 }
 
+func TestEmbeddingAndNamespace(t *testing.T) {
+	type Embedded struct {
+		EmbeddedString string `validate:"required" json:"JSONString"`
+	}
+
+	type OuterWithoutSkipTag struct {
+		Embedded
+	}
+
+	type OuterWithSkipTag struct {
+		Embedded `validate:"skipns"`
+	}
+
+	validate := New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	// Without skip tag
+	ts1 := &OuterWithoutSkipTag{
+		Embedded{EmbeddedString: "ok"},
+	}
+
+	errs := validate.Struct(ts1)
+	Equal(t, errs, nil)
+
+	ts1.EmbeddedString = ""
+
+	errs = validate.Struct(ts1)
+	NotEqual(t, errs, nil)
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "OuterWithoutSkipTag.Embedded.JSONString", "OuterWithoutSkipTag.Embedded.EmbeddedString", "JSONString", "EmbeddedString", "required")
+
+	// Without skip tag
+	ts2 := &OuterWithSkipTag{
+		Embedded{EmbeddedString: "ok"},
+	}
+
+	errs = validate.Struct(ts2)
+	Equal(t, errs, nil)
+
+	ts2.EmbeddedString = ""
+
+	errs = validate.Struct(ts2)
+	NotEqual(t, errs, nil)
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "OuterWithSkipTag.JSONString", "OuterWithSkipTag.Embedded.EmbeddedString", "JSONString", "EmbeddedString", "required")
+}
+
 func TestAnonymous(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
