@@ -1020,6 +1020,14 @@ The format of the string is checked to ensure it matches the standard Ethereum a
 
 	Usage: eth_addr
 
+# Tron Address
+
+This validates that a string value contains a valid TRON address.
+The address is decoded using Base58Check encoding and validated by verifying
+the version byte and checksum.
+
+	Usage: trx_addr
+
 # Contains
 
 This validates that a string value contains the substring value.

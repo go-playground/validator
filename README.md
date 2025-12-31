@@ -171,6 +171,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
+| trx_addr | Tron Address |
+| eth_addr | Ethereum Address |
 | credit_card | Credit Card Number |
 | mongodb | MongoDB ObjectID |
 | mongodb_connection_string | MongoDB Connection String |
@@ -180,7 +182,6 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | e164 | e164 formatted phone number |
 | ein | U.S. Employeer Identification Number |
 | email | E-mail String
-| eth_addr | Ethereum Address |
 | hexadecimal | Hexadecimal String |
 | hexcolor | Hexcolor String |
 | hsl | HSL String |
