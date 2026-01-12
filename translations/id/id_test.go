@@ -399,6 +399,8 @@ func TestStringTagsTranslations(t *testing.T) {
 	// TestStringTags for string validations
 	type TestStringTags struct {
 		Alpha         string `validate:"alpha"`
+		Alphaspace    string `validate:"alphaspace"`
+		Alphanumspace string `validate:"alphanumspace"`
 		Alphanum      string `validate:"alphanum"`
 		AlphanumUni   string `validate:"alphanumunicode"`
 		AlphaUni      string `validate:"alphaunicode"`
@@ -425,6 +427,8 @@ func TestStringTagsTranslations(t *testing.T) {
 	// init test struct with invalid values
 	test := TestStringTags{
 		Alpha:         "123",                // should only contain letters
+		Alphaspace:    "abc3",               // should only contain letters and spaces
+		Alphanumspace: "abc!",               // should only contain letters, numbers, and spaces
 		Alphanum:      "!@#",                // should only contain letters and numbers
 		AlphanumUni:   "!@#",                // should only contain unicode letters and numbers
 		AlphaUni:      "123",                // should only contain unicode letters
@@ -463,6 +467,14 @@ func TestStringTagsTranslations(t *testing.T) {
 		{
 			ns:       "TestStringTags.Alpha",
 			expected: "Alpha hanya dapat berisi karakter alfanumerik",
+		},
+		{
+			ns:       "TestStringTags.Alphaspace",
+			expected: "Alphaspace hanya dapat berisi karakter alfabet dan spasi",
+		},
+		{
+			ns:       "TestStringTags.Alphanumspace",
+			expected: "Alphanumspace hanya dapat berisi karakter alfanumerik dan spasi",
 		},
 		{
 			ns:       "TestStringTags.Alphanum",
