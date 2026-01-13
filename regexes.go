@@ -64,6 +64,7 @@ const (
 	ethAddressRegexString            = `^0x[0-9a-fA-F]{40}$`
 	ethAddressUpperRegexString       = `^0x[0-9A-F]{40}$`
 	ethAddressLowerRegexString       = `^0x[0-9a-f]{40}$`
+	trxAddressRegexString            = `^T[1-9A-HJ-NP-Za-km-z]{33}$`
 	uRLEncodedRegexString            = `^(?:[^%]|%[0-9A-Fa-f]{2})*$`
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
@@ -151,6 +152,7 @@ var (
 	btcUpperAddressRegexBech32 = lazyRegexCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = lazyRegexCompile(btcAddressLowerRegexStringBech32)
 	ethAddressRegex            = lazyRegexCompile(ethAddressRegexString)
+	trxAddressRegex            = lazyRegexCompile(trxAddressRegexString)
 	uRLEncodedRegex            = lazyRegexCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = lazyRegexCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = lazyRegexCompile(hTMLRegexString)
