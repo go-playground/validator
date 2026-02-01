@@ -108,7 +108,6 @@ func TestTranslations(t *testing.T) {
 		AlphanumspaceString   string            `validate:"alphanumspace"`
 		AlphanumunicodeString string            `validate:"alphanumunicode"`
 		AlphaunicodeString    string            `validate:"alphaunicode"`
-		AsciiString           string            `validate:"ascii"`
 		NumericString         string            `validate:"numeric"`
 		NumberString          string            `validate:"number"`
 		HexadecimalString     string            `validate:"hexadecimal"`
@@ -232,7 +231,6 @@ func TestTranslations(t *testing.T) {
 	test.AlphaunicodeString = "未来の文字コード体系に私達は不安をもっています｡"
 	test.AlphaString = "abc3"
 	test.AlphanumString = "abc3!"
-	test.AsciiString = "未来の文字コード体系に私達は不安をもっています｡"
 	test.NumericString = "12E.00"
 	test.NumberString = "12E"
 
@@ -488,19 +486,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.AlphanumspaceString",
-			expected: "AlphanumspaceString darf nur alphabetische Zeichen, Zahlen und Leerzeichen enthalten",
+			expected: "AlphanumspaceString darf nur alphanumerische Zeichen und Leerzeichen enthalten",
 		},
 		{
 			ns:       "Test.AlphanumunicodeString",
-			expected: "AlphanumunicodeString darf nur alphabetische Zeichen, Zahlen und Unicodes enthalten",
+			expected: "AlphanumunicodeString darf nur alphanumerische Zeichen und Unicodes enthalten",
 		},
 		{
 			ns:       "Test.AlphaunicodeString",
-			expected: "AlphaunicodeString darf nur alphabetische Zeichen und Unicode Zeichen enthalten",
-		},
-		{
-			ns:       "Test.AsciiString",
-			expected: "AsciiString darf nur ASCII Zeichen enthalten",
+			expected: "AlphaunicodeString darf nur alphabetische Zeichen und Unicodes enthalten",
 		},
 		{
 			ns:       "Test.LtFieldString",
