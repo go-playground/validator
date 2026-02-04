@@ -24,7 +24,7 @@ It has the following **unique** features:
 A Call for Maintainers
 ----------------------
 
-Please read the discussiong started [here](https://github.com/go-playground/validator/discussions/1330) if you are interested in contributing/helping maintain this package.
+Please read the discussion started [here](https://github.com/go-playground/validator/discussions/1330) if you are interested in contributing/helping maintain this package.
 
 Installation
 ------------
@@ -178,7 +178,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
 | e164 | e164 formatted phone number |
-| ein | U.S. Employeer Identification Number |
+| ein | U.S. Employer Identification Number |
 | email | E-mail String
 | eth_addr | Ethereum Address |
 | hexadecimal | Hexadecimal String |

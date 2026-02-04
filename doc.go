@@ -1170,7 +1170,7 @@ This validates that a string value contains a valid longitude.
 
 	Usage: longitude
 
-# Employeer Identification Number EIN
+# Employer Identification Number EIN
 
 This validates that a string value contains a valid U.S. Employer Identification Number.
 
