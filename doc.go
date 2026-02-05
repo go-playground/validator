@@ -886,6 +886,12 @@ This validates that a string value contains a valid hsla color
 
 	Usage: hsla
 
+# CMYK String
+
+This validates that a string value contains a valid cmyk color
+
+	Usage: cmyk
+
 # E.164 Phone Number String
 
 This validates that a string value contains a valid E.164 Phone number

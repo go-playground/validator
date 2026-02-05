@@ -185,6 +185,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | hexcolor | Hexcolor String |
 | hsl | HSL String |
 | hsla | HSLA String |
+| cmyk | CMYK String |
 | html | HTML Tags |
 | html_encoded | HTML Encoded |
 | isbn | International Standard Book Number |
@@ -274,7 +275,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 #### Aliases:
 | Tag | Description |
 | - | - |
-| iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
+| iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla\|cmyk |
 | country_code | iso3166_1_alpha2\|iso3166_1_alpha3\|iso3166_1_alpha_numeric |
 
 Benchmarks
