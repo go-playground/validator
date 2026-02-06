@@ -653,7 +653,7 @@ func TestStructLevelValidations(t *testing.T) {
 
 func TestAliasTags(t *testing.T) {
 	validate := New()
-	validate.RegisterAlias("iscoloralias", "hexcolor|rgb|rgba|hsl|hsla")
+	validate.RegisterAlias("iscoloralias", "hexcolor|rgb|rgba|hsl|hsla|cmyk")
 
 	s := "rgb(255,255,255)"
 	errs := validate.Var(s, "iscoloralias")
@@ -686,7 +686,7 @@ func TestAliasTags(t *testing.T) {
 
 	fe := getError(errs, "Test.Color", "Test.Color")
 	NotEqual(t, fe, nil)
-	Equal(t, fe.ActualTag(), "hexcolor|rgb|rgba|hsl|hsla")
+	Equal(t, fe.ActualTag(), "hexcolor|rgb|rgba|hsl|hsla|cmyk")
 
 	validate.RegisterAlias("req", "required,dive,iscoloralias")
 	arr := []string{"val1", "#fff", "#000"}
@@ -8729,6 +8729,47 @@ func TestOrTag(t *testing.T) {
 	NotEqual(t, fe, nil)
 }
 
+func TestCmyk(t *testing.T) {
+	validate := New()
+
+	s := "cmyk(0%, 100%, 50%, 0%)"
+	errs := validate.Var(s, "cmyk")
+	Equal(t, errs, nil)
+
+	s = "cmyk(0%, 0%, 0%, 0%)"
+	errs = validate.Var(s, "cmyk")
+	Equal(t, errs, nil)
+
+	s = "cmyk(0%, 0.1%, 0%, 0%)"
+	errs = validate.Var(s, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+
+	s = "cmyk(0, 100%, 50%, 0%)"
+	errs = validate.Var(s, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+
+	s = "cmyk(0%, 101%, 50%)"
+	errs = validate.Var(s, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+
+	s = "cmyk(0%, 100%, 50%)"
+	errs = validate.Var(s, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+
+	s = "cmyk(0%, 0%, 0%)"
+	errs = validate.Var(s, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+
+	i := 1
+	errs = validate.Var(i, "cmyk")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "cmyk")
+}
 func TestHsla(t *testing.T) {
 	validate := New()
 
