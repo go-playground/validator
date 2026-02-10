@@ -14491,6 +14491,12 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"0 15 10 ? * 6#3", "cron", true},
 		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
+		{"10 0-3,9-23 * * *", "cron", true},
+		{"15-25 9-23,0-3 1-2 1-2 1-2", "cron", true}, // range values
+		{"/15 * * * *", "cron", false},               // invalid step value
+		{"*/12 */1 */1 */1 */1", "cron", true},       // valid step value
+		{"@daily", "cron", true},                     // macro
+		{"* * * * *", "cron", true},                  // Standard
 	}
 
 	validate := New()
