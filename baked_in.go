@@ -347,11 +347,17 @@ func isUnique(fl FieldLevel) bool {
 
 		if param == "" {
 			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
+			var nilCount int
 
 			for i := 0; i < field.Len(); i++ {
-				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
+				e := reflect.Indirect(field.Index(i))
+				if !e.IsValid() {
+					nilCount++
+					continue
+				}
+				m.SetMapIndex(e, v)
 			}
-			return field.Len() == m.Len()
+			return field.Len()-nilCount == m.Len() && nilCount <= 1
 		}
 
 		sf, ok := elem.FieldByName(param)
@@ -366,14 +372,20 @@ func isUnique(fl FieldLevel) bool {
 
 		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
 		var fieldlen int
+		var nilCount int
 		for i := 0; i < field.Len(); i++ {
-			key := reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param))
+			e := reflect.Indirect(field.Index(i))
+			if !e.IsValid() {
+				nilCount++
+				continue
+			}
+			key := reflect.Indirect(e.FieldByName(param))
 			if key.IsValid() {
 				fieldlen++
 				m.SetMapIndex(key, v)
 			}
 		}
-		return fieldlen == m.Len()
+		return fieldlen == m.Len() && nilCount <= 1
 	case reflect.Map:
 		var m reflect.Value
 		if field.Type().Elem().Kind() == reflect.Ptr {
@@ -382,11 +394,17 @@ func isUnique(fl FieldLevel) bool {
 			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
 		}
 
+		var nilCount int
 		for _, k := range field.MapKeys() {
-			m.SetMapIndex(reflect.Indirect(field.MapIndex(k)), v)
+			e := reflect.Indirect(field.MapIndex(k))
+			if !e.IsValid() {
+				nilCount++
+				continue
+			}
+			m.SetMapIndex(e, v)
 		}
 
-		return field.Len() == m.Len()
+		return field.Len()-nilCount == m.Len() && nilCount <= 1
 	default:
 		if parent := fl.Parent(); parent.Kind() == reflect.Struct {
 			uniqueField := parent.FieldByName(param)
