@@ -347,9 +347,15 @@ func isUnique(fl FieldLevel) bool {
 
 		if param == "" {
 			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
+			zero := reflect.Zero(elem)
 
 			for i := 0; i < field.Len(); i++ {
-				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
+				e := reflect.Indirect(field.Index(i))
+				if !e.IsValid() {
+					m.SetMapIndex(zero, v)
+					continue
+				}
+				m.SetMapIndex(e, v)
 			}
 			return field.Len() == m.Len()
 		}
@@ -365,28 +371,48 @@ func isUnique(fl FieldLevel) bool {
 		}
 
 		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
-		var fieldlen int
-		for i := 0; i < field.Len(); i++ {
-			key := reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param))
-			if key.IsValid() {
-				fieldlen++
-				m.SetMapIndex(key, v)
-			}
-		}
-		return fieldlen == m.Len()
-	case reflect.Map:
-		var m reflect.Value
-		if field.Type().Elem().Kind() == reflect.Ptr {
-			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem().Elem(), v.Type()))
-		} else {
-			m = reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
-		}
+		zero := reflect.Zero(sfTyp)
 
-		for _, k := range field.MapKeys() {
-			m.SetMapIndex(reflect.Indirect(field.MapIndex(k)), v)
+		for i := 0; i < field.Len(); i++ {
+			parent := reflect.Indirect(field.Index(i))
+			if !parent.IsValid() {
+				m.SetMapIndex(zero, v)
+				continue
+			}
+
+			key := reflect.Indirect(parent.FieldByName(param))
+			if !key.IsValid() {
+				m.SetMapIndex(zero, v)
+				continue
+			}
+
+			m.SetMapIndex(key, v)
 		}
 
 		return field.Len() == m.Len()
+
+	case reflect.Map:
+		var keyType reflect.Type
+		if field.Type().Elem().Kind() == reflect.Ptr {
+			keyType = field.Type().Elem().Elem()
+		} else {
+			keyType = field.Type().Elem()
+		}
+
+		m := reflect.MakeMap(reflect.MapOf(keyType, v.Type()))
+		zero := reflect.Zero(keyType)
+
+		for _, k := range field.MapKeys() {
+			val := reflect.Indirect(field.MapIndex(k))
+			if !val.IsValid() {
+				m.SetMapIndex(zero, v)
+				continue
+			}
+			m.SetMapIndex(val, v)
+		}
+
+		return field.Len() == m.Len()
+
 	default:
 		if parent := fl.Parent(); parent.Kind() == reflect.Struct {
 			uniqueField := parent.FieldByName(param)
