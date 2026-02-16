@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/leodido/go-urn v1.4.0
 	golang.org/x/crypto v0.47.0
-	golang.org/x/text v0.33.0
+	golang.org/x/text v0.34.0
 )
 
 require golang.org/x/sys v0.40.0 // indirect
