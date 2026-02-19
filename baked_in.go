@@ -336,87 +336,110 @@ func isOneOfCI(fl FieldLevel) bool {
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
-	v := reflect.ValueOf(struct{}{})
+
+	// sentinel used as map key for nil values
+	var nilKey = struct{}{}
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
-		elem := field.Type().Elem()
-		if elem.Kind() == reflect.Ptr {
-			elem = elem.Elem()
-		}
-
-		if param == "" {
-			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
-			zero := reflect.Zero(elem)
-
-			for i := 0; i < field.Len(); i++ {
-				e := reflect.Indirect(field.Index(i))
-				if !e.IsValid() {
-					m.SetMapIndex(zero, v)
-					continue
-				}
-				m.SetMapIndex(e, v)
-			}
-			return field.Len() == m.Len()
-		}
-
-		sf, ok := elem.FieldByName(param)
-		if !ok {
-			panic(fmt.Sprintf("Bad field name %s", param))
-		}
-
-		sfTyp := sf.Type
-		if sfTyp.Kind() == reflect.Ptr {
-			sfTyp = sfTyp.Elem()
-		}
-
-		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
-		zero := reflect.Zero(sfTyp)
+		seen := make(map[interface{}]struct{})
 
 		for i := 0; i < field.Len(); i++ {
-			parent := reflect.Indirect(field.Index(i))
-			if !parent.IsValid() {
-				m.SetMapIndex(zero, v)
+			elem := field.Index(i)
+
+			// -------- unique (no param) --------
+			if param == "" {
+				var key interface{}
+
+				if elem.Kind() == reflect.Ptr {
+					if elem.IsNil() {
+						key = nilKey
+					} else {
+						key = elem.Elem().Interface() // <-- compare underlying value
+					}
+				} else {
+					key = elem.Interface()
+				}
+
+				if _, ok := seen[key]; ok {
+					return false
+				}
+				seen[key] = struct{}{}
 				continue
 			}
 
-			key := reflect.Indirect(parent.FieldByName(param))
-			if !key.IsValid() {
-				m.SetMapIndex(zero, v)
-				continue
+			// -------- unique=Field --------
+
+			if elem.Kind() == reflect.Ptr {
+				if elem.IsNil() {
+					if _, ok := seen[nilKey]; ok {
+						return false
+					}
+					seen[nilKey] = struct{}{}
+					continue
+				}
+				elem = elem.Elem()
 			}
 
-			m.SetMapIndex(key, v)
+			if elem.Kind() != reflect.Struct {
+				panic(fmt.Sprintf("Bad field type %s", elem.Type()))
+			}
+
+			sf := elem.FieldByName(param)
+			if !sf.IsValid() {
+				panic(fmt.Sprintf("Bad field name %s", param))
+			}
+
+			var key interface{}
+
+			if sf.Kind() == reflect.Ptr {
+				if sf.IsNil() {
+					key = nilKey
+				} else {
+					key = sf.Elem().Interface()
+				}
+			} else {
+				key = sf.Interface()
+			}
+
+			if _, ok := seen[key]; ok {
+				return false
+			}
+			seen[key] = struct{}{}
 		}
 
-		return field.Len() == m.Len()
+		return true
 
 	case reflect.Map:
-		var keyType reflect.Type
-		if field.Type().Elem().Kind() == reflect.Ptr {
-			keyType = field.Type().Elem().Elem()
-		} else {
-			keyType = field.Type().Elem()
-		}
-
-		m := reflect.MakeMap(reflect.MapOf(keyType, v.Type()))
-		zero := reflect.Zero(keyType)
+		seen := make(map[interface{}]struct{})
 
 		for _, k := range field.MapKeys() {
-			val := reflect.Indirect(field.MapIndex(k))
-			if !val.IsValid() {
-				m.SetMapIndex(zero, v)
-				continue
+			val := field.MapIndex(k)
+
+			var key interface{}
+
+			if val.Kind() == reflect.Ptr {
+				if val.IsNil() {
+					key = nilKey
+				} else {
+					key = val.Elem().Interface() // <-- compare underlying value
+				}
+			} else {
+				key = val.Interface()
 			}
-			m.SetMapIndex(val, v)
+
+			if _, ok := seen[key]; ok {
+				return false
+			}
+			seen[key] = struct{}{}
 		}
 
-		return field.Len() == m.Len()
+		return true
 
 	default:
 		if parent := fl.Parent(); parent.Kind() == reflect.Struct {
 			uniqueField := parent.FieldByName(param)
-			if uniqueField == reflect.ValueOf(nil) {
+			if !uniqueField.IsValid() {
 				panic(fmt.Sprintf("Bad field name provided %s", param))
 			}
 

@@ -11029,6 +11029,14 @@ func TestUniqueValidationNilPtrSlice(t *testing.T) {
 			t.Fatalf("nil and non-nil map values should pass unique validation, got: %v", errs)
 		}
 	})
+
+	t.Run("unique_slice_with_nil_and_zero_value_struct", func(t *testing.T) {
+		s := []*Inner{nil, {Name: ""}}
+		errs := validate.Var(s, "unique")
+		if errs != nil {
+			t.Fatalf("nil and zero value struct should pass unique validation, got: %v", errs)
+		}
+	})
 }
 
 func TestHTMLValidation(t *testing.T) {
