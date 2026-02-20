@@ -1103,7 +1103,7 @@ type T struct{}
 
 func (*T) Validate() error { return errors.New("ops") }
 
-func BenchmarkValidateFnSequencial(b *testing.B) {
+func BenchmarkValidateFnSequential(b *testing.B) {
 	validate := New()
 
 	type Test struct {
