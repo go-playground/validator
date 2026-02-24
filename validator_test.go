@@ -10931,6 +10931,114 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "Bad field name C")
 }
 
+func TestUniqueValidationNilPtrSlice(t *testing.T) {
+	validate := New()
+
+	type Inner struct {
+		Name string
+	}
+
+	t.Run("unique_field_single_nil_ptr", func(t *testing.T) {
+		// A single nil element should not panic and should pass (it's unique by itself)
+		s := struct {
+			F1 []*Inner `validate:"unique=Name"`
+		}{F1: []*Inner{nil}}
+		errs := validate.Struct(s)
+		if errs != nil {
+			t.Fatalf("single nil element should pass unique=Name validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_field_duplicate_nil_ptrs", func(t *testing.T) {
+		// Two nil elements should not panic and should fail (not unique)
+		s := struct {
+			F1 []*Inner `validate:"unique=Name"`
+		}{F1: []*Inner{nil, nil}}
+		errs := validate.Struct(s)
+		if errs == nil {
+			t.Fatal("duplicate nil elements should fail unique=Name validation")
+		}
+	})
+
+	t.Run("unique_field_nil_and_non_nil", func(t *testing.T) {
+		// One nil and one non-nil should pass (they are different)
+		s := struct {
+			F1 []*Inner `validate:"unique=Name"`
+		}{F1: []*Inner{nil, {Name: "abc"}}}
+		errs := validate.Struct(s)
+		if errs != nil {
+			t.Fatalf("nil and non-nil elements should pass unique=Name validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_no_param_single_nil_ptr", func(t *testing.T) {
+		// A single nil element without param should not panic
+		s := struct {
+			F1 []*Inner `validate:"unique"`
+		}{F1: []*Inner{nil}}
+		errs := validate.Struct(s)
+		if errs != nil {
+			t.Fatalf("single nil element should pass unique validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_no_param_duplicate_nil_ptrs", func(t *testing.T) {
+		// Two nil elements without param should fail
+		s := struct {
+			F1 []*Inner `validate:"unique"`
+		}{F1: []*Inner{nil, nil}}
+		errs := validate.Struct(s)
+		if errs == nil {
+			t.Fatal("duplicate nil elements should fail unique validation")
+		}
+	})
+
+	t.Run("unique_no_param_nil_and_non_nil", func(t *testing.T) {
+		// One nil and one non-nil should pass
+		s := struct {
+			F1 []*Inner `validate:"unique"`
+		}{F1: []*Inner{nil, {Name: "abc"}}}
+		errs := validate.Struct(s)
+		if errs != nil {
+			t.Fatalf("nil and non-nil elements should pass unique validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_map_nil_values", func(t *testing.T) {
+		// Map with nil pointer values should not panic
+		m := map[string]*string{"one": nil, "two": nil}
+		errs := validate.Var(m, "unique")
+		if errs == nil {
+			t.Fatal("duplicate nil map values should fail unique validation")
+		}
+	})
+
+	t.Run("unique_map_single_nil_value", func(t *testing.T) {
+		m := map[string]*string{"one": nil}
+		errs := validate.Var(m, "unique")
+		if errs != nil {
+			t.Fatalf("single nil map value should pass unique validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_map_nil_and_non_nil", func(t *testing.T) {
+		a := "hello"
+		m := map[string]*string{"one": nil, "two": &a}
+		errs := validate.Var(m, "unique")
+		if errs != nil {
+			t.Fatalf("nil and non-nil map values should pass unique validation, got: %v", errs)
+		}
+	})
+
+	t.Run("unique_slice_with_nil_and_zero_value_struct", func(t *testing.T) {
+		s := []*Inner{nil, {Name: ""}}
+		errs := validate.Var(s, "unique")
+		if errs != nil {
+			t.Fatalf("nil and zero value struct should pass unique validation, got: %v", errs)
+		}
+	})
+}
+
 func TestHTMLValidation(t *testing.T) {
 	tests := []struct {
 		param    string
