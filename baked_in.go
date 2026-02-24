@@ -167,6 +167,7 @@ var (
 		"eth_addr_checksum":             isEthereumAddressChecksum,
 		"btc_addr":                      isBitcoinAddress,
 		"btc_addr_bech32":               isBitcoinBech32Address,
+		"trx_addr":                      isTronAddress,
 		"uuid":                          isUUID,
 		"uuid3":                         isUUID3,
 		"uuid4":                         isUUID4,
@@ -922,6 +923,47 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 	}
 
 	return true
+}
+
+// isTronAddress is the validation function for validating if the field's value is a valid Tron address.
+func isTronAddress(fl FieldLevel) bool {
+	address := fl.Field().String()
+
+	if !trxAddressRegex().MatchString(address) {
+		return false
+	}
+
+	alphabet := []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+
+	decode := [25]byte{}
+
+	for _, n := range []byte(address) {
+		d := bytes.IndexByte(alphabet, n)
+
+		for i := 24; i >= 0; i-- {
+			d += 58 * int(decode[i])
+			decode[i] = byte(d % 256)
+			d /= 256
+		}
+	}
+
+	if decode[0] != 0x41 {
+		return false
+	}
+
+	h := sha256.New()
+	_, _ = h.Write(decode[:21])
+	d := h.Sum(nil)
+	h = sha256.New()
+	_, _ = h.Write(d)
+
+	validchecksum := [4]byte{}
+	computedchecksum := [4]byte{}
+
+	copy(computedchecksum[:], h.Sum(d[:0]))
+	copy(validchecksum[:], decode[21:])
+
+	return validchecksum == computedchecksum
 }
 
 // excludesRune is the validation function for validating that the field's value does not contain the rune specified within the param.
