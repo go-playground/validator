@@ -155,8 +155,16 @@ type FieldError interface {
 	Error() string
 }
 
+type TopFieldError interface {
+	FieldError
+
+	// Top returns the actual field's parent value in case needed for creating custom the error
+	Top() reflect.Value
+}
+
 // compile time interface checks
 var _ FieldError = new(fieldError)
+var _ TopFieldError = new(fieldError)
 var _ error = new(fieldError)
 
 // fieldError contains a single field's validation error along
@@ -174,6 +182,7 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+	top            reflect.Value
 }
 
 // Tag returns the validation tag that failed.
@@ -270,4 +279,10 @@ func (fe *fieldError) Translate(ut ut.Translator) string {
 	}
 
 	return fn(ut, fe)
+}
+
+// Top returns the actual field's parent value in case needed for creating custom the error
+// message
+func (fe *fieldError) Top() reflect.Value {
+	return fe.top
 }
