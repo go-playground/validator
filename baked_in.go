@@ -230,6 +230,7 @@ var (
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
 		"timezone":                      isTimeZone,
+		"weekend":                       isWeekend,
 		"iso3166_1_alpha2":              isIso3166Alpha2,
 		"iso3166_1_alpha2_eu":           isIso3166Alpha2EU,
 		"iso3166_1_alpha3":              isIso3166Alpha3,
@@ -2965,6 +2966,30 @@ func isTimeZone(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+func isWeekend(fl FieldLevel) bool {
+	field := fl.Field()
+	kind := field.Kind()
+	param := fl.Param()
+
+	if kind == reflect.String {
+		parsedTime, err := time.Parse(param, field.String())
+		if err != nil {
+			panic(fmt.Sprintf("Bad time format: %s", err))
+		}
+		weekday := parsedTime.Weekday()
+		return weekday == time.Saturday || weekday == time.Sunday
+	}
+
+	if kind == reflect.Struct {
+		if field.Type().ConvertibleTo(timeType) {
+			weekday := field.Convert(timeType).Interface().(time.Time).Weekday()
+			return weekday == time.Saturday || weekday == time.Sunday
+		}
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isIso3166Alpha2 is the validation function for validating if the current field's value is a valid iso3166-1 alpha-2 country code.
