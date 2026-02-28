@@ -2988,12 +2988,28 @@ func TestIP4AddrValidation(t *testing.T) {
 }
 
 func TestUnixAddrValidation(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix domain sockets are not supported on Windows")
+	}
+
+	sockPath := "/tmp/test_validator_unix_addr.sock"
+	var lc net.ListenConfig
+	listener, err := lc.Listen(t.Context(), "unix", sockPath)
+	if err != nil {
+		t.Fatalf("Failed to create test socket: %v", err)
+	}
+	defer func() {
+		_ = os.Remove(sockPath)
+		_ = listener.Close()
+	}()
+
 	tests := []struct {
 		param    string
 		expected bool
 	}{
-		{"", true},
-		{"v.sock", true},
+		{"", false},
+		{"/tmp/non_existent.sock", false},
+		{sockPath, true},
 	}
 
 	validate := New()
