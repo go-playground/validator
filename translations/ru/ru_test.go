@@ -23,12 +23,24 @@ func TestTranslations(t *testing.T) {
 	Equal(t, err, nil)
 
 	type Inner struct {
-		EqCSFieldString  string
-		NeCSFieldString  string
-		GtCSFieldString  string
-		GteCSFieldString string
-		LtCSFieldString  string
-		LteCSFieldString string
+		EqCSFieldString    string
+		NeCSFieldString    string
+		GtCSFieldString    string
+		GteCSFieldString   string
+		LtCSFieldString    string
+		LteCSFieldString   string
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithAll    string
+		RequiredWithout    string
+		RequiredWithoutAll string
+		ExcludedIf         string
+		ExcludedUnless     string
+		ExcludedWith       string
+		ExcludedWithAll    string
+		ExcludedWithout    string
+		ExcludedWithoutAll string
 	}
 
 	type Test struct {
@@ -165,6 +177,22 @@ func TestTranslations(t *testing.T) {
 		UniqueArray             [3]string         `validate:"unique"`
 		UniqueMap               map[string]string `validate:"unique"`
 		Image                   string            `validate:"image"`
+		RequiredIf              string            `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless          string            `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith            string            `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll         string            `validate:"required_with_all=Inner.RequiredWith Inner.RequiredWithAll"`
+		RequiredWithout         string            `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll      string            `validate:"required_without_all=Inner.RequiredWithout Inner.RequiredWithoutAll"`
+		ExcludedIf              string            `validate:"excluded_if=Inner.ExcludedIf abcd"`
+		ExcludedUnless          string            `validate:"excluded_unless=Inner.ExcludedUnless abcd"`
+		ExcludedWith            string            `validate:"excluded_with=Inner.ExcludedWith"`
+		ExcludedWithout         string            `validate:"excluded_with_all=Inner.ExcludedWithAll"`
+		ExcludedWithAll         string            `validate:"excluded_without=Inner.ExcludedWithout"`
+		ExcludedWithoutAll      string            `validate:"excluded_without_all=Inner.ExcludedWithoutAll"`
+		IsDefault               string            `validate:"isdefault"`
+		URN                     string            `validate:"urn_rfc2141"`
+		FQDN                    string            `validate:"fqdn"`
+		DateTime                string            `validate:"datetime=2006-01-02"`
 	}
 
 	var test Test
@@ -199,6 +227,15 @@ func TestTranslations(t *testing.T) {
 	test.LtCSFieldString = "1234"
 	test.LteCSFieldString = "1234"
 
+	test.Inner.RequiredIf = "abcd"
+	test.Inner.RequiredUnless = "1234"
+	test.Inner.RequiredWith = "1234"
+	test.Inner.RequiredWithAll = "1234"
+	test.Inner.ExcludedIf = "abcd"
+	test.Inner.ExcludedUnless = "1234"
+	test.Inner.ExcludedWith = "1234"
+	test.Inner.ExcludedWithAll = "1234"
+
 	test.AlphaString = "abc3"
 	test.AlphanumString = "abc3!"
 	test.NumericString = "12E.00"
@@ -219,6 +256,36 @@ func TestTranslations(t *testing.T) {
 
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
+
+	// Инициализация для новых полей
+	test.RequiredIf = ""
+	test.RequiredUnless = ""
+	test.RequiredWith = ""
+	test.RequiredWithAll = ""
+	test.RequiredWithout = ""
+	test.RequiredWithoutAll = ""
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithoutAll = "1234"
+	test.IsDefault = "not default"
+	test.URN = "invalid"
+	test.FQDN = "invalid"
+	test.DateTime = "2008-Feb-01"
+
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithoutAll = "1234"
+
+	test.IsDefault = "not default"
+	test.URN = "invalid"
+	test.FQDN = "invalid"
+	test.DateTime = "2008-Feb-01"
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -512,7 +579,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtString",
-			expected: "GtString должен быть длиннее 3 символов",
+			expected: "GtString должен быть длиннее 3 символа",
 		},
 		{
 			ns:       "Test.GtStringSecond",
@@ -524,7 +591,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtMultiple",
-			expected: "GtMultiple должен содержать более 2 элементов",
+			expected: "GtMultiple должен содержать более 2 элемента",
 		},
 		{
 			ns:       "Test.GtMultipleSecond",
@@ -556,7 +623,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime must be less than or equal to the current Date & Time",
+			expected: "LteTime должна быть раньше или равна текущему моменту",
 		},
 		{
 			ns:       "Test.LtString",
@@ -580,7 +647,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime must be less than the current Date & Time",
+			expected: "LtTime должна быть раньше текущего момента",
 		},
 		{
 			ns:       "Test.NeString",
@@ -720,7 +787,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrGtSecond",
-			expected: "StrPtrGtSecond должен быть длиннее 2 символов",
+			expected: "StrPtrGtSecond должен быть длиннее 2 символа",
 		},
 		{
 			ns:       "Test.StrPtrGte",
@@ -753,6 +820,70 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image должно быть допустимым изображением",
+		},
+		{
+			ns:       "Test.RequiredIf",
+			expected: "RequiredIf обязательное поле",
+		},
+		{
+			ns:       "Test.RequiredUnless",
+			expected: "RequiredUnless обязательное поле",
+		},
+		{
+			ns:       "Test.RequiredWith",
+			expected: "RequiredWith обязательное поле",
+		},
+		{
+			ns:       "Test.RequiredWithAll",
+			expected: "RequiredWithAll обязательное поле",
+		},
+		{
+			ns:       "Test.RequiredWithout",
+			expected: "RequiredWithout обязательное поле",
+		},
+		{
+			ns:       "Test.RequiredWithoutAll",
+			expected: "RequiredWithoutAll обязательное поле",
+		},
+		{
+			ns:       "Test.ExcludedIf",
+			expected: "ExcludedIf должно быть исключено",
+		},
+		{
+			ns:       "Test.ExcludedUnless",
+			expected: "ExcludedUnless должно быть исключено",
+		},
+		{
+			ns:       "Test.ExcludedWith",
+			expected: "ExcludedWith должно быть исключено",
+		},
+		{
+			ns:       "Test.ExcludedWithout",
+			expected: "ExcludedWithout должно быть исключено",
+		},
+		{
+			ns:       "Test.ExcludedWithAll",
+			expected: "ExcludedWithAll должно быть исключено",
+		},
+		{
+			ns:       "Test.ExcludedWithoutAll",
+			expected: "ExcludedWithoutAll должно быть исключено",
+		},
+		{
+			ns:       "Test.IsDefault",
+			expected: "IsDefault должно быть значением по умолчанию",
+		},
+		{
+			ns:       "Test.URN",
+			expected: "URN должен быть корректным URN согласно RFC 2141",
+		},
+		{
+			ns:       "Test.FQDN",
+			expected: "FQDN должен быть корректным полным доменным именем (FQDN)",
+		},
+		{
+			ns:       "Test.DateTime",
+			expected: "DateTime не соответствует формату 2006-01-02",
 		},
 	}
 

@@ -29,6 +29,94 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "required_if",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} обязательное поле",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} должно быть исключено",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} должно быть значением по умолчанию",
+			override:    false,
+		},
+		{
+			tag:         "urn_rfc2141",
+			translation: "{0} должен быть корректным URN согласно RFC 2141",
+			override:    false,
+		},
+		{
+			tag:         "fqdn",
+			translation: "{0} должен быть корректным полным доменным именем (FQDN)",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0} не соответствует формату {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+				return t
+			},
+		},
+		{
 			tag: "len",
 			customRegisFunc: func(ut ut.Translator) (err error) {
 				if err = ut.Add("len-string", "{0} должен быть длиной в {1}", false); err != nil {
@@ -184,17 +272,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
-
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+					return
 				}
 
 				kind = fe.Kind()
@@ -204,27 +291,39 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				switch kind {
 				case reflect.String:
-
 					var c string
-
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					c, err = ut.C("min-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
 					}
-
 					t, err = ut.T("min-string", fe.Field(), c)
 
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
-
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					c, err = ut.C("min-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
 					}
-
 					t, err = ut.T("min-items", fe.Field(), c)
 
 				default:
+					// Обработка для time.Duration
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("min-number", fe.Field(), fe.Param())
+						goto END
+					}
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					t, err = ut.T("min-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
@@ -233,7 +332,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
-
 				return t
 			},
 		},
@@ -288,17 +386,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
-
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+					return
 				}
 
 				kind = fe.Kind()
@@ -308,27 +405,39 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				switch kind {
 				case reflect.String:
-
 					var c string
-
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					c, err = ut.C("max-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
 					}
-
 					t, err = ut.T("max-string", fe.Field(), c)
 
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
-
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					c, err = ut.C("max-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
 					}
-
 					t, err = ut.T("max-items", fe.Field(), c)
 
 				default:
+					// Обработка для time.Duration
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("max-number", fe.Field(), fe.Param())
+						goto END
+					}
+					err = fn()
+					if err != nil {
+						goto END
+					}
 					t, err = ut.T("max-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
@@ -337,7 +446,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					fmt.Printf("warning: error translating FieldError: %s", err)
 					return fe.(error).Error()
 				}
-
 				return t
 			},
 		},
@@ -416,7 +524,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0} must be less than the current Date & Time", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} должна быть раньше текущего момента", false); err != nil {
 					return
 				}
 
@@ -549,7 +657,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0} must be less than or equal to the current Date & Time", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} должна быть раньше или равна текущему моменту", false); err != nil {
 					return
 				}
 
@@ -636,269 +744,123 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
-			tag: "gt",
-			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gt-string", "{0} должен быть длиннее {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символов", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gt-number", "{0} должен быть больше {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gt-items", "{0} должен содержать более {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} элементов", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gt-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gt-datetime", "{0} должна быть позже текущего момента", false); err != nil {
-					return
-				}
-
-				return
-			},
+			tag:         "gte",
+			translation: "{0} должен содержать минимум {1}",
+			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				var err error
-				var t string
-				var f64 float64
-				var digits uint64
-				var kind reflect.Kind
+				kind := fe.Kind()
+				typ := fe.Type()
 
-				fn := func() (err error) {
-					if idx := strings.Index(fe.Param(), "."); idx != -1 {
-						digits = uint64(len(fe.Param()[idx+1:]))
-					}
-
-					f64, err = strconv.ParseFloat(fe.Param(), 64)
-
-					return
-				}
-
-				kind = fe.Kind()
 				if kind == reflect.Ptr {
-					kind = fe.Type().Elem().Kind()
+					kind = typ.Elem().Kind()
+					typ = typ.Elem()
 				}
 
 				switch kind {
 				case reflect.String:
+					numStr := fe.Param()
+					num, _ := strconv.Atoi(numStr)
 
-					var c string
-
-					err = fn()
-					if err != nil {
-						goto END
+					var word string
+					if num == 1 {
+						word = "символ"
+					} else if num >= 2 && num <= 4 {
+						word = "символа"
+					} else {
+						word = "символов"
 					}
-
-					c, err = ut.C("gt-string-character", f64, digits, ut.FmtNumber(f64, digits))
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gt-string", fe.Field(), c)
+					return fmt.Sprintf("%s должен содержать минимум %s %s",
+						fe.Field(), numStr, word)
 
 				case reflect.Slice, reflect.Map, reflect.Array:
-					var c string
+					numStr := fe.Param()
+					num, _ := strconv.Atoi(numStr)
 
-					err = fn()
-					if err != nil {
-						goto END
+					var word string
+					if num == 1 {
+						word = "элемент"
+					} else if num >= 2 && num <= 4 {
+						word = "элемента"
+					} else {
+						word = "элементов"
 					}
-
-					c, err = ut.C("gt-items-item", f64, digits, ut.FmtNumber(f64, digits))
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gt-items", fe.Field(), c)
+					return fmt.Sprintf("%s должен содержать минимум %s %s",
+						fe.Field(), numStr, word)
 
 				case reflect.Struct:
-					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
-						goto END
+					if typ == reflect.TypeOf(time.Time{}) {
+						return fmt.Sprintf("%s должна быть позже или равна текущему моменту",
+							fe.Field())
 					}
-
-					t, err = ut.T("gt-datetime", fe.Field())
+					fallthrough
 
 				default:
-					err = fn()
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gt-number", fe.Field(), ut.FmtNumber(f64, digits))
+					number := strings.Replace(fe.Param(), ".", ",", -1)
+					return fmt.Sprintf("%s должен быть больше или равно %s",
+						fe.Field(), number)
 				}
-
-			END:
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
-					return fe.(error).Error()
-				}
-
-				return t
 			},
 		},
 		{
-			tag: "gte",
-			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("gte-string", "{0} должен содержать минимум {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символ", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символа", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символов", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-string-character", "{0} символы", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gte-number", "{0} должен быть больше или равно {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gte-items", "{0} должен содержать минимум {1}", false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} элемент", locales.PluralRuleOne, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} элемента", locales.PluralRuleFew, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} элементов", locales.PluralRuleMany, false); err != nil {
-					return
-				}
-
-				if err = ut.AddCardinal("gte-items-item", "{0} элементы", locales.PluralRuleOther, false); err != nil {
-					return
-				}
-
-				if err = ut.Add("gte-datetime", "{0} должна быть позже или равна текущему моменту", false); err != nil {
-					return
-				}
-
-				return
-			},
+			tag:         "gt",
+			translation: "{0} должен быть больше {1}",
+			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				var err error
-				var t string
-				var f64 float64
-				var digits uint64
-				var kind reflect.Kind
+				kind := fe.Kind()
+				typ := fe.Type()
 
-				fn := func() (err error) {
-					if idx := strings.Index(fe.Param(), "."); idx != -1 {
-						digits = uint64(len(fe.Param()[idx+1:]))
-					}
+				log.Printf("DEBUG - gt tag: Field=%s, Kind=%v, Type=%v, Param=%q",
+					fe.Field(), kind, typ, fe.Param())
 
-					f64, err = strconv.ParseFloat(fe.Param(), 64)
-
-					return
-				}
-
-				kind = fe.Kind()
 				if kind == reflect.Ptr {
-					kind = fe.Type().Elem().Kind()
+					kind = typ.Elem().Kind()
+					typ = typ.Elem()
 				}
 
 				switch kind {
 				case reflect.String:
 
-					var c string
+					numStr := fe.Param()
+					num, _ := strconv.Atoi(numStr)
 
-					err = fn()
-					if err != nil {
-						goto END
+					var word string
+					if num == 1 {
+						word = "символ"
+					} else if num >= 2 && num <= 4 {
+						word = "символа"
+					} else {
+						word = "символов"
 					}
-
-					c, err = ut.C("gte-string-character", f64, digits, ut.FmtNumber(f64, digits))
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gte-string", fe.Field(), c)
+					return fmt.Sprintf("%s должен быть длиннее %s %s",
+						fe.Field(), numStr, word)
 
 				case reflect.Slice, reflect.Map, reflect.Array:
-					var c string
+					numStr := fe.Param()
+					num, _ := strconv.Atoi(numStr)
 
-					err = fn()
-					if err != nil {
-						goto END
+					var word string
+					if num == 1 {
+						word = "элемент"
+					} else if num >= 2 && num <= 4 {
+						word = "элемента"
+					} else {
+						word = "элементов"
 					}
-
-					c, err = ut.C("gte-items-item", f64, digits, ut.FmtNumber(f64, digits))
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gte-items", fe.Field(), c)
+					return fmt.Sprintf("%s должен содержать более %s %s",
+						fe.Field(), numStr, word)
 
 				case reflect.Struct:
-					if fe.Type() != reflect.TypeOf(time.Time{}) {
-						err = fmt.Errorf("tag '%s' cannot be used on a struct type", fe.Tag())
-						goto END
+					if typ == reflect.TypeOf(time.Time{}) {
+						return fmt.Sprintf("%s должна быть позже текущего момента",
+							fe.Field())
 					}
-
-					t, err = ut.T("gte-datetime", fe.Field())
+					fallthrough
 
 				default:
-					err = fn()
-					if err != nil {
-						goto END
-					}
-
-					t, err = ut.T("gte-number", fe.Field(), ut.FmtNumber(f64, digits))
+					number := strings.Replace(fe.Param(), ".", ",", -1)
+					return fmt.Sprintf("%s должен быть больше %s",
+						fe.Field(), number)
 				}
-
-			END:
-				if err != nil {
-					fmt.Printf("warning: error translating FieldError: %s", err)
-					return fe.(error).Error()
-				}
-
-				return t
 			},
 		},
 		{
@@ -1046,12 +1008,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} должен быть менее {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T("ltfield", fe.Field(), fe.Param())
 				if err != nil {
 					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
-
 				return t
 			},
 		},
@@ -1065,7 +1026,6 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					log.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
 				}
-
 				return t
 			},
 		},
@@ -1077,6 +1037,27 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "alphanum",
 			translation: "{0} должен содержать только буквы и цифры",
+			override:    false,
+		},
+		// Добавленные строковые unicode/space теги
+		{
+			tag:         "alphaspace",
+			translation: "{0} может содержать только буквы и пробелы",
+			override:    false,
+		},
+		{
+			tag:         "alphanumspace",
+			translation: "{0} может содержать только буквы, цифры и пробелы",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0} может содержать только Unicode буквы",
+			override:    false,
+		},
+		{
+			tag:         "alphanumunicode",
+			translation: "{0} может содержать только Unicode буквы и цифры",
 			override:    false,
 		},
 		{
@@ -1405,6 +1386,79 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "image",
 			translation: "{0} должно быть допустимым изображением",
+			override:    false,
+		},
+
+		// Новые/добавленные простые теги (из en)
+		{
+			tag:         "lowercase",
+			translation: "{0} должен быть в нижнем регистре",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0} должен быть в верхнем регистре",
+			override:    false,
+		},
+		{
+			tag:         "boolean",
+			translation: "{0} должен быть логическим значением",
+			override:    false,
+		},
+		{
+			tag:         "json",
+			translation: "{0} должен быть корректной JSON строкой",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0} должен быть допустимым JWT",
+			override:    false,
+		},
+		{
+			tag:         "cron",
+			translation: "{0} должен быть валидным cron выражением",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0} должен быть корректным идентификатором CVE",
+			override:    false,
+		},
+		{
+			tag:         "validateFn",
+			translation: "{0} должен быть допустимым объектом",
+			override:    false,
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0} не соответствует формату почтового индекса страны {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0} не соответствует формату почтового индекса страны в поле {1}",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+				return t
+			},
+		},
+		{
+			tag:         "json_err",
+			translation: "{0} должен быть корректной JSON строкой",
 			override:    false,
 		},
 	}
