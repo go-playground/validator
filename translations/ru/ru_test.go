@@ -257,7 +257,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 
-	// Инициализация для новых полей
+	// Initialization for new fields
 	test.RequiredIf = ""
 	test.RequiredUnless = ""
 	test.RequiredWith = ""
@@ -270,18 +270,6 @@ func TestTranslations(t *testing.T) {
 	test.ExcludedWithout = "1234"
 	test.ExcludedWithAll = "1234"
 	test.ExcludedWithoutAll = "1234"
-	test.IsDefault = "not default"
-	test.URN = "invalid"
-	test.FQDN = "invalid"
-	test.DateTime = "2008-Feb-01"
-
-	test.ExcludedIf = "1234"
-	test.ExcludedUnless = "1234"
-	test.ExcludedWith = "1234"
-	test.ExcludedWithAll = "1234"
-	test.ExcludedWithout = "1234"
-	test.ExcludedWithoutAll = "1234"
-
 	test.IsDefault = "not default"
 	test.URN = "invalid"
 	test.FQDN = "invalid"
