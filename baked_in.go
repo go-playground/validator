@@ -159,6 +159,7 @@ var (
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
 		"image":                         isImage,
+		"audio":                         isAudio,
 		"mimetype":                      isMIMEType,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
@@ -1729,6 +1730,16 @@ func isImage(fl FieldLevel) bool {
 
 	_, ok = mimetypes[mime]
 	return ok
+}
+
+// isAudio is the validation function for validating if the current field's value contains the path to a valid audio file
+func isAudio(fl FieldLevel) bool {
+	mime, ok := detectFileMIMEType(fl.Field())
+	if !ok {
+		return false
+	}
+
+	return strings.HasPrefix(mime, "audio/")
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.

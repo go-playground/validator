@@ -140,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Image             string    `validate:"image"`
+		Audio             string    `validate:"audio"`
 		MIMEType          string    `validate:"mimetype=image/png"`
 	}
 
@@ -628,6 +629,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image moet een geldige afbeelding zijn",
+		},
+		{
+			ns:       "Test.Audio",
+			expected: "Audio moet een geldig audiobestand zijn",
 		},
 		{
 			ns:       "Test.MIMEType",

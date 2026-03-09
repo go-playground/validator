@@ -1358,6 +1358,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "{0} 必須是有效音訊檔案",
+			override:    false,
+		},
+		{
 			tag:         "mimetype",
 			translation: "{0} 必須是有效MIME類型",
 			override:    false,
