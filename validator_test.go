@@ -6453,6 +6453,40 @@ func TestMIMETypeValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestAudioValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		title    string
+		param    string
+		expected bool
+	}{
+		{"empty path", "", false},
+		{"directory, not a file", "testdata", false},
+		{"missing file", filepath.Join("testdata", "none.mp3"), false},
+		{"valid mp3", filepath.Join("testdata", "music.mp3"), true},
+		{"regular file, not audio", filepath.Join("testdata", "a.go"), false},
+	}
+
+	for _, test := range tests {
+		errs := validate.Var(test.param, "audio")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "audio")
+	}, "Bad field type int")
+}
+
 func TestFilePathValidation(t *testing.T) {
 	validate := New()
 

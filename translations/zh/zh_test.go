@@ -174,6 +174,7 @@ func TestTranslations(t *testing.T) {
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
 		Image                 string    `validate:"image"`
+		Audio                 string    `validate:"audio"`
 		MIMEType              string    `validate:"mimetype=image/png"`
 	}
 
@@ -769,6 +770,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image 必须是有效图像",
+		},
+		{
+			ns:       "Test.Audio",
+			expected: "Audio 必须是有效音频文件",
 		},
 		{
 			ns:       "Test.MIMEType",

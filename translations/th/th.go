@@ -1325,6 +1325,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "{0} ต้องเป็นไฟล์เสียงที่ถูกต้อง",
+			override:    false,
+		},
+		{
 			tag:         "mimetype",
 			translation: "{0} ต้องเป็น MIME type ที่ถูกต้อง",
 			override:    false,

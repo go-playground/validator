@@ -1206,6 +1206,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "يجب أن يكون {0} ملفًا صوتيًا صالحًا",
+			override:    false,
+		},
+		{
 			tag:         "mimetype",
 			translation: "يجب أن يكون {0} نوع MIME صالحًا",
 			override:    false,
