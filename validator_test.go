@@ -6470,6 +6470,63 @@ func TestBitcoinBech32AddressValidation(t *testing.T) {
 	}
 }
 
+func TestTronAddressValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{" ", false},
+		{"\n", false},
+		{"\t", false},
+		{"TRjE1H8dx", false},
+		{"T123", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdNzFkeodme5", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdN", false},
+		{"asjE1H8dxfmem1NZRdsmek9wo7huR4bdNz", false},
+		{"tRjE1H8dxfmem1NZRdsmek9wo7huR4bdNz", false},
+		{"1RjE1H8dxfmem1NZRdsmek9wo7huR4bdNz", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdN0", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdNO", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdNI", false},
+		{"TRjE1H8dxfmem1NZRdsmek9wo7huR4bdNl", false},
+		{" TQRyXh7Rzec4udkfmPc9izomNkrZBrKeFh", false},
+		{"TQRyXh7Rzec4udkfmPc9izomNkrZBrKeFh ", false},
+		{"\nTQRyXh7Rzec4udkfmPc9izomNkrZBrKeFh", false},
+		{"TQRyXh7Rzec4udkfmPc9izomNkrZBrKeF☺", false},
+		{"3ALJH9Y951VCGcVZYAdpA3KchoP9McEj1G", false},
+		{"12KYrjTdVGjFMtaxERSk3gphreJ5US8aUP", false},
+		{"12QeMLzSrB8XH8FvEzPMVoRxVAzTr5XM2y", false},
+		{"TQRyXh7Rzec4udkaVPc9izomNkrZBrKeFh", true},
+		{"TRjE1H8dxypKM1NZRdysbs9wo7huR4bdNz", true},
+		{"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", true},
+		{"TDiikeBPMsHwcq5NSDvHgPiUVDwsEDxmDN", true},
+		{"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", true},
+	}
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "trx_addr")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d trx_addr failed with Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d trx_addr failed with Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "trx_addr" {
+					t.Fatalf("Index: %d Latitude failed with Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestNoStructLevelValidation(t *testing.T) {
 	type Inner struct {
 		Test string `validate:"len=5"`
