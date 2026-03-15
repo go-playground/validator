@@ -186,6 +186,7 @@ func TestTranslations(t *testing.T) {
 		PostCodeByField           string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString             string `validate:"boolean"`
 		Image                     string `validate:"image"`
+		MIMEType                  string `validate:"mimetype=image/png"`
 		CveString                 string `validate:"cve"`
 	}
 
@@ -815,6 +816,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image musi być obrazem",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType musi być poprawnym typem MIME",
 		},
 		{
 			ns:       "Test.CveString",
