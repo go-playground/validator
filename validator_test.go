@@ -6306,6 +6306,176 @@ func TestImageValidation(t *testing.T) {
 	}, "Bad field type int")
 }
 
+func TestMIMETypeValidation(t *testing.T) {
+	validate := New()
+
+	tmpDir := t.TempDir()
+
+	paths := map[string]string{
+		"empty":     "",
+		"directory": "testdata",
+		"missing":   filepath.Join(tmpDir, "none.png"),
+		"png":       filepath.Join(tmpDir, "image.png"),
+		"jpeg":      filepath.Join(tmpDir, "image.jpg"),
+		"go":        filepath.Join("testdata", "a.go"),
+	}
+
+	tests := []struct {
+		title       string
+		param       string
+		tag         string
+		expected    bool
+		createFile  func()
+		destroyFile func()
+	}{
+		{
+			title:       "empty path",
+			param:       paths["empty"],
+			tag:         "mimetype=image/png",
+			expected:    false,
+			createFile:  func() {},
+			destroyFile: func() {},
+		},
+		{
+			title:       "directory, not a file",
+			param:       paths["directory"],
+			tag:         "mimetype=image/png",
+			expected:    false,
+			createFile:  func() {},
+			destroyFile: func() {},
+		},
+		{
+			title:       "missing file",
+			param:       paths["missing"],
+			tag:         "mimetype=image/png",
+			expected:    false,
+			createFile:  func() {},
+			destroyFile: func() {},
+		},
+		{
+			title:    "exact png match",
+			param:    paths["png"],
+			tag:      "mimetype=image/png",
+			expected: true,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+			destroyFile: func() {
+				err := os.Remove(paths["png"])
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:    "type wildcard png match",
+			param:    paths["png"],
+			tag:      "mimetype=image/*",
+			expected: true,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+			destroyFile: func() {
+				err := os.Remove(paths["png"])
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:    "type wildcard jpeg match",
+			param:    paths["jpeg"],
+			tag:      "mimetype=image/*",
+			expected: true,
+			createFile: func() {
+				var opt jpeg.Options
+				img := image.NewGray(image.Rect(0, 0, 10, 10))
+				f, err := os.Create(paths["jpeg"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = jpeg.Encode(f, img, &opt)
+				Equal(t, err, nil)
+			},
+			destroyFile: func() {
+				err := os.Remove(paths["jpeg"])
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:       "type mismatch",
+			param:       paths["go"],
+			tag:         "mimetype=image/*",
+			expected:    false,
+			createFile:  func() {},
+			destroyFile: func() {},
+		},
+		{
+			title:    "subtype mismatch",
+			param:    paths["png"],
+			tag:      "mimetype=image/jpeg",
+			expected: false,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+			destroyFile: func() {
+				err := os.Remove(paths["png"])
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:       "invalid validator param missing subtype",
+			param:       paths["go"],
+			tag:         "mimetype=image",
+			expected:    false,
+			createFile:  func() {},
+			destroyFile: func() {},
+		},
+	}
+
+	for _, test := range tests {
+		test.createFile()
+		errs := validate.Var(test.param, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+		test.destroyFile()
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "mimetype=image/png")
+	}, "Bad field type int")
+}
+
 func TestFilePathValidation(t *testing.T) {
 	validate := New()
 
