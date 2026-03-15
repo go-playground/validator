@@ -1284,6 +1284,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} doit être une image valide",
 			override:    false,
 		},
+		{
+			tag:         "mimetype",
+			translation: "{0} doit être un type MIME valide",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

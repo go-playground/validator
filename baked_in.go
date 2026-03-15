@@ -159,6 +159,7 @@ var (
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
 		"image":                         isImage,
+		"mimetype":                      isMIMEType,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
@@ -1635,6 +1636,63 @@ func isFile(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
+func detectFileMIMEType(field reflect.Value) (string, bool) {
+	switch field.Kind() {
+	case reflect.String:
+		filePath := field.String()
+		fileInfo, err := os.Stat(filePath)
+		if err != nil || fileInfo.IsDir() {
+			return "", false
+		}
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return "", false
+		}
+		defer func() {
+			_ = file.Close()
+		}()
+
+		mime, err := mimetype.DetectReader(file)
+		if err != nil {
+			return "", false
+		}
+
+		return mime.String(), true
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+func matchesMIMEType(mime, expected string) bool {
+	expectedType, expectedSubtype, ok := strings.Cut(strings.TrimSpace(expected), "/")
+	if !ok || expectedType == "" || expectedSubtype == "" {
+		return false
+	}
+
+	mimeType, mimeSubtype, ok := strings.Cut(mime, "/")
+	if !ok || mimeType == "" || mimeSubtype == "" {
+		return false
+	}
+
+	if expectedSubtype == "*" {
+		return mimeType == expectedType
+	}
+
+	return mimeType == expectedType && mimeSubtype == expectedSubtype
+}
+
+// isMIMEType is the validation function for validating if the current field's value contains the path to a file
+// whose detected MIME type matches the provided validator param in the form type/subtype or type/*.
+func isMIMEType(fl FieldLevel) bool {
+	mime, ok := detectFileMIMEType(fl.Field())
+	if !ok {
+		return false
+	}
+
+	return matchesMIMEType(mime, fl.Param())
+}
+
 // isImage is the validation function for validating if the current field's value contains the path to a valid image file
 func isImage(fl FieldLevel) bool {
 	mimetypes := map[string]bool{
@@ -1663,39 +1721,14 @@ func isImage(fl FieldLevel) bool {
 		"image/x-xpixmap":          true,
 		"image/x-xwindowdump":      true,
 	}
-	field := fl.Field()
 
-	switch field.Kind() {
-	case reflect.String:
-		filePath := field.String()
-		fileInfo, err := os.Stat(filePath)
-		if err != nil {
-			return false
-		}
-
-		if fileInfo.IsDir() {
-			return false
-		}
-
-		file, err := os.Open(filePath)
-		if err != nil {
-			return false
-		}
-		defer func() {
-			_ = file.Close()
-		}()
-
-		mime, err := mimetype.DetectReader(file)
-		if err != nil {
-			return false
-		}
-
-		if _, ok := mimetypes[mime.String()]; ok {
-			return true
-		}
+	mime, ok := detectFileMIMEType(fl.Field())
+	if !ok {
+		return false
 	}
 
-	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	_, ok = mimetypes[mime]
+	return ok
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
