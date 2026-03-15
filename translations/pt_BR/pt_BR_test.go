@@ -145,6 +145,8 @@ func TestTranslations(t *testing.T) {
 		OneOfInt          int       `validate:"oneof=5 63"`
 		BooleanString     string    `validate:"boolean"`
 		Image             string    `validate:"image"`
+		Audio             string    `validate:"audio"`
+		MIMEType          string    `validate:"mimetype=image/png"`
 		CveString         string    `validate:"cve"`
 		ValidateFn        Foo       `validate:"validateFn=IsBar"`
 	}
@@ -640,6 +642,14 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image deve ser uma imagen válido",
+		},
+		{
+			ns:       "Test.Audio",
+			expected: "Audio deve ser um arquivo de áudio válido",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType deve ser um tipo MIME válido",
 		},
 		{
 			ns:       "Test.CveString",

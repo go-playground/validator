@@ -144,6 +144,8 @@ func TestTranslations(t *testing.T) {
 		UniqueArray       [3]string         `validate:"unique"`
 		UniqueMap         map[string]string `validate:"unique"`
 		Image             string            `validate:"image"`
+		Audio             string            `validate:"audio"`
+		MIMEType          string            `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -646,6 +648,14 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image debe ser una imagen válida",
+		},
+		{
+			ns:       "Test.Audio",
+			expected: "Audio debe ser un archivo de audio válido",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType debe ser un tipo MIME válido",
 		},
 	}
 

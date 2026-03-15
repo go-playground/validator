@@ -1320,6 +1320,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} deve ser uma imagem válida",
 			override:    false,
 		},
+		{
+			tag:         "audio",
+			translation: "{0} deve ser um arquivo de áudio válido",
+			override:    false,
+		},
+		{
+			tag:         "mimetype",
+			translation: "{0} deve ser um tipo MIME válido",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

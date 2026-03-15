@@ -250,6 +250,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | file | Existing File |
 | filepath | File Path |
 | image | Image |
+| audio | Audio |
+| mimetype | MIME Type |
 | isdefault | Is Default |
 | len | Length |
 | max | Maximum |

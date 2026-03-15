@@ -1350,6 +1350,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "{0} は有効な音声ファイルでなければなりません",
+			override:    false,
+		},
+		{
+			tag:         "mimetype",
+			translation: "{0} は有効なMIMEタイプでなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "json",
 			translation: "{0}は正しいJSON文字列でなければなりません",
 			override:    false,
