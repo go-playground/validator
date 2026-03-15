@@ -140,6 +140,7 @@ func TestTranslations(t *testing.T) {
 		OneOfString       string    `validate:"oneof=red green"`
 		OneOfInt          int       `validate:"oneof=5 63"`
 		Image             string    `validate:"image"`
+		MIMEType          string    `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -627,6 +628,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image doit être une image valide",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType doit être un type MIME valide",
 		},
 	}
 

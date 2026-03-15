@@ -166,6 +166,7 @@ func TestTranslations(t *testing.T) {
 		OneOfInt           int       `validate:"oneof=5 63"`
 		Datetime           string    `validate:"datetime=2006-01-02"`
 		Image              string    `validate:"image"`
+		MIMEType           string    `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -718,6 +719,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image 必須是有效圖像",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType 必須是有效MIME類型",
 		},
 	}
 
