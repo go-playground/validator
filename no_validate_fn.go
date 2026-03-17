@@ -1,12 +1,12 @@
-//go:build !novalidatefn
+//go:build !validator_novalidatefn
+
 package validator
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
-	"cmp"
 )
-
 
 func isValidateFn(fl FieldLevel) bool {
 	const defaultParam = `Validate`
