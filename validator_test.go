@@ -6326,7 +6326,6 @@ func TestMIMETypeValidation(t *testing.T) {
 		tag         string
 		expected    bool
 		createFile  func()
-		destroyFile func()
 	}{
 		{
 			title:       "empty path",
@@ -6334,7 +6333,6 @@ func TestMIMETypeValidation(t *testing.T) {
 			tag:         "mimetype=image/png",
 			expected:    false,
 			createFile:  func() {},
-			destroyFile: func() {},
 		},
 		{
 			title:       "directory, not a file",
@@ -6342,7 +6340,6 @@ func TestMIMETypeValidation(t *testing.T) {
 			tag:         "mimetype=image/png",
 			expected:    false,
 			createFile:  func() {},
-			destroyFile: func() {},
 		},
 		{
 			title:       "missing file",
@@ -6350,7 +6347,6 @@ func TestMIMETypeValidation(t *testing.T) {
 			tag:         "mimetype=image/png",
 			expected:    false,
 			createFile:  func() {},
-			destroyFile: func() {},
 		},
 		{
 			title:    "exact png match",
@@ -6368,10 +6364,6 @@ func TestMIMETypeValidation(t *testing.T) {
 				err = png.Encode(f, img)
 				Equal(t, err, nil)
 			},
-			destroyFile: func() {
-				err := os.Remove(paths["png"])
-				Equal(t, err, nil)
-			},
 		},
 		{
 			title:    "type wildcard png match",
@@ -6387,10 +6379,6 @@ func TestMIMETypeValidation(t *testing.T) {
 				}()
 
 				err = png.Encode(f, img)
-				Equal(t, err, nil)
-			},
-			destroyFile: func() {
-				err := os.Remove(paths["png"])
 				Equal(t, err, nil)
 			},
 		},
@@ -6411,10 +6399,6 @@ func TestMIMETypeValidation(t *testing.T) {
 				err = jpeg.Encode(f, img, &opt)
 				Equal(t, err, nil)
 			},
-			destroyFile: func() {
-				err := os.Remove(paths["jpeg"])
-				Equal(t, err, nil)
-			},
 		},
 		{
 			title:       "type mismatch",
@@ -6422,7 +6406,6 @@ func TestMIMETypeValidation(t *testing.T) {
 			tag:         "mimetype=image/*",
 			expected:    false,
 			createFile:  func() {},
-			destroyFile: func() {},
 		},
 		{
 			title:    "subtype mismatch",
@@ -6440,10 +6423,6 @@ func TestMIMETypeValidation(t *testing.T) {
 				err = png.Encode(f, img)
 				Equal(t, err, nil)
 			},
-			destroyFile: func() {
-				err := os.Remove(paths["png"])
-				Equal(t, err, nil)
-			},
 		},
 		{
 			title:       "invalid validator param missing subtype",
@@ -6451,7 +6430,6 @@ func TestMIMETypeValidation(t *testing.T) {
 			tag:         "mimetype=image",
 			expected:    false,
 			createFile:  func() {},
-			destroyFile: func() {},
 		},
 	}
 
@@ -6468,7 +6446,6 @@ func TestMIMETypeValidation(t *testing.T) {
 				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
 			}
 		}
-		test.destroyFile()
 	}
 
 	PanicMatches(t, func() {
