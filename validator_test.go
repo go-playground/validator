@@ -10643,6 +10643,7 @@ func TestFQDNValidation(t *testing.T) {
 		{"test24.example24.com.", true},
 		{"24.example24.com", true},
 		{"test.24.example.com", true},
+		{"test-site-http.test-site", true},
 		{"test24.example24.com..", false},
 		{"example", false},
 		{"192.168.0.1", false},
