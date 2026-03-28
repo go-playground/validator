@@ -174,6 +174,7 @@ func TestTranslations(t *testing.T) {
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
 		Image                 string    `validate:"image"`
+		UniqueSlice           []string  `validate:"unique"`
 	}
 
 	var test Test
@@ -246,6 +247,8 @@ func TestTranslations(t *testing.T) {
 	test.UppercaseString = "abcdefg"
 
 	test.Datetime = "20060102"
+
+	test.UniqueSlice = []string{"1234", "1234"}
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -768,6 +771,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image 必须是有效图像",
+		},
+		{
+			ns:       "Test.UniqueSlice",
+			expected: "UniqueSlice必须包含唯一值",
 		},
 	}
 
