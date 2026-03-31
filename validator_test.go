@@ -4281,6 +4281,7 @@ func TestUUIDValidation(t *testing.T) {
 		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
 		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+		{"2830923A-E5F5-4178-9700-787586673E0D", true},
 	}
 
 	validate := New()
