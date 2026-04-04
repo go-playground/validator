@@ -4156,6 +4156,7 @@ func TestUUID5Validation(t *testing.T) {
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"987fbc97-4bed-5078-af07-9141ba07c9f3", true},
 		{"987fbc97-4bed-5078-9f07-9141ba07c9f3", true},
+		{"987FBC97-4BED-5078-AF07-9141BA07C9F3", true},  // uppercase - issue #1550
 	}
 
 	validate := New()
@@ -4191,6 +4192,7 @@ func TestUUID4Validation(t *testing.T) {
 		{"934859", false},
 		{"57b73598-8764-4ad0-a76a-679bb6640eb1", true},
 		{"625e63f3-58f5-40b7-83a1-a72ad31acffb", true},
+		{"57B73598-8764-4AD0-A76A-679BB6640EB1", true},  // uppercase - issue #1550
 	}
 
 	validate := New()
@@ -4225,6 +4227,7 @@ func TestUUID3Validation(t *testing.T) {
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 		{"a987fbc9-4bed-4078-8f07-9141ba07c9f3", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+		{"A987FBC9-4BED-3078-CF07-9141BA07C9F3", true},  // uppercase - issue #1550
 	}
 
 	validate := New()
@@ -4281,6 +4284,7 @@ func TestUUIDValidation(t *testing.T) {
 		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
 		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+		{"A987FBC9-4BED-3078-CF07-9141BA07C9F3", true},  // uppercase - issue #1550
 	}
 
 	validate := New()
