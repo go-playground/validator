@@ -335,7 +335,7 @@ func isOneOfCI(fl FieldLevel) bool {
 	return false
 }
 
-// isNoneOf validates that the current field's value is not one of the provided string values
+// isNoneOf validates that the current field's value is not one of the provided string or integer values
 func isNoneOf(fl FieldLevel) bool {
 	vals := parseOneOfParam2(fl.Param())
 	field := fl.Field()
