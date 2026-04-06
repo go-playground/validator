@@ -255,6 +255,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | max | Maximum |
 | min | Minimum |
 | oneof | One Of |
+| noneof | None Of |
 | required | Required |
 | required_if | Required If |
 | required_unless | Required Unless |

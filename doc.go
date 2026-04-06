@@ -546,6 +546,24 @@ Works the same as oneof but is case insensitive and therefore only accepts strin
 	Usage: oneofci=red green
 	       oneofci='red green' 'blue yellow'
 
+# None Of
+
+For strings, ints, and uints, noneof will ensure that the value is not one of
+the values in the parameter. The parameter should be a list of values separated by whitespace.
+Values may be strings or numbers. To inversely match strings with spaces in them, include the target string between single quotes.
+Kind of like an 'enum'.
+
+	Usage: noneof=red green
+	       noneof='red green' 'blue yellow'
+		   noneof=5 7 9
+
+
+# None Of Case Insensitive
+Works the same as noneof but is case insensitive and therefore only accepts strings.
+
+	Usage: noneofci=red green
+	       noneofci='red green' 'blue yellow'
+
 # Greater Than
 
 For numbers, this will ensure that the value is greater than the
