@@ -310,12 +310,8 @@ func isOneOf(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
-	for i := 0; i < len(vals); i++ {
-		if vals[i] == v {
-			return true
-		}
-	}
-	return false
+
+	return slices.Contains(vals, v)
 }
 
 // isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).
@@ -326,47 +322,20 @@ func isOneOfCI(fl FieldLevel) bool {
 	if field.Kind() != reflect.String {
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
-	v := field.String()
-	for _, val := range vals {
-		if strings.EqualFold(val, v) {
-			return true
-		}
-	}
-	return false
+
+	return slices.ContainsFunc(vals, func(val string) bool {
+		return strings.EqualFold(val, field.String())
+	})
 }
 
 // isNoneOf validates that the current field's value is not one of the provided string or integer values
 func isNoneOf(fl FieldLevel) bool {
-	vals := parseOneOfParam2(fl.Param())
-	field := fl.Field()
-
-	var v string
-	switch field.Kind() {
-	case reflect.String:
-		v = field.String()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		v = strconv.FormatInt(field.Int(), 10)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		v = strconv.FormatUint(field.Uint(), 10)
-	default:
-		panic(fmt.Sprintf("Bad field type %s", field.Type()))
-	}
-
-	return !slices.Contains(vals, v)
+	return !isOneOf(fl)
 }
 
 // isNoneOfCI validates that the current field's value is not one of the provided string values (case insensitive)
 func isNoneOfCI(fl FieldLevel) bool {
-	vals := parseOneOfParam2(fl.Param())
-	field := fl.Field()
-
-	if field.Kind() != reflect.String {
-		panic(fmt.Sprintf("Bad field type %s", field.Type()))
-	}
-
-	return !slices.ContainsFunc(vals, func(val string) bool {
-		return strings.EqualFold(val, field.String())
-	})
+	return !isOneOfCI(fl)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
