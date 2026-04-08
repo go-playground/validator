@@ -3237,22 +3237,9 @@ func isBCP47StrictLanguageTag(fl FieldLevel) bool {
 				return false
 			}
 
-			prefixes, ok := iana_subtag_registry_variants[v]
+			_, ok := iana_subtag_registry_variants[v]
 			if !ok {
 				return false
-			}
-
-			if len(prefixes) > 0 {
-				found := false
-				for _, p := range prefixes {
-					if strings.HasPrefix(lowerTagDash, p) {
-						found = true
-						break
-					}
-				}
-				if !found {
-					return false
-				}
 			}
 		}
 	}

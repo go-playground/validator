@@ -13682,7 +13682,7 @@ func TestBCP47StrictLanguageTagValidation(t *testing.T) {
 		{"xog", true},
 		{"i-klingon", true},
 		{"zh-min-nan", true},
-		{"x-foobar", true}, //
+		{"x-foobar", true},
 
 		// script
 		{"it-Aran", true},
@@ -13767,7 +13767,11 @@ func TestBCP47StrictLanguageTagValidation(t *testing.T) {
 		{"it-Aran-380", false}, // "380" is a valid UN M.49 region code, but it's not in the IANA language subtag registry
 
 		// variant
-		{"it-Aran-FR-1606nict", false}, // "1606nict" must be used prefix "frm"
+
+		// "1606nict" SHOULD be used prefix "frm", but it's still
+		// valid: https://www.rfc-editor.org/rfc/rfc5646.html#section-3.1.8
+		// https://github.com/go-playground/validator/pull/1489#issuecomment-4204814263
+		{"it-Aran-FR-1606nict", true},
 
 		// extension
 		{"frm-Aran-FR-a-12345678a", false},          // too long
