@@ -5883,6 +5883,133 @@ func TestOneOfCIValidation(t *testing.T) {
 	Equal(t, panicCount, len(panicSpecs))
 }
 
+func TestNoneOfValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "", t: "noneof=red green"},
+		{f: "yellow", t: "noneof=red green"},
+		{f: "green", t: "noneof='red green' blue"},
+		{f: 5, t: "noneof=red green"},
+		{f: 6, t: "noneof=red green"},
+		{f: 6, t: "noneof=7"},
+		{f: int8(5), t: "noneof=red green"},
+		{f: int16(5), t: "noneof=red green"},
+		{f: int32(5), t: "noneof=red green"},
+		{f: int64(5), t: "noneof=red green"},
+		{f: uint(6), t: "noneof=7"},
+		{f: uint8(6), t: "noneof=7"},
+		{f: uint16(6), t: "noneof=7"},
+		{f: uint32(6), t: "noneof=7"},
+		{f: uint64(6), t: "noneof=7"},
+	}
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "red", t: "noneof=red green"},
+		{f: "green", t: "noneof=red green"},
+		{f: "red green", t: "noneof='red green' blue'"},
+		{f: "blue", t: "noneof='red green' blue'"},
+		{f: 5, t: "noneof=5 6"},
+		{f: 6, t: "noneof=5 6"},
+		{f: int8(6), t: "noneof=5 6"},
+		{f: int16(6), t: "noneof=5 6"},
+		{f: int32(6), t: "noneof=5 6"},
+		{f: int64(6), t: "noneof=5 6"},
+		{f: uint(6), t: "noneof=5 6"},
+		{f: uint8(6), t: "noneof=5 6"},
+		{f: uint16(6), t: "noneof=5 6"},
+		{f: uint32(6), t: "noneof=5 6"},
+		{f: uint64(6), t: "noneof=5 6"},
+	}
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "noneof")
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(3.14, "noneof=red green")
+	}, "Bad field type float64")
+}
+
+func TestNoneOfCIValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "", t: "noneofci=red green"},
+		{f: "yellow", t: "noneofci=red green"},
+		{f: "green", t: "noneofci='red yellow' blue"},
+		{f: "RED", t: "noneofci=blue green"},
+		{f: "RED", t: "noneofci=BLUE GREEN"},
+		{f: "ReD", t: "noneofci=BLUE GREEN"},
+		{f: "gReEn", t: "noneofci=rEd BlUe"},
+		{f: "red Green", t: "noneofci='BLUE YELLOW' Orange"},
+		{f: "Red green", t: "noneofci='Blue Yellow' ORANGE"},
+		{f: "rEd GrEeN", t: "noneofci='bLuE YeLlOw' OrAnGe"},
+		{f: "BlUe", t: "noneofci='RED GREEN' Yellow"},
+		{f: "bLuE", t: "noneofci='red green' YELLOW"},
+	}
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "red", t: "noneofci=red green"},
+		{f: "green", t: "noneofci=red green"},
+		{f: "red green", t: "noneofci='red green' blue'"},
+	}
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "noneofci")
+	}
+
+	panicSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: 3.14, t: "noneofci=red green"},
+		{f: 5, t: "noneofci=red green"},
+		{f: int8(5), t: "noneofci=red green"},
+		{f: int16(5), t: "noneofci=red green"},
+		{f: int32(5), t: "noneofci=red green"},
+		{f: int64(5), t: "noneofci=red green"},
+		{f: uint(5), t: "noneofci=red green"},
+		{f: uint8(5), t: "noneofci=red green"},
+		{f: uint16(5), t: "noneofci=red green"},
+		{f: uint32(5), t: "noneofci=red green"},
+		{f: uint64(5), t: "noneofci=red green"},
+	}
+	panicCount := 0
+	for _, spec := range panicSpecs {
+		t.Logf("%#v", spec)
+		PanicMatches(t, func() {
+			_ = validate.Var(spec.f, spec.t)
+		}, fmt.Sprintf("Bad field type %T", spec.f))
+		panicCount++
+	}
+	Equal(t, panicCount, len(panicSpecs))
+}
+
 func TestBase32Validation(t *testing.T) {
 	validate := New()
 
