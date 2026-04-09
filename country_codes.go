@@ -1175,3 +1175,15 @@ var iso3166_2 = map[string]struct{}{
 	"ZW-BU": {}, "ZW-HA": {}, "ZW-MA": {}, "ZW-MC": {}, "ZW-ME": {},
 	"ZW-MI": {}, "ZW-MN": {}, "ZW-MS": {}, "ZW-MV": {}, "ZW-MW": {},
 }
+
+// Subset of UN M.49 region codes present in the IANA Language Subtag Registry:
+// https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+var iana_subtag_registry_m49_codes = map[string]struct{}{
+	"001": {}, "002": {}, "003": {}, "005": {}, "009": {},
+	"011": {}, "013": {}, "014": {}, "015": {}, "017": {},
+	"018": {}, "019": {}, "021": {}, "029": {}, "030": {},
+	"034": {}, "035": {}, "039": {}, "053": {}, "054": {},
+	"057": {}, "061": {}, "142": {}, "143": {}, "145": {},
+	"150": {}, "151": {}, "154": {}, "155": {}, "202": {},
+	"419": {},
+}
