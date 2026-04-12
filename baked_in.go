@@ -1418,6 +1418,13 @@ func isEq(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
+
 	switch field.Kind() {
 	case reflect.String:
 		return field.String() == param
@@ -1462,6 +1469,13 @@ func isEq(fl FieldLevel) bool {
 func isEqIgnoreCase(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
+
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
 
 	switch field.Kind() {
 	case reflect.String:
@@ -2276,6 +2290,13 @@ func isGte(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
+
 	switch field.Kind() {
 	case reflect.String:
 		p := asInt(param)
@@ -2325,6 +2346,13 @@ func isGt(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
+
 	switch field.Kind() {
 	case reflect.String:
 		p := asInt(param)
@@ -2370,6 +2398,13 @@ func isGt(fl FieldLevel) bool {
 func hasLengthOf(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
+
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
 
 	switch field.Kind() {
 	case reflect.String:
@@ -2504,6 +2539,13 @@ func isLte(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
+
 	switch field.Kind() {
 	case reflect.String:
 		p := asInt(param)
@@ -2552,6 +2594,13 @@ func isLte(fl FieldLevel) bool {
 func isLt(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
+
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			return false
+		}
+		field = field.Elem()
+	}
 
 	switch field.Kind() {
 	case reflect.String:
