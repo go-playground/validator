@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -36,6 +37,10 @@ BEGIN:
 				goto BEGIN
 			}
 		}
+		if value, ok := extractDriverValuerValue(current); ok {
+			current = value
+			goto BEGIN
+		}
 
 		current = current.Elem()
 		goto BEGIN
@@ -53,6 +58,10 @@ BEGIN:
 				current = reflect.ValueOf(v.ValidatorValue())
 				goto BEGIN
 			}
+		}
+		if value, ok := extractDriverValuerValue(current); ok {
+			current = value
+			goto BEGIN
 		}
 
 		current = current.Elem()
@@ -76,9 +85,44 @@ BEGIN:
 				goto BEGIN
 			}
 		}
+		if value, ok := extractDriverValuerValue(current); ok {
+			current = value
+			goto BEGIN
+		}
 
 		return current, current.Kind(), nullable
 	}
+}
+
+func extractDriverValuerValue(current reflect.Value) (reflect.Value, bool) {
+	if !current.IsValid() {
+		return current, false
+	}
+
+	tryExtract := func(valuer driver.Valuer) (reflect.Value, bool) {
+		value, err := valuer.Value()
+		if err != nil {
+			panic(err)
+		}
+		if value == nil {
+			return reflect.Value{}, true
+		}
+		return reflect.ValueOf(value), true
+	}
+
+	if current.CanInterface() {
+		if valuer, ok := current.Interface().(driver.Valuer); ok {
+			return tryExtract(valuer)
+		}
+	}
+
+	if current.Kind() != reflect.Ptr && current.CanAddr() && current.Addr().CanInterface() {
+		if valuer, ok := current.Addr().Interface().(driver.Valuer); ok {
+			return tryExtract(valuer)
+		}
+	}
+
+	return current, false
 }
 
 // getStructFieldOKInternal traverses a struct to retrieve a specific field denoted by the provided namespace and

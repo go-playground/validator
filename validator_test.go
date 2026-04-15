@@ -2391,6 +2391,23 @@ func TestSQLValueValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestMaxMinValidationWithDriverValuerStructFields(t *testing.T) {
+	type StructWithSQLNullInt struct {
+		Max sql.NullInt64 `validate:"max=10"`
+		Min sql.NullInt64 `validate:"min=10"`
+	}
+
+	validate := New()
+	errs := validate.Struct(StructWithSQLNullInt{
+		Max: sql.NullInt64{Int64: 15, Valid: true},
+		Min: sql.NullInt64{Int64: 15, Valid: true},
+	})
+
+	NotEqual(t, errs, nil)
+	Equal(t, len(errs.(ValidationErrors)), 1)
+	AssertError(t, errs, "StructWithSQLNullInt.Max", "StructWithSQLNullInt.Max", "Max", "Max", "max")
+}
+
 func TestMACValidation(t *testing.T) {
 	tests := []struct {
 		param    string
