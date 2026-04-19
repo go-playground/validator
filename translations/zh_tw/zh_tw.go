@@ -1353,6 +1353,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "unique",
+			translation: "{0}必須包含唯一值",
+			override:    false,
+		},
+		{
 			tag:         "image",
 			translation: "{0} 必須是有效圖像",
 			override:    false,
