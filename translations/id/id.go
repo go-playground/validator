@@ -1188,6 +1188,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "{0} harus berupa berkas audio yang valid",
+			override:    false,
+		},
+		{
+			tag:         "mimetype",
+			translation: "{0} harus berupa tipe MIME yang valid",
+			override:    false,
+		},
+		{
 			tag:         "isdefault",
 			translation: "{0} harus berupa nilai default",
 			override:    false,

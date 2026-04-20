@@ -1457,6 +1457,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "audio",
+			translation: "{0}은(는) 유효한 오디오 파일이어야 합니다.",
+			override:    false,
+		},
+		{
+			tag:         "mimetype",
+			translation: "{0}은(는) 유효한 MIME 타입이어야 합니다.",
+			override:    false,
+		},
+		{
 			tag:         "cve",
 			translation: "{0}은(는) 유효한 CVE 식별자여야 합니다.",
 			override:    false,

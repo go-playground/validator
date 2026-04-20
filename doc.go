@@ -987,6 +987,24 @@ This is done using os.Stat and github.com/gabriel-vasile/mimetype
 
 	Usage: image
 
+# MIME type path
+
+This validates that a string value contains a valid file path and that
+the file exists on the machine and matches the provided MIME type in the
+form type/subtype or type/*.
+This is done using os.Stat and github.com/gabriel-vasile/mimetype
+
+	Usage: mimetype=image/png
+	Usage: mimetype=image/*
+
+# Audio path
+
+This validates that a string value contains a valid file path and that
+the file exists on the machine and is an audio file.
+This is done using os.Stat and github.com/gabriel-vasile/mimetype
+
+	Usage: audio
+
 # File Path
 
 This validates that a string value contains a valid file path but does not

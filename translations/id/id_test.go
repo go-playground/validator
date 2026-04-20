@@ -1149,6 +1149,8 @@ func TestOtherTagsTranslations(t *testing.T) {
 		File               string   `validate:"file"`
 		FilePath           string   `validate:"filepath"`
 		Image              string   `validate:"image"`
+		Audio              string   `validate:"audio"`
+		MIMEType           string   `validate:"mimetype=image/png"`
 		LenString          string   `validate:"len=5"`
 		LenSlice           []string `validate:"len=3"`
 		LenNumber          int      `validate:"len=10"`
@@ -1239,6 +1241,14 @@ func TestOtherTagsTranslations(t *testing.T) {
 		{
 			ns:       "TestOtherTags.Image",
 			expected: "Image harus berupa gambar yang valid",
+		},
+		{
+			ns:       "TestOtherTags.Audio",
+			expected: "Audio harus berupa berkas audio yang valid",
+		},
+		{
+			ns:       "TestOtherTags.MIMEType",
+			expected: "MIMEType harus berupa tipe MIME yang valid",
 		},
 		{
 			ns:       "TestOtherTags.LenString",
