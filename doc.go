@@ -184,6 +184,12 @@ so the above will become excludesall=0x7C
 		Field `validate:"excludesall=0x7C"` // GOOD! Use the UTF-8 hex representation.
 	}
 
+# Build tags
+
+The library provides a build tag for build size optimizations. If you are not using
+`validateFn` you can add the `validator_novalidatefn` build tag to enabled better dead
+code elimination. With this build tag, any usage of `validateFn` tags will panic.
+
 # Baked In Validators and Tags
 
 Here is a list of the current built in validators:
