@@ -148,6 +148,7 @@ func TestTranslations(t *testing.T) {
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
 		Image             string            `validate:"image"`
+		MIMEType          string            `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -670,6 +671,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image deve ser uma imagem válida",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType deve ser um tipo MIME válido",
 		},
 	}
 

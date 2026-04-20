@@ -1441,6 +1441,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "mimetype",
+			translation: "{0} muss ein gueltiger MIME-Typ sein",
+			override:    false,
+		},
+		{
 			tag:         "cve",
 			translation: "{0} muss eine gültige CVE-Kennung sein",
 			override:    false,
