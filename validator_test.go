@@ -8791,6 +8791,133 @@ func TestUri(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Var(i, "uri") }, "Bad field type int")
 }
 
+func TestOrigin(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		// Valid HTTP origins
+		{"http://example.com", true},
+		{"http://app.example.com", true},
+		{"http://example.com:8080", true},
+		{"http://localhost", true},
+		{"http://localhost:3000", true},
+		{"http://127.0.0.1", true},
+		{"http://127.0.0.1:8080", true},
+
+		// Valid HTTPS origins
+		{"https://example.com", true},
+		{"https://app.example.com", true},
+		{"https://example.com:8443", true},
+		{"https://example.com:443", true},
+		{"https://sub.domain.example.com", true},
+		{"https://example.co.uk", true},
+		{"https://xn--nxasmq6b.example.com", true}, // punycode (IDN)
+
+		// Valid IPv6 origins
+		{"http://[::1]", true},
+		{"http://[::1]:8080", true},
+		{"https://[2001:db8::1]", true},
+		{"https://[2001:db8::1]:8443", true},
+
+		// Invalid: wrong scheme
+		{"ftp://example.com", false},
+		{"file://example.com", false},
+		{"javascript://example.com", false},
+		{"data://example.com", false},
+		{"ws://example.com", false},
+		{"wss://example.com", false},
+		{"ssh://example.com", false},
+		{"mailto:user@example.com", false},
+		{"tel:+1234567890", false},
+
+		// Invalid: missing scheme
+		{"example.com", false},
+		{"app.example.com", false},
+		{"//example.com", false},
+		{"://example.com", false},
+
+		// Invalid: missing host
+		{"https://", false},
+		{"http://", false},
+		{"https:///path", false},
+		{"https://:8080", false},
+
+		// Invalid: has path
+		{"https://example.com/", false},
+		{"https://example.com/path", false},
+		{"https://example.com/path/to/resource", false},
+		{"http://example.com/", false},
+		{"https://example.com/a", false},
+
+		// Invalid: has query
+		{"https://example.com?foo=bar", false},
+		{"https://example.com?", false},
+		{"http://example.com?q=1&r=2", false},
+
+		// Invalid: has fragment
+		{"https://example.com#section", false},
+		{"https://example.com#", false},
+		{"http://example.com#top", false},
+		{"https://example.com%23", false},
+
+		// Invalid: combinations of path/query/fragment
+		{"https://example.com/path?q=1", false},
+		{"https://example.com/path#frag", false},
+		{"https://example.com/?q=1#frag", false},
+		{"https://example.com/path?q=1#frag", false},
+
+		// Invalid: malformed or meaningless
+		{"", false},
+		{" ", false},
+		{"not a url", false},
+		{"https:example.com", false},  // missing //
+		{"https:/example.com", false}, // single /
+		{"https//example.com", false}, // missing :
+		{"://", false},
+		{"http://  ", false}, // whitespace host
+		{"*", false},
+		{"https://*", false},
+
+		// Invalid: userinfo in URL (not valid in origin)
+		{"https://user:pass@example.com", false},
+		{"https://user@example.com", false},
+
+		// Case sensitivity and port boundary cases
+		{"HTTPS://example.com", true},        // uppercase scheme, Parse normalizes
+		{"https://EXAMPLE.COM", true},        // uppercase host, valid per RFC
+		{"https://example.com:65535", true},  // max valid port
+		{"https://example.com:0", false},     // port 0 isn't valid in the context of a web origin
+		{"https://example.com:65536", false}, // port out of range
+		{"https://example.com:-1", false},    // negative port
+		{"https://example.com:abc", false},   // non-numeric port
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "origin")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "origin" {
+					t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "origin") }, "Bad field type int")
+}
+
 func TestOrTag(t *testing.T) {
 	validate := New()
 

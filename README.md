@@ -128,6 +128,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | url | URL String |
 | http_url | HTTP(s) URL String |
 | https_url | HTTPS-only URL String |
+| origin | Web origin (URL with HTTP(S) scheme and host, but no path/query/fragment) |
 | url_encoded | URL Encoded |
 | urn_rfc2141 | Urn RFC 2141 String |
 
