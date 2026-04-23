@@ -149,6 +149,7 @@ func TestTranslations(t *testing.T) {
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		Timezone          string            `validate:"timezone"`
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
@@ -207,6 +208,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.Timezone = "abc"
 	test.BooleanString = "A"
 
 	test.Inner.RequiredIf = "abcd"
@@ -692,6 +694,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Datetime",
 			expected: "Datetimeは2006-01-02の書式と一致しません",
+		},
+		{
+			ns:       "Test.Timezone",
+			expected: "Timezoneは正しいタイムゾーン文字列でなければなりません",
 		},
 		{
 			ns:       "Test.PostCode",

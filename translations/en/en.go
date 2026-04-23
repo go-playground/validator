@@ -1467,6 +1467,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "timezone",
+			translation: "{0} must be a valid time zone",
+			override:    false,
+		},
+		{
 			tag:         "postcode_iso3166_alpha2",
 			translation: "{0} does not match postcode format of {1} country",
 			override:    false,
