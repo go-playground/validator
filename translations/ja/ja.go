@@ -1389,6 +1389,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "timezone",
+			translation: "{0}は正しいタイムゾーン文字列でなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "postcode_iso3166_alpha2",
 			translation: "{0}は国名コード{1}の郵便番号形式と一致しません",
 			override:    false,
