@@ -422,6 +422,49 @@ func TestNameNamespace(t *testing.T) {
 	Equal(t, fe.StructNamespace(), "Namespace.Inner1.Inner2.String[1]")
 }
 
+func TestBlankTagNameFuncOmitsNamespace(t *testing.T) {
+	validate := New(WithTagNameFuncBlankOmit())
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name, _, _ := strings.Cut(fld.Tag.Get("json"), ",")
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
+	type Inner struct {
+		Field string `validate:"required" json:"field"`
+	}
+
+	type Outer struct {
+		Hidden  Inner  `json:"-"`
+		Skipped string `validate:"required" json:"-"`
+	}
+
+	errs := validate.Struct(Outer{})
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 2)
+
+	AssertError(t, errs, "Outer.field", "Outer.Hidden.Field", "field", "Field", "required")
+	AssertError(t, errs, "Outer", "Outer.Skipped", "", "Skipped", "required")
+
+	fe := getError(ve, "Outer.field", "Outer.Hidden.Field")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "field")
+	Equal(t, fe.StructField(), "Field")
+	Equal(t, fe.Namespace(), "Outer.field")
+	Equal(t, fe.StructNamespace(), "Outer.Hidden.Field")
+
+	fe = getError(ve, "Outer", "Outer.Skipped")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "")
+	Equal(t, fe.StructField(), "Skipped")
+	Equal(t, fe.Namespace(), "Outer")
+	Equal(t, fe.StructNamespace(), "Outer.Skipped")
+}
+
 func TestAnonymous(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -6321,32 +6364,32 @@ func TestMIMETypeValidation(t *testing.T) {
 	}
 
 	tests := []struct {
-		title       string
-		param       string
-		tag         string
-		expected    bool
-		createFile  func()
+		title      string
+		param      string
+		tag        string
+		expected   bool
+		createFile func()
 	}{
 		{
-			title:       "empty path",
-			param:       paths["empty"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "empty path",
+			param:      paths["empty"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
-			title:       "directory, not a file",
-			param:       paths["directory"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "directory, not a file",
+			param:      paths["directory"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
-			title:       "missing file",
-			param:       paths["missing"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "missing file",
+			param:      paths["missing"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
 			title:    "exact png match",
@@ -6401,11 +6444,11 @@ func TestMIMETypeValidation(t *testing.T) {
 			},
 		},
 		{
-			title:       "type mismatch",
-			param:       paths["go"],
-			tag:         "mimetype=image/*",
-			expected:    false,
-			createFile:  func() {},
+			title:      "type mismatch",
+			param:      paths["go"],
+			tag:        "mimetype=image/*",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
 			title:    "subtype mismatch",
@@ -6425,11 +6468,11 @@ func TestMIMETypeValidation(t *testing.T) {
 			},
 		},
 		{
-			title:       "invalid validator param missing subtype",
-			param:       paths["go"],
-			tag:         "mimetype=image",
-			expected:    false,
-			createFile:  func() {},
+			title:      "invalid validator param missing subtype",
+			param:      paths["go"],
+			tag:        "mimetype=image",
+			expected:   false,
+			createFile: func() {},
 		},
 	}
 
