@@ -1566,9 +1566,7 @@ func isURI(fl FieldLevel) bool {
 func isOrigin(fl FieldLevel) bool {
 	field := fl.Field()
 
-	switch field.Kind() {
-	case reflect.String:
-
+	if field.Kind() == reflect.String {
 		s := field.String()
 
 		if len(s) == 0 {
@@ -1602,7 +1600,7 @@ func isOrigin(fl FieldLevel) bool {
 		if hostname == "" {
 			return false
 		}
-		if !hostnameRegexRFC1123().MatchString(hostname) && net.ParseIP(hostname) == nil {
+		if net.ParseIP(hostname) == nil && !hostnameRegexRFC1123().MatchString(hostname) {
 			return false
 		}
 

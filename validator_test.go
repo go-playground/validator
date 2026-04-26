@@ -8891,6 +8891,11 @@ func TestOrigin(t *testing.T) {
 		{"https://example.com:65536", false}, // port out of range
 		{"https://example.com:-1", false},    // negative port
 		{"https://example.com:abc", false},   // non-numeric port
+		{"http://example-.com", false},
+		{"http://-sub.example.com", false},
+		{"http://sub-.example.com", false},
+		{"http://example..com", false},
+		{"http://example.com.", false},
 	}
 
 	validate := New()
@@ -10808,6 +10813,18 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
 		{"2001:cdba:0:0:0:0:3257:9652", false},
 		{"2001:cdba::3257:9652", false},
+		{"", false},
+		{"-example.com", false},
+		{"example-.com", false},
+		{"foo.-bar.com", false},
+		{"foo.bar-.com", false},
+		{"example..com", false},
+		{".example.com", false},
+		{"foo.bar baz", false},
+		{"foo.bar/baz", false},
+		{"foo.bar:80", false},
+		{"foo$.example.com", false},
+		{"this-is-a-deliberately-overlong-subdomain-used-for-boundary-test.example.com", false},
 	}
 
 	validate := New()
