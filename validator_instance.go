@@ -68,7 +68,7 @@ type FilterFunc func(ns []byte) bool
 
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
 // field = field value of the type to return a value to be validated
-// example Valuer from sql drive see https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29
+// example Valuer from sql driver see https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29
 type CustomTypeFunc func(field reflect.Value) interface{}
 
 // TagNameFunc allows for adding of a custom tag name parser
@@ -428,7 +428,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 }
 
 // StructPartial validates the fields passed in only, ignoring all others.
-// Fields may be provided in a namespaced fashion relative to the  struct provided
+// Fields may be provided in a namespaced fashion relative to the struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -439,7 +439,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) error {
 
 // StructPartialCtx validates the fields passed in only, ignoring all others and allows passing of contextual
 // validation information via context.Context
-// Fields may be provided in a namespaced fashion relative to the  struct provided
+// Fields may be provided in a namespaced fashion relative to the struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -514,7 +514,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 }
 
 // StructExcept validates all fields except the ones passed in.
-// Fields may be provided in a namespaced fashion relative to the  struct provided
+// Fields may be provided in a namespaced fashion relative to the struct provided
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
@@ -525,7 +525,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) error {
 
 // StructExceptCtx validates all fields except the ones passed in and allows passing of contextual
 // validation information via context.Context
-// Fields may be provided in a namespaced fashion relative to the  struct provided
+// Fields may be provided in a namespaced fashion relative to the struct provided
 // i.e. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
