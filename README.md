@@ -51,7 +51,8 @@ Validator returns only InvalidValidationError for bad validation input, nil or V
 
 ```go
 err := validate.Struct(mystruct)
-validationErrors := err.(validator.ValidationErrors)
+var validationErrors validator.ValidationErrors
+errors.As(err, &validationErrors)
  ```
 
 Usage and documentation
