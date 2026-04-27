@@ -142,6 +142,7 @@ var (
 		"http_url":                      isHttpURL,
 		"https_url":                     isHttpsURL,
 		"uri":                           isURI,
+		"origin":                        isOrigin,
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
 		"filepath":                      isFilePath,
@@ -1556,6 +1557,64 @@ func isURI(fl FieldLevel) bool {
 		_, err := url.ParseRequestURI(s)
 
 		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+// isOrigin checks if a field value is a valid web origin URL with HTTP(S) scheme and host defined, but no path, query, or fragment.
+func isOrigin(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		s := field.String()
+
+		if len(s) == 0 {
+			return false
+		}
+
+		// Fragments with empty content ("#") are not detectable after parse and
+		// u.Fragment will be empty even if # is present in the URL.
+		if strings.Contains(s, "#") {
+			return false
+		}
+
+		u, err := url.Parse(s)
+		if err != nil {
+			return false
+		}
+
+		if u.Scheme != "http" && u.Scheme != "https" {
+			return false
+		}
+
+		if u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+			return false
+		}
+
+		if u.User != nil {
+			return false
+		}
+
+		hostname := u.Hostname()
+		if hostname == "" {
+			return false
+		}
+		if net.ParseIP(hostname) == nil && !hostnameRegexRFC1123().MatchString(hostname) {
+			return false
+		}
+
+		portStr := u.Port()
+		if portStr != "" {
+			// Port 0 is reserved (RFC 6335) and has no valid use as an origin port.
+			// https://www.rfc-editor.org/rfc/rfc6335.html#section-6
+			port, portErr := strconv.ParseUint(portStr, 10, 16)
+			if portErr != nil || port == 0 {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
