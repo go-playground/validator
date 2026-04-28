@@ -10912,6 +10912,8 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"abc1234", true},
 		{"example. com", false},
 		{"ex ample.com", false},
+		{"foo-.example.com", false}, // label ends with '-' (RFC 952)
+		{"host-.tld", false},
 	}
 
 	validate := New()
