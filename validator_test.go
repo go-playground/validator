@@ -6321,32 +6321,32 @@ func TestMIMETypeValidation(t *testing.T) {
 	}
 
 	tests := []struct {
-		title       string
-		param       string
-		tag         string
-		expected    bool
-		createFile  func()
+		title      string
+		param      string
+		tag        string
+		expected   bool
+		createFile func()
 	}{
 		{
-			title:       "empty path",
-			param:       paths["empty"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "empty path",
+			param:      paths["empty"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
-			title:       "directory, not a file",
-			param:       paths["directory"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "directory, not a file",
+			param:      paths["directory"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
-			title:       "missing file",
-			param:       paths["missing"],
-			tag:         "mimetype=image/png",
-			expected:    false,
-			createFile:  func() {},
+			title:      "missing file",
+			param:      paths["missing"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
 			title:    "exact png match",
@@ -6401,11 +6401,11 @@ func TestMIMETypeValidation(t *testing.T) {
 			},
 		},
 		{
-			title:       "type mismatch",
-			param:       paths["go"],
-			tag:         "mimetype=image/*",
-			expected:    false,
-			createFile:  func() {},
+			title:      "type mismatch",
+			param:      paths["go"],
+			tag:        "mimetype=image/*",
+			expected:   false,
+			createFile: func() {},
 		},
 		{
 			title:    "subtype mismatch",
@@ -6425,11 +6425,11 @@ func TestMIMETypeValidation(t *testing.T) {
 			},
 		},
 		{
-			title:       "invalid validator param missing subtype",
-			param:       paths["go"],
-			tag:         "mimetype=image",
-			expected:    false,
-			createFile:  func() {},
+			title:      "invalid validator param missing subtype",
+			param:      paths["go"],
+			tag:        "mimetype=image",
+			expected:   false,
+			createFile: func() {},
 		},
 	}
 
@@ -15501,6 +15501,39 @@ func TestEINStringValidation(t *testing.T) {
 		} else {
 			if IsEqual(errs, nil) {
 				t.Fatalf("Index: %d ein failed Error: %s", i, errs)
+			}
+		}
+	}
+}
+
+func TestISINStringValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"isin"`
+		expected bool
+	}{
+		{"US0378331005", true},
+		{"GB0002634946", true},
+		{"DE0005140008", true},
+		{"US037833100", false},
+		{"US03783310055", false},
+		{"0S0378331005", false},
+		{"U00378331005", false},
+		{"US0378331006", false},
+		{"us0378331005", false},
+		{"US037833100a", false},
+	}
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, "isin")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d isin failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d isin failed Error: %s", i, errs)
 			}
 		}
 	}
