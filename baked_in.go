@@ -2889,8 +2889,33 @@ func isHostnameRFC952(fl FieldLevel) bool {
 	return hostnameRegexRFC952().MatchString(fl.Field().String())
 }
 
+// looksLikeDottedDecimal returns true if s looks like a dotted-decimal address
+// (e.g. "277.168.0.1") — composed entirely of digits and dots, with at least one dot.
+func looksLikeDottedDecimal(s string) bool {
+	hasDot := false
+	for _, c := range s {
+		if c == '.' {
+			hasDot = true
+		} else if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return hasDot
+}
+
 func isHostnameRFC1123(fl FieldLevel) bool {
-	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+	val := fl.Field().String()
+	if !hostnameRegexRFC1123().MatchString(val) {
+		return false
+	}
+	// RFC 1123 §2.1: "a valid host name can never have the dotted-decimal
+	// form #.#.#.#, since at least the highest-level component label will
+	// be alphabetic." Reject strings that look like dotted-decimal but are
+	// not valid IPv4 addresses (e.g. 277.168.0.1).
+	if net.ParseIP(val) == nil && looksLikeDottedDecimal(val) {
+		return false
+	}
+	return true
 }
 
 func isFQDN(fl FieldLevel) bool {
