@@ -3997,8 +3997,11 @@ func TestDataURIValidation(t *testing.T) {
 		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
 		{"data:image/jpeg;key=value;base64,UEsDBBQAAAAI", true},
 		{"data:image/jpeg;key=value,UEsDBBQAAAAI", true},
-		{"data:;base64;sdfgsdfgsdfasdfa=s,UEsDBBQAAAAI", true},
+		{"data:;base64,UEsDBBQAAAAI", true},
 		{"data:,UEsDBBQAAAAI", true},
+		{"data:,ohai", true},
+		{"data:text/plain,hello world", true},
+		{"data:text/html,<h1>Hello</h1>", true},
 	}
 
 	validate := New()
