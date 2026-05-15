@@ -15163,6 +15163,24 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"0 15 10 ? * 6#3", "cron", true},
 		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
+		// The regex must match the entire string, not a substring containing
+		// something cron-like. Without `^...$` anchors, arbitrary text wrapped
+		// around a valid cron expression would falsely validate.
+		{"random text @daily more text", "cron", false},
+		{"foo @yearly bar", "cron", false},
+		{"prefix @every 1h suffix", "cron", false},
+		{"x 1 2 3 4 5 y", "cron", false},
+		{"hello world this string has 1 2 3 4 5 numbers", "cron", false},
+		{"not at all valid; trailing junk: * * * * *", "cron", false},
+		// Known limitations: the following inputs still pass because the
+		// regex validates cron *syntax*, not semantics. Catching them would
+		// require a real cron parser (per-field value ranges, an enumerated
+		// list of valid alphabetic tokens like MON/TUE/JAN/FEB, etc.):
+		//   "60 25 32 13 7"           - all numeric fields out of range
+		//   "foo bar baz qux quux"    - nonsense alphabetic tokens, all 2+ chars
+		//   "5- * * * *"              - field with trailing separator
+		//   "0,,1 * * * *"            - field with empty list slot
+		//   "@every 0s"               - zero-duration interval
 	}
 
 	validate := New()
