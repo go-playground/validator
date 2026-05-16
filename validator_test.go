@@ -15163,6 +15163,12 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"0 15 10 ? * 6#3", "cron", true},
 		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
+		{"random text @daily more text", "cron", false},
+		{"x 1 2 3 4 5 y", "cron", false},
+		{"prefix @every 1h suffix", "cron", false},
+		{"not at all valid; trailing junk: * * * * *", "cron", false},
+		{"* * * * * trailing", "cron", false},
+		{"leading * * * * *", "cron", false},
 	}
 
 	validate := New()
