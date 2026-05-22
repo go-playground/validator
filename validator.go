@@ -17,6 +17,7 @@ type validate struct {
 	errs           ValidationErrors
 	includeExclude map[string]struct{} // reset only if StructPartial or StructExcept are called, no need otherwise
 	ffn            FilterFunc
+	fieldErr       error
 	slflParent     reflect.Value // StructLevel & FieldLevel
 	slCurrent      reflect.Value // StructLevel & FieldLevel
 	flField        reflect.Value // StructLevel & FieldLevel
@@ -462,6 +463,7 @@ OUTER:
 		default:
 
 			// set Field Level fields
+			v.fieldErr = nil
 			v.slflParent = parent
 			v.flField = current
 			v.cf = cf
@@ -489,6 +491,7 @@ OUTER:
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
+						err:            v.fieldErr,
 					},
 				)
 
