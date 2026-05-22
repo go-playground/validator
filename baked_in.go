@@ -2798,18 +2798,26 @@ func isHostnameRFC952(fl FieldLevel) bool {
 	return hostnameRegexRFC952().MatchString(fl.Field().String())
 }
 
-// looksLikeDottedDecimal returns true if s looks like a dotted-decimal address
-// (e.g. "277.168.0.1") — composed entirely of digits and dots, with at least one dot.
-func looksLikeDottedDecimal(s string) bool {
-	hasDot := false
+func isDottedDecimalIPv4(s string) bool {
+	labels := 1
+	labelLen := 0
+
 	for _, c := range s {
-		if c == '.' {
-			hasDot = true
-		} else if c < '0' || c > '9' {
+		switch {
+		case c == '.':
+			if labelLen == 0 {
+				return false
+			}
+			labels++
+			labelLen = 0
+		case c >= '0' && c <= '9':
+			labelLen++
+		default:
 			return false
 		}
 	}
-	return hasDot
+
+	return labels == 4 && labelLen > 0
 }
 
 func isHostnameRFC1123(fl FieldLevel) bool {
@@ -2817,12 +2825,9 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 	if !hostnameRegexRFC1123().MatchString(val) {
 		return false
 	}
-	// RFC 1123 §2.1: "a valid host name can never have the dotted-decimal
-	// form #.#.#.#, since at least the highest-level component label will
-	// be alphabetic." Reject strings that look like dotted-decimal but are
-	// not valid IPv4 addresses (e.g. 277.168.0.1).
-	if net.ParseIP(val) == nil && looksLikeDottedDecimal(val) {
-		return false
+	if isDottedDecimalIPv4(val) {
+		ip := net.ParseIP(val)
+		return ip != nil && ip.To4() != nil
 	}
 	return true
 }
