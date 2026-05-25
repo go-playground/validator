@@ -56,6 +56,7 @@ var (
 		keysTag:           {},
 		endKeysTag:        {},
 		structOnlyTag:     {},
+		skipNamespaceTag:  {},
 		omitzero:          {},
 		omitempty:         {},
 		omitnil:           {},

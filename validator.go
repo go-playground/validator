@@ -192,7 +192,9 @@ OUTER:
 				// VarWithField - this allows for validating against each field within the struct against a specific value
 				//                pretty handy in certain situations
 				if len(cf.name) > 0 {
-					ns = append(append(ns, cf.altName...), '.')
+					if !cf.skipNamespace {
+						ns = append(append(ns, cf.altName...), '.')
+					}
 					structNs = append(append(structNs, cf.name...), '.')
 				}
 
@@ -204,6 +206,9 @@ OUTER:
 		switch ct.typeof {
 		case typeNoStructLevel:
 			return
+
+		case typeSkipNamespace:
+			ct = ct.next
 
 		case typeStructOnly:
 			if isNestedStruct {

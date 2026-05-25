@@ -22,6 +22,7 @@ const (
 	typeEndKeys
 	typeOmitNil
 	typeOmitZero
+	typeSkipNamespace
 )
 
 const (
@@ -77,11 +78,12 @@ type cStruct struct {
 }
 
 type cField struct {
-	idx        int
-	name       string
-	altName    string
-	namesEqual bool
-	cTags      *cTag
+	idx           int
+	name          string
+	altName       string
+	namesEqual    bool
+	skipNamespace bool
+	cTags         *cTag
 }
 
 type cTag struct {
@@ -98,6 +100,15 @@ type cTag struct {
 	hasParam             bool // true if parameter used eg. eq= where the equal sign has been set
 	isBlockEnd           bool // indicates the current tag represents the last validation in the block
 	runValidationWhenNil bool
+}
+
+func (ct *cTag) HasTagInChain(tag string) bool {
+	for n := ct; n != nil; n = n.next {
+		if n.aliasTag == tag {
+			return true
+		}
+	}
+	return false
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
@@ -161,11 +172,12 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		}
 
 		cs.fields = append(cs.fields, &cField{
-			idx:        i,
-			name:       fld.Name,
-			altName:    customName,
-			cTags:      ctag,
-			namesEqual: fld.Name == customName,
+			idx:           i,
+			name:          fld.Name,
+			altName:       customName,
+			cTags:         ctag,
+			namesEqual:    fld.Name == customName,
+			skipNamespace: ctag.HasTagInChain(skipNamespaceTag),
 		})
 	}
 	v.structCache.Set(typ, cs)
@@ -255,6 +267,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		case structOnlyTag:
 			current.typeof = typeStructOnly
+
+		case skipNamespaceTag:
+			current.typeof = typeSkipNamespace
 
 		case noStructLevelTag:
 			current.typeof = typeNoStructLevel
