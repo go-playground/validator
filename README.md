@@ -225,7 +225,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | sha384 | SHA384 hash |
 | sha512 | SHA512 hash |
 | ripemd128 | RIPEMD-128 hash |
-| ripemd128 | RIPEMD-160 hash |
+| ripemd160 | RIPEMD-160 hash |
 | tiger128 | TIGER128 hash |
 | tiger160 | TIGER160 hash |
 | tiger192 | TIGER192 hash |
