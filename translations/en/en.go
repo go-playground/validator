@@ -1188,6 +1188,62 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "startswith",
+			translation: "{0} must start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endswith",
+			translation: "{0} must end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startsnotwith",
+			translation: "{0} must not start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endsnotwith",
+			translation: "{0} must not end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "excludes",
 			translation: "{0} cannot contain the text '{1}'",
 			override:    false,

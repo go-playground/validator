@@ -126,6 +126,10 @@ func TestTranslations(t *testing.T) {
 		Base64                string            `validate:"base64"`
 		Contains              string            `validate:"contains=purpose"`
 		ContainsAny           string            `validate:"containsany=!@#$"`
+		StartsWith            string            `validate:"startswith=start"`
+		EndsWith              string            `validate:"endswith=end"`
+		StartsNotWith         string            `validate:"startsnotwith=start"`
+		EndsNotWith           string            `validate:"endsnotwith=end"`
 		Excludes              string            `validate:"excludes=text"`
 		ExcludesAll           string            `validate:"excludesall=!@#$"`
 		ExcludesRune          string            `validate:"excludesrune=☻"`
@@ -243,6 +247,10 @@ func TestTranslations(t *testing.T) {
 	test.Excludes = "this is some test text"
 	test.ExcludesAll = "This is Great!"
 	test.ExcludesRune = "Love it ☻"
+	test.StartsWith = "end"
+	test.EndsWith = "start"
+	test.StartsNotWith = "start value"
+	test.EndsNotWith = "value end"
 
 	test.ASCII = "ｶﾀｶﾅ"
 	test.PrintableASCII = "ｶﾀｶﾅ"
@@ -437,6 +445,22 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Contains",
 			expected: "Contains must contain the text 'purpose'",
+		},
+		{
+			ns:       "Test.StartsWith",
+			expected: "StartsWith must start with 'start'",
+		},
+		{
+			ns:       "Test.EndsWith",
+			expected: "EndsWith must end with 'end'",
+		},
+		{
+			ns:       "Test.StartsNotWith",
+			expected: "StartsNotWith must not start with 'start'",
+		},
+		{
+			ns:       "Test.EndsNotWith",
+			expected: "EndsNotWith must not end with 'end'",
 		},
 		{
 			ns:       "Test.Base64",
