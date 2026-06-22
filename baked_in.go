@@ -2889,8 +2889,38 @@ func isHostnameRFC952(fl FieldLevel) bool {
 	return hostnameRegexRFC952().MatchString(fl.Field().String())
 }
 
+func isDottedDecimalIPv4(s string) bool {
+	labels := 1
+	labelLen := 0
+
+	for _, c := range s {
+		switch {
+		case c == '.':
+			if labelLen == 0 {
+				return false
+			}
+			labels++
+			labelLen = 0
+		case c >= '0' && c <= '9':
+			labelLen++
+		default:
+			return false
+		}
+	}
+
+	return labels == 4 && labelLen > 0
+}
+
 func isHostnameRFC1123(fl FieldLevel) bool {
-	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+	val := fl.Field().String()
+	if !hostnameRegexRFC1123().MatchString(val) {
+		return false
+	}
+	if isDottedDecimalIPv4(val) {
+		ip := net.ParseIP(val)
+		return ip != nil && ip.To4() != nil
+	}
+	return true
 }
 
 func isFQDN(fl FieldLevel) bool {
