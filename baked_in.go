@@ -608,7 +608,21 @@ func isDataURI(fl FieldLevel) bool {
 		return false
 	}
 
-	return base64Regex().MatchString(uri[1])
+	// After "data:", the prefix must be empty, start with ";", or contain "/"
+	// to form a valid mediatype. This rejects partial matches like "data:text"
+	// where the regex only matches the "data:" portion.
+	if prefix := uri[0][5:]; prefix != "" && !strings.Contains(prefix, "/") && prefix[0] != ';' {
+		return false
+	}
+
+	// Only validate the data portion as base64 when ;base64 is specified.
+	// Per RFC 2397, ;base64 is a terminal flag that appears immediately
+	// before the comma, so it is always a suffix of the prefix portion.
+	if strings.HasSuffix(uri[0], ";base64") {
+		return base64Regex().MatchString(uri[1])
+	}
+
+	return true
 }
 
 // hasMultiByteCharacter is the validation function for validating if the field's value has a multi byte character.
