@@ -15705,6 +15705,14 @@ func (r NotRed) DoNothing() {}
 
 func (r NotRed) String() string { return "not red instance" }
 
+var errValidateFnFailed = errors.New("validate function failed")
+
+type ValidateFnFailed struct{}
+
+func (ValidateFnFailed) Validate() error {
+	return errValidateFnFailed
+}
+
 func TestValidateFn(t *testing.T) {
 	t.Run("using pointer", func(t *testing.T) {
 		validate := New()
@@ -15792,6 +15800,28 @@ func TestValidateFn(t *testing.T) {
 		Equal(t, fe.Field(), "Inner")
 		Equal(t, fe.Namespace(), "Test2.Inner")
 		Equal(t, fe.Tag(), "validateFn")
+	})
+
+	t.Run("returned error can be unwrapped", func(t *testing.T) {
+		validate := New()
+
+		type Test struct {
+			Inner ValidateFnFailed `validate:"validateFn"`
+		}
+
+		err := validate.Struct(&Test{})
+		NotEqual(t, err, nil)
+		Equal(t, errors.Is(err, errValidateFnFailed), true)
+
+		errs := err.(ValidationErrors)
+		Equal(t, len(errs), 1)
+
+		fe := errs[0]
+		Equal(t, fe.Field(), "Inner")
+		Equal(t, fe.Namespace(), "Test.Inner")
+		Equal(t, fe.Tag(), "validateFn")
+		Equal(t, errors.Is(fe, errValidateFnFailed), true)
+		Equal(t, errors.Unwrap(fe), errValidateFnFailed)
 	})
 
 	t.Run("try validate method with wrong signature or not existent", func(t *testing.T) {
