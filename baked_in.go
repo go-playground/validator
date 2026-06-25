@@ -2059,15 +2059,27 @@ func requireCheckFieldValue(
 
 	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if value == "nil" {
+			return false
+		}
 		return field.Int() == asInt(value)
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		if value == "nil" {
+			return false
+		}
 		return field.Uint() == asUint(value)
 
 	case reflect.Float32:
+		if value == "nil" {
+			return false
+		}
 		return field.Float() == asFloat32(value)
 
 	case reflect.Float64:
+		if value == "nil" {
+			return false
+		}
 		return field.Float() == asFloat64(value)
 
 	case reflect.Slice, reflect.Map:
@@ -2075,19 +2087,21 @@ func requireCheckFieldValue(
 			return field.IsNil()
 		}
 		return int64(field.Len()) == asInt(value)
+
 	case reflect.Array:
 		// Arrays can't be nil, so only compare lengths
+		if value == "nil" {
+			return false
+		}
 		return int64(field.Len()) == asInt(value)
 
 	case reflect.Bool:
 		return field.Bool() == (value == "true")
 
 	case reflect.Ptr:
-		if field.IsNil() {
-			return value == "nil"
-		}
-		// Handle non-nil pointers
-		return requireCheckFieldValue(fl, param, value, defaultNotFoundValue)
+		// extractTypeInternal dereferences non-nil pointers before reaching here,
+		// so this case is only reached when the pointer itself is nil.
+		return value == "nil"
 	}
 
 	// default reflect.String:
