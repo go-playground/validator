@@ -260,6 +260,7 @@ var (
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 		"ein":                           isEIN,
+		"isin":                          isISIN,
 		"validateFn":                    isValidateFn,
 	}
 )
@@ -3505,9 +3506,30 @@ func isEIN(fl FieldLevel) bool {
 	return einRegex().MatchString(field.String())
 }
 
+// isISIN is the validation function for validating if the current field's value is a valid International Securities Identification Number (ISIN)
+func isISIN(fl FieldLevel) bool {
+	field := fl.Field()
+	isin := field.String()
+
+	if !isinRegex().MatchString(isin) {
+		return false
+	}
+
+	var digits []string
+	for _, c := range isin {
+		if c >= 'A' && c <= 'Z' {
+			val := int(c - 'A' + 10)
+			digits = append(digits, strconv.Itoa(val/10), strconv.Itoa(val%10))
+		} else {
+			digits = append(digits, string(c))
+		}
+	}
+
+	return digitsHaveLuhnChecksum(digits)
+}
+
 var (
 	errMethodNotFound          = errors.New(`method not found`)
 	errMethodReturnNoValues    = errors.New(`method return o values (void)`)
 	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
 )
-
