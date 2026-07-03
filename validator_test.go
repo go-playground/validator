@@ -3913,6 +3913,15 @@ func TestSSNValidation(t *testing.T) {
 		{"66690-76", false},
 		{"191 60 2869", true},
 		{"191-60-2869", true},
+		// mixed separators must be rejected
+		{"191-60 2869", false},
+		{"191 60-2869", false},
+		// group number 00 must be rejected
+		{"191-00-2869", false},
+		{"191 00 2869", false},
+		// serial number 0000 must be rejected
+		{"191-60-0000", false},
+		{"191 60 0000", false},
 	}
 
 	validate := New()
