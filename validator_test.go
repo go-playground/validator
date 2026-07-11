@@ -11111,6 +11111,8 @@ func TestFQDNValidation(t *testing.T) {
 		{"foo-.example.com", false},
 		{"foo.bar-.com", false},
 		{"example.com-", false},
+		{strings.Repeat("a", 63) + ".com", true},
+		{strings.Repeat("a", 64) + ".com", false},
 		{"-foo.example.com", false},
 		{"test24.example24.com..", false},
 		{"example", false},
