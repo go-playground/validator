@@ -14661,6 +14661,31 @@ func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	t.Errorf("Didn't panic as expected")
 }
 
+// TestPostCodeByIso3166Alpha2Field_Issue1314 is a regression test for issue #1314.
+// postcode_iso3166_alpha2_field was broken after PR #1270 changed iso3166 maps from
+// map[string]bool to map[string]struct{}, causing postcodeRegexInit to not be called
+// when using WithRequiredStructEnabled().
+func TestPostCodeByIso3166Alpha2Field_Issue1314(t *testing.T) {
+	type Example struct {
+		PostCode    string `validate:"required,postcode_iso3166_alpha2_field=CountryCode"`
+		CountryCode string `validate:"required,iso3166_1_alpha2"`
+	}
+
+	validate := New(WithRequiredStructEnabled())
+
+	// Valid: US postcode matching the field-referenced country code
+	err := validate.Struct(Example{CountryCode: "US", PostCode: "12345"})
+	if err != nil {
+		t.Errorf("expected valid US postcode to pass, got error: %v", err)
+	}
+
+	// Invalid: postcode that does not match the country code format
+	err = validate.Struct(Example{CountryCode: "US", PostCode: "not-a-postcode"})
+	if err == nil {
+		t.Error("expected invalid US postcode to fail, but got no error")
+	}
+}
+
 func TestValidate_ValidateMapCtx(t *testing.T) {
 	type args struct {
 		data  map[string]interface{}
