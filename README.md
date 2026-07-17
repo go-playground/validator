@@ -132,6 +132,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | origin | Web origin (URL with HTTP(S) scheme and host, but no path/query/fragment) |
 | url_encoded | URL Encoded |
 | urn_rfc2141 | Urn RFC 2141 String |
+| urn_rfc8141 | Urn RFC 8141 String |
 
 ### Strings:
 
