@@ -8170,6 +8170,7 @@ func TestUrnRFC8141(t *testing.T) {
 		{"urn:ietf:params:scim:schemas:core:2.0:User", true},
 		{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified", true},
 		{"urn:urn-7:informal", true},
+		{"", false},
 		{"urn:aa:", false},
 		{"URN:x:abc%1Dz%2F%3az", false},
 		{"urn:123456789-1234567890-abcdefghilmn:o", false},

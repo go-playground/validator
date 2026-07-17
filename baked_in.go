@@ -1514,6 +1514,9 @@ func isUrnRFC8141(fl FieldLevel) bool {
 	case reflect.String:
 
 		str := field.String()
+		if str == "" {
+			return false
+		}
 
 		_, match := urn.Parse([]byte(str), urn.WithParsingMode(urn.RFC8141Only))
 
