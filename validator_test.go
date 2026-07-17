@@ -8747,7 +8747,6 @@ func TestUrnRFC8141(t *testing.T) {
 	validate := New()
 
 	for i, test := range tests {
-
 		errs := validate.Var(test.param, tag)
 
 		if test.expected {
