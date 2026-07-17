@@ -217,17 +217,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
+					return
 				}
 
 				kind = fe.Kind()
@@ -240,6 +241,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("min-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -250,6 +256,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("min-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -258,6 +269,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("min-items", fe.Field(), c)
 
 				default:
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("min-number", fe.Field(), fe.Param())
+						goto END
+					}
+
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					t, err = ut.T("min-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
@@ -305,17 +326,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				var err error
 				var t string
-
+				var f64 float64
 				var digits uint64
 				var kind reflect.Kind
 
-				if idx := strings.Index(fe.Param(), "."); idx != -1 {
-					digits = uint64(len(fe.Param()[idx+1:]))
-				}
+				fn := func() (err error) {
+					if idx := strings.Index(fe.Param(), "."); idx != -1 {
+						digits = uint64(len(fe.Param()[idx+1:]))
+					}
 
-				f64, err := strconv.ParseFloat(fe.Param(), 64)
-				if err != nil {
-					goto END
+					f64, err = strconv.ParseFloat(fe.Param(), 64)
+
+					return
 				}
 
 				kind = fe.Kind()
@@ -328,6 +350,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("max-string-character", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -338,6 +365,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 				case reflect.Slice, reflect.Map, reflect.Array:
 					var c string
 
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					c, err = ut.C("max-items-item", f64, digits, ut.FmtNumber(f64, digits))
 					if err != nil {
 						goto END
@@ -346,6 +378,16 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					t, err = ut.T("max-items", fe.Field(), c)
 
 				default:
+					if fe.Type() == reflect.TypeOf(time.Duration(0)) {
+						t, err = ut.T("max-number", fe.Field(), fe.Param())
+						goto END
+					}
+
+					err = fn()
+					if err != nil {
+						goto END
+					}
+
 					t, err = ut.T("max-number", fe.Field(), ut.FmtNumber(f64, digits))
 				}
 
@@ -1033,6 +1075,26 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "alphaspace",
+			translation: "{0} can only contain alphabetic and space characters",
+			override:    false,
+		},
+		{
+			tag:         "alphanumspace",
+			translation: "{0} can only contain alphanumeric and space characters",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0} can only contain unicode alphabetic characters",
+			override:    false,
+		},
+		{
+			tag:         "alphanumunicode",
+			translation: "{0} can only contain unicode alphanumeric characters",
+			override:    false,
+		},
+		{
 			tag:         "numeric",
 			translation: "{0} must be a valid numeric value",
 			override:    false,
@@ -1126,6 +1188,62 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "startswith",
+			translation: "{0} must start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endswith",
+			translation: "{0} must end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startsnotwith",
+			translation: "{0} must not start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endsnotwith",
+			translation: "{0} must not end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "excludes",
 			translation: "{0} cannot contain the text '{1}'",
 			override:    false,
@@ -1185,6 +1303,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag:         "issn",
 			translation: "{0} must be a valid ISSN number",
+			override:    false,
+		},
+		{
+			tag:         "urn_rfc2141",
+			translation: "{0} must be a valid RFC 2141 URN",
 			override:    false,
 		},
 		{
@@ -1400,6 +1523,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "timezone",
+			translation: "{0} must be a valid time zone",
+			override:    false,
+		},
+		{
 			tag:         "postcode_iso3166_alpha2",
 			translation: "{0} does not match postcode format of {1} country",
 			override:    false,
@@ -1438,14 +1566,28 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "mimetype",
+			translation: "{0} must be a valid MIME type",
+			override:    false,
+		},
+		{
 			tag:         "cve",
 			translation: "{0} must be a valid cve identifier",
+			override:    false,
+		},
+		{
+			tag:         "bcp47_strict_language_tag",
+			translation: "{0} must be a valid BCP 47 language tag",
+			override:    false,
+		},
+		{
+			tag:         "validateFn",
+			translation: "{0} must be a valid object",
 			override:    false,
 		},
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {

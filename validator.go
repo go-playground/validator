@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"unsafe"
 )
 
 // per validate construct
@@ -31,14 +32,12 @@ type validate struct {
 
 // parent and current will be the same the first run of validateStruct
 func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, current reflect.Value, typ reflect.Type, ns []byte, structNs []byte, ct *cTag) {
-
 	cs, ok := v.v.structCache.Get(typ)
 	if !ok {
 		cs = v.v.extractStructCache(current, typ.Name())
 	}
 
 	if len(ns) == 0 && len(cs.name) != 0 {
-
 		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
 
@@ -49,21 +48,17 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	// ct is nil on top level struct, and structs as fields that have no tag info
 	// so if nil or if not nil and the structonly tag isn't present
 	if ct == nil || ct.typeof != typeStructOnly {
-
 		var f *cField
 
 		for i := 0; i < len(cs.fields); i++ {
-
 			f = cs.fields[i]
 
 			if v.isPartial {
-
 				if v.ffn != nil {
 					// used with StructFiltered
 					if v.ffn(append(structNs, f.name...)) {
 						continue
 					}
-
 				} else {
 					// used with StructPartial & StructExcept
 					_, ok = v.includeExclude[string(append(structNs, f.name...))]
@@ -82,7 +77,6 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	// first iteration will have no info about nostructlevel tag, and is checked prior to
 	// calling the next iteration of validateStruct called from traverseField.
 	if cs.fn != nil {
-
 		v.slflParent = parent
 		v.slCurrent = current
 		v.ns = ns
@@ -116,9 +110,13 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
+		if ct.typeof == typeOmitZero {
+			return
+		}
+
 		if ct.hasTag {
 			if kind == reflect.Invalid {
-				v.str1 = string(append(ns, cf.altName...))
+				v.str1 = appendAltName(ns, cf.altName)
 				if v.v.hasTagNameFunc {
 					v.str2 = string(append(structNs, cf.name...))
 				} else {
@@ -140,7 +138,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				return
 			}
 
-			v.str1 = string(append(ns, cf.altName...))
+			v.str1 = appendAltName(ns, cf.altName)
 			if v.v.hasTagNameFunc {
 				v.str2 = string(append(structNs, cf.name...))
 			} else {
@@ -156,7 +154,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),
@@ -194,7 +192,9 @@ OUTER:
 				// VarWithField - this allows for validating against each field within the struct against a specific value
 				//                pretty handy in certain situations
 				if len(cf.name) > 0 {
-					ns = append(append(ns, cf.altName...), '.')
+					if len(cf.altName) > 0 {
+						ns = append(append(ns, cf.altName...), '.')
+					}
 					structNs = append(append(structNs, cf.name...), '.')
 				}
 
@@ -214,7 +214,9 @@ OUTER:
 				// VarWithField - this allows for validating against each field within the struct against a specific value
 				//                pretty handy in certain situations
 				if len(cf.name) > 0 {
-					ns = append(append(ns, cf.altName...), '.')
+					if len(cf.altName) > 0 {
+						ns = append(append(ns, cf.altName...), '.')
+					}
 					structNs = append(append(structNs, cf.name...), '.')
 				}
 
@@ -237,6 +239,19 @@ OUTER:
 			ct = ct.next
 			continue
 
+		case typeOmitZero:
+			v.slflParent = parent
+			v.flField = current
+			v.cf = cf
+			v.ct = ct
+
+			if !hasNotZeroValue(v) {
+				return
+			}
+
+			ct = ct.next
+			continue
+
 		case typeOmitNil:
 			v.slflParent = parent
 			v.flField = current
@@ -249,7 +264,7 @@ OUTER:
 					return
 				}
 			default:
-				if v.fldIsPointer && field.Interface() == nil {
+				if v.fldIsPointer && getValue(field) == nil {
 					return
 				}
 			}
@@ -273,7 +288,6 @@ OUTER:
 				reusableCF := &cField{}
 
 				for i := 0; i < current.Len(); i++ {
-
 					i64 = int64(i)
 
 					v.misc = append(v.misc[0:0], cf.name...)
@@ -286,7 +300,6 @@ OUTER:
 					if cf.namesEqual {
 						reusableCF.altName = reusableCF.name
 					} else {
-
 						v.misc = append(v.misc[0:0], cf.altName...)
 						v.misc = append(v.misc, '[')
 						v.misc = strconv.AppendInt(v.misc, i64, 10)
@@ -303,8 +316,7 @@ OUTER:
 				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
-
-					pv = fmt.Sprintf("%v", key.Interface())
+					pv = fmt.Sprintf("%v", key)
 
 					v.misc = append(v.misc[0:0], cf.name...)
 					v.misc = append(v.misc, '[')
@@ -329,6 +341,18 @@ OUTER:
 						// can be nil when just keys being validated
 						if ct.next != nil {
 							v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct.next)
+						} else {
+							// Struct fallback when map values are structs
+							val := current.MapIndex(key)
+							switch val.Kind() {
+							case reflect.Ptr:
+								if val.Elem().Kind() == reflect.Struct {
+									// Dive into the struct so its own tags run
+									v.traverseField(ctx, parent, val, ns, structNs, reusableCF, nil)
+								}
+							case reflect.Struct:
+								v.traverseField(ctx, parent, val, ns, structNs, reusableCF, nil)
+							}
 						}
 					} else {
 						v.traverseField(ctx, parent, current.MapIndex(key), ns, structNs, reusableCF, ct)
@@ -348,7 +372,6 @@ OUTER:
 			v.misc = v.misc[0:0]
 
 			for {
-
 				// set Field Level fields
 				v.slflParent = parent
 				v.flField = current
@@ -363,7 +386,6 @@ OUTER:
 
 					// drain rest of the 'or' values, then continue or leave
 					for {
-
 						ct = ct.next
 
 						if ct == nil {
@@ -391,7 +413,7 @@ OUTER:
 
 				if ct.isBlockEnd || ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
-					v.str1 = string(append(ns, cf.altName...))
+					v.str1 = appendAltName(ns, cf.altName)
 
 					if v.v.hasTagNameFunc {
 						v.str2 = string(append(structNs, cf.name...))
@@ -400,7 +422,6 @@ OUTER:
 					}
 
 					if ct.hasAlias {
-
 						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
@@ -410,15 +431,13 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
 							},
 						)
-
 					} else {
-
 						tVal := string(v.misc)[1:]
 
 						v.errs = append(v.errs,
@@ -430,7 +449,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -453,7 +472,7 @@ OUTER:
 			v.ct = ct
 
 			if !ct.fn(ctx, v) {
-				v.str1 = string(append(ns, cf.altName...))
+				v.str1 = appendAltName(ns, cf.altName)
 
 				if v.v.hasTagNameFunc {
 					v.str2 = string(append(structNs, cf.name...))
@@ -470,7 +489,7 @@ OUTER:
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
@@ -482,5 +501,37 @@ OUTER:
 			ct = ct.next
 		}
 	}
+}
 
+func appendAltName(ns []byte, altName string) string {
+	if len(altName) > 0 {
+		return string(append(ns, altName...))
+	}
+	if n := len(ns); n > 0 && ns[n-1] == '.' {
+		return string(ns[:n-1])
+	}
+	return string(ns)
+}
+
+func getValue(val reflect.Value) interface{} {
+	if val.CanInterface() {
+		return val.Interface()
+	}
+
+	if val.CanAddr() {
+		return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Interface()
+	}
+
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val.Uint()
+	case reflect.Complex64, reflect.Complex128:
+		return val.Complex()
+	case reflect.Float32, reflect.Float64:
+		return val.Float()
+	default:
+		return val.String()
+	}
 }

@@ -13,7 +13,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	ru := russian.New()
 	uni := ut.New(ru, ru)
 	trans, _ := uni.GetTranslator("ru")
@@ -165,7 +164,8 @@ func TestTranslations(t *testing.T) {
 		UniqueSlice             []string          `validate:"unique"`
 		UniqueArray             [3]string         `validate:"unique"`
 		UniqueMap               map[string]string `validate:"unique"`
-		Image			  string			`validate:"image"`
+		Image                   string            `validate:"image"`
+		MIMEType                string            `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -752,13 +752,16 @@ func TestTranslations(t *testing.T) {
 			expected: "UniqueMap должен содержать уникальные значения",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "Image должно быть допустимым изображением",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType должно быть допустимым MIME-типом",
 		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -773,5 +776,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

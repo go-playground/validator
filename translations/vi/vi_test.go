@@ -149,7 +149,8 @@ func TestTranslations(t *testing.T) {
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
-		Image			  string			`validate:"image"`
+		Image             string `validate:"image"`
+		MIMEType          string `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -678,13 +679,16 @@ func TestTranslations(t *testing.T) {
 			expected: "PostCodeByField sai định dạng postcode của quốc gia tương ứng thuộc trường PostCodeCountry",
 		},
 		{
-			ns: "Test.Image",
+			ns:       "Test.Image",
 			expected: "Image phải là một hình ảnh hợp lệ",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType phải là một loại MIME hợp lệ",
 		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {

@@ -1,10 +1,15 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+	"sync"
+)
 
 const (
 	alphaRegexString                 = "^[a-zA-Z]+$"
+	alphaSpaceRegexString            = "^[a-zA-Z ]+$"
 	alphaNumericRegexString          = "^[a-zA-Z0-9]+$"
+	alphaNumericSpaceRegexString     = "^[a-zA-Z0-9 ]+$"
 	alphaUnicodeRegexString          = "^[\\p{L}]+$"
 	alphaUnicodeNumericRegexString   = "^[\\p{L}\\p{N}]+$"
 	numericRegexString               = "^[-+]?[0-9]+(?:\\.[0-9]+)?$"
@@ -15,8 +20,10 @@ const (
 	rgbaRegexString                  = "^rgba\\(\\s*(?:(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])|(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%\\s*,\\s*(?:0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])%)\\s*,\\s*(?:(?:0.[1-9]*)|[01])\\s*\\)$"
 	hslRegexString                   = "^hsl\\(\\s*(?:0|[1-9]\\d?|[12]\\d\\d|3[0-5]\\d|360)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*\\)$"
 	hslaRegexString                  = "^hsla\\(\\s*(?:0|[1-9]\\d?|[12]\\d\\d|3[0-5]\\d|360)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*,\\s*(?:(?:0|[1-9]\\d?|100)%)\\s*,\\s*(?:(?:0.[1-9]*)|[01])\\s*\\)$"
+	cmykRegexString                  = "^cmyk\\((100|[1-9]?\\d)%\\s*,\\s*(100|[1-9]?\\d)%\\s*,\\s*(100|[1-9]?\\d)%\\s*,\\s*(100|[1-9]?\\d)%\\)$"
 	emailRegexString                 = "^(?:(?:(?:(?:[a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+(?:\\.([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+)*)|(?:(?:\\x22)(?:(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(?:\\x20|\\x09)+)?(?:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]|\\x21|[\\x23-\\x5b]|[\\x5d-\\x7e]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[\\x01-\\x09\\x0b\\x0c\\x0d-\\x7f]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}]))))*(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(\\x20|\\x09)+)?(?:\\x22))))@(?:(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.)+(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.?$"
-	e164RegexString                  = "^\\+[1-9]?[0-9]{7,14}$"
+	e164RegexString                  = "^\\+?[1-9]\\d{7,14}$"
+	base32RegexString                = "^(?:[A-Z2-7]{8})*(?:[A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=|[A-Z2-7]{8})$"
 	base64RegexString                = "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$"
 	base64URLRegexString             = "^(?:[A-Za-z0-9-_]{4})*(?:[A-Za-z0-9-_]{2}==|[A-Za-z0-9-_]{3}=|[A-Za-z0-9-_]{4})$"
 	base64RawURLRegexString          = "^(?:[A-Za-z0-9-_]{4})*(?:[A-Za-z0-9-_]{2,4})$"
@@ -26,12 +33,12 @@ const (
 	uUID3RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$"
 	uUID4RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 	uUID5RegexString                 = "^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-	uUIDRegexString                  = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+	uUIDRegexString                  = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 	uUID3RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-3[0-9a-fA-F]{3}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 	uUID4RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUID5RFC4122RegexString          = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-5[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 	uUIDRFC4122RegexString           = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
+	uLIDRegexString                  = "^(?i)[A-HJKMNP-TV-Z0-9]{26}$"
 	md4RegexString                   = "^[0-9a-f]{32}$"
 	md5RegexString                   = "^[0-9a-f]{32}$"
 	sha256RegexString                = "^[0-9a-f]{64}$"
@@ -49,12 +56,12 @@ const (
 	latitudeRegexString              = "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?)$"
 	longitudeRegexString             = "^[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$"
 	sSNRegexString                   = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
-	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9\-]+[\.]?)*[a-zA-Z0-9]$`                                                                   // https://tools.ietf.org/html/rfc952
-	hostnameRegexStringRFC1123       = `^([a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62}){1}(\.[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})*?$`                                 // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
-	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})(\.[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9]{0,62})\.?$` // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
-	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                             // bitcoin address
-	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                   // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
-	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                                                   // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
+	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`                     // https://tools.ietf.org/html/rfc952
+	hostnameRegexStringRFC1123       = `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`                  // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})(\.[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9-]{0,62})\.?$` // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
+	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                              // bitcoin address
+	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                    // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
+	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                                                    // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
 	ethAddressRegexString            = `^0x[0-9a-fA-F]{40}$`
 	ethAddressUpperRegexString       = `^0x[0-9A-F]{40}$`
 	ethAddressLowerRegexString       = `^0x[0-9a-f]{40}$`
@@ -63,83 +70,104 @@ const (
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
 	jWTRegexString                   = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$"
 	splitParamsRegexString           = `'[^']*'|\S+`
-	bicRegexString                   = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	bic2014RegexString               = `^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$`
+	bic2022RegexString               = `^[A-Z0-9]{4}[A-Z]{2}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$`
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
-	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
+	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9])?$"
 	cveRegexString                   = `^CVE-(1999|2\d{3})-(0[^0]\d{2}|0\d[^0]\d{1}|0\d{2}[^0]|[1-9]{1}\d{3,})$` // CVE Format Id https://cve.mitre.org/cve/identifiers/syntaxchange.html
-	mongodbRegexString               = "^[a-f\\d]{24}$"
-	cronRegexString                  = `(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
+	mongodbIdRegexString             = "^[a-f\\d]{24}$"
+	mongodbConnStringRegexString     = "^mongodb(\\+srv)?:\\/\\/(([a-zA-Z\\d]+):([a-zA-Z\\d$:\\/?#\\[\\]@]+)@)?(([a-z\\d.-]+)(:[\\d]+)?)((,(([a-z\\d.-]+)(:(\\d+))?))*)?(\\/[a-zA-Z-_]{1,64})?(\\?(([a-zA-Z]+)=([a-zA-Z\\d]+))(&(([a-zA-Z\\d]+)=([a-zA-Z\\d]+))?)*)?$"
+	cronRegexString                  = `^((@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|(([A-Za-z0-9*?][A-Za-z0-9*?/,#L-]+|[*?0-9])( +([A-Za-z0-9*?][A-Za-z0-9*?/,#L-]+|[*?0-9])){4,6}))$`
 	spicedbIDRegexString             = `^(([a-zA-Z0-9/_|\-=+]{1,})|\*)$`
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
 	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
+	einRegexString                   = "^(\\d{2}-\\d{7})$"
 )
 
+func lazyRegexCompile(str string) func() *regexp.Regexp {
+	var regex *regexp.Regexp
+	var once sync.Once
+	return func() *regexp.Regexp {
+		once.Do(func() {
+			regex = regexp.MustCompile(str)
+		})
+		return regex
+	}
+}
+
 var (
-	alphaRegex                 = regexp.MustCompile(alphaRegexString)
-	alphaNumericRegex          = regexp.MustCompile(alphaNumericRegexString)
-	alphaUnicodeRegex          = regexp.MustCompile(alphaUnicodeRegexString)
-	alphaUnicodeNumericRegex   = regexp.MustCompile(alphaUnicodeNumericRegexString)
-	numericRegex               = regexp.MustCompile(numericRegexString)
-	numberRegex                = regexp.MustCompile(numberRegexString)
-	hexadecimalRegex           = regexp.MustCompile(hexadecimalRegexString)
-	hexColorRegex              = regexp.MustCompile(hexColorRegexString)
-	rgbRegex                   = regexp.MustCompile(rgbRegexString)
-	rgbaRegex                  = regexp.MustCompile(rgbaRegexString)
-	hslRegex                   = regexp.MustCompile(hslRegexString)
-	hslaRegex                  = regexp.MustCompile(hslaRegexString)
-	e164Regex                  = regexp.MustCompile(e164RegexString)
-	emailRegex                 = regexp.MustCompile(emailRegexString)
-	base64Regex                = regexp.MustCompile(base64RegexString)
-	base64URLRegex             = regexp.MustCompile(base64URLRegexString)
-	base64RawURLRegex          = regexp.MustCompile(base64RawURLRegexString)
-	iSBN10Regex                = regexp.MustCompile(iSBN10RegexString)
-	iSBN13Regex                = regexp.MustCompile(iSBN13RegexString)
-	iSSNRegex                  = regexp.MustCompile(iSSNRegexString)
-	uUID3Regex                 = regexp.MustCompile(uUID3RegexString)
-	uUID4Regex                 = regexp.MustCompile(uUID4RegexString)
-	uUID5Regex                 = regexp.MustCompile(uUID5RegexString)
-	uUIDRegex                  = regexp.MustCompile(uUIDRegexString)
-	uUID3RFC4122Regex          = regexp.MustCompile(uUID3RFC4122RegexString)
-	uUID4RFC4122Regex          = regexp.MustCompile(uUID4RFC4122RegexString)
-	uUID5RFC4122Regex          = regexp.MustCompile(uUID5RFC4122RegexString)
-	uUIDRFC4122Regex           = regexp.MustCompile(uUIDRFC4122RegexString)
-	uLIDRegex                  = regexp.MustCompile(uLIDRegexString)
-	md4Regex                   = regexp.MustCompile(md4RegexString)
-	md5Regex                   = regexp.MustCompile(md5RegexString)
-	sha256Regex                = regexp.MustCompile(sha256RegexString)
-	sha384Regex                = regexp.MustCompile(sha384RegexString)
-	sha512Regex                = regexp.MustCompile(sha512RegexString)
-	ripemd128Regex             = regexp.MustCompile(ripemd128RegexString)
-	ripemd160Regex             = regexp.MustCompile(ripemd160RegexString)
-	tiger128Regex              = regexp.MustCompile(tiger128RegexString)
-	tiger160Regex              = regexp.MustCompile(tiger160RegexString)
-	tiger192Regex              = regexp.MustCompile(tiger192RegexString)
-	aSCIIRegex                 = regexp.MustCompile(aSCIIRegexString)
-	printableASCIIRegex        = regexp.MustCompile(printableASCIIRegexString)
-	multibyteRegex             = regexp.MustCompile(multibyteRegexString)
-	dataURIRegex               = regexp.MustCompile(dataURIRegexString)
-	latitudeRegex              = regexp.MustCompile(latitudeRegexString)
-	longitudeRegex             = regexp.MustCompile(longitudeRegexString)
-	sSNRegex                   = regexp.MustCompile(sSNRegexString)
-	hostnameRegexRFC952        = regexp.MustCompile(hostnameRegexStringRFC952)
-	hostnameRegexRFC1123       = regexp.MustCompile(hostnameRegexStringRFC1123)
-	fqdnRegexRFC1123           = regexp.MustCompile(fqdnRegexStringRFC1123)
-	btcAddressRegex            = regexp.MustCompile(btcAddressRegexString)
-	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
-	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
-	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
-	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
-	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)
-	jWTRegex                   = regexp.MustCompile(jWTRegexString)
-	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
-	bicRegex                   = regexp.MustCompile(bicRegexString)
-	semverRegex                = regexp.MustCompile(semverRegexString)
-	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
-	cveRegex                   = regexp.MustCompile(cveRegexString)
-	mongodbRegex               = regexp.MustCompile(mongodbRegexString)
-	cronRegex                  = regexp.MustCompile(cronRegexString)
-	spicedbIDRegex             = regexp.MustCompile(spicedbIDRegexString)
-	spicedbPermissionRegex     = regexp.MustCompile(spicedbPermissionRegexString)
-	spicedbTypeRegex           = regexp.MustCompile(spicedbTypeRegexString)
+	alphaRegex                 = lazyRegexCompile(alphaRegexString)
+	alphaSpaceRegex            = lazyRegexCompile(alphaSpaceRegexString)
+	alphanNumericSpaceRegex    = lazyRegexCompile(alphaNumericSpaceRegexString)
+	alphaNumericRegex          = lazyRegexCompile(alphaNumericRegexString)
+	alphaUnicodeRegex          = lazyRegexCompile(alphaUnicodeRegexString)
+	alphaUnicodeNumericRegex   = lazyRegexCompile(alphaUnicodeNumericRegexString)
+	numericRegex               = lazyRegexCompile(numericRegexString)
+	numberRegex                = lazyRegexCompile(numberRegexString)
+	hexadecimalRegex           = lazyRegexCompile(hexadecimalRegexString)
+	hexColorRegex              = lazyRegexCompile(hexColorRegexString)
+	rgbRegex                   = lazyRegexCompile(rgbRegexString)
+	rgbaRegex                  = lazyRegexCompile(rgbaRegexString)
+	hslRegex                   = lazyRegexCompile(hslRegexString)
+	hslaRegex                  = lazyRegexCompile(hslaRegexString)
+	cmykRegex                  = lazyRegexCompile(cmykRegexString)
+	e164Regex                  = lazyRegexCompile(e164RegexString)
+	emailRegex                 = lazyRegexCompile(emailRegexString)
+	base32Regex                = lazyRegexCompile(base32RegexString)
+	base64Regex                = lazyRegexCompile(base64RegexString)
+	base64URLRegex             = lazyRegexCompile(base64URLRegexString)
+	base64RawURLRegex          = lazyRegexCompile(base64RawURLRegexString)
+	iSBN10Regex                = lazyRegexCompile(iSBN10RegexString)
+	iSBN13Regex                = lazyRegexCompile(iSBN13RegexString)
+	iSSNRegex                  = lazyRegexCompile(iSSNRegexString)
+	uUID3Regex                 = lazyRegexCompile(uUID3RegexString)
+	uUID4Regex                 = lazyRegexCompile(uUID4RegexString)
+	uUID5Regex                 = lazyRegexCompile(uUID5RegexString)
+	uUIDRegex                  = lazyRegexCompile(uUIDRegexString)
+	uUID3RFC4122Regex          = lazyRegexCompile(uUID3RFC4122RegexString)
+	uUID4RFC4122Regex          = lazyRegexCompile(uUID4RFC4122RegexString)
+	uUID5RFC4122Regex          = lazyRegexCompile(uUID5RFC4122RegexString)
+	uUIDRFC4122Regex           = lazyRegexCompile(uUIDRFC4122RegexString)
+	uLIDRegex                  = lazyRegexCompile(uLIDRegexString)
+	md4Regex                   = lazyRegexCompile(md4RegexString)
+	md5Regex                   = lazyRegexCompile(md5RegexString)
+	sha256Regex                = lazyRegexCompile(sha256RegexString)
+	sha384Regex                = lazyRegexCompile(sha384RegexString)
+	sha512Regex                = lazyRegexCompile(sha512RegexString)
+	ripemd128Regex             = lazyRegexCompile(ripemd128RegexString)
+	ripemd160Regex             = lazyRegexCompile(ripemd160RegexString)
+	tiger128Regex              = lazyRegexCompile(tiger128RegexString)
+	tiger160Regex              = lazyRegexCompile(tiger160RegexString)
+	tiger192Regex              = lazyRegexCompile(tiger192RegexString)
+	aSCIIRegex                 = lazyRegexCompile(aSCIIRegexString)
+	printableASCIIRegex        = lazyRegexCompile(printableASCIIRegexString)
+	multibyteRegex             = lazyRegexCompile(multibyteRegexString)
+	dataURIRegex               = lazyRegexCompile(dataURIRegexString)
+	latitudeRegex              = lazyRegexCompile(latitudeRegexString)
+	longitudeRegex             = lazyRegexCompile(longitudeRegexString)
+	sSNRegex                   = lazyRegexCompile(sSNRegexString)
+	hostnameRegexRFC952        = lazyRegexCompile(hostnameRegexStringRFC952)
+	hostnameRegexRFC1123       = lazyRegexCompile(hostnameRegexStringRFC1123)
+	fqdnRegexRFC1123           = lazyRegexCompile(fqdnRegexStringRFC1123)
+	btcAddressRegex            = lazyRegexCompile(btcAddressRegexString)
+	btcUpperAddressRegexBech32 = lazyRegexCompile(btcAddressUpperRegexStringBech32)
+	btcLowerAddressRegexBech32 = lazyRegexCompile(btcAddressLowerRegexStringBech32)
+	ethAddressRegex            = lazyRegexCompile(ethAddressRegexString)
+	uRLEncodedRegex            = lazyRegexCompile(uRLEncodedRegexString)
+	hTMLEncodedRegex           = lazyRegexCompile(hTMLEncodedRegexString)
+	hTMLRegex                  = lazyRegexCompile(hTMLRegexString)
+	jWTRegex                   = lazyRegexCompile(jWTRegexString)
+	splitParamsRegex           = lazyRegexCompile(splitParamsRegexString)
+	bic2014Regex               = lazyRegexCompile(bic2014RegexString)
+	bic2022Regex               = lazyRegexCompile(bic2022RegexString)
+	semverRegex                = lazyRegexCompile(semverRegexString)
+	dnsRegexRFC1035Label       = lazyRegexCompile(dnsRegexStringRFC1035Label)
+	cveRegex                   = lazyRegexCompile(cveRegexString)
+	mongodbIdRegex             = lazyRegexCompile(mongodbIdRegexString)
+	mongodbConnectionRegex     = lazyRegexCompile(mongodbConnStringRegexString)
+	cronRegex                  = lazyRegexCompile(cronRegexString)
+	spicedbIDRegex             = lazyRegexCompile(spicedbIDRegexString)
+	spicedbPermissionRegex     = lazyRegexCompile(spicedbPermissionRegexString)
+	spicedbTypeRegex           = lazyRegexCompile(spicedbTypeRegexString)
+	einRegex                   = lazyRegexCompile(einRegexString)
 )

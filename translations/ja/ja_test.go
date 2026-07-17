@@ -149,11 +149,13 @@ func TestTranslations(t *testing.T) {
 		LowercaseString   string            `validate:"lowercase"`
 		UppercaseString   string            `validate:"uppercase"`
 		Datetime          string            `validate:"datetime=2006-01-02"`
+		Timezone          string            `validate:"timezone"`
 		PostCode          string            `validate:"postcode_iso3166_alpha2=SG"`
 		PostCodeCountry   string
 		PostCodeByField   string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
 		BooleanString     string `validate:"boolean"`
 		Image             string `validate:"image"`
+		MIMEType          string `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -206,6 +208,7 @@ func TestTranslations(t *testing.T) {
 	test.UniqueSlice = []string{"1234", "1234"}
 	test.UniqueMap = map[string]string{"key1": "1234", "key2": "1234"}
 	test.Datetime = "2008-Feb-01"
+	test.Timezone = "abc"
 	test.BooleanString = "A"
 
 	test.Inner.RequiredIf = "abcd"
@@ -518,7 +521,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultipleは最大でも2つの項目を含まなければなりません",
+			expected: "LteMultipleは最大でも2つの項目でなければなりません",
 		},
 		{
 			ns:       "Test.LteTime",
@@ -534,7 +537,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtMultiple",
-			expected: "LtMultipleは2つの項目よりも少ない項目を含まなければなりません",
+			expected: "LtMultipleは2つの項目よりも少ない項目でなければなりません",
 		},
 		{
 			ns:       "Test.LtTime",
@@ -574,7 +577,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultipleは最大でも7つの項目を含まなければなりません",
+			expected: "MaxMultipleは最大でも7つの項目でなければなりません",
 		},
 		{
 			ns:       "Test.MinString",
@@ -657,6 +660,10 @@ func TestTranslations(t *testing.T) {
 			expected: "Image は有効な画像でなければなりません",
 		},
 		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType は有効なMIMEタイプでなければなりません",
+		},
+		{
 			ns:       "Test.UniqueSlice",
 			expected: "UniqueSliceは一意な値のみを含まなければなりません",
 		},
@@ -689,6 +696,10 @@ func TestTranslations(t *testing.T) {
 			expected: "Datetimeは2006-01-02の書式と一致しません",
 		},
 		{
+			ns:       "Test.Timezone",
+			expected: "Timezoneは正しいタイムゾーン文字列でなければなりません",
+		},
+		{
 			ns:       "Test.PostCode",
 			expected: "PostCodeは国名コードSGの郵便番号形式と一致しません",
 		},
@@ -703,7 +714,6 @@ func TestTranslations(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -716,5 +726,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }
