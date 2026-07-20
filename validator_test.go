@@ -12151,6 +12151,68 @@ func TestRequiredIf(t *testing.T) {
 	_ = validate.Struct(test3)
 }
 
+func TestRequiredIfWithPointerAndGte(t *testing.T) {
+	validate := New()
+
+	type Test struct {
+		Type  string
+		Value *int64 `validate:"required_if=Type special,gte=2"`
+	}
+
+	valueFive := int64(5)
+	valueOne := int64(1)
+
+	tests := []struct {
+		name    string
+		test    Test
+		wantErr bool
+		tag     string
+	}{
+		{
+			name: "not required nil pointer",
+			test: Test{
+				Type: "normal",
+			},
+		},
+		{
+			name: "required nil pointer",
+			test: Test{
+				Type: "special",
+			},
+			wantErr: true,
+			tag:     "required_if",
+		},
+		{
+			name: "required pointer satisfies gte",
+			test: Test{
+				Type:  "special",
+				Value: &valueFive,
+			},
+		},
+		{
+			name: "required pointer fails gte",
+			test: Test{
+				Type:  "special",
+				Value: &valueOne,
+			},
+			wantErr: true,
+			tag:     "gte",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errs := validate.Struct(tt.test)
+			if tt.wantErr {
+				NotEqual(t, errs, nil)
+				AssertError(t, errs, "Test.Value", "Test.Value", "Value", "Value", tt.tag)
+				return
+			}
+			Equal(t, errs, nil)
+		})
+	}
+}
+
 func TestRequiredIfDuplicateParams(t *testing.T) {
 	validate := New()
 
