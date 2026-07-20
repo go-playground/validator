@@ -13220,6 +13220,32 @@ func TestExcludedIf(t *testing.T) {
 	}
 	errs = validate.Struct(test12)
 	Equal(t, errs, nil)
+
+	// Issue #1320: excluded_if with "nil" param must not panic when comparing
+	// a non-nil pointer-to-numeric field against the literal "nil".
+	w13 := 10
+	r13 := 0
+	test13 := struct {
+		W *int
+		R *int `validate:"excluded_if=W nil"`
+	}{
+		W: &w13,
+		R: &r13,
+	}
+	errs = validate.Struct(test13)
+	Equal(t, errs, nil) // W is non-nil → excluded_if condition false → R not excluded → no error
+
+	// When W IS nil the excluded_if condition fires and R must be empty/nil to pass.
+	test14 := struct {
+		W *int
+		R *int `validate:"excluded_if=W nil"`
+	}{
+		W: nil,
+		R: nil,
+	}
+	errs = validate.Struct(test14)
+	Equal(t, errs, nil) // W is nil → excluded_if condition true → R must be nil/absent → passes
+
 	// Checks number of params in struct tag is correct
 	defer func() {
 		if r := recover(); r == nil {
