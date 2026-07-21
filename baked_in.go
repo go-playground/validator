@@ -2917,7 +2917,7 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 func isFQDN(fl FieldLevel) bool {
 	val := fl.Field().String()
 
-	if val == "" {
+	if val == "" || len(strings.TrimSuffix(val, ".")) > 253 {
 		return false
 	}
 
@@ -3531,4 +3531,3 @@ var (
 	errMethodReturnNoValues    = errors.New(`method return o values (void)`)
 	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
 )
-
