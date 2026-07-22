@@ -14028,6 +14028,7 @@ func TestIsIso4217Validation(t *testing.T) {
 		{"CUC", false},
 		{"HRK", false},
 		{"ZWL", false},
+		{"BGN", false},
 	}
 
 	validate := New()
@@ -14063,6 +14064,7 @@ func TestIsIso4217NumericValidation(t *testing.T) {
 		{191, false},
 		{931, false},
 		{932, false},
+		{975, false},
 	}
 
 	validate := New()
