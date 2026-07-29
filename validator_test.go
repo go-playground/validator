@@ -11168,6 +11168,8 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 }
 
 func TestFQDNValidation(t *testing.T) {
+	maxFQDN := strings.Repeat(strings.Repeat("a", 63)+".", 3) + strings.Repeat("a", 61)
+
 	tests := []struct {
 		param    string
 		expected bool
@@ -11185,6 +11187,10 @@ func TestFQDNValidation(t *testing.T) {
 		{"24.example24.com", true},
 		{"test.24.example.com", true},
 		{"test-site-http.test-site", true},
+		{maxFQDN, true},
+		{maxFQDN + ".", true},
+		{maxFQDN + "a", false},
+		{maxFQDN + "a.", false},
 		{"test24.example24.com..", false},
 		{"example", false},
 		{"192.168.0.1", false},
