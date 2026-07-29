@@ -310,7 +310,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("max-items", "{0} must contain at most {1}", false); err != nil {
 					return
 				}
 				if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
@@ -548,7 +548,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lte-string", "{0} must be at maximum {1} in length", false); err != nil {
+				if err = ut.Add("lte-string", "{0} must be at most {1} in length", false); err != nil {
 					return
 				}
 
@@ -564,7 +564,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("lte-items", "{0} must contain at most {1}", false); err != nil {
 					return
 				}
 

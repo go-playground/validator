@@ -616,7 +616,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteString",
-			expected: "LteString must be at maximum 3 characters in length",
+			expected: "LteString must be at most 3 characters in length",
 		},
 		{
 			ns:       "Test.LteNumber",
@@ -624,7 +624,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteMultiple",
-			expected: "LteMultiple must contain at maximum 2 items",
+			expected: "LteMultiple must contain at most 2 items",
 		},
 		{
 			ns:       "Test.LteTime",
@@ -680,7 +680,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MaxMultiple",
-			expected: "MaxMultiple must contain at maximum 7 items",
+			expected: "MaxMultiple must contain at most 7 items",
 		},
 		{
 			ns:       "Test.MinString",
@@ -784,7 +784,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.StrPtrLte",
-			expected: "StrPtrLte must be at maximum 1 character in length",
+			expected: "StrPtrLte must be at most 1 character in length",
 		},
 		{
 			ns:       "Test.StrPtrGt",
