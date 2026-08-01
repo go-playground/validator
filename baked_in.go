@@ -2911,7 +2911,34 @@ func isHostnameRFC952(fl FieldLevel) bool {
 }
 
 func isHostnameRFC1123(fl FieldLevel) bool {
-	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+	val := fl.Field().String()
+	if !hostnameRegexRFC1123().MatchString(val) {
+		return false
+	}
+	// RFC 1123 §2.1: "a valid host name can never have the dotted-decimal
+	// form #.#.#.#, since at least the highest-level component label will
+	// be alphabetic." If the value has exactly four dot-separated all-numeric
+	// parts (i.e. it looks like an IPv4 address), accept it only when
+	// net.ParseIP confirms it is a valid IPv4 address.
+	if looksLikeIPv4(val) {
+		return net.ParseIP(val) != nil
+	}
+	return true
+}
+
+// looksLikeIPv4 reports whether s has exactly four dot-separated parts that
+// are each composed entirely of ASCII digits (e.g. "192.168.0.1", "277.168.0.1").
+func looksLikeIPv4(s string) bool {
+	parts := 1
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '.' {
+			parts++
+		} else if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return parts == 4
 }
 
 func isFQDN(fl FieldLevel) bool {
