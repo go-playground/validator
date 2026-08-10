@@ -1469,12 +1469,12 @@ see: https://www.iso.org/iso-3166-country-codes.html
 
 	Usage: iso3166_1_alpha3
 
-# Iso3166-1 alpha-numeric
+# ISO 3166-1 numeric
 
-This validates that a string value is a valid country code based on iso3166-1 alpha-numeric standard.
+This validates that a string value is a valid country code based on the ISO 3166-1 numeric standard.
 see: https://www.iso.org/iso-3166-country-codes.html
 
-	Usage: iso3166_1_alpha3
+	Usage: iso3166_1_alpha_numeric
 
 # BCP 47 Language Tag
 
