@@ -694,6 +694,60 @@ func TestStructLevelValidations(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestRegisterStructValidationMapRules(t *testing.T) {
+	type MapRulesTestStruct struct {
+		Name string `validate:"required"`
+		Age  int
+	}
+
+	rules := map[string]string{
+		"Name": "omitempty",
+		"Age":  "required,gt=0",
+	}
+
+	validate := New()
+	validate.RegisterStructValidationMapRules(rules, MapRulesTestStruct{})
+
+	// Name's own "required" tag is superseded by the "omitempty" rule, so an
+	// empty Name is now allowed, while Age's rule is enforced.
+	errs := validate.Struct(MapRulesTestStruct{Name: "", Age: 5})
+	Equal(t, errs, nil)
+
+	errs = validate.Struct(MapRulesTestStruct{Name: "", Age: 0})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "MapRulesTestStruct.Age", "MapRulesTestStruct.Age", "Age", "Age", "required")
+
+	errs = validate.Struct(MapRulesTestStruct{Name: "gopher", Age: 5})
+	Equal(t, errs, nil)
+
+	// mutating the map passed to RegisterStructValidationMapRules after
+	// registration must not affect already-registered rules (deep copy).
+	rules["Name"] = "required"
+	errs = validate.Struct(MapRulesTestStruct{Name: "", Age: 5})
+	Equal(t, errs, nil)
+
+	// a struct with no registered rules falls back to its own tags.
+	type NoRulesTestStruct struct {
+		Name string `validate:"required"`
+	}
+	errs = validate.Struct(NoRulesTestStruct{Name: ""})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "NoRulesTestStruct.Name", "NoRulesTestStruct.Name", "Name", "Name", "required")
+
+	// registering against a pointer type applies the same as the value type.
+	v2 := New()
+	v2.RegisterStructValidationMapRules(rules, &MapRulesTestStruct{})
+	errs = v2.Struct(&MapRulesTestStruct{Name: "", Age: 5})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "MapRulesTestStruct.Name", "MapRulesTestStruct.Name", "Name", "Name", "required")
+
+	// non-struct types are silently ignored rather than panicking.
+	v3 := New()
+	v3.RegisterStructValidationMapRules(map[string]string{"Foo": "required"}, 5)
+	errs = v3.Struct(MapRulesTestStruct{Name: "gopher", Age: 5})
+	Equal(t, errs, nil)
+}
+
 func TestAliasTags(t *testing.T) {
 	validate := New()
 	validate.RegisterAlias("iscoloralias", "hexcolor|rgb|rgba|hsl|hsla|cmyk")
@@ -8031,6 +8085,10 @@ func TestLength(t *testing.T) {
 	validate := New()
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "len") }, "Bad field type bool")
+
+	var f32 float32 = 5
+	Equal(t, validate.Var(f32, "len=5"), nil)
+	NotEqual(t, validate.Var(f32, "len=6"), nil)
 }
 
 func TestIsGt(t *testing.T) {
@@ -8048,6 +8106,11 @@ func TestIsGt(t *testing.T) {
 
 	var ui uint = 5
 	errs = validate.Var(ui, "gt=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gt")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "gt=5")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gt")
 
@@ -8135,6 +8198,26 @@ func TestIsGt(t *testing.T) {
 func TestIsGte(t *testing.T) {
 	var errs error
 	validate := New()
+
+	myMap := map[string]string{}
+	errs = validate.Var(myMap, "gte=1")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	f := 1.23
+	errs = validate.Var(f, "gte=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	var ui uint = 5
+	errs = validate.Var(ui, "gte=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "gte=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
 
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
@@ -8452,6 +8535,11 @@ func TestIsLt(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "lt=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lt")
+
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "lt") }, "Bad field type bool")
 
@@ -8537,6 +8625,26 @@ func TestIsLt(t *testing.T) {
 func TestIsLte(t *testing.T) {
 	var errs error
 	validate := New()
+
+	myMap := map[string]string{"key": "value"}
+	errs = validate.Var(myMap, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	f := 1.23
+	errs = validate.Var(f, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	var ui uint = 5
+	errs = validate.Var(ui, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
 
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "lte") }, "Bad field type bool")
@@ -12060,6 +12168,60 @@ func TestEndsWithValidation(t *testing.T) {
 	}{
 		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
 		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endswith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
+func TestStartsNotWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"startsnotwith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "abcd", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
+func TestEndsNotWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"endsnotwith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
 	}
 
 	validate := New()
