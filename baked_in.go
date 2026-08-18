@@ -175,6 +175,7 @@ var (
 		"uuid3":                         isUUID3,
 		"uuid4":                         isUUID4,
 		"uuid5":                         isUUID5,
+		"uuid7":                         isUUID7,
 		"uuid_rfc4122":                  isUUIDRFC4122,
 		"uuid3_rfc4122":                 isUUID3RFC4122,
 		"uuid4_rfc4122":                 isUUID4RFC4122,
@@ -644,6 +645,11 @@ func isASCII(fl FieldLevel) bool {
 // isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
 func isUUID5(fl FieldLevel) bool {
 	return fieldMatchesRegexByStringerValOrString(uUID5Regex, fl)
+}
+
+// isUUID7 is the validation function for validating if the field's value is a valid v7 UUID.
+func isUUID7(fl FieldLevel) bool {
+	return fieldMatchesRegexByStringerValOrString(uUID7Regex, fl)
 }
 
 // isUUID4 is the validation function for validating if the field's value is a valid v4 UUID.

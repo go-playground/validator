@@ -1205,6 +1205,12 @@ This validates that a string value contains a valid version 5 UUID.  Uppercase U
 
 	Usage: uuid5
 
+# Universally Unique Identifier UUID v7
+
+This validates that a string value contains a valid version 7 UUID (RFC 9562). Uppercase UUID values will not pass.
+
+	Usage: uuid7
+
 # Universally Unique Lexicographically Sortable Identifier ULID
 
 This validates that a string value contains a valid ULID value.
