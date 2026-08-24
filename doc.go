@@ -563,7 +563,6 @@ Kind of like an 'enum'.
 	       noneof='red green' 'blue yellow'
 		   noneof=5 7 9
 
-
 # None Of Case Insensitive
 Works the same as noneof but is case insensitive and therefore only accepts strings.
 
@@ -1389,6 +1388,13 @@ This validates that a string value is a valid Hostname according to RFC 952 http
 This validates that a string value is a valid Hostname according to RFC 1123 https://tools.ietf.org/html/rfc1123
 
 	Usage: hostname_rfc1123 or if you want to continue to use 'hostname' in your tags, create an alias.
+
+# Hostname Label
+
+This validates that a string value is a valid hostname label (The 'label' in 'label.domain.name') according to
+RFC 1123 https://tools.ietf.org/rfc1123.
+
+	Usage: hostname_label
 
 Full Qualified Domain Name (FQDN)
 

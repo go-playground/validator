@@ -11167,6 +11167,55 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 	}
 }
 
+func TestHostnameLabelValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"test", true},
+		{"2example", true},
+		{"example2", true},
+		{"57", true},
+		{"a.b.c", false},
+		{"complete.domain.name", false},
+		{"example.com", false},
+		{"1.test.com", false},
+		{"-invalid", false},
+		{"invalid-", false},
+		{".invalid", false},
+		{"invalid.", false},
+		{"192.168.0.1", false},
+		{"luznoceda", true},
+		{"akkoxdiana", true},
+		{"example-label", true},
+		{"example:80", false},
+		{"a$b", false},
+		{"this-is-another-deliberately-overlong-subdomain-used-for-boundary-test", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "hostname_label")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "hostname_label" {
+					t.Fatalf("Hostname Label: %v failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestFQDNValidation(t *testing.T) {
 	maxFQDN := strings.Repeat(strings.Repeat("a", 63)+".", 3) + strings.Repeat("a", 61)
 

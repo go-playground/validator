@@ -56,8 +56,9 @@ const (
 	latitudeRegexString              = "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?)$"
 	longitudeRegexString             = "^[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$"
 	sSNRegexString                   = `^[0-9]{3}[ -]?(0[1-9]|[1-9][0-9])[ -]?([1-9][0-9]{3}|[0-9][1-9][0-9]{2}|[0-9]{2}[1-9][0-9]|[0-9]{3}[1-9])$`
-	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`                     // https://tools.ietf.org/html/rfc952
-	hostnameRegexStringRFC1123       = `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`                  // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`    // https://tools.ietf.org/html/rfc952
+	hostnameRegexStringRFC1123       = `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$` // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	hostnameLabelRegexString         = `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`
 	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})(\.[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9-]{0,62})\.?$` // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
 	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                              // bitcoin address
 	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                    // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
@@ -148,6 +149,7 @@ var (
 	sSNRegex                   = lazyRegexCompile(sSNRegexString)
 	hostnameRegexRFC952        = lazyRegexCompile(hostnameRegexStringRFC952)
 	hostnameRegexRFC1123       = lazyRegexCompile(hostnameRegexStringRFC1123)
+	hostnameLabelRegex         = lazyRegexCompile(hostnameLabelRegexString)
 	fqdnRegexRFC1123           = lazyRegexCompile(fqdnRegexStringRFC1123)
 	btcAddressRegex            = lazyRegexCompile(btcAddressRegexString)
 	btcUpperAddressRegexBech32 = lazyRegexCompile(btcAddressUpperRegexStringBech32)

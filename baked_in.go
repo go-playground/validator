@@ -217,6 +217,7 @@ var (
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"hostname_label":                isHostnameLabel,
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
@@ -2912,6 +2913,10 @@ func isHostnameRFC952(fl FieldLevel) bool {
 
 func isHostnameRFC1123(fl FieldLevel) bool {
 	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+}
+
+func isHostnameLabel(fl FieldLevel) bool {
+	return hostnameLabelRegex().MatchString(fl.Field().String())
 }
 
 func isFQDN(fl FieldLevel) bool {
