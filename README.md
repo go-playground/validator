@@ -85,7 +85,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | eqcsfield | Field Equals Another Field (relative)|
 | eqfield | Field Equals Another Field |
 | fieldcontains | Check the indicated characters are present in the Field |
-| fieldexcludes | Check the indicated characters are not present in the field |
+| fieldexcludes | Current field does not contain another field's value |
 | gtcsfield | Field Greater Than Another Relative Field |
 | gtecsfield | Field Greater Than or Equal To Another Relative Field |
 | gtefield | Field Greater Than or Equal To Another Field |
