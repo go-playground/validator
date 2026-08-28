@@ -2811,9 +2811,7 @@ func isIPAddrResolvable(fl FieldLevel) bool {
 
 // isUnixAddrResolvable is the validation function for validating if the field's value is a resolvable unix address.
 func isUnixAddrResolvable(fl FieldLevel) bool {
-	_, err := net.ResolveUnixAddr("unix", fl.Field().String())
-
-	return err == nil
+	return isUnixDomainSocketExists(fl)
 }
 
 // isUnixDomainSocketExists is the validation function for validating if the field's value is an existing Unix domain socket.
