@@ -4,6 +4,7 @@ linters:
   disable:
     - noinlineerr
     - wsl_v5
+    - exhaustruct_v5
     - copyloopvar
     - cyclop
     - depguard
