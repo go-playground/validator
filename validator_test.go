@@ -14727,6 +14727,10 @@ func TestCveFormatValidation(t *testing.T) {
 		{"CVE-3000-0001", "cve", false},
 		{"CVE-1999-0000", "cve", false},
 		{"CVE-2099-0000", "cve", false},
+		{"CVE-2020-0a00", "cve", false},
+		{"CVE-2020-0/00", "cve", false},
+		{"CVE-2020-00a0", "cve", false},
+		{"CVE-2020-000z", "cve", false},
 	}
 
 	validate := New()
