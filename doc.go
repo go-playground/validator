@@ -802,13 +802,14 @@ other types.
 
 	Usage: containsfield=InnerStructField.Field
 
-# Field Excludes Another Field
+# Field Excludes Another Field's Value
 
-This does the same as excludes except for struct fields. It should only be used
-with string types. See the behavior of reflect.Value.String() for behavior on
-other types.
+This validates that the current field's string value does not contain the
+string value of the field named by the parameter. It should only be used with
+string types. If the referenced field cannot be resolved, validation succeeds.
+See the behavior of reflect.Value.String() for behavior on other types.
 
-	Usage: excludesfield=InnerStructField.Field
+	Usage: fieldexcludes=InnerStructField.Field
 
 # Unique
 
