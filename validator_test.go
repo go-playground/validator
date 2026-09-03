@@ -16929,3 +16929,22 @@ func TestValuerInterface(t *testing.T) {
 		}
 	})
 }
+
+func TestInvalidValidationError(t *testing.T) {
+	err := &InvalidValidationError{}
+	if err.Error() != "validator: (nil)" {
+		t.Fatalf("expected 'validator: (nil)', got %q", err.Error())
+	}
+
+	err = &InvalidValidationError{Type: reflect.TypeOf(123)}
+	if err.Error() != "validator: (nil int)" {
+		t.Fatalf("expected 'validator: (nil int)', got %q", err.Error())
+	}
+
+	v := New()
+	valErr := v.Struct(nil)
+	if _, ok := valErr.(*InvalidValidationError); !ok {
+		t.Fatalf("expected *InvalidValidationError for nil struct, got %T: %v", valErr, valErr)
+	}
+}
+
