@@ -2916,7 +2916,48 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 }
 
 func isHostnameLabel(fl FieldLevel) bool {
-	return hostnameLabelRegex().MatchString(fl.Field().String())
+	v := fl.Field().String()
+
+	const maxLabelLength = 63
+
+	// ASCII only.
+	isLetter := func(c byte) bool {
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+	}
+
+	// ASCII only.
+	isDigit := func(c byte) bool {
+		return (c >= '0' && c <= '9')
+	}
+
+	valueLen := len(v)
+
+	// The empty label is not a valid label
+	if valueLen <= 0 || valueLen > maxLabelLength {
+		return false
+	}
+
+	firstChar := v[0]
+
+	if !isLetter(firstChar) && !isDigit(firstChar) {
+		return false
+	}
+
+	for i := range valueLen - 2 {
+		c := v[i+1]
+
+		if !isLetter(c) && !isDigit(c) && c != '-' {
+			return false
+		}
+	}
+
+	lastChar := v[valueLen-1]
+
+	if !isLetter(lastChar) && !isDigit(lastChar) {
+		return false
+	}
+
+	return true
 }
 
 func isFQDN(fl FieldLevel) bool {
