@@ -217,6 +217,7 @@ var (
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"hostname_label":                isHostnameLabel,
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
@@ -2912,6 +2913,51 @@ func isHostnameRFC952(fl FieldLevel) bool {
 
 func isHostnameRFC1123(fl FieldLevel) bool {
 	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+}
+
+func isHostnameLabel(fl FieldLevel) bool {
+	v := fl.Field().String()
+
+	const maxLabelLength = 63
+
+	// ASCII only.
+	isLetter := func(c byte) bool {
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+	}
+
+	// ASCII only.
+	isDigit := func(c byte) bool {
+		return (c >= '0' && c <= '9')
+	}
+
+	valueLen := len(v)
+
+	// The empty label is not a valid label
+	if valueLen <= 0 || valueLen > maxLabelLength {
+		return false
+	}
+
+	firstChar := v[0]
+
+	if !isLetter(firstChar) && !isDigit(firstChar) {
+		return false
+	}
+
+	for i := range valueLen - 2 {
+		c := v[i+1]
+
+		if !isLetter(c) && !isDigit(c) && c != '-' {
+			return false
+		}
+	}
+
+	lastChar := v[valueLen-1]
+
+	if !isLetter(lastChar) && !isDigit(lastChar) {
+		return false
+	}
+
+	return true
 }
 
 func isFQDN(fl FieldLevel) bool {
