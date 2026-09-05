@@ -90,7 +90,9 @@ type nilCallbackValuer struct{}
 func (nilCallbackValuer) ValidatorValue() any { return nil }
 
 func TestNilCallbackChains(t *testing.T) {
+	type converted struct{}
 	v := New()
+	v.RegisterCustomTypeFunc(func(reflect.Value) any { return nil }, converted{})
 	calls := []string{}
 	for _, tag := range []string{"accept", "reject", "ordinary"} {
 		err := v.RegisterValidation(tag, func(fl FieldLevel) bool {
@@ -102,6 +104,8 @@ func TestNilCallbackChains(t *testing.T) {
 		}
 	}
 	v.RegisterAlias("nilalias", "reject|reject")
+	v.RegisterAlias("nilacceptalias", "ordinary|accept")
+	v.RegisterAlias("nilrejectalias", "ordinary|reject")
 	for _, tc := range []struct {
 		tag       string
 		wantCalls string
@@ -112,35 +116,56 @@ func TestNilCallbackChains(t *testing.T) {
 		{"reject,accept", "reject", "reject"},
 		{"accept,ordinary", "accept", "ordinary"},
 		{"reject|accept", "reject,accept", ""},
+		{"accept|ordinary", "accept", ""},
+		{"ordinary|accept", "accept", ""},
+		{"ordinary|reject|accept", "reject,accept", ""},
+		{"ordinary|reject", "reject", "ordinary|reject"},
+		{"ordinary|ordinary", "", "ordinary|ordinary"},
+		{"ordinary,accept", "", "ordinary"},
+		{"ordinary|accept,reject", "accept,reject", "reject"},
+		{"accept,ordinary|accept", "accept,accept", ""},
+		{"nilacceptalias", "accept", ""},
+		{"nilrejectalias", "reject", "nilrejectalias"},
+		{"nilacceptalias,reject", "accept,reject", "reject"},
 		{"reject|ordinary", "reject", "reject|ordinary"},
 		{"reject|reject", "reject,reject", "reject|reject"},
 		{"nilalias", "reject,reject", "nilalias"},
 		{"accept,required", "accept", "required"},
 		{"accept,omitempty,ordinary", "accept", ""},
 		{"accept,omitzero,ordinary", "accept", ""},
+		{"accept,isdefault", "accept", ""},
+		{"accept,isdefault,reject", "accept,reject", "reject"},
+		{"accept,omitnil,ordinary", "accept", ""},
+		{"omitnil,ordinary", "", ""},
+		{"omitzero,ordinary", "", ""},
+		{"isdefault", "", ""},
+		{"", "", ""},
+		{"-", "", ""},
 		{"omitempty,ordinary", "", ""},
 	} {
-		t.Run(tc.tag, func(t *testing.T) {
-			calls = nil
-			err := v.Var(nilCallbackValuer{}, tc.tag)
-			if strings.Join(calls, ",") != tc.wantCalls {
-				t.Errorf("calls = %v, want %s", calls, tc.wantCalls)
-			}
-			if tc.wantTag == "" {
-				if err != nil {
-					t.Fatal(err)
+		for source, value := range []any{nil, converted{}, &converted{}, nilCallbackValuer{}, &nilCallbackValuer{}} {
+			t.Run(fmt.Sprintf("%s/source=%d", tc.tag, source), func(t *testing.T) {
+				calls = nil
+				err := v.Var(value, tc.tag)
+				if strings.Join(calls, ",") != tc.wantCalls {
+					t.Errorf("calls = %v, want %s", calls, tc.wantCalls)
 				}
-				return
-			}
-			errs, ok := err.(ValidationErrors)
-			if !ok || len(errs) != 1 {
-				t.Fatalf("expected one error, got %v", err)
-			}
-			fe := errs[0]
-			if fe.Tag() != tc.wantTag || fe.Kind() != reflect.Invalid || fe.Type() != nil || fe.Value() != nil || fe.Error() == "" {
-				t.Errorf("invalid error: %v", fe)
-			}
-		})
+				if tc.wantTag == "" {
+					if err != nil {
+						t.Fatal(err)
+					}
+					return
+				}
+				errs, ok := err.(ValidationErrors)
+				if !ok || len(errs) != 1 {
+					t.Fatalf("expected one error, got %v", err)
+				}
+				fe := errs[0]
+				if fe.Tag() != tc.wantTag || fe.Kind() != reflect.Invalid || fe.Type() != nil || fe.Value() != nil || fe.Error() == "" {
+					t.Errorf("invalid error: %v", fe)
+				}
+			})
+		}
 	}
 }
 
@@ -198,5 +223,61 @@ func TestNilConditionalCallbacks(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+func TestNilCallbackStructContext(t *testing.T) {
+	type contextKey struct{}
+	type converted struct{ Value any }
+	type payload struct {
+		Values []converted `validate:"dive,nilalias" json:"values"`
+	}
+	for _, accepted := range []bool{false, true} {
+		t.Run(fmt.Sprintf("accepted=%t", accepted), func(t *testing.T) {
+			v := New()
+			v.RegisterCustomTypeFunc(func(field reflect.Value) any { return field.Interface().(converted).Value }, converted{})
+			v.RegisterTagNameFunc(func(field reflect.StructField) string { return field.Tag.Get("json") })
+			v.RegisterAlias("nilalias", "ordinary|nilcheck=expected")
+			if err := v.RegisterValidation("ordinary", func(fl FieldLevel) bool {
+				if !fl.Field().IsValid() {
+					t.Fatal("ordinary validator called on invalid value")
+				}
+				return true
+			}); err != nil {
+				t.Fatal(err)
+			}
+			input := payload{Values: []converted{{Value: nil}, {Value: "present"}}}
+			calls := 0
+			if err := v.RegisterValidationCtx("nilcheck", func(ctx context.Context, fl FieldLevel) bool {
+				calls++
+				if ctx.Value(contextKey{}) != accepted || fl.Field().IsValid() || fl.Param() != "expected" {
+					t.Error("callback context, value, or parameter is incorrect")
+				}
+				if fl.FieldName() != "values[0]" || fl.StructFieldName() != "Values[0]" || !reflect.DeepEqual(fl.Parent().Interface(), input) || !reflect.DeepEqual(fl.Top().Interface(), input) {
+					t.Error("callback field names, parent, or top is incorrect")
+				}
+				return accepted
+			}, true); err != nil {
+				t.Fatal(err)
+			}
+			err := v.StructCtx(context.WithValue(context.Background(), contextKey{}, accepted), input)
+			if calls != 1 {
+				t.Fatalf("callback calls = %d, want 1", calls)
+			}
+			if accepted {
+				if err != nil {
+					t.Fatal(err)
+				}
+				return
+			}
+			errs, ok := err.(ValidationErrors)
+			if !ok || len(errs) != 1 {
+				t.Fatalf("expected one validation error, got %v", err)
+			}
+			fe := errs[0]
+			if fe.Tag() != "nilalias" || fe.ActualTag() != "ordinary|nilcheck=expected" || fe.Param() != "expected" || fe.Namespace() != "payload.values[0]" || fe.StructNamespace() != "payload.Values[0]" || fe.Field() != "values[0]" || fe.StructField() != "Values[0]" || fe.Kind() != reflect.Invalid || fe.Type() != nil || fe.Value() != nil || fe.Error() == "" {
+				t.Errorf("incorrect alias error metadata: %#v", fe)
+			}
+		})
 	}
 }

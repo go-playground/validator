@@ -106,12 +106,18 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
-		if ct.typeof == typeOmitNil && (kind != reflect.Invalid && current.IsNil()) {
+		if ct.typeof == typeOmitNil && (kind == reflect.Invalid || current.IsNil()) {
 			return
 		}
 
 		if ct.typeof == typeOmitZero {
 			return
+		}
+
+		// An OR group may contain a nil-enabled validator after its first
+		// alternative. Let the validation loop evaluate each alternative.
+		if kind == reflect.Invalid && ct.typeof == typeOr {
+			break
 		}
 
 		if ct.hasTag {
@@ -261,6 +267,8 @@ OUTER:
 			v.ct = ct
 
 			switch field := v.Field(); field.Kind() {
+			case reflect.Invalid:
+				return
 			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 				if field.IsNil() {
 					return
@@ -464,6 +472,13 @@ OUTER:
 
 				ct = ct.next
 			}
+
+		case typeIsDefault:
+			if kind == reflect.Invalid {
+				ct = ct.next
+				continue
+			}
+			fallthrough
 
 		default:
 

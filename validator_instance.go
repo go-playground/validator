@@ -215,6 +215,10 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 
 // RegisterValidation adds a validation with the given tag
 //
+// If callValidationEvenIfNull is true, the function is also called for nil
+// values. For plain nil inputs and type conversions that return nil, Field()
+// returns an invalid reflect.Value. The function must handle it safely.
+//
 // NOTES:
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
