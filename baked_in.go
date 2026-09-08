@@ -3468,7 +3468,9 @@ func isSpiceDB(fl FieldLevel) bool {
 
 // isCreditCard is the validation function for validating if the current field's value is a valid credit card number
 func isCreditCard(fl FieldLevel) bool {
-	val := fl.Field().String()
+	// Hyphens are a common grouping separator (Visa 4-4-4-4, Amex 4-6-5).
+	// Treat them like spaces so the existing segment rules still apply.
+	val := strings.ReplaceAll(fl.Field().String(), "-", " ")
 	var creditCard bytes.Buffer
 	segments := strings.Split(val, " ")
 	for _, segment := range segments {
