@@ -374,8 +374,9 @@ func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
-	// sentinel used as map key for nil values
-	var nilKey = struct{}{}
+	// A named type keeps nil distinct from legitimate struct{} values.
+	type uniqueNilKey struct{}
+	nilKey := uniqueNilKey{}
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
