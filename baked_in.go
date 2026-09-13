@@ -2917,43 +2917,27 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 
 func isHostnameLabel(fl FieldLevel) bool {
 	v := fl.Field().String()
+	n := len(v)
 
-	const maxLabelLength = 63
-
-	// ASCII only.
-	isLetter := func(c byte) bool {
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-	}
-
-	// ASCII only.
-	isDigit := func(c byte) bool {
-		return (c >= '0' && c <= '9')
-	}
-
-	valueLen := len(v)
-
-	// The empty label is not a valid label
-	if valueLen <= 0 || valueLen > maxLabelLength {
+	// A valid hostname label must be between 1 and 63 characters long.
+	if n <= 0 || n > 63 {
 		return false
 	}
 
-	firstChar := v[0]
+	for i := range n {
+		c := v[i]
 
-	if !isLetter(firstChar) && !isDigit(firstChar) {
-		return false
-	}
-
-	for i := range valueLen - 2 {
-		c := v[i+1]
-
-		if !isLetter(c) && !isDigit(c) && c != '-' {
-			return false
+		// 1. Allow alphanumeric characters anywhere
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
+			continue
 		}
-	}
 
-	lastChar := v[valueLen-1]
+		// 2. Allow hyphens only in the middle (not at the start or end)
+		if c == '-' && i > 0 && i < n-1 {
+			continue
+		}
 
-	if !isLetter(lastChar) && !isDigit(lastChar) {
+		// 3. Any other character, or a hyphen at the boundaries, is invalid
 		return false
 	}
 

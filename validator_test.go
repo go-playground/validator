@@ -11281,6 +11281,9 @@ func TestHostnameLabelValidation(t *testing.T) {
 		expected bool
 	}{
 		{"", false},
+		{"a", true}, // one character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true},   // 63 character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false}, // 64 character.
 		{"test", true},
 		{"2example", true},
 		{"example2", true},
