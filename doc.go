@@ -1445,7 +1445,7 @@ can be used to validate fields typically passed to sockets and connections.
 
 # Port
 
-This validates that the value falls within the valid port number range of 1 to 65,535.
+This validates that a signed or unsigned integer value falls within the valid port number range of 1 to 65,535.
 
 	Usage: port
 
