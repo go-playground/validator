@@ -3051,9 +3051,11 @@ func isPort(fl FieldLevel) bool {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		val := field.Int()
 		return val >= 1 && val <= 65535
-	default:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		val := field.Uint()
 		return val >= 1 && val <= 65535
+	default:
+		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 }
 

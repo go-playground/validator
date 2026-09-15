@@ -13832,6 +13832,26 @@ func Test_port_validator(t *testing.T) {
 	}
 }
 
+func Test_port_validator_unsupported_types(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    interface{}
+		expected string
+	}{
+		{"string", "8080", "Bad field type string"},
+		{"float", float64(8080), "Bad field type float64"},
+		{"bool", true, "Bad field type bool"},
+		{"slice", []int{8080}, "Bad field type []int"},
+	}
+
+	validate := New()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			PanicMatches(t, func() { _ = validate.Var(tt.value, "port") }, tt.expected)
+		})
+	}
+}
+
 func TestLowercaseValidation(t *testing.T) {
 	tests := []struct {
 		param    string
