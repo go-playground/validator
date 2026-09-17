@@ -13782,28 +13782,73 @@ func Test_hostnameport_validator(t *testing.T) {
 }
 
 func Test_port_validator(t *testing.T) {
+	type Port int64
+
 	type Host struct {
-		Port uint32 `validate:"port"`
+		Port interface{} `validate:"port"`
 	}
 
-	type testInput struct {
-		data     uint32
+	tests := []struct {
+		name     string
+		value    interface{}
 		expected bool
+	}{
+		{"uint32 zero", uint32(0), false},
+		{"uint32 minimum", uint32(1), true},
+		{"uint32 maximum", uint32(65535), true},
+		{"uint32 above maximum", uint32(65536), false},
+		{"uint valid", uint(8080), true},
+		{"uint8 valid", uint8(80), true},
+		{"uint16 maximum", uint16(65535), true},
+		{"uint64 maximum value", ^uint64(0), false},
+		{"uintptr valid", uintptr(8080), true},
+		{"int valid", int(8080), true},
+		{"int negative", int(-1), false},
+		{"int zero", int(0), false},
+		{"int minimum", int(1), true},
+		{"int maximum", int(65535), true},
+		{"int above maximum", int(65536), false},
+		{"int8 valid", int8(80), true},
+		{"int8 negative", int8(-1), false},
+		{"int16 valid", int16(8080), true},
+		{"int16 negative", int16(-1), false},
+		{"int32 valid", int32(8080), true},
+		{"int32 above maximum", int32(65536), false},
+		{"int64 valid", int64(8080), true},
+		{"int64 negative", int64(-1), false},
+		{"int64 large value", int64(1 << 32), false},
+		{"named integer valid", Port(8080), true},
+		{"named integer negative", Port(-1), false},
 	}
-	testData := []testInput{
-		{0, false},
-		{1, true},
-		{65535, true},
-		{65536, false},
-		{65538, false},
+
+	validate := New()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validate.Struct(Host{Port: tt.value})
+			if (err == nil) != tt.expected {
+				t.Fatalf("port %v (%T): expected valid=%v, got error %v", tt.value, tt.value, tt.expected, err)
+			}
+		})
 	}
-	for _, td := range testData {
-		h := Host{Port: td.data}
-		v := New()
-		err := v.Struct(h)
-		if td.expected != (err == nil) {
-			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
-		}
+}
+
+func Test_port_validator_unsupported_types(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    interface{}
+		expected string
+	}{
+		{"string", "8080", "Bad field type string"},
+		{"float", float64(8080), "Bad field type float64"},
+		{"bool", true, "Bad field type bool"},
+		{"slice", []int{8080}, "Bad field type []int"},
+	}
+
+	validate := New()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			PanicMatches(t, func() { _ = validate.Var(tt.value, "port") }, tt.expected)
+		})
 	}
 }
 
