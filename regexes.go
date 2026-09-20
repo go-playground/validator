@@ -82,6 +82,7 @@ const (
 	spicedbPermissionRegexString     = "^([a-z][a-z0-9_]{1,62}[a-z0-9])?$"
 	spicedbTypeRegexString           = "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$"
 	einRegexString                   = "^(\\d{2}-\\d{7})$"
+	isinRegexString                  = `^[A-Z]{2}[A-Z0-9]{9}[0-9]$`
 )
 
 func lazyRegexCompile(str string) func() *regexp.Regexp {
@@ -170,4 +171,5 @@ var (
 	spicedbPermissionRegex     = lazyRegexCompile(spicedbPermissionRegexString)
 	spicedbTypeRegex           = lazyRegexCompile(spicedbTypeRegexString)
 	einRegex                   = lazyRegexCompile(einRegexString)
+	isinRegex                  = lazyRegexCompile(isinRegexString)
 )
