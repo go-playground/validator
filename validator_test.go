@@ -14855,6 +14855,10 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"00803", true},
 			{"1234567", false},
 		},
+		"TW": {
+			{"106409", true},
+			{"1234567", false},
+		},
 		"LC": {
 			// not support regexp for post code
 			{"123456", false},
