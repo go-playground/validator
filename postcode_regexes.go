@@ -73,7 +73,7 @@ var postCodePatternDict = map[string]string{
 	"IS": `^\d{3}$`,
 	"IN": `^\d{6}$`,
 	"ID": `^\d{5}$`,
-	"IL": `^\d{5}$`,
+	"IL": `^\d{5}$|^\d{7}$`,
 	"JO": `^\d{5}$`,
 	"KZ": `^\d{6}$`,
 	"KE": `^\d{5}$`,
