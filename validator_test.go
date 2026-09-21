@@ -14842,18 +14842,40 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		value    string
 		expected bool
 	}{
-		"VN": {
-			{"ABC", false},
-			{"700000", true},
-			{"A1", false},
+		"AL": {
+			{"1234", true},
+			{"12345", false},
 		},
 		"GB": {
 			{"EC1A 1BB", true},
 			{"CF10 1B1H", false},
 		},
+		"GI": {
+			{"GI12 3AB", true},
+			{"GI1 1AA", true},
+			{"12345", false},
+		},
+		"IE": {
+			{"H54 RX46", true},
+			{"D6W E4E2", true},
+			{"H54RX46", true},
+			{"12345", false},
+		},
+		"IL": {
+			{"64928", true},
+			{"6492806", true},
+			{"649281", false},
+			{"1234", false},
+			{"ABCDEF", false},
+		},
 		"VI": {
 			{"00803", true},
 			{"1234567", false},
+		},
+		"VN": {
+			{"ABC", false},
+			{"700000", true},
+			{"A1", false},
 		},
 		"LC": {
 			// not support regexp for post code
@@ -14890,13 +14912,24 @@ func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
 		CountryCode interface{}
 		expected    bool
 	}{
+		{"1234", "AL", true},
+		{"12345", "AL", false},
+		{"EC1A 1BB", "GB", true},
+		{"CF10 1B1H", "GB", false},
+		{"GI12 3AB", "GI", true},
+		{"12345", "GI", false},
+		{"H54 RX46", "IE", true},
+		{"D6W E4E2", "IE", true},
+		{"12345", "IE", false},
+		{"64928", "IL", true},
+		{"6492806", "IL", true},
+		{"649281", "IL", false},
+		{"1234", "IL", false},
+		{"00803", "VI", true},
+		{"1234567", "VI", false},
 		{"ABC", "VN", false},
 		{"700000", "VN", true},
 		{"A1", "VN", false},
-		{"EC1A 1BB", "GB", true},
-		{"CF10 1B1H", "GB", false},
-		{"00803", "VI", true},
-		{"1234567", "VI", false},
 		{"123456", "LC", false}, // not support regexp for post code
 		{"123456", "XX", false}, // not support country
 	}
