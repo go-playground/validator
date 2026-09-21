@@ -219,6 +219,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | uuid4_rfc4122 | Universally Unique Identifier UUID v4 RFC4122 |
 | uuid5 | Universally Unique Identifier UUID v5 |
 | uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
+| uuid7 | Universally Unique Identifier UUID v7 |
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
 | md4 | MD4 hash |
 | md5 | MD5 hash |
