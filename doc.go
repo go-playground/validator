@@ -1062,7 +1062,8 @@ this with the omitempty tag.
 # Base64URL String
 
 This validates that a string value contains a valid base64 URL safe value
-according the RFC4648 spec.
+according to the RFC 4648 spec. It requires `=` padding when the encoded
+value needs padding; use the `base64rawurl` tag for unpadded values.
 Although an empty string is a valid base64 URL safe value, this will report
 an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
@@ -1071,8 +1072,8 @@ you can use this with the omitempty tag.
 
 # Base64RawURL String
 
-This validates that a string value contains a valid base64 URL safe value,
-but without = padding, according the RFC4648 spec, section 3.2.
+This validates that a string value contains a valid base64 URL safe value
+without `=` padding, according to the RFC 4648 spec, section 3.2.
 Although an empty string is a valid base64 URL safe value, this will report
 an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
