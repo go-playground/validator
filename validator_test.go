@@ -17226,3 +17226,102 @@ func TestMapDiveNamedKeyWithoutMethodsUsesFastPath(t *testing.T) {
 		t.Errorf("namespace %q must contain the key value", ns)
 	}
 }
+
+func TestMapDivePrivateKeyNamespaces(t *testing.T) {
+	tests := []struct {
+		name  string
+		input any
+		want  []string
+	}{
+		{"interface", &struct {
+			data map[any]int `validate:"dive,gt=0"`
+		}{map[any]int{"first": 0, "second": 0}}, []string{"data[first]", "data[second]"}},
+		{"array", &struct {
+			data map[[2]int]int `validate:"dive,gt=0"`
+		}{map[[2]int]int{{1, 2}: 0}}, []string{"data[[1 2]]"}},
+		{"struct", &struct {
+			data map[struct{ ID int }]int `validate:"dive,gt=0"`
+		}{map[struct{ ID int }]int{{1}: 0}}, []string{"data[{1}]"}},
+		{"complex", &struct {
+			data map[complex64]int `validate:"dive,gt=0"`
+		}{map[complex64]int{complex(0.1, 0.2): 0}}, []string{"data[(0.1+0.2i)]"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := New(WithPrivateFieldValidation()).Struct(tt.input)
+			if err == nil {
+				t.Fatal("expected validation errors")
+			}
+			var got []string
+			for _, fe := range err.(ValidationErrors) {
+				got = append(got, fe.Namespace())
+				if fe.StructNamespace() != fe.Namespace() {
+					t.Errorf("StructNamespace() = %q, want %q", fe.StructNamespace(), fe.Namespace())
+				}
+			}
+			slices.Sort(got)
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("namespaces = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+type mapFormatterKey int
+
+func (k mapFormatterKey) Format(s fmt.State, _ rune) {
+	_, _ = fmt.Fprintf(s, "formatted:%d", int(k))
+}
+
+func TestMapKeyStringMatchesFmt(t *testing.T) {
+	keys := []any{
+		"key", int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
+		uint(1), uint8(2), uint16(3), uint32(4), uint64(5), uintptr(6),
+		true, false, float32(0.1), float64(0.1), complex64(0.1 + 0.2i), complex128(0.1 + 0.2i),
+		[2]int{1, 2}, struct{ ID int }{1}, new(7), make(chan int),
+		mapStringerKey("key"), mapFormatterKey(7), reflect.ValueOf(7), reflect.Value{},
+	}
+	for _, key := range keys {
+		for _, value := range []reflect.Value{reflect.ValueOf(key), reflect.ValueOf(map[any]int{key: 0}).MapKeys()[0]} {
+			if got, want := mapKeyString(value), fmt.Sprintf("%v", value); got != want {
+				t.Errorf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
+			}
+		}
+	}
+}
+
+func FuzzMapKeyString(f *testing.F) {
+	f.Add("key", int64(-1), uint64(1), 0.1)
+	f.Add("\xff\x00", int64(0), ^uint64(0), -1e100)
+	f.Fuzz(func(t *testing.T, text string, signed int64, unsigned uint64, number float64) {
+		for _, key := range []any{text, int(signed), int8(signed), int16(signed), int32(signed), signed,
+			uint(unsigned), uint8(unsigned), uint16(unsigned), uint32(unsigned), unsigned, uintptr(unsigned),
+			float32(number), number, complex64(complex(number, number)), complex(number, number)} {
+			private := reflect.ValueOf(&struct{ data map[any]int }{map[any]int{key: 0}}).Elem().Field(0).MapKeys()[0]
+			for _, value := range []reflect.Value{reflect.ValueOf(key), private} {
+				if got, want := mapKeyString(value), fmt.Sprintf("%v", value); got != want {
+					t.Fatalf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
+				}
+			}
+		}
+	})
+}
+
+func FuzzOneOfContains(f *testing.F) {
+	for _, param := range []string{"", "red green blue", "'red green' blue", "''a b''", "'unterminated blue", "a\vb", "'a'x y", "\xff 'a\nb'"} {
+		f.Add(param, "a")
+	}
+	f.Fuzz(func(t *testing.T, param, value string) {
+		// Use the old parser without its process-wide cache during fuzzing.
+		items := splitParamsRegex().FindAllString(param, -1)
+		for i := range items {
+			items[i] = strings.ReplaceAll(items[i], "'", "")
+		}
+		for _, probe := range append(items, value) {
+			if got, want := oneOfContains(param, probe), slices.Contains(items, probe); got != want {
+				t.Fatalf("oneOfContains(%q, %q) = %v, want %v", param, probe, got, want)
+			}
+		}
+	})
+}

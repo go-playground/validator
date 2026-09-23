@@ -519,13 +519,13 @@ OUTER:
 	}
 }
 
-// nsString appends name to ns and returns the result as a string using a
-// single allocation, leaving the shared ns buffer untouched.
+// nsString appends name to ns using at most one allocation,
+// leaving the shared ns buffer untouched.
 func nsString(ns []byte, name string) string {
-	n := len(ns) + len(name)
-	if n == 0 {
-		return ""
+	if len(ns) == 0 {
+		return name
 	}
+	n := len(ns) + len(name)
 	b := make([]byte, n)
 	copy(b, ns)
 	copy(b[len(ns):], name)
@@ -552,7 +552,7 @@ func (v *validate) appendErr(fe *fieldError) {
 }
 
 // mapKeyString formats a map key for use within a field namespace.
-// It matches the output of fmt.Sprintf("%v", <underlying key value>) for the
+// It matches the output of fmt.Sprintf("%v", key) for the
 // common key kinds without boxing the key into an interface.
 func mapKeyString(key reflect.Value) string {
 	// A key type with methods may implement fmt.Stringer or fmt.Formatter,
@@ -574,7 +574,15 @@ func mapKeyString(key reflect.Value) string {
 			return strconv.FormatFloat(key.Float(), 'g', -1, 64)
 		}
 	}
-	return fmt.Sprintf("%v", getValue(key))
+	if key.CanInterface() {
+		value := key.Interface()
+		// fmt treats a reflect.Value argument specially. Keep the outer
+		// value so a key that is itself a reflect.Value is not unwrapped.
+		if _, ok := value.(reflect.Value); !ok {
+			return fmt.Sprintf("%v", value)
+		}
+	}
+	return fmt.Sprintf("%v", key)
 }
 
 func getValue(val reflect.Value) interface{} {

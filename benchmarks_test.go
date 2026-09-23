@@ -4,6 +4,9 @@ import (
 	"bytes"
 	sql "database/sql/driver"
 	"errors"
+	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -1323,4 +1326,61 @@ func BenchmarkStructCacheHitParallel(b *testing.B) {
 			_ = validate.Struct(validFoo)
 		}
 	})
+}
+
+func BenchmarkMapKeyString(b *testing.B) {
+	private := reflect.ValueOf(&struct{ data map[any]int }{map[any]int{"key": 0}}).Elem().Field(0).MapKeys()[0]
+	for _, tc := range []struct {
+		name string
+		key  reflect.Value
+	}{
+		{"string", reflect.ValueOf("key")},
+		{"int", reflect.ValueOf(123)},
+		{"stringer", reflect.ValueOf(mapStringerKey("key"))},
+		{"formatter", reflect.ValueOf(mapFormatterKey(7))},
+		{"struct", reflect.ValueOf(struct{ ID int }{1})},
+		{"private-interface", private},
+	} {
+		b.Run(tc.name, func(b *testing.B) {
+			for b.Loop() {
+				_ = mapKeyString(tc.key)
+			}
+		})
+	}
+}
+
+func BenchmarkVarWithKeyFailure(b *testing.B) {
+	v := New()
+	for b.Loop() {
+		_ = v.VarWithKey("name", "", "required")
+	}
+}
+
+func BenchmarkOneOfOptions(b *testing.B) {
+	options := make([]string, 0, 129)
+	for i := range 128 {
+		options = append(options, "option"+strconv.Itoa(i))
+	}
+	options = append(options, "blue")
+	for _, tc := range []struct {
+		name  string
+		param string
+		value string
+	}{
+		{"short", "red green blue", "blue"},
+		{"short-first", "red green blue", "red"},
+		{"many", strings.Join(options, " "), "blue"},
+		{"many-first", strings.Join(options, " "), options[0]},
+		{"many-miss", strings.Join(options, " "), "missing"},
+		{"long-token", strings.Repeat("x", 1024) + " green blue", "blue"},
+	} {
+		b.Run(tc.name, func(b *testing.B) {
+			v := New()
+			tag := "oneof=" + tc.param
+			var value any = tc.value
+			for b.Loop() {
+				_ = v.Var(value, tag)
+			}
+		})
+	}
 }
