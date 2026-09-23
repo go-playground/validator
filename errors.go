@@ -17,7 +17,7 @@ const (
 type ValidationErrorsTranslations map[string]string
 
 // InvalidValidationError describes an invalid argument passed to
-// `Struct`, `StructExcept`, StructPartial` or `Field`
+// `Struct`, `StructExcept`, `StructPartial` or `Field`
 type InvalidValidationError struct {
 	Type reflect.Type
 }
@@ -99,7 +99,7 @@ type FieldError interface {
 	// See StructNamespace() for a version that returns actual names.
 	//
 	// NOTE: this field can be blank when validating a single primitive field
-	// using validate.Field(...) as there is no way to extract it's name
+	// using validate.Field(...) as there is no way to extract its name
 	Namespace() string
 
 	// StructNamespace returns the namespace for the field error, with the field's
