@@ -14863,6 +14863,23 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			// not support country
 			{"123456", false},
 		},
+		"KR": {
+			// five digits since 2015-08-01, the six digit format was abolished
+			{"06236", true},
+			{"03187", true},
+			{"135-080", false},
+			{"135080", false},
+			{"0623", false},
+			{"0623A", false},
+		},
+		"IL": {
+			// seven digits since 2013-02-01, replacing the five digit format
+			{"9103401", true},
+			{"1029200", true},
+			{"91034", false},
+			{"91034011", false},
+			{"910340A", false},
+		},
 	}
 
 	validate := New()
