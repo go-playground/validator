@@ -1070,8 +1070,8 @@ func isNeField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-			t := getValue(currentField).(time.Time)
-			fieldTime := getValue(field).(time.Time)
+			t := getValue(currentField.Convert(timeType)).(time.Time)
+			fieldTime := getValue(field.Convert(timeType)).(time.Time)
 
 			return !fieldTime.Equal(t)
 		}
