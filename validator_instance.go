@@ -106,10 +106,12 @@ type Validate struct {
 // Using multiple instances neglects the benefit of caching.
 func New(options ...Option) *Validate {
 	tc := new(tagCache)
-	tc.m.Store(make(map[string]*cTag))
+	tagMap := make(map[string]*cTag)
+	tc.m.Store(&tagMap)
 
 	sc := new(structCache)
-	sc.m.Store(make(map[reflect.Type]*cStruct))
+	structMap := make(map[reflect.Type]*cStruct)
+	sc.m.Store(&structMap)
 
 	v := &Validate{
 		tagName:     defaultTagName,

@@ -91,7 +91,21 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 	var typ reflect.Type
 	var kind reflect.Kind
 
-	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
+	if cf.hasTypeFacts {
+		// The field's static type is a plain value that cannot implement
+		// Valuer, so extractTypeInternal would return it untouched unless a
+		// custom type func is registered for the type.
+		kind = cf.typeKind
+		v.fldIsPointer = false
+
+		if v.v.hasCustomFuncs {
+			if fn, ok := v.v.customFuncs[current.Type()]; ok {
+				current, kind, v.fldIsPointer = v.extractTypeInternal(reflect.ValueOf(fn(current)), false)
+			}
+		}
+	} else {
+		current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
+	}
 
 	var isNestedStruct bool
 
@@ -118,11 +132,11 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			if kind == reflect.Invalid {
 				v.str1 = appendAltName(ns, cf.altName)
 				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
+					v.str2 = nsString(structNs, cf.name)
 				} else {
 					v.str2 = v.str1
 				}
-				v.errs = append(v.errs,
+				v.appendErr(
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -140,12 +154,12 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 			v.str1 = appendAltName(ns, cf.altName)
 			if v.v.hasTagNameFunc {
-				v.str2 = string(append(structNs, cf.name...))
+				v.str2 = nsString(structNs, cf.name)
 			} else {
 				v.str2 = v.str1
 			}
 			if !ct.runValidationWhenNil {
-				v.errs = append(v.errs,
+				v.appendErr(
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -264,7 +278,9 @@ OUTER:
 					return
 				}
 			default:
-				if v.fldIsPointer && getValue(field) == nil {
+				// the field was already dereferenced, so a valid field means
+				// the pointer or interface was not nil; no need to box to check
+				if v.fldIsPointer && !field.IsValid() {
 					return
 				}
 			}
@@ -316,7 +332,7 @@ OUTER:
 				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
-					pv = fmt.Sprintf("%v", key)
+					pv = mapKeyString(key)
 
 					v.misc = append(v.misc[0:0], cf.name...)
 					v.misc = append(v.misc, '[')
@@ -416,13 +432,13 @@ OUTER:
 					v.str1 = appendAltName(ns, cf.altName)
 
 					if v.v.hasTagNameFunc {
-						v.str2 = string(append(structNs, cf.name...))
+						v.str2 = nsString(structNs, cf.name)
 					} else {
 						v.str2 = v.str1
 					}
 
 					if ct.hasAlias {
-						v.errs = append(v.errs,
+						v.appendErr(
 							&fieldError{
 								v:              v.v,
 								tag:            ct.aliasTag,
@@ -440,7 +456,7 @@ OUTER:
 					} else {
 						tVal := string(v.misc)[1:]
 
-						v.errs = append(v.errs,
+						v.appendErr(
 							&fieldError{
 								v:              v.v,
 								tag:            tVal,
@@ -475,12 +491,12 @@ OUTER:
 				v.str1 = appendAltName(ns, cf.altName)
 
 				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
+					v.str2 = nsString(structNs, cf.name)
 				} else {
 					v.str2 = v.str1
 				}
 
-				v.errs = append(v.errs,
+				v.appendErr(
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -503,14 +519,62 @@ OUTER:
 	}
 }
 
+// nsString appends name to ns and returns the result as a string using a
+// single allocation, leaving the shared ns buffer untouched.
+func nsString(ns []byte, name string) string {
+	n := len(ns) + len(name)
+	if n == 0 {
+		return ""
+	}
+	b := make([]byte, n)
+	copy(b, ns)
+	copy(b[len(ns):], name)
+	return unsafe.String(&b[0], n)
+}
+
 func appendAltName(ns []byte, altName string) string {
 	if len(altName) > 0 {
-		return string(append(ns, altName...))
+		return nsString(ns, altName)
 	}
 	if n := len(ns); n > 0 && ns[n-1] == '.' {
-		return string(ns[:n-1])
+		ns = ns[:n-1]
 	}
 	return string(ns)
+}
+
+// appendErr appends a field error to v.errs, pre-allocating capacity on the
+// first error to reduce slice growth on validation failures.
+func (v *validate) appendErr(fe *fieldError) {
+	if v.errs == nil {
+		v.errs = make(ValidationErrors, 0, 4)
+	}
+	v.errs = append(v.errs, fe)
+}
+
+// mapKeyString formats a map key for use within a field namespace.
+// It matches the output of fmt.Sprintf("%v", <underlying key value>) for the
+// common key kinds without boxing the key into an interface.
+func mapKeyString(key reflect.Value) string {
+	// A key type with methods may implement fmt.Stringer or fmt.Formatter,
+	// which the %v fallback below honors for the underlying value; the fast
+	// paths below would ignore them. Method-less types cannot have them.
+	if key.Type().NumMethod() == 0 {
+		switch key.Kind() {
+		case reflect.String:
+			return key.String()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return strconv.FormatInt(key.Int(), 10)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			return strconv.FormatUint(key.Uint(), 10)
+		case reflect.Bool:
+			return strconv.FormatBool(key.Bool())
+		case reflect.Float32:
+			return strconv.FormatFloat(key.Float(), 'g', -1, 32)
+		case reflect.Float64:
+			return strconv.FormatFloat(key.Float(), 'g', -1, 64)
+		}
+	}
+	return fmt.Sprintf("%v", getValue(key))
 }
 
 func getValue(val reflect.Value) interface{} {

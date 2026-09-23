@@ -1123,6 +1123,116 @@ func BenchmarkNoneOfParallel(b *testing.B) {
 	})
 }
 
+func BenchmarkFieldBooleanValid(b *testing.B) {
+	validate := New()
+	s := "true"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(&s, "boolean")
+	}
+}
+
+func BenchmarkFieldBooleanValidParallel(b *testing.B) {
+	validate := New()
+	s := "true"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(&s, "boolean")
+		}
+	})
+}
+
+func BenchmarkFieldBooleanInvalid(b *testing.B) {
+	validate := New()
+	s := "not-a-boolean"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(&s, "boolean")
+	}
+}
+
+func BenchmarkFieldBooleanInvalidParallel(b *testing.B) {
+	validate := New()
+	s := "not-a-boolean"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(&s, "boolean")
+		}
+	})
+}
+
+func BenchmarkFieldOmitEmptyPointer(b *testing.B) {
+	validate := New()
+	s := "value"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(&s, "omitempty")
+	}
+}
+
+func BenchmarkFieldOmitEmptyPointerParallel(b *testing.B) {
+	validate := New()
+	s := "value"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(&s, "omitempty")
+		}
+	})
+}
+
+func BenchmarkFieldOneOfHit(b *testing.B) {
+	validate := New()
+	s := "green"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(&s, "oneof=red green blue")
+	}
+}
+
+func BenchmarkFieldOneOfHitParallel(b *testing.B) {
+	validate := New()
+	s := "green"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(&s, "oneof=red green blue")
+		}
+	})
+}
+
+func BenchmarkFieldOneOfMiss(b *testing.B) {
+	validate := New()
+	s := "black"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(&s, "oneof=red green blue")
+	}
+}
+
+func BenchmarkFieldOneOfMissParallel(b *testing.B) {
+	validate := New()
+	s := "black"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(&s, "oneof=red green blue")
+		}
+	})
+}
+
 type T struct{}
 
 func (*T) Validate() error { return errors.New("ops") }
@@ -1155,6 +1265,62 @@ func BenchmarkValidateFnParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = validate.Struct(test)
+		}
+	})
+}
+
+func BenchmarkVarString(b *testing.B) {
+	validate := New()
+	s := "1"
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Var(s, "len=1")
+	}
+}
+
+func BenchmarkVarStringParallel(b *testing.B) {
+	validate := New()
+	s := "1"
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Var(s, "len=1")
+		}
+	})
+}
+
+func BenchmarkStructCacheHit(b *testing.B) {
+	validate := New()
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+	_ = validate.Struct(validFoo) // warm the struct cache
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Struct(validFoo)
+	}
+}
+
+func BenchmarkStructCacheHitParallel(b *testing.B) {
+	validate := New()
+	type Foo struct {
+		StringValue string `validate:"min=5,max=10"`
+		IntValue    int    `validate:"min=5,max=10"`
+	}
+
+	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
+	_ = validate.Struct(validFoo) // warm the struct cache
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Struct(validFoo)
 		}
 	})
 }

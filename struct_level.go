@@ -113,16 +113,16 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		structFieldName = fieldName
 	}
 
-	v.str1 = string(append(v.ns, fieldName...))
+	v.str1 = nsString(v.ns, fieldName)
 
 	if v.v.hasTagNameFunc || fieldName != structFieldName {
-		v.str2 = string(append(v.actualNs, structFieldName...))
+		v.str2 = nsString(v.actualNs, structFieldName)
 	} else {
 		v.str2 = v.str1
 	}
 
 	if kind == reflect.Invalid {
-		v.errs = append(v.errs,
+		v.appendErr(
 			&fieldError{
 				v:              v.v,
 				tag:            tag,
@@ -138,7 +138,7 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		return
 	}
 
-	v.errs = append(v.errs,
+	v.appendErr(
 		&fieldError{
 			v:              v.v,
 			tag:            tag,
@@ -166,6 +166,6 @@ func (v *validate) ReportValidationErrors(relativeNamespace, relativeStructNames
 		err.ns = string(append(append(v.ns, relativeNamespace...), err.ns...))
 		err.structNs = string(append(append(v.actualNs, relativeStructNamespace...), err.structNs...))
 
-		v.errs = append(v.errs, err)
+		v.appendErr(err)
 	}
 }
