@@ -326,6 +326,8 @@ func isHTML(fl FieldLevel) bool {
 }
 
 func isOneOf(fl FieldLevel) bool {
+	vals := parseOneOfParam2(fl.Param())
+
 	field := fl.Field()
 
 	var v string
@@ -340,66 +342,7 @@ func isOneOf(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
-	return oneOfContains(fl.Param(), v)
-}
-
-// isOneOfSep reports whether c is a token separator for oneof params, matching
-// the \s character class used by splitParamsRegex (Go's \s is [\t\n\f\r ],
-// i.e. vertical tab is NOT a separator).
-func isOneOfSep(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f'
-}
-
-// oneOfContains reports whether v equals one of the items of a oneof param,
-// tokenizing exactly like parseOneOfParam2 ('[^']*'|\S+ with quotes removed),
-// as an allocation-free scan without the param cache mutex.
-func oneOfContains(param, v string) bool {
-	i, n := 0, len(param)
-	for i < n {
-		if isOneOfSep(param[i]) {
-			i++
-			continue
-		}
-		if param[i] == '\'' {
-			// quoted item, may contain separators; content never contains quotes
-			if j := strings.IndexByte(param[i+1:], '\''); j >= 0 {
-				if param[i+1:i+1+j] == v {
-					return true
-				}
-				i += j + 2
-				continue
-			}
-			// unterminated quote: the regex falls back to an unquoted token
-		}
-		j := i + 1
-		for j < n && !isOneOfSep(param[j]) {
-			j++
-		}
-		if eqUnquoted(param[i:j], v) {
-			return true
-		}
-		i = j
-	}
-	return false
-}
-
-// eqUnquoted reports whether token equals v after removing all single quotes
-// from token, without allocating the stripped copy.
-func eqUnquoted(token, v string) bool {
-	if strings.IndexByte(token, '\'') < 0 {
-		return token == v
-	}
-	k := 0
-	for i := 0; i < len(token); i++ {
-		if token[i] == '\'' {
-			continue
-		}
-		if k >= len(v) || token[i] != v[k] {
-			return false
-		}
-		k++
-	}
-	return k == len(v)
+	return slices.Contains(vals, v)
 }
 
 // isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).

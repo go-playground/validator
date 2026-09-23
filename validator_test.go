@@ -5932,49 +5932,32 @@ func TestOneOfValidation(t *testing.T) {
 	}, "Bad field type float64")
 }
 
-func TestOneOfScanEquivalence(t *testing.T) {
-	params := []string{
-		"",
-		"red green blue",
-		"red green blue ",
-		" red green blue",
-		"'red green' blue",
-		"''",
-		"'' ''",
-		"'a b' 'c d'",
-		"don't stop",
-		"'unterminated blue",
-		"5 6",
-		"a,,b",
-		"'quoted,comma' x",
-		"''a b''",
-		"a\tb\nc",
-		"x'y",
-		"'a''b'",
-		"'a' 'b",
-		"0x2C 1",
-		"'  ' x",
-		"it's 'a test' value",
-		"a\vb",
-		"'a'x y",
-		"x'a",
-		"a'b'c",
-	}
-	values := []string{
-		"", "red", "green", "blue", "a", "b", "ab", "a b", "c d",
-		"dont", "don't", "stop", "5", "6", "a,,b", "quoted,comma",
-		"x", "y", "x'y", "xy", "unterminated", "a'", "'a", "0x2C", "1",
-		"  ", "it's", "a test", "value", "abc", "a\vb", "xa", "b c",
-	}
-
-	for _, param := range params {
-		// reference: the exact items the previous cached implementation used
-		wantVals := parseOneOfParam2(param)
-		for _, v := range values {
-			want := slices.Contains(wantVals, v)
-			got := oneOfContains(param, v)
-			if got != want {
-				t.Errorf("oneOfContains(%q, %q) = %v, want %v (items %q)", param, v, got, want, wantVals)
+func TestOneOfAndNoneOfLongOptions(t *testing.T) {
+	v := New()
+	longOptions := strings.Repeat("other ", 128) + "blue"
+	longToken := strings.Repeat("x", 1024) + " green blue"
+	for _, tc := range []struct {
+		param string
+		value string
+		match bool
+	}{
+		{longOptions, "blue", true},
+		{longOptions, "missing", false},
+		{longToken, "blue", true},
+		{longToken, strings.Repeat("x", 1024), true},
+		{longToken, "missing", false},
+		{"'" + strings.Repeat("red green ", 128) + "' blue", "blue", true},
+	} {
+		for _, tag := range []string{"oneof", "noneof"} {
+			want := tc.match
+			if tag == "noneof" {
+				want = !want
+			}
+			// Check both the first validation and reuse of the same tag.
+			for range 2 {
+				if err := v.Var(tc.value, tag+"="+tc.param); (err == nil) != want {
+					t.Errorf("%s value %q: got %v, want valid=%v", tag, tc.value, err, want)
+				}
 			}
 		}
 	}
@@ -17303,24 +17286,6 @@ func FuzzMapKeyString(f *testing.F) {
 				if got, want := mapKeyString(value), fmt.Sprintf("%v", value); got != want {
 					t.Fatalf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
 				}
-			}
-		}
-	})
-}
-
-func FuzzOneOfContains(f *testing.F) {
-	for _, param := range []string{"", "red green blue", "'red green' blue", "''a b''", "'unterminated blue", "a\vb", "'a'x y", "\xff 'a\nb'"} {
-		f.Add(param, "a")
-	}
-	f.Fuzz(func(t *testing.T, param, value string) {
-		// Use the old parser without its process-wide cache during fuzzing.
-		items := splitParamsRegex().FindAllString(param, -1)
-		for i := range items {
-			items[i] = strings.ReplaceAll(items[i], "'", "")
-		}
-		for _, probe := range append(items, value) {
-			if got, want := oneOfContains(param, probe), slices.Contains(items, probe); got != want {
-				t.Fatalf("oneOfContains(%q, %q) = %v, want %v", param, probe, got, want)
 			}
 		}
 	})

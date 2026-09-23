@@ -136,7 +136,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				} else {
 					v.str2 = v.str1
 				}
-				v.appendErr(
+				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -159,7 +159,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				v.str2 = v.str1
 			}
 			if !ct.runValidationWhenNil {
-				v.appendErr(
+				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -438,7 +438,7 @@ OUTER:
 					}
 
 					if ct.hasAlias {
-						v.appendErr(
+						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
 								tag:            ct.aliasTag,
@@ -456,7 +456,7 @@ OUTER:
 					} else {
 						tVal := string(v.misc)[1:]
 
-						v.appendErr(
+						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
 								tag:            tVal,
@@ -496,7 +496,7 @@ OUTER:
 					v.str2 = v.str1
 				}
 
-				v.appendErr(
+				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
@@ -540,15 +540,6 @@ func appendAltName(ns []byte, altName string) string {
 		ns = ns[:n-1]
 	}
 	return string(ns)
-}
-
-// appendErr appends a field error to v.errs, pre-allocating capacity on the
-// first error to reduce slice growth on validation failures.
-func (v *validate) appendErr(fe *fieldError) {
-	if v.errs == nil {
-		v.errs = make(ValidationErrors, 0, 4)
-	}
-	v.errs = append(v.errs, fe)
 }
 
 // mapKeyString formats a map key for use within a field namespace.
