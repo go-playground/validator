@@ -14856,8 +14856,15 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"1234567", false},
 		},
 		"TW": {
-			{"106409", true},
+			{"100", true},    // 3 digits (Valid)
+			{"10042", true},  // 5 digits (Valid)
+			{"106409", true}, // 6 digits (Valid)
+			{"040", true},    // Leading zero (Valid)
+			{"12", false},    // Too short
+			{"1234", false},  // 4 digits (Invalid)
 			{"1234567", false},
+			{"100-42", false}, // Contains hyphen (Invalid for strict numeric check)
+			{"abcdef", false}, // Letters (Invalid)
 		},
 		"LC": {
 			// not support regexp for post code
