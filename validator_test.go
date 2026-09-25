@@ -14850,6 +14850,13 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		"GB": {
 			{"EC1A 1BB", true},
 			{"CF10 1B1H", false},
+			// the pattern's top level `|` sits between `^` and `$`, so the
+			// non-`GIR` branches were not anchored and any string ending in a
+			// valid postcode, or in a BFPO number, was accepted
+			{"junkEC1A 1BB", false},
+			{"prefixBFPO 1234", false},
+			{"BFPO 1234", true},
+			{"EC1A 1BBjunk", false},
 		},
 		"VI": {
 			{"00803", true},
@@ -14890,6 +14897,17 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"91034", false},
 			{"91034011", false},
 			{"910340A", false},
+		},
+		"LI": {
+			{"9485", true},
+			{"9497", true},
+			{"9484", false},
+			{"9498", false},
+			// as with GB, the second branch of `^(948[5-9])|(949[0-7])$` fell
+			// outside the `^` assertion, so any string ending in 9490-9497 was
+			// accepted
+			{"9485junk", false},
+			{"x9497", false},
 		},
 	}
 
