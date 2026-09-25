@@ -16326,6 +16326,102 @@ func TestMapPointerStructFallback(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+func TestMapWrappedStructFallback(t *testing.T) {
+	type Inner struct {
+		Value string `validate:"len=3" json:"value"`
+	}
+	type Outer struct {
+		Data interface{} `validate:"dive,keys,max=3,endkeys" json:"data"`
+	}
+	type CustomValue string
+
+	valid := &Inner{Value: "abc"}
+	invalid := &Inner{Value: "ab"}
+	var nilInner *Inner
+	var nilInterface interface{}
+	var invalidInterface interface{} = invalid
+
+	tests := []struct {
+		name        string
+		value       interface{}
+		wantError   bool
+		customCalls int
+	}{
+		{"struct", map[string]Inner{"ok": *invalid}, true, 0},
+		{"pointer", map[string]*Inner{"ok": invalid}, true, 0},
+		{"interface struct", map[string]interface{}{"ok": *invalid}, true, 0},
+		{"interface pointer", map[string]interface{}{"ok": invalid}, true, 0},
+		{"interface double pointer", map[string]interface{}{"ok": &invalid}, true, 0},
+		{"double pointer", map[string]**Inner{"ok": &invalid}, true, 0},
+		{"pointer to interface", map[string]*interface{}{"ok": &invalidInterface}, true, 0},
+		{"valid interface struct", map[string]interface{}{"ok": *valid}, false, 0},
+		{"valid interface pointer", map[string]interface{}{"ok": valid}, false, 0},
+		{"valid double pointer", map[string]**Inner{"ok": &valid}, false, 0},
+		{"concrete valuer", map[string]ValuerTypeWithValueReceiver[interface{}]{"ok": {Data: &invalid}}, true, 0},
+		{"interface valuer", map[string]Valuer{"ok": ValuerTypeWithValueReceiver[interface{}]{Data: &invalid}}, true, 0},
+		{"valid interface valuer", map[string]Valuer{"ok": ValuerTypeWithValueReceiver[interface{}]{Data: &valid}}, false, 0},
+		{"nil interface", map[string]interface{}{"ok": nil}, false, 0},
+		{"typed nil", map[string]interface{}{"ok": nilInner}, false, 0},
+		{"nil double pointer", map[string]**Inner{"ok": nil}, false, 0},
+		{"indirect nil pointer", map[string]**Inner{"ok": &nilInner}, false, 0},
+		{"pointer to nil interface", map[string]*interface{}{"ok": &nilInterface}, false, 0},
+		{"primitive", map[string]interface{}{"ok": 0}, false, 0},
+		{"slice without dive", map[string]interface{}{"ok": []Inner{*invalid}}, false, 0},
+		{"map without dive", map[string]interface{}{"ok": map[string]Inner{"nested": *invalid}}, false, 0},
+		{"custom type", map[string]CustomValue{"ok": "ab"}, true, 1},
+		{"valid custom type", map[string]CustomValue{"ok": "abc"}, false, 1},
+		{"nil custom value", map[string]CustomValue{"ok": ""}, false, 1},
+	}
+
+	validate := New(WithRequiredStructEnabled())
+	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
+		return field.Tag.Get("json")
+	})
+	customCalls := 0
+	validate.RegisterCustomTypeFunc(func(field reflect.Value) interface{} {
+		customCalls++
+		if field.String() == "" {
+			return nil
+		}
+		return Inner{Value: field.String()}
+	}, CustomValue(""))
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			for _, api := range []string{"Var", "Struct"} {
+				t.Run(api, func(t *testing.T) {
+					customCalls = 0
+					var err error
+					var namespace, structNamespace string
+					if api == "Var" {
+						err = validate.Var(test.value, "dive,keys,max=3,endkeys")
+						namespace = "[ok].value"
+						structNamespace = "[ok].Value"
+					} else {
+						err = validate.Struct(Outer{Data: test.value})
+						namespace = "Outer.data[ok].value"
+						structNamespace = "Outer.Data[ok].Value"
+					}
+					Equal(t, customCalls, test.customCalls)
+					if !test.wantError {
+						Equal(t, err, nil)
+						return
+					}
+					NotEqual(t, err, nil)
+					errs := err.(ValidationErrors)
+					Equal(t, len(errs), 1)
+					AssertError(t, err, namespace, structNamespace, "value", "Value", "len")
+					Equal(t, errs[0].ActualTag(), "len")
+					Equal(t, errs[0].Param(), "3")
+					Equal(t, errs[0].Value(), "ab")
+					Equal(t, errs[0].Kind(), reflect.String)
+					Equal(t, errs[0].Type() == reflect.TypeOf(""), true)
+				})
+			}
+		})
+	}
+}
+
 func TestMapNonStructValueSkipsFallback(t *testing.T) {
 	// Tests that fallback is skipped for non-struct values in maps
 	type Outer struct {
