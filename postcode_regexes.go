@@ -31,7 +31,7 @@ var postCodePatternDict = map[string]string{
 	"AX": `^22\d{3}$`,
 	"KR": `^\d{5}$`,
 	"CN": `^\d{6}$`,
-	"TW": `^\d{3}(\d{2})?$`,
+	"TW": `^\d{3}(\d{2,3})?$`,
 	"SG": `^\d{6}$`,
 	"DZ": `^\d{5}$`,
 	"AD": `^AD\d{3}$`,
