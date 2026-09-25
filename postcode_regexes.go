@@ -51,7 +51,7 @@ var postCodePatternDict = map[string]string{
 	"CV": `^\d{4}$`,
 	"CL": `^\d{7}$`,
 	"CO": `^\d{6}$`,
-	"CR": `^\d{4,5}|\d{3}-\d{4}$`,
+	"CR": `^\d{5}$`,
 	"HR": `^\d{5}$`,
 	"CY": `^\d{4}$`,
 	"CZ": `^\d{3}[ ]?\d{2}$`,
