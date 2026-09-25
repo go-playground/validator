@@ -17002,3 +17002,37 @@ func TestValuerInterface(t *testing.T) {
 		}
 	})
 }
+
+func TestQuotedParameterApostrophes(t *testing.T) {
+	validate := New()
+	for _, tc := range []struct {
+		value string
+		tag   string
+		valid bool
+	}{
+		{"Churn's Reason", "oneof='Churn''s Reason' other", true},
+		{"other", "oneof='Churn''s Reason' other", true},
+		{"Churns Reason", "oneof='Churn''s Reason' other", false},
+		{"'quoted'", "oneof='''quoted'''", true},
+		{"'", "oneof=''''", true},
+		{"", "oneof='' other", true},
+		{"CHURN'S REASON", "oneofci='Churn''s Reason' other", true},
+		{"Churn's Reason", "noneof='Churn''s Reason' other", false},
+		{"CHURN'S REASON", "noneofci='Churn''s Reason' other", false},
+	} {
+		t.Run(tc.tag+"/"+tc.value, func(t *testing.T) {
+			err := validate.Var(tc.value, tc.tag)
+			Equal(t, err == nil, tc.valid)
+		})
+	}
+
+	t.Run("required_if", func(t *testing.T) {
+		type payload struct {
+			Stage  string
+			Reason string `validate:"required_if=Stage 'Churn''s Reason'"`
+		}
+		AssertError(t, validate.Struct(payload{Stage: "Churn's Reason"}), "payload.Reason", "payload.Reason", "Reason", "Reason", "required_if")
+		Equal(t, validate.Struct(payload{Stage: "Churn's Reason", Reason: "provided"}), nil)
+		Equal(t, validate.Struct(payload{Stage: "other"}), nil)
+	})
+}

@@ -539,10 +539,12 @@ For strings, ints, and uints, oneof will ensure that the value
 is one of the values in the parameter.  The parameter should be
 a list of values separated by whitespace. Values may be
 strings or numbers. To match strings with spaces in them, include
-the target string between single quotes. Kind of like an 'enum'.
+the target string between single quotes. A literal single quote inside a quoted
+value is escaped by doubling it. Kind of like an 'enum'.
 
 	Usage: oneof=red green
 	       oneof='red green' 'blue yellow'
+	       oneof='Churn''s Reason' other
 	       oneof=5 7 9
 
 # One Of Case Insensitive
@@ -562,7 +564,6 @@ Kind of like an 'enum'.
 	Usage: noneof=red green
 	       noneof='red green' 'blue yellow'
 		   noneof=5 7 9
-
 
 # None Of Case Insensitive
 Works the same as noneof but is case insensitive and therefore only accepts strings.
