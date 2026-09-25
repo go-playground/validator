@@ -1538,6 +1538,7 @@ More information on https://cve.mitre.org/
 # Credit Card
 
 This validates that a string value contains a valid credit card number using Luhn algorithm.
+Spaces and hyphens are allowed as grouping separators.
 
 	Usage: credit_card
 
