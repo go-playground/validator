@@ -14851,6 +14851,17 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"EC1A 1BB", true},
 			{"CF10 1B1H", false},
 		},
+		"CR": {
+			{"10101", true},
+			{"12345", true},
+			{"1234", true},
+			{"123-4567", true},
+			{"junk123-4567", false},
+			{"prefix123-4567", false},
+			{"123-4567xyz", false},
+			{"junk12345", false},
+			{"12345junk", false},
+		},
 		"VI": {
 			{"00803", true},
 			{"1234567", false},
