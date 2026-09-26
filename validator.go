@@ -565,7 +565,9 @@ func mapKeyString(key reflect.Value) string {
 			return strconv.FormatFloat(key.Float(), 'g', -1, 64)
 		}
 	}
-	if key.CanInterface() {
+	// Keep interfaces wrapped: fmt prints pointers nested in an interface
+	// as addresses. Unwrapping them would print composite values instead.
+	if key.Kind() != reflect.Interface && key.CanInterface() {
 		value := key.Interface()
 		// fmt treats a reflect.Value argument specially. Keep the outer
 		// value so a key that is itself a reflect.Value is not unwrapped.
