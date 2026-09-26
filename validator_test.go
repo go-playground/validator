@@ -11695,6 +11695,54 @@ func TestUniqueValidationNilPtrSlice(t *testing.T) {
 	})
 }
 
+func TestUniqueNilMarkerDoesNotCollideWithEmptyStruct(t *testing.T) {
+	type namedEmpty struct{}
+	type pointerKey struct {
+		Key *struct{}
+	}
+	type valueKey struct {
+		Key struct{}
+	}
+
+	cases := []struct {
+		name    string
+		value   interface{}
+		tag     string
+		wantErr bool
+	}{
+		{"slice", []*struct{}{nil, {}}, "unique", false},
+		{"array", [2]*struct{}{nil, {}}, "unique", false},
+		{"map", map[string]*struct{}{"nil": nil, "value": {}}, "unique", false},
+		{"pointer field", []pointerKey{{Key: nil}, {Key: &struct{}{}}}, "unique=Key", false},
+		{"nil parent and value field", []*valueKey{nil, {}}, "unique=Key", false},
+		{"named struct control", []*namedEmpty{nil, {}}, "unique", false},
+		{"single empty value", []*struct{}{{}}, "unique", false},
+		{"duplicate nils", []*struct{}{nil, nil}, "unique", true},
+		{"duplicate values", []*struct{}{{}, {}}, "unique", true},
+		{"duplicate map nils", map[string]*struct{}{"a": nil, "b": nil}, "unique", true},
+		{"duplicate map values", map[string]*struct{}{"a": {}, "b": {}}, "unique", true},
+		{"duplicate pointer fields", []pointerKey{{Key: &struct{}{}}, {Key: &struct{}{}}}, "unique=Key", true},
+		{"duplicate nil parents", []*valueKey{nil, nil}, "unique=Key", true},
+	}
+
+	validate := New()
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validate.Var(tc.value, tc.tag)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("duplicate values passed unique validation")
+				}
+				if errs, ok := err.(ValidationErrors); !ok || errs[0].Tag() != "unique" {
+					t.Fatalf("expected unique ValidationErrors, got %v", err)
+				}
+			} else if err != nil {
+				t.Fatalf("distinct nil and non-nil values failed validation: %v", err)
+			}
+		})
+	}
+}
+
 func TestHTMLValidation(t *testing.T) {
 	tests := []struct {
 		param    string
