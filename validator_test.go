@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -2429,6 +2430,33 @@ func TestSQLValue2Validation(t *testing.T) {
 	Equal(t, len(errs.(ValidationErrors)), 2)
 	AssertError(t, errs, "CustomMadeUpStruct.MadeUp", "CustomMadeUpStruct.MadeUp", "MadeUp", "MadeUp", "required")
 	AssertError(t, errs, "CustomMadeUpStruct.OverriddenInt", "CustomMadeUpStruct.OverriddenInt", "OverriddenInt", "OverriddenInt", "gt")
+}
+
+func TestCustomTypeFuncRegisteredAfterStructCacheBuilt(t *testing.T) {
+	validate := New()
+
+	type CustomValue struct {
+		Value string
+	}
+
+	type Payload struct {
+		S CustomValue `validate:"required"`
+	}
+
+	// Build the struct cache before the custom type func exists.
+	_ = validate.Struct(Payload{})
+
+	// Registering the func after the cache was built must still apply.
+	validate.RegisterCustomTypeFunc(func(field reflect.Value) interface{} {
+		return field.Interface().(CustomValue).Value
+	}, CustomValue{})
+
+	errs := validate.Struct(Payload{S: CustomValue{Value: "ok"}})
+	Equal(t, errs, nil)
+
+	errs = validate.Struct(Payload{})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "Payload.S", "Payload.S", "S", "S", "required")
 }
 
 func TestSQLValueValidation(t *testing.T) {
@@ -5902,6 +5930,37 @@ func TestOneOfValidation(t *testing.T) {
 	PanicMatches(t, func() {
 		_ = validate.Var(3.14, "oneof=red green")
 	}, "Bad field type float64")
+}
+
+func TestOneOfAndNoneOfLongOptions(t *testing.T) {
+	v := New()
+	longOptions := strings.Repeat("other ", 128) + "blue"
+	longToken := strings.Repeat("x", 1024) + " green blue"
+	for _, tc := range []struct {
+		param string
+		value string
+		match bool
+	}{
+		{longOptions, "blue", true},
+		{longOptions, "missing", false},
+		{longToken, "blue", true},
+		{longToken, strings.Repeat("x", 1024), true},
+		{longToken, "missing", false},
+		{"'" + strings.Repeat("red green ", 128) + "' blue", "blue", true},
+	} {
+		for _, tag := range []string{"oneof", "noneof"} {
+			want := tc.match
+			if tag == "noneof" {
+				want = !want
+			}
+			// Check both the first validation and reuse of the same tag.
+			for range 2 {
+				if err := v.Var(tc.value, tag+"="+tc.param); (err == nil) != want {
+					t.Errorf("%s value %q: got %v, want valid=%v", tag, tc.value, err, want)
+				}
+			}
+		}
+	}
 }
 
 func TestOneOfCIValidation(t *testing.T) {
@@ -15855,6 +15914,91 @@ func TestOmitZero(t *testing.T) {
 	})
 }
 
+func TestHasValueHasNotZeroValueSemantics(t *testing.T) {
+	validate := New()
+
+	var (
+		emptyStr = ""
+		valStr   = "value"
+		zeroInt  = 0
+		valInt   = 5
+		nilAny   any
+		zeroAny  any = 0
+	)
+
+	tests := []struct {
+		name    string
+		field   any
+		tag     string
+		wantErr bool
+	}{
+		// hasValue (required)
+		{name: "required non-pointer zero string", field: emptyStr, tag: "required", wantErr: true},
+		{name: "required non-pointer non-zero string", field: valStr, tag: "required", wantErr: false},
+		{name: "required pointer to zero string", field: &emptyStr, tag: "required", wantErr: false},
+		{name: "required pointer to non-zero string", field: &valStr, tag: "required", wantErr: false},
+		{name: "required nil pointer", field: (*string)(nil), tag: "required", wantErr: true},
+		{name: "required nil interface", field: &nilAny, tag: "required", wantErr: true},
+		{name: "required interface holding zero int", field: &zeroAny, tag: "required", wantErr: false},
+		{name: "required pointer to zero int", field: &zeroInt, tag: "required", wantErr: false},
+
+		// hasNotZeroValue (omitzero)
+		{name: "omitzero non-pointer zero int", field: zeroInt, tag: "omitzero,min=10", wantErr: false},
+		{name: "omitzero non-pointer non-zero int", field: valInt, tag: "omitzero,min=10", wantErr: true},
+		{name: "omitzero pointer to zero int", field: &zeroInt, tag: "omitzero,min=10", wantErr: false},
+		{name: "omitzero pointer to non-zero int", field: &valInt, tag: "omitzero,min=10", wantErr: true},
+		{name: "omitzero nil pointer", field: (*int)(nil), tag: "omitzero,min=10", wantErr: false},
+
+		// hasValue (omitempty)
+		{name: "omitempty non-pointer zero string", field: emptyStr, tag: "omitempty,min=1", wantErr: false},
+		{name: "omitempty non-pointer non-zero string", field: valStr, tag: "omitempty,min=100", wantErr: true},
+		{name: "omitempty pointer to zero string", field: &emptyStr, tag: "omitempty,min=1", wantErr: true},
+		{name: "omitempty pointer to non-zero string", field: &valStr, tag: "omitempty,min=100", wantErr: true},
+		{name: "omitempty nil pointer", field: (*string)(nil), tag: "omitempty,min=1", wantErr: false},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			errs := validate.Var(tc.field, tc.tag)
+			if tc.wantErr {
+				if errs == nil {
+					t.Fatal("expected validation error, got nil")
+				}
+				return
+			}
+			if errs != nil {
+				t.Fatalf("unexpected validation error: %v", errs)
+			}
+		})
+	}
+}
+
+func TestIsBooleanLiterals(t *testing.T) {
+	validate := New()
+
+	// must match strconv.ParseBool exactly
+	valid := []any{
+		"1", "t", "T", "TRUE", "true", "True",
+		"0", "f", "F", "FALSE", "false", "False",
+		true, false,
+	}
+	invalid := []any{
+		"", " ", "yes", "no", "tRue", "tru", "TRUE ", " true", "01", "2",
+		"FF", "fals", "\ttrue", "TRUE\n", 5, 5.0, []string{"true"},
+	}
+
+	for _, v := range valid {
+		errs := validate.Var(v, "boolean")
+		Equal(t, errs, nil)
+	}
+
+	for _, v := range invalid {
+		errs := validate.Var(v, "boolean")
+		AssertError(t, errs, "", "", "", "", "boolean")
+	}
+}
+
 func TestEINStringValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"ein"`
@@ -16999,6 +17143,215 @@ func TestValuerInterface(t *testing.T) {
 		})
 		if errs != nil {
 			t.Fatalf("Expected no error, got: %v", errs)
+		}
+	})
+}
+
+func TestFieldErrorValueIsSnapshot(t *testing.T) {
+	type snapshotStruct struct {
+		Field string `validate:"required"`
+	}
+
+	v := New()
+
+	s := &snapshotStruct{Field: ""}
+	errs := v.Struct(s)
+	if errs == nil {
+		t.Fatal("expected an error for empty required field")
+	}
+
+	// mutate the source after validation; Value() must still report the
+	// value captured at validation time
+	s.Field = "changed"
+
+	fe := errs.(ValidationErrors)[0]
+	if got := fe.Value(); got != "" {
+		t.Errorf("Value() = %v, want the snapshot value %q (empty string)", got, "")
+	}
+}
+
+func TestFieldErrorValueIsSnapshotPrivateField(t *testing.T) {
+	type snapshotPrivate struct {
+		field string `validate:"required"`
+	}
+
+	v := New(WithPrivateFieldValidation())
+
+	s := &snapshotPrivate{field: ""}
+	errs := v.Struct(s)
+	if errs == nil {
+		t.Fatal("expected an error for empty required private field")
+	}
+
+	s.field = "changed-hidden"
+
+	fe := errs.(ValidationErrors)[0]
+	if got := fe.Value(); got != "" {
+		t.Errorf("Value() = %v, want the snapshot value %q (empty string)", got, "")
+	}
+}
+
+type mapStringerKey string
+
+func (mapStringerKey) String() string { return "formatted" }
+
+func TestMapDiveNamedKeyStringerFormatting(t *testing.T) {
+	// the key type has a String method; the namespace must format it with
+	// that method, exactly like fmt's %v does
+	type stringerKeyHolder struct {
+		Map map[mapStringerKey]string `validate:"required,dive,required"`
+	}
+
+	v := New()
+
+	errs := v.Struct(&stringerKeyHolder{Map: map[mapStringerKey]string{"raw": ""}})
+	if errs == nil {
+		t.Fatal("expected an error for empty map value")
+	}
+
+	fe := errs.(ValidationErrors)[0]
+	if ns := fe.Namespace(); !strings.Contains(ns, "formatted") {
+		t.Errorf("namespace %q must format the key with its String() method", ns)
+	}
+	if ns := fe.Namespace(); strings.Contains(ns, "raw") {
+		t.Errorf("namespace %q must not use the raw key value", ns)
+	}
+}
+
+func TestMapDiveNamedKeyWithoutMethodsUsesFastPath(t *testing.T) {
+	type plainKey string
+
+	type plainKeyHolder struct {
+		Map map[plainKey]string `validate:"required,dive,required"`
+	}
+
+	v := New()
+
+	errs := v.Struct(&plainKeyHolder{Map: map[plainKey]string{"k": ""}})
+	if errs == nil {
+		t.Fatal("expected an error for empty map value")
+	}
+
+	fe := errs.(ValidationErrors)[0]
+	if ns := fe.Namespace(); !strings.Contains(ns, "k") {
+		t.Errorf("namespace %q must contain the key value", ns)
+	}
+}
+
+func TestMapDivePrivateKeyNamespaces(t *testing.T) {
+	tests := []struct {
+		name  string
+		input any
+		want  []string
+	}{
+		{"interface", &struct {
+			data map[any]int `validate:"dive,gt=0"`
+		}{map[any]int{"first": 0, "second": 0}}, []string{"data[first]", "data[second]"}},
+		{"array", &struct {
+			data map[[2]int]int `validate:"dive,gt=0"`
+		}{map[[2]int]int{{1, 2}: 0}}, []string{"data[[1 2]]"}},
+		{"struct", &struct {
+			data map[struct{ ID int }]int `validate:"dive,gt=0"`
+		}{map[struct{ ID int }]int{{1}: 0}}, []string{"data[{1}]"}},
+		{"complex", &struct {
+			data map[complex64]int `validate:"dive,gt=0"`
+		}{map[complex64]int{complex(0.1, 0.2): 0}}, []string{"data[(0.1+0.2i)]"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := New(WithPrivateFieldValidation()).Struct(tt.input)
+			if err == nil {
+				t.Fatal("expected validation errors")
+			}
+			var got []string
+			for _, fe := range err.(ValidationErrors) {
+				got = append(got, fe.Namespace())
+				if fe.StructNamespace() != fe.Namespace() {
+					t.Errorf("StructNamespace() = %q, want %q", fe.StructNamespace(), fe.Namespace())
+				}
+			}
+			slices.Sort(got)
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("namespaces = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+type mapFormatterKey int
+
+func (k mapFormatterKey) Format(s fmt.State, _ rune) {
+	_, _ = fmt.Fprintf(s, "formatted:%d", int(k))
+}
+
+func TestMapKeyStringMatchesFmt(t *testing.T) {
+	keys := []any{
+		"key", int(-1), int8(-2), int16(-3), int32(-4), int64(-5),
+		uint(1), uint8(2), uint16(3), uint32(4), uint64(5), uintptr(6),
+		true, false, float32(0.1), float64(0.1), complex64(0.1 + 0.2i), complex128(0.1 + 0.2i),
+		[2]int{1, 2}, struct{ ID int }{1}, new(7), make(chan int),
+		&struct{ ID int }{1}, &[2]int{1, 2}, &[]int{1, 2}, &map[string]int{"id": 1},
+		mapStringerKey("key"), mapFormatterKey(7), reflect.ValueOf(7), reflect.Value{},
+	}
+	for _, key := range keys {
+		for _, value := range []reflect.Value{reflect.ValueOf(key), reflect.ValueOf(map[any]int{key: 0}).MapKeys()[0]} {
+			if got, want := mapKeyString(value), fmt.Sprintf("%v", value); got != want {
+				t.Errorf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
+			}
+		}
+	}
+}
+
+func TestMapDiveInterfacePointerKeyNamespaces(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		first, second any
+	}{
+		{"struct", &struct{ ID int }{1}, &struct{ ID int }{1}},
+		{"array", &[2]int{1, 2}, &[2]int{1, 2}},
+		{"slice", &[]int{1, 2}, &[]int{1, 2}},
+		{"map", &map[string]int{"id": 1}, &map[string]int{"id": 1}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := New().Var(map[any]int{tc.first: 0, tc.second: 0}, "dive,gt=0")
+			if err == nil {
+				t.Fatal("expected validation errors")
+			}
+			errs := err.(ValidationErrors)
+			want := []string{fmt.Sprintf("[%p]", tc.first), fmt.Sprintf("[%p]", tc.second)}
+			var got []string
+			for _, fe := range errs {
+				got = append(got, fe.Namespace())
+				if fe.StructNamespace() != fe.Namespace() {
+					t.Errorf("StructNamespace() = %q, want %q", fe.StructNamespace(), fe.Namespace())
+				}
+			}
+			slices.Sort(got)
+			slices.Sort(want)
+			if !slices.Equal(got, want) {
+				t.Errorf("namespaces = %q, want %q", got, want)
+			}
+			if translated := errs.Translate(nil); len(translated) != 2 {
+				t.Errorf("Translate() returned %d entries, want 2", len(translated))
+			}
+		})
+	}
+}
+
+func FuzzMapKeyString(f *testing.F) {
+	f.Add("key", int64(-1), uint64(1), 0.1)
+	f.Add("\xff\x00", int64(0), ^uint64(0), -1e100)
+	f.Fuzz(func(t *testing.T, text string, signed int64, unsigned uint64, number float64) {
+		for _, key := range []any{text, int(signed), int8(signed), int16(signed), int32(signed), signed,
+			uint(unsigned), uint8(unsigned), uint16(unsigned), uint32(unsigned), unsigned, uintptr(unsigned),
+			float32(number), number, complex64(complex(number, number)), complex(number, number)} {
+			private := reflect.ValueOf(&struct{ data map[any]int }{map[any]int{key: 0}}).Elem().Field(0).MapKeys()[0]
+			for _, value := range []reflect.Value{reflect.ValueOf(key), private} {
+				if got, want := mapKeyString(value), fmt.Sprintf("%v", value); got != want {
+					t.Fatalf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
+				}
+			}
 		}
 	})
 }

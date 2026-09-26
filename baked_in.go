@@ -1998,14 +1998,29 @@ func isAlphaUnicode(fl FieldLevel) bool {
 	return alphaUnicodeRegex().MatchString(fl.Field().String())
 }
 
+// isBoolLiteral reports whether s is one of the string values accepted by
+// strconv.ParseBool, without allocating an error for invalid input.
+func isBoolLiteral(s string) bool {
+	switch s {
+	case "1", "t", "T", "true", "TRUE", "True",
+		"0", "f", "F", "false", "FALSE", "False":
+		return true
+	}
+	return false
+}
+
 // isBoolean is the validation function for validating if the current field's value is a valid boolean value or can be safely converted to a boolean value.
 func isBoolean(fl FieldLevel) bool {
-	switch fl.Field().Kind() {
+	field := fl.Field()
+	switch field.Kind() {
 	case reflect.Bool:
 		return true
+	case reflect.String:
+		return isBoolLiteral(field.String())
 	default:
-		_, err := strconv.ParseBool(fl.Field().String())
-		return err == nil
+		// String() for other kinds returns "<type Value>", never a valid
+		// boolean literal; skip the conversion and the error allocation
+		return false
 	}
 }
 
@@ -2021,7 +2036,9 @@ func hasValue(fl FieldLevel) bool {
 	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
-		if fl.(*validate).fldIsPointer && getValue(field) != nil {
+		// the field was already dereferenced, so a valid field means the
+		// pointer or interface was not nil; no need to box the value to check
+		if fl.(*validate).fldIsPointer && field.IsValid() {
 			return true
 		}
 		return field.IsValid() && !field.IsZero()
@@ -2038,9 +2055,7 @@ func hasNotZeroValue(fl FieldLevel) bool {
 	case reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
-		if fl.(*validate).fldIsPointer && getValue(field) != nil {
-			return !field.IsZero()
-		}
+		// see hasValue: no need to box the value to compare it against nil
 		return field.IsValid() && !field.IsZero()
 	}
 }
