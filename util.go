@@ -70,8 +70,16 @@ BEGIN:
 
 	default:
 
-		// same NumMethod guard: skip boxing values that cannot implement Valuer
+		// A registered custom function for a method-bearing type that does
+		// not implement Valuer can run without a failed interface assertion.
 		if current.CanInterface() && current.Type().NumMethod() > 0 {
+			if v.v.customFuncsNoValuer != nil {
+				if next, ok := v.extractCustomTypeNoValuer(current); ok {
+					current = next
+					goto BEGIN
+				}
+			}
+
 			if v, ok := current.Interface().(Valuer); ok {
 				current = reflect.ValueOf(v.ValidatorValue())
 				goto BEGIN
@@ -87,6 +95,14 @@ BEGIN:
 
 		return current, current.Kind(), nullable
 	}
+}
+
+func (v *validate) extractCustomTypeNoValuer(current reflect.Value) (reflect.Value, bool) {
+	fn, ok := v.v.customFuncsNoValuer[current.Type()]
+	if !ok {
+		return current, false
+	}
+	return reflect.ValueOf(fn(current)), true
 }
 
 // getStructFieldOKInternal traverses a struct to retrieve a specific field denoted by the provided namespace and

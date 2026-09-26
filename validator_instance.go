@@ -86,6 +86,7 @@ type Validate struct {
 	tagNameFunc            TagNameFunc
 	structLevelFuncs       map[reflect.Type]StructLevelFuncCtx
 	customFuncs            map[reflect.Type]CustomTypeFunc
+	customFuncsNoValuer    map[reflect.Type]CustomTypeFunc
 	aliases                map[string]string
 	validations            map[string]internalValidationFuncWrapper
 	transTagFunc           map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
@@ -314,7 +315,16 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	for _, t := range types {
-		v.customFuncs[reflect.TypeOf(t)] = fn
+		typ := reflect.TypeOf(t)
+		v.customFuncs[typ] = fn
+		if typ != nil && typ.NumMethod() > 0 && !typ.Implements(valuerType) {
+			if v.customFuncsNoValuer == nil {
+				v.customFuncsNoValuer = make(map[reflect.Type]CustomTypeFunc)
+			}
+			v.customFuncsNoValuer[typ] = fn
+		} else {
+			delete(v.customFuncsNoValuer, typ)
+		}
 	}
 
 	v.hasCustomFuncs = true
