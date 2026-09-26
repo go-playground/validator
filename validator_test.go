@@ -17263,6 +17263,7 @@ func TestMapKeyStringMatchesFmt(t *testing.T) {
 		uint(1), uint8(2), uint16(3), uint32(4), uint64(5), uintptr(6),
 		true, false, float32(0.1), float64(0.1), complex64(0.1 + 0.2i), complex128(0.1 + 0.2i),
 		[2]int{1, 2}, struct{ ID int }{1}, new(7), make(chan int),
+		&struct{ ID int }{1}, &[2]int{1, 2}, &[]int{1, 2}, &map[string]int{"id": 1},
 		mapStringerKey("key"), mapFormatterKey(7), reflect.ValueOf(7), reflect.Value{},
 	}
 	for _, key := range keys {
@@ -17271,6 +17272,42 @@ func TestMapKeyStringMatchesFmt(t *testing.T) {
 				t.Errorf("key type %T (%s): got %q, want %q", key, value.Kind(), got, want)
 			}
 		}
+	}
+}
+
+func TestMapDiveInterfacePointerKeyNamespaces(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		first, second any
+	}{
+		{"struct", &struct{ ID int }{1}, &struct{ ID int }{1}},
+		{"array", &[2]int{1, 2}, &[2]int{1, 2}},
+		{"slice", &[]int{1, 2}, &[]int{1, 2}},
+		{"map", &map[string]int{"id": 1}, &map[string]int{"id": 1}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := New().Var(map[any]int{tc.first: 0, tc.second: 0}, "dive,gt=0")
+			if err == nil {
+				t.Fatal("expected validation errors")
+			}
+			errs := err.(ValidationErrors)
+			want := []string{fmt.Sprintf("[%p]", tc.first), fmt.Sprintf("[%p]", tc.second)}
+			var got []string
+			for _, fe := range errs {
+				got = append(got, fe.Namespace())
+				if fe.StructNamespace() != fe.Namespace() {
+					t.Errorf("StructNamespace() = %q, want %q", fe.StructNamespace(), fe.Namespace())
+				}
+			}
+			slices.Sort(got)
+			slices.Sort(want)
+			if !slices.Equal(got, want) {
+				t.Errorf("namespaces = %q, want %q", got, want)
+			}
+			if translated := errs.Translate(nil); len(translated) != 2 {
+				t.Errorf("Translate() returned %d entries, want 2", len(translated))
+			}
+		})
 	}
 }
 
