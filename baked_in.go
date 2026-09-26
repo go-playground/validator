@@ -261,6 +261,7 @@ var (
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 		"ein":                           isEIN,
+		"duration":                      isDuration,
 		"validateFn":                    isValidateFn,
 	}
 )
@@ -3533,6 +3534,17 @@ func isEIN(fl FieldLevel) bool {
 	}
 
 	return einRegex().MatchString(field.String())
+}
+
+func isDuration(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		return false
+	}
+
+	_, err := time.ParseDuration(field.String())
+	return err == nil
 }
 
 var (

@@ -1456,6 +1456,14 @@ Supplied format must match the official Go time format layout as documented in h
 
 	Usage: datetime=2006-01-02
 
+# Duration
+
+This validates that a string value is a valid duration as accepted by time.ParseDuration,
+such as "300ms", "-1.5h" or "2h45m". Non-string fields, including time.Duration, fail validation.
+see: https://pkg.go.dev/time#ParseDuration
+
+	Usage: duration
+
 # Iso3166-1 alpha-2
 
 This validates that a string value is a valid country code based on iso3166-1 alpha-2 standard.
