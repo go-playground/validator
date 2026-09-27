@@ -339,6 +339,9 @@ func isOneOf(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = strconv.FormatUint(field.Uint(), 10)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -351,6 +354,9 @@ func isOneOfCI(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() != reflect.String {
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -419,6 +425,9 @@ func isUnique(fl FieldLevel) bool {
 			}
 
 			if elem.Kind() != reflect.Struct {
+				if staticFieldIsInterface(fl) {
+					return false
+				}
 				panic(fmt.Sprintf("Bad field type %s", elem.Type()))
 			}
 
@@ -481,12 +490,18 @@ func isUnique(fl FieldLevel) bool {
 			}
 
 			if uniqueField.Kind() != field.Kind() {
+				if staticFieldIsInterface(fl) {
+					return false
+				}
 				panic(fmt.Sprintf("Bad field type %s:%s", field.Type(), uniqueField.Type()))
 			}
 
 			return getValue(field) != getValue(uniqueField)
 		}
 
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 }
@@ -568,6 +583,9 @@ func isLongitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -591,6 +609,9 @@ func isLatitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -1455,6 +1476,9 @@ func isEq(fl FieldLevel) bool {
 		return field.Bool() == p
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1470,6 +1494,9 @@ func isEqIgnoreCase(fl FieldLevel) bool {
 		return strings.EqualFold(field.String(), param)
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1504,6 +1531,9 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	}
 
 	if kind != reflect.String {
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", currentField.Type()))
 	}
 
@@ -1560,6 +1590,9 @@ func isURI(fl FieldLevel) bool {
 		return err == nil
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1618,6 +1651,9 @@ func isOrigin(fl FieldLevel) bool {
 		return true
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1647,6 +1683,9 @@ func isURL(fl FieldLevel) bool {
 		return true
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1670,6 +1709,9 @@ func isHttpURL(fl FieldLevel) bool {
 		return url.Scheme == "http" || url.Scheme == "https"
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1693,6 +1735,9 @@ func isHttpsURL(fl FieldLevel) bool {
 		return url.Scheme == "https"
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1713,6 +1758,9 @@ func isUrnRFC8141(fl FieldLevel) bool {
 		return match
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
@@ -1730,6 +1778,9 @@ func isUrnRFC2141(fl FieldLevel) bool {
 		return match
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1747,6 +1798,9 @@ func isFile(fl FieldLevel) bool {
 		return !fileInfo.IsDir()
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -1896,6 +1950,9 @@ func isFilePath(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2429,6 +2486,9 @@ func isGte(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2475,6 +2535,9 @@ func isGt(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2515,6 +2578,9 @@ func hasLengthOf(fl FieldLevel) bool {
 		return field.Float() == p
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2657,6 +2723,9 @@ func isLte(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2703,6 +2772,9 @@ func isLt(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2937,6 +3009,9 @@ func isDir(fl FieldLevel) bool {
 		return fileInfo.IsDir()
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -2994,6 +3069,9 @@ func isDirPath(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3014,6 +3092,9 @@ func isJSON(fl FieldLevel) bool {
 		}
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3055,6 +3136,9 @@ func isPort(fl FieldLevel) bool {
 		val := field.Uint()
 		return val >= 1 && val <= 65535
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 }
@@ -3070,6 +3154,9 @@ func isLowercase(fl FieldLevel) bool {
 		return field.String() == strings.ToLower(field.String())
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3084,6 +3171,9 @@ func isUppercase(fl FieldLevel) bool {
 		return field.String() == strings.ToUpper(field.String())
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3098,6 +3188,9 @@ func isDatetime(fl FieldLevel) bool {
 		return err == nil
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3120,6 +3213,9 @@ func isTimeZone(fl FieldLevel) bool {
 		return err == nil
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3164,6 +3260,9 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		code = int(field.Uint() % 1000)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -3188,6 +3287,9 @@ func isIso3166AlphaNumericEU(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		code = int(field.Uint() % 1000)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -3218,6 +3320,9 @@ func isIso4217Numeric(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		code = int(field.Uint())
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -3234,6 +3339,9 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 		return err == nil
 	}
 
+	if staticFieldIsInterface(fl) {
+		return false
+	}
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
@@ -3243,6 +3351,9 @@ func isBCP47StrictLanguageTag(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() != reflect.String {
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
@@ -3508,6 +3619,9 @@ func hasLuhnChecksum(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		str = strconv.FormatUint(field.Uint(), 10)
 	default:
+		if staticFieldIsInterface(fl) {
+			return false
+		}
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 	size := len(str)
