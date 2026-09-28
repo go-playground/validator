@@ -169,72 +169,72 @@ BEGIN:
 		switch current.Type().Key().Kind() {
 		case reflect.Int:
 			i, _ := strconv.Atoi(key)
-			val = current.MapIndex(reflect.ValueOf(i))
+			val = mapIndexOf(current, reflect.ValueOf(i))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Int8:
 			i, _ := strconv.ParseInt(key, 10, 8)
-			val = current.MapIndex(reflect.ValueOf(int8(i)))
+			val = mapIndexOf(current, reflect.ValueOf(int8(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Int16:
 			i, _ := strconv.ParseInt(key, 10, 16)
-			val = current.MapIndex(reflect.ValueOf(int16(i)))
+			val = mapIndexOf(current, reflect.ValueOf(int16(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Int32:
 			i, _ := strconv.ParseInt(key, 10, 32)
-			val = current.MapIndex(reflect.ValueOf(int32(i)))
+			val = mapIndexOf(current, reflect.ValueOf(int32(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Int64:
 			i, _ := strconv.ParseInt(key, 10, 64)
-			val = current.MapIndex(reflect.ValueOf(i))
+			val = mapIndexOf(current, reflect.ValueOf(i))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Uint:
 			i, _ := strconv.ParseUint(key, 10, 0)
-			val = current.MapIndex(reflect.ValueOf(uint(i)))
+			val = mapIndexOf(current, reflect.ValueOf(uint(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Uint8:
 			i, _ := strconv.ParseUint(key, 10, 8)
-			val = current.MapIndex(reflect.ValueOf(uint8(i)))
+			val = mapIndexOf(current, reflect.ValueOf(uint8(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Uint16:
 			i, _ := strconv.ParseUint(key, 10, 16)
-			val = current.MapIndex(reflect.ValueOf(uint16(i)))
+			val = mapIndexOf(current, reflect.ValueOf(uint16(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Uint32:
 			i, _ := strconv.ParseUint(key, 10, 32)
-			val = current.MapIndex(reflect.ValueOf(uint32(i)))
+			val = mapIndexOf(current, reflect.ValueOf(uint32(i)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Uint64:
 			i, _ := strconv.ParseUint(key, 10, 64)
-			val = current.MapIndex(reflect.ValueOf(i))
+			val = mapIndexOf(current, reflect.ValueOf(i))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Float32:
 			f, _ := strconv.ParseFloat(key, 32)
-			val = current.MapIndex(reflect.ValueOf(float32(f)))
+			val = mapIndexOf(current, reflect.ValueOf(float32(f)))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Float64:
 			f, _ := strconv.ParseFloat(key, 64)
-			val = current.MapIndex(reflect.ValueOf(f))
+			val = mapIndexOf(current, reflect.ValueOf(f))
 			namespace = namespace[endIdx+1:]
 
 		case reflect.Bool:
 			b, _ := strconv.ParseBool(key)
-			val = current.MapIndex(reflect.ValueOf(b))
+			val = mapIndexOf(current, reflect.ValueOf(b))
 			namespace = namespace[endIdx+1:]
 
 		// reflect.Type = string
 		default:
-			val = current.MapIndex(reflect.ValueOf(key))
+			val = mapIndexOf(current, reflect.ValueOf(key))
 			namespace = namespace[endIdx+1:]
 		}
 
@@ -245,6 +245,26 @@ BEGIN:
 	// return found=false instead of panicking to handle cases like ValidateMap
 	// where cross-field validators (required_if, etc.) can't navigate non-struct parents
 	return
+}
+
+// mapIndexOf looks up key in m, converting it to the map's actual key type when
+// needed. A map key declared as a named type (eg. `type LangCode string`) has the
+// same reflect.Kind as its underlying type, so the switch above rebuilds it as a
+// plain built-in value; that value is not assignable to the named key type and
+// reflect.Value.MapIndex would panic. When the key cannot be represented as the
+// map's key type at all an invalid value is returned, which the caller treats as
+// "field not found".
+func mapIndexOf(m, key reflect.Value) reflect.Value {
+	kt := m.Type().Key()
+
+	if key.Type() != kt {
+		if !key.Type().ConvertibleTo(kt) {
+			return reflect.Value{}
+		}
+		key = key.Convert(kt)
+	}
+
+	return m.MapIndex(key)
 }
 
 // asInt returns the parameter as an int64
