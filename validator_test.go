@@ -4277,6 +4277,43 @@ func TestUUID5Validation(t *testing.T) {
 	}
 }
 
+func TestUUID7Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", false},
+		{"018f6c1a-2a3b-7c4d-ce5f-1a2b3c4d5e6f", false},
+		{"018F6C1A-2A3B-7C4D-8E5F-1A2B3C4D5E6F", false},
+		{"017f22e2-79b0-7cc3-98c4-dc0c0c07398f", true},
+		{"018f6c1a-2a3b-7c4d-8e5f-1a2b3c4d5e6f", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "uuid7")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid7" {
+					t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestUUID4Validation(t *testing.T) {
 	tests := []struct {
 		param    string
