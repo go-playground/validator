@@ -3151,23 +3151,31 @@ func isIso3166Alpha3EU(fl FieldLevel) bool {
 func isIso3166AlphaNumeric(fl FieldLevel) bool {
 	field := fl.Field()
 
-	var code int
+	var code int64
 	switch field.Kind() {
 	case reflect.String:
-		i, err := strconv.Atoi(field.String())
+		i, err := strconv.ParseInt(field.String(), 10, 64)
 		if err != nil {
 			return false
 		}
-		code = i % 1000
+		code = i
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		code = int(field.Int() % 1000)
+		code = field.Int()
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		code = int(field.Uint() % 1000)
+		if field.Uint() > 999 {
+			return false
+		}
+		code = int64(field.Uint())
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
-	_, ok := iso3166_1_alpha_numeric[code]
+	// ISO 3166-1 numeric codes are three digits; don't wrap larger values.
+	if code < 0 || code > 999 {
+		return false
+	}
+
+	_, ok := iso3166_1_alpha_numeric[int(code)]
 	return ok
 }
 
@@ -3175,23 +3183,31 @@ func isIso3166AlphaNumeric(fl FieldLevel) bool {
 func isIso3166AlphaNumericEU(fl FieldLevel) bool {
 	field := fl.Field()
 
-	var code int
+	var code int64
 	switch field.Kind() {
 	case reflect.String:
-		i, err := strconv.Atoi(field.String())
+		i, err := strconv.ParseInt(field.String(), 10, 64)
 		if err != nil {
 			return false
 		}
-		code = i % 1000
+		code = i
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		code = int(field.Int() % 1000)
+		code = field.Int()
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		code = int(field.Uint() % 1000)
+		if field.Uint() > 999 {
+			return false
+		}
+		code = int64(field.Uint())
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
 
-	_, ok := iso3166_1_alpha_numeric_eu[code]
+	// ISO 3166-1 numeric codes are three digits; don't wrap larger values.
+	if code < 0 || code > 999 {
+		return false
+	}
+
+	_, ok := iso3166_1_alpha_numeric_eu[int(code)]
 	return ok
 }
 
