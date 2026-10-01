@@ -7,9 +7,13 @@ require (
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
+	github.com/leodido/go-conventionalcommits v0.12.0
 	github.com/leodido/go-urn v1.5.0
 	golang.org/x/crypto v0.57.0
 	golang.org/x/text v0.42.0
 )
 
-require golang.org/x/sys v0.48.0 // indirect
+require (
+	github.com/sirupsen/logrus v1.9.3 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+)

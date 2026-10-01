@@ -29,6 +29,8 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/leodido/go-conventionalcommits"
+	cc "github.com/leodido/go-conventionalcommits/parser"
 	urn "github.com/leodido/go-urn"
 )
 
@@ -143,8 +145,9 @@ var (
 		"https_url":                     isHttpsURL,
 		"uri":                           isURI,
 		"origin":                        isOrigin,
-		"urn_rfc8141":                   isUrnRFC8141, // RFC 8141
-		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
+		"urn_rfc8141":                   isUrnRFC8141,         // RFC 8141
+		"urn_rfc2141":                   isUrnRFC2141,         // RFC 2141
+		"conventionalcommit":            isConventionalCommit, // Conventional Commit v1.0 spec
 		"file":                          isFile,
 		"filepath":                      isFilePath,
 		"base32":                        isBase32,
@@ -1731,6 +1734,24 @@ func isUrnRFC2141(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+// isConventionalCommit is the validation function for validating if the current field's value is a valid conventional commit as per Conventional Commits v1.0 spec.
+func isConventionalCommit(fl FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+
+		str := field.String()
+
+		parser := cc.NewMachine(conventionalcommits.WithTypes(conventionalcommits.TypesConventional))
+		_, err := parser.Parse([]byte(str))
+
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
 // isFile is the validation function for validating if the current field's value is a valid existing file path.
