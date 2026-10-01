@@ -14,3 +14,27 @@ func WithRequiredStructEnabled() Option {
 		v.requiredStructEnabled = true
 	}
 }
+
+// WithPrivateFieldValidation activates validation for unexported fields via the use of the `unsafe` package.
+//
+// By opting into this feature you are acknowledging that you are aware of the risks and accept any current or future
+// consequences of using this feature.
+func WithPrivateFieldValidation() Option {
+	return func(v *Validate) {
+		v.privateFieldValidation = true
+	}
+}
+
+// WithTagNameFuncBlankOmit makes a blank return from a RegisterTagNameFunc omit
+// the field from the error namespace instead of silently falling back to the
+// struct field name.
+//
+// This was made opt-in behaviour to maintain backward compatibility with
+// existing callers that rely on the fallback for error namespaces.
+//
+// It is recommended you enable this as it will be the default behaviour in v11+.
+func WithTagNameFuncBlankOmit() Option {
+	return func(v *Validate) {
+		v.omitBlankFieldNames = true
+	}
+}

@@ -698,7 +698,6 @@ func TestTranslations(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {

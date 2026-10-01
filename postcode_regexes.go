@@ -1,6 +1,9 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+	"sync"
+)
 
 var postCodePatternDict = map[string]string{
 	"GB": `^GIR[ ]?0AA|((AB|AL|B|BA|BB|BD|BH|BL|BN|BR|BS|BT|CA|CB|CF|CH|CM|CO|CR|CT|CV|CW|DA|DD|DE|DG|DH|DL|DN|DT|DY|E|EC|EH|EN|EX|FK|FY|G|GL|GY|GU|HA|HD|HG|HP|HR|HS|HU|HX|IG|IM|IP|IV|JE|KA|KT|KW|KY|L|LA|LD|LE|LL|LN|LS|LU|M|ME|MK|ML|N|NE|NG|NN|NP|NR|NW|OL|OX|PA|PE|PH|PL|PO|PR|RG|RH|RM|S|SA|SE|SG|SK|SL|SM|SN|SO|SP|SR|SS|ST|SW|SY|TA|TD|TF|TN|TQ|TR|TS|TW|UB|W|WA|WC|WD|WF|WN|WR|WS|WV|YO|ZE)(\d[\dA-Z]?[ ]?\d[ABD-HJLN-UW-Z]{2}))|BFPO[ ]?\d{1,4}$`,
@@ -26,9 +29,9 @@ var postCodePatternDict = map[string]string{
 	"PT": `^\d{4}([\-]\d{3})?$`,
 	"FI": `^\d{5}$`,
 	"AX": `^22\d{3}$`,
-	"KR": `^\d{3}[\-]\d{3}$`,
+	"KR": `^\d{5}$`,
 	"CN": `^\d{6}$`,
-	"TW": `^\d{3}(\d{2})?$`,
+	"TW": `^\d{3}(\d{2,3})?$`,
 	"SG": `^\d{6}$`,
 	"DZ": `^\d{5}$`,
 	"AD": `^AD\d{3}$`,
@@ -47,7 +50,8 @@ var postCodePatternDict = map[string]string{
 	"KH": `^\d{5}$`,
 	"CV": `^\d{4}$`,
 	"CL": `^\d{7}$`,
-	"CR": `^\d{4,5}|\d{3}-\d{4}$`,
+	"CO": `^\d{6}$`,
+	"CR": `^\d{5}$`,
 	"HR": `^\d{5}$`,
 	"CY": `^\d{4}$`,
 	"CZ": `^\d{3}[ ]?\d{2}$`,
@@ -66,7 +70,7 @@ var postCodePatternDict = map[string]string{
 	"IS": `^\d{3}$`,
 	"IN": `^\d{6}$`,
 	"ID": `^\d{5}$`,
-	"IL": `^\d{5}$`,
+	"IL": `^\d{7}$`,
 	"JO": `^\d{5}$`,
 	"KZ": `^\d{6}$`,
 	"KE": `^\d{5}$`,
@@ -146,6 +150,7 @@ var postCodePatternDict = map[string]string{
 	"MQ": `^9[78]2\d{2}$`,
 	"NC": `^988\d{2}$`,
 	"NE": `^\d{4}$`,
+	"VG": `^VG\d{4}$`,
 	"VI": `^008(([0-4]\d)|(5[01]))([ \-]\d{4})?$`,
 	"VN": `^[0-9]{1,6}$`,
 	"PF": `^987\d{2}$`,
@@ -164,9 +169,12 @@ var postCodePatternDict = map[string]string{
 	"YT": `^976\d{2}$`,
 }
 
-var postCodeRegexDict = map[string]*regexp.Regexp{}
+var (
+	postcodeRegexInit sync.Once
+	postCodeRegexDict = map[string]*regexp.Regexp{}
+)
 
-func init() {
+func initPostcodes() {
 	for countryCode, pattern := range postCodePatternDict {
 		postCodeRegexDict[countryCode] = regexp.MustCompile(pattern)
 	}

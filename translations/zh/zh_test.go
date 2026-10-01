@@ -11,7 +11,6 @@ import (
 )
 
 func TestTranslations(t *testing.T) {
-
 	zh := zhongwen.New()
 	uni := ut.New(zh, zh)
 	trans, _ := uni.GetTranslator("zh")
@@ -175,6 +174,7 @@ func TestTranslations(t *testing.T) {
 		UppercaseString       string    `validate:"uppercase"`
 		Datetime              string    `validate:"datetime=2006-01-02"`
 		Image                 string    `validate:"image"`
+		MIMEType              string    `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -770,10 +770,13 @@ func TestTranslations(t *testing.T) {
 			ns:       "Test.Image",
 			expected: "Image 必须是有效图像",
 		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType 必须是有效MIME类型",
+		},
 	}
 
 	for _, tt := range tests {
-
 		var fe validator.FieldError
 
 		for _, e := range errs {
@@ -786,5 +789,4 @@ func TestTranslations(t *testing.T) {
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
-
 }

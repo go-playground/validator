@@ -3,6 +3,7 @@ package validator
 import (
 	"bytes"
 	sql "database/sql/driver"
+	"errors"
 	"testing"
 	"time"
 )
@@ -1094,6 +1095,66 @@ func BenchmarkOneofParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = val.Struct(w)
+		}
+	})
+}
+
+type TestNoneOf struct {
+	Color string `validate:"noneof=red green"`
+}
+
+func BenchmarkNoneOf(b *testing.B) {
+	w := &TestNoneOf{Color: "blue"}
+	val := New()
+	for i := 0; i < b.N; i++ {
+		_ = val.Struct(w)
+	}
+}
+
+func BenchmarkNoneOfParallel(b *testing.B) {
+	w := &TestNoneOf{Color: "blue"}
+	val := New()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = val.Struct(w)
+		}
+	})
+}
+
+type T struct{}
+
+func (*T) Validate() error { return errors.New("ops") }
+
+func BenchmarkValidateFnSequential(b *testing.B) {
+	validate := New()
+
+	type Test struct {
+		T T `validate:"validateFn"`
+	}
+
+	test := &Test{}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = validate.Struct(test)
+	}
+}
+
+func BenchmarkValidateFnParallel(b *testing.B) {
+	validate := New()
+
+	type Test struct {
+		T T `validate:"validateFn"`
+	}
+
+	test := &Test{}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = validate.Struct(test)
 		}
 	})
 }

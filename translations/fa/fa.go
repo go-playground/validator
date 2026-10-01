@@ -1351,10 +1351,14 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} باید یک تصویر معتبر باشد",
 			override:    false,
 		},
+		{
+			tag:         "mimetype",
+			translation: "{0} باید یک نوع MIME معتبر باشد",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {
-
 		if t.customTransFunc != nil && t.customRegisFunc != nil {
 			err = v.RegisterTranslation(t.tag, trans, t.customRegisFunc, t.customTransFunc)
 		} else if t.customTransFunc != nil && t.customRegisFunc == nil {
