@@ -15229,6 +15229,80 @@ func TestValidateMapWithCrossFieldValidators(t *testing.T) {
 	Equal(t, len(errs), 0)
 }
 
+// TestIssue806 tests that custom validations registered with callValidationEvenIfNull: true
+// (and built-in cross-field tags) are called even when the value is untyped nil (e.g. from maps or Var(nil, ...)).
+// This is a regression test for issue #806.
+func TestIssue806(t *testing.T) {
+	t.Run("ValidateMap", func(t *testing.T) {
+		validate := New()
+		called := false
+		err := validate.RegisterValidation("always_pass_nil", func(fl FieldLevel) bool {
+			called = true
+			return true
+		}, true)
+		Equal(t, err, nil)
+
+		data := map[string]interface{}{
+			"field": nil,
+		}
+		rules := map[string]interface{}{
+			"field": "always_pass_nil",
+		}
+		errs := validate.ValidateMap(data, rules)
+		Equal(t, called, true)
+		Equal(t, len(errs), 0)
+	})
+
+	t.Run("Var", func(t *testing.T) {
+		validate := New()
+		called := false
+		err := validate.RegisterValidation("always_pass_nil", func(fl FieldLevel) bool {
+			called = true
+			return true
+		}, true)
+		Equal(t, err, nil)
+
+		err = validate.Var(nil, "always_pass_nil")
+		Equal(t, called, true)
+		Equal(t, err, nil)
+	})
+
+	t.Run("CustomFail", func(t *testing.T) {
+		validate := New()
+		called := false
+		err := validate.RegisterValidation("always_fail_nil", func(fl FieldLevel) bool {
+			called = true
+			return false
+		}, true)
+		Equal(t, err, nil)
+
+		data := map[string]interface{}{
+			"field": nil,
+		}
+		rules := map[string]interface{}{
+			"field": "always_fail_nil",
+		}
+		errs := validate.ValidateMap(data, rules)
+		Equal(t, called, true)
+		Equal(t, len(errs), 1)
+	})
+
+	t.Run("ValidateMapCrossFieldNil", func(t *testing.T) {
+		validate := New()
+
+		// Condition not met (id != 345), so name is not required. Should pass with 0 errors.
+		data := map[string]interface{}{
+			"name": nil,
+			"id":   123,
+		}
+		rules := map[string]interface{}{
+			"name": "required_if=id 345",
+		}
+		errs := validate.ValidateMap(data, rules)
+		Equal(t, len(errs), 0)
+	})
+}
+
 func TestValidate_VarWithKey(t *testing.T) {
 	validate := New()
 	errs := validate.VarWithKey("email", "invalidemail", "required,email")
