@@ -2713,11 +2713,16 @@ func hasMaxOf(fl FieldLevel) bool {
 
 // isTCP4AddrResolvable is the validation function for validating if the field's value is a resolvable tcp4 address.
 func isTCP4AddrResolvable(fl FieldLevel) bool {
+	_, port, err := net.SplitHostPort(fl.Field().String())
+	if err != nil || port == "" {
+		return false
+	}
+
 	if !isIP4Addr(fl) {
 		return false
 	}
 
-	_, err := net.ResolveTCPAddr("tcp4", fl.Field().String())
+	_, err = net.ResolveTCPAddr("tcp4", fl.Field().String())
 	return err == nil
 }
 
