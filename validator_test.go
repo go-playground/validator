@@ -10007,6 +10007,68 @@ func TestAlphaNumericSpace(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "alphanumspace")
 }
 
+func TestDuration(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"1s", true},
+		{"300ms", true},
+		{"-1.5h", true},
+		{"2h45m", true},
+		{"0", true},
+		{"-0", true},
+		{"+5s", true},
+		{"1h2m3.5s", true},
+		{"100ns", true},
+		{"1.5us", true},
+		{"1µs", true},
+		{"1μs", true},
+		{".5s", true},
+		{"1.s", true},
+		{"2562047h", true},
+		{"s", false},
+		{"", false},
+		{"1", false},
+		{"1d", false},
+		{"1S", false},
+		{"1 s", false},
+		{" 1s", false},
+		{"1s ", false},
+		{"--1s", false},
+		{".s", false},
+		{"1e3s", false},
+		{"1h-1m", false},
+		{"2562048h", false},
+		{"9223372036854775808ns", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "duration")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "duration" {
+					t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	errs := validate.Var(time.Second, "duration")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "duration")
+}
+
 func TestStructStringValidation(t *testing.T) {
 	validate := New()
 
