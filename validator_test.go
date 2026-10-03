@@ -17016,3 +17016,66 @@ func TestValuerInterface(t *testing.T) {
 		}
 	})
 }
+
+// A map key declared with a named type (eg. `type LangCode string`) reports the
+// same reflect.Kind as its underlying type, but a built-in value reconstructed
+// from the namespace (a `string`, an `int`, ...) is not assignable to it.
+// Cross field validators resolving a `Field[key]` namespace must therefore
+// convert the key to the map's actual key type instead of letting
+// reflect.Value.MapIndex panic.
+func TestCrossFieldNamedMapKeyType(t *testing.T) {
+	type LangCode string
+	type Level int
+
+	type Test struct {
+		Greeting string            `validate:"eqfield=Labels[en]"`
+		Level    int               `validate:"eqfield=Levels[1]"`
+		Flag     string            `validate:"required_if=Meta[en] yes"`
+		Labels   map[LangCode]string
+		Levels   map[Level]int
+		Meta     map[LangCode]string
+	}
+
+	// every cross field comparison resolves and holds
+	Equal(t, New().Struct(Test{
+		Greeting: "hello",
+		Level:    1,
+		Flag:     "set",
+		Labels:   map[LangCode]string{"en": "hello"},
+		Levels:   map[Level]int{1: 1},
+		Meta:     map[LangCode]string{"en": "yes"},
+	}), nil)
+
+	// mismatches are reported as ordinary validation errors, one per field
+	err := New().Struct(Test{
+		Greeting: "bonjour",
+		Level:    9,
+		Flag:     "",
+		Labels:   map[LangCode]string{"en": "hello"},
+		Levels:   map[Level]int{1: 1},
+		Meta:     map[LangCode]string{"en": "yes"},
+	})
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 3)
+	AssertError(t, errs, "Test.Greeting", "Test.Greeting", "Greeting", "Greeting", "eqfield")
+	AssertError(t, errs, "Test.Level", "Test.Level", "Level", "Level", "eqfield")
+	AssertError(t, errs, "Test.Flag", "Test.Flag", "Flag", "Flag", "required_if")
+
+	// a namespace addressing a key that is not in the map keeps the pre-existing
+	// "other field not found" semantics rather than panicking
+	err = New().Struct(Test{
+		Greeting: "hello",
+		Level:    1,
+		Flag:     "set",
+		Labels:   map[LangCode]string{},
+		Levels:   map[Level]int{1: 1},
+		Meta:     map[LangCode]string{"en": "yes"},
+	})
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 1)
+	AssertError(t, errs, "Test.Greeting", "Test.Greeting", "Greeting", "Greeting", "eqfield")
+}
