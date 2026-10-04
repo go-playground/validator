@@ -338,7 +338,7 @@ func isOneOf(fl FieldLevel) bool {
 		v = field.String()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		v = strconv.FormatInt(field.Int(), 10)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		v = strconv.FormatUint(field.Uint(), 10)
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
