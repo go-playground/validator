@@ -3245,9 +3245,17 @@ func isIso4217Numeric(fl FieldLevel) bool {
 	var code int
 	switch field.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		code = int(field.Int())
+		value := field.Int()
+		if value < 0 || value > 999 {
+			return false
+		}
+		code = int(value)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		code = int(field.Uint())
+		value := field.Uint()
+		if value > 999 {
+			return false
+		}
+		code = int(value)
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
