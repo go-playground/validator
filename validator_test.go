@@ -15024,6 +15024,18 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"100-42", false}, // Contains hyphen (Invalid for strict numeric check)
 			{"abcdef", false}, // Letters (Invalid)
 		},
+		"NG": {
+			{"930283", true},          // former six-digit code
+			{"EK-01-A03-FK-01", true}, // 11-character code, hyphenated
+			{"EK 01 A03 FK 01", true},
+			{"EK01A03FK01", true},
+			{"EK-00-A03-FK-01", false}, // LGA runs from 01 to 99
+			{"EK-01-A03-FK-00", false}, // unit runs from 01 to 99
+			{"EK-01-A03-FK-1", false},
+			{"EK-01-A03-FK-011", false},
+			{"E1-01-A03-FK-01", false},
+			{"93028", false},
+		},
 		"LC": {
 			// not support regexp for post code
 			{"123456", false},
