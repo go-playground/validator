@@ -15029,11 +15029,16 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"EK-01-A03-FK-01", true}, // 11-character code, hyphenated
 			{"EK 01 A03 FK 01", true},
 			{"EK01A03FK01", true},
+			{"EK-01 A03-FK-01", true}, // separators may differ
+			{"EK 01-A03 FK 01", true},
 			{"EK-00-A03-FK-01", false}, // LGA runs from 01 to 99
 			{"EK-01-A03-FK-00", false}, // unit runs from 01 to 99
 			{"EK-01-A03-FK-1", false},
 			{"EK-01-A03-FK-011", false},
 			{"E1-01-A03-FK-01", false},
+			{"EK--01-A03-FK-01", false}, // duplicate separator
+			{"-EK-01-A03-FK-01", false}, // leading separator
+			{"EK-01-A03-FK-01-", false}, // trailing separator
 			{"93028", false},
 		},
 		"LC": {
