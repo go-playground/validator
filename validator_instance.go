@@ -429,6 +429,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 }
 
 // StructPartial validates the fields passed in only, ignoring all others.
+// Selecting a struct or collection field includes its descendants.
 // Fields may be provided in a namespaced fashion relative to the struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
@@ -440,6 +441,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) error {
 
 // StructPartialCtx validates the fields passed in only, ignoring all others and allows passing of contextual
 // validation information via context.Context
+// Selecting a struct or collection field includes its descendants.
 // Fields may be provided in a namespaced fashion relative to the struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
@@ -464,6 +466,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 	vd.ffn = nil
 	vd.hasExcludes = false
 	vd.includeExclude = make(map[string]struct{})
+	vd.subtrees = make(map[string]struct{}, len(fields))
 
 	typ := val.Type()
 	name := typ.Name()
@@ -499,6 +502,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 
 				vd.misc = append(vd.misc, '.')
 			}
+			vd.subtrees[string(vd.misc[:len(vd.misc)-1])] = struct{}{}
 		}
 	}
 
