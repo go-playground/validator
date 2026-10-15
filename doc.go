@@ -563,7 +563,6 @@ Kind of like an 'enum'.
 	       noneof='red green' 'blue yellow'
 		   noneof=5 7 9
 
-
 # None Of Case Insensitive
 Works the same as noneof but is case insensitive and therefore only accepts strings.
 
@@ -1391,6 +1390,13 @@ This validates that a string value is a valid Hostname according to RFC 1123 htt
 
 	Usage: hostname_rfc1123 or if you want to continue to use 'hostname' in your tags, create an alias.
 
+# Hostname Label
+
+This validates that a string value is a valid hostname label (The 'label' in 'label.domain.name') according to
+RFC 1123 https://tools.ietf.org/rfc1123.
+
+	Usage: hostname_label
+
 Full Qualified Domain Name (FQDN)
 
 This validates that a string value contains a valid FQDN.
@@ -1455,6 +1461,14 @@ This validates that a string value is a valid datetime based on the supplied dat
 Supplied format must match the official Go time format layout as documented in https://golang.org/pkg/time/
 
 	Usage: datetime=2006-01-02
+
+# Duration
+
+This validates that a string value is a valid duration as accepted by time.ParseDuration,
+such as "300ms", "-1.5h" or "2h45m". Non-string fields, including time.Duration, fail validation.
+see: https://pkg.go.dev/time#ParseDuration
+
+	Usage: duration
 
 # Iso3166-1 alpha-2
 

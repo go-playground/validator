@@ -181,6 +181,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | cron | Cron |
 | spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
+| duration | Duration string (Go time.ParseDuration format) |
 | e164 | e164 formatted phone number |
 | ein | U.S. Employer Identification Number |
 | email | E-mail String

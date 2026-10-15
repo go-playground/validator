@@ -217,6 +217,7 @@ var (
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"hostname_label":                isHostnameLabel,
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
@@ -261,6 +262,7 @@ var (
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 		"ein":                           isEIN,
+		"duration":                      isDuration,
 		"validateFn":                    isValidateFn,
 	}
 )
@@ -2253,8 +2255,11 @@ func requiredWithAll(fl FieldLevel) bool {
 // excludedWithout is the validation function
 // The field under validation must not be present or is empty when any of the other specified fields are not present.
 func excludedWithout(fl FieldLevel) bool {
-	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
-		return !hasValue(fl)
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return !hasValue(fl)
+		}
 	}
 	return true
 }
@@ -2914,6 +2919,35 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 	return hostnameRegexRFC1123().MatchString(fl.Field().String())
 }
 
+func isHostnameLabel(fl FieldLevel) bool {
+	v := fl.Field().String()
+	n := len(v)
+
+	// A valid hostname label must be between 1 and 63 characters long.
+	if n <= 0 || n > 63 {
+		return false
+	}
+
+	for i := range n {
+		c := v[i]
+
+		// 1. Allow alphanumeric characters anywhere
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
+			continue
+		}
+
+		// 2. Allow hyphens only in the middle (not at the start or end)
+		if c == '-' && i > 0 && i < n-1 {
+			continue
+		}
+
+		// 3. Any other character, or a hyphen at the boundaries, is invalid
+		return false
+	}
+
+	return true
+}
+
 func isFQDN(fl FieldLevel) bool {
 	val := fl.Field().String()
 
@@ -3533,6 +3567,17 @@ func isEIN(fl FieldLevel) bool {
 	}
 
 	return einRegex().MatchString(field.String())
+}
+
+func isDuration(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		return false
+	}
+
+	_, err := time.ParseDuration(field.String())
+	return err == nil
 }
 
 var (

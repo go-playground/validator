@@ -10007,6 +10007,68 @@ func TestAlphaNumericSpace(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "alphanumspace")
 }
 
+func TestDuration(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"1s", true},
+		{"300ms", true},
+		{"-1.5h", true},
+		{"2h45m", true},
+		{"0", true},
+		{"-0", true},
+		{"+5s", true},
+		{"1h2m3.5s", true},
+		{"100ns", true},
+		{"1.5us", true},
+		{"1µs", true},
+		{"1μs", true},
+		{".5s", true},
+		{"1.s", true},
+		{"2562047h", true},
+		{"s", false},
+		{"", false},
+		{"1", false},
+		{"1d", false},
+		{"1S", false},
+		{"1 s", false},
+		{" 1s", false},
+		{"1s ", false},
+		{"--1s", false},
+		{".s", false},
+		{"1e3s", false},
+		{"1h-1m", false},
+		{"2562048h", false},
+		{"9223372036854775808ns", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "duration")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "duration" {
+					t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	errs := validate.Var(time.Second, "duration")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "duration")
+}
+
 func TestStructStringValidation(t *testing.T) {
 	validate := New()
 
@@ -11269,6 +11331,58 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "hostname" {
 					t.Fatalf("Index: %d hostname failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestHostnameLabelValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"a", true}, // one character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true},   // 63 character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false}, // 64 character.
+		{"test", true},
+		{"2example", true},
+		{"example2", true},
+		{"57", true},
+		{"a.b.c", false},
+		{"complete.domain.name", false},
+		{"example.com", false},
+		{"1.test.com", false},
+		{"-invalid", false},
+		{"invalid-", false},
+		{".invalid", false},
+		{"invalid.", false},
+		{"192.168.0.1", false},
+		{"luznoceda", true},
+		{"akkoxdiana", true},
+		{"example-label", true},
+		{"example:80", false},
+		{"a$b", false},
+		{"this-is-another-deliberately-overlong-subdomain-used-for-boundary-test", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "hostname_label")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "hostname_label" {
+					t.Fatalf("Hostname Label: %v failed Error: %v", i, errs)
 				}
 			}
 		}
@@ -12829,6 +12943,36 @@ func TestExcludedWithout(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	// Multiple parameters: the field is excluded only when one of them is absent.
+	test4 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field2: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test4)
+	Equal(t, errs, nil)
+
+	test5 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test5)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_without")
 }
 
 func TestExcludedWithAll(t *testing.T) {
@@ -14901,6 +15045,23 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 			{"1234567", false},
 			{"100-42", false}, // Contains hyphen (Invalid for strict numeric check)
 			{"abcdef", false}, // Letters (Invalid)
+		},
+		"NG": {
+			{"930283", true},          // former six-digit code
+			{"EK-01-A03-FK-01", true}, // 11-character code, hyphenated
+			{"EK 01 A03 FK 01", true},
+			{"EK01A03FK01", true},
+			{"EK-01 A03-FK-01", true}, // separators may differ
+			{"EK 01-A03 FK 01", true},
+			{"EK-00-A03-FK-01", false}, // LGA runs from 01 to 99
+			{"EK-01-A03-FK-00", false}, // unit runs from 01 to 99
+			{"EK-01-A03-FK-1", false},
+			{"EK-01-A03-FK-011", false},
+			{"E1-01-A03-FK-01", false},
+			{"EK--01-A03-FK-01", false}, // duplicate separator
+			{"-EK-01-A03-FK-01", false}, // leading separator
+			{"EK-01-A03-FK-01-", false}, // trailing separator
+			{"93028", false},
 		},
 		"LC": {
 			// not support regexp for post code
