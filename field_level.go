@@ -118,3 +118,23 @@ func (v *validate) GetStructFieldOK2() (reflect.Value, reflect.Kind, bool, bool)
 func (v *validate) GetStructFieldOKAdvanced2(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool, bool) {
 	return v.getStructFieldOKInternal(val, namespace)
 }
+
+
+// staticFieldIsInterface reports whether the field being validated is declared
+// as interface{} (or any) on the parent struct. Dynamic values that do not match
+// a tag's expected kind should fail validation instead of panicking.
+func staticFieldIsInterface(fl FieldLevel) bool {
+	parent := fl.Parent()
+	if !parent.IsValid() || parent.Kind() != reflect.Struct {
+		return false
+	}
+	sf, ok := parent.Type().FieldByName(fl.StructFieldName())
+	if !ok {
+		return false
+	}
+	t := sf.Type
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Kind() == reflect.Interface
+}
