@@ -113,10 +113,10 @@ func (v *validate) ReportError(field interface{}, fieldName, structFieldName, ta
 		structFieldName = fieldName
 	}
 
-	v.str1 = string(append(v.ns, fieldName...))
+	v.str1 = nsString(v.ns, fieldName)
 
 	if v.v.hasTagNameFunc || fieldName != structFieldName {
-		v.str2 = string(append(v.actualNs, structFieldName...))
+		v.str2 = nsString(v.actualNs, structFieldName)
 	} else {
 		v.str2 = v.str1
 	}
