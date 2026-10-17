@@ -1434,11 +1434,13 @@ This is done using os.Stat, which is a platform independent function.
 
 # Directory Path
 
-This validates that a string value contains a valid directory but does
-not validate the existence of that directory.
-This is done using os.Stat, which is a platform independent function.
-It is safest to suffix the string with os.PathSeparator if the directory
-may not exist at the time of validation.
+This validates that a string value contains a valid directory path without
+requiring the directory to exist. An existing directory is accepted with or
+without a trailing separator, as determined by os.Stat.
+If the directory does not exist, the path must end with os.PathSeparator;
+otherwise it is rejected because it cannot be distinguished from a file path.
+For example, filepath.Join("parent", "new-directory") + string(os.PathSeparator)
+can be used to validate a directory path before creating it.
 
 	Usage: dirpath
 
