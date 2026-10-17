@@ -13,7 +13,11 @@ func ExampleValidate_Var_dirpath() {
 	if err != nil {
 		panic(err)
 	}
-	defer os.RemoveAll(parent)
+	defer func() {
+		if err := os.RemoveAll(parent); err != nil {
+			panic(err)
+		}
+	}()
 
 	validate := validator.New()
 	path := filepath.Join(parent, "new-directory")
