@@ -1,4 +1,4 @@
-package validator_test
+package main
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func ExampleValidate_Var_dirpath() {
+func main() {
 	parent, err := os.MkdirTemp("", "validator-dirpath-")
 	if err != nil {
 		panic(err)
