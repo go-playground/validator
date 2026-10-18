@@ -15175,8 +15175,10 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 								"Test_D": "Test_D",
 							},
 						},
-						"Test_E": map[string]interface{}{
-							"Test_F": "Test_F",
+						"Test_E": []interface{}{
+							map[string]interface{}{
+								"Test_F": "Test_F",
+							},
 						},
 					},
 				},
@@ -15201,11 +15203,11 @@ func TestValidate_ValidateMapCtx(t *testing.T) {
 				data: map[string]interface{}{
 					"Test_A": map[string]interface{}{
 						"Test_B": "Test_B",
-						"Test_C": []interface{}{"Test_D"},
+						"Test_C": []interface{}{"is error"},
 						"Test_E": map[string]interface{}{
 							"Test_F": "Test_F",
 						},
-						"Test_G": "Test_G",
+						"Test_G": "is error",
 						"Test_I": []map[string]interface{}{
 							{
 								"Test_J": "Test_J",
