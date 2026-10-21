@@ -818,6 +818,10 @@ For maps, unique will ensure that there are no duplicate values.
 For slices of struct, unique will ensure that there are no duplicate values
 in a field of the struct specified via a parameter.
 
+Non-comparable values, such as slices and maps, are compared using reflect.DeepEqual.
+This fallback compares each value with preceding non-comparable values and can take
+quadratic time. Comparable values continue to use a hash-based lookup.
+
 	// For arrays, slices, and maps:
 	Usage: unique
 
