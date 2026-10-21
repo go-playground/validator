@@ -6182,6 +6182,7 @@ func TestBase64URLValidation(t *testing.T) {
 		{"foo", "Zm9v", true},
 		{"", "Zg", false},
 		{"", "Zm8", false},
+		{"", "YWFzZHdkQVNEIQ", false},
 		// base64 URL safe encoding with invalid, special characters '+' and '/'
 		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
 		{"\x14\xfb\x9c\x03\xf9\x73", "FPucA/lz", false},
@@ -6228,6 +6229,7 @@ func TestBase64RawURLValidation(t *testing.T) {
 		// base64 without padding
 		{"foo", "Zm9v", true},
 		{"hello", "aGVsbG8", true},
+		{"aasdwdASD!", "YWFzZHdkQVNEIQ", true},
 		{"", "aGVsb", false},
 		// // base64 URL safe encoding with invalid, special characters '+' and '/'
 		{"\x14\xfb\x9c\x03\xd9\x7e", "FPucA9l+", false},
