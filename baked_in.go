@@ -3392,7 +3392,13 @@ func isBCP47StrictLanguageTag(fl FieldLevel) bool {
 	//  variant       = 5*8alphanum         ; registered variants
 	//                  / (DIGIT 3alphanum)
 	if variant != "" {
+		seen := make(map[string]struct{})
 		for v := range strings.SplitSeq(variant, "-") {
+			if _, duplicate := seen[v]; duplicate {
+				return false
+			}
+			seen[v] = struct{}{}
+
 			_, err := language.ParseVariant(v)
 			if err != nil {
 				return false
