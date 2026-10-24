@@ -9533,6 +9533,50 @@ func TestRgba(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "rgba")
 }
 
+func TestRgbaHslaAlphaValue(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		alpha    string
+		expected bool
+	}{
+		{"0", true},
+		{"1", true},
+		{"0.5", true},
+		{"0.05", true},
+		{"0.0", true},
+		{"0.10", true},
+		{"0.125", true},
+		{"1.0", true},
+		{"1.00", true},
+		{"0a", false},
+		{"0x5", false},
+		{"0,5", false},
+		{"1.5", false},
+		{"2", false},
+	}
+
+	for _, test := range tests {
+		for _, c := range []struct{ value, tag string }{
+			{"rgba(0,31,255," + test.alpha + ")", "rgba"},
+			{"rgba(12%,55%,100%," + test.alpha + ")", "rgba"},
+			{"hsla(360,100%,50%," + test.alpha + ")", "hsla"},
+		} {
+			errs := validate.Var(c.value, c.tag)
+			if test.expected {
+				if !IsEqual(errs, nil) {
+					t.Fatalf("%s: %q should be valid, got: %s", c.tag, c.value, errs)
+				}
+			} else {
+				if IsEqual(errs, nil) {
+					t.Fatalf("%s: %q should be invalid", c.tag, c.value)
+				}
+				AssertError(t, errs, "", "", "", "", c.tag)
+			}
+		}
+	}
+}
+
 func TestRgb(t *testing.T) {
 	validate := New()
 
