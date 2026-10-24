@@ -32,42 +32,42 @@ const (
 
 type structCache struct {
 	lock sync.Mutex
-	m    atomic.Value // map[reflect.Type]*cStruct
+	m    atomic.Pointer[map[reflect.Type]*cStruct]
 }
 
 func (sc *structCache) Get(key reflect.Type) (c *cStruct, found bool) {
-	c, found = sc.m.Load().(map[reflect.Type]*cStruct)[key]
+	c, found = (*sc.m.Load())[key]
 	return
 }
 
 func (sc *structCache) Set(key reflect.Type, value *cStruct) {
-	m := sc.m.Load().(map[reflect.Type]*cStruct)
+	m := *sc.m.Load()
 	nm := make(map[reflect.Type]*cStruct, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
 	}
 	nm[key] = value
-	sc.m.Store(nm)
+	sc.m.Store(&nm)
 }
 
 type tagCache struct {
 	lock sync.Mutex
-	m    atomic.Value // map[string]*cTag
+	m    atomic.Pointer[map[string]*cTag]
 }
 
 func (tc *tagCache) Get(key string) (c *cTag, found bool) {
-	c, found = tc.m.Load().(map[string]*cTag)[key]
+	c, found = (*tc.m.Load())[key]
 	return
 }
 
 func (tc *tagCache) Set(key string, value *cTag) {
-	m := tc.m.Load().(map[string]*cTag)
+	m := *tc.m.Load()
 	nm := make(map[string]*cTag, len(m)+1)
 	for k, v := range m {
 		nm[k] = v
 	}
 	nm[key] = value
-	tc.m.Store(nm)
+	tc.m.Store(&nm)
 }
 
 type cStruct struct {
@@ -77,11 +77,20 @@ type cStruct struct {
 }
 
 type cField struct {
-	idx        int
-	name       string
-	altName    string
-	namesEqual bool
-	cTags      *cTag
+	idx     int
+	name    string
+	altName string
+	cTags   *cTag
+	// typeKind and hasTypeFacts cache static facts about the field's type so
+	// the executor can skip extractTypeInternal on the common path. They are
+	// only set for fields parsed from a struct cache; synthesized cField
+	// values (Var, dive) leave hasTypeFacts false and take the slow path.
+	// The field order below keeps cField within the same allocation size
+	// class as it had before these fields were added, so per-dive scratch
+	// cField allocations do not grow.
+	typeKind     reflect.Kind
+	namesEqual   bool
+	hasTypeFacts bool
 }
 
 type cTag struct {
@@ -160,13 +169,22 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 			ctag = new(cTag)
 		}
 
-		cs.fields = append(cs.fields, &cField{
+		cf := &cField{
 			idx:        i,
 			name:       fld.Name,
 			altName:    customName,
 			cTags:      ctag,
 			namesEqual: fld.Name == customName,
-		})
+		}
+
+		// When the field's static type is a plain value that cannot implement
+		// Valuer, extractTypeInternal returns it untouched. Record that so
+		// traverseField can avoid the call (and its interface boxing).
+		fldType := fld.Type
+		cf.typeKind = fldType.Kind()
+		cf.hasTypeFacts = cf.typeKind != reflect.Ptr && cf.typeKind != reflect.Interface && !fldType.Implements(valuerType)
+
+		cs.fields = append(cs.fields, cf)
 	}
 	v.structCache.Set(typ, cs)
 	return cs

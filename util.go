@@ -16,6 +16,10 @@ type Valuer interface {
 	ValidatorValue() any
 }
 
+// valuerType is the reflect.Type of the Valuer interface. It is used to
+// check for Valuer implementations without boxing the field value first.
+var valuerType = reflect.TypeOf((*Valuer)(nil)).Elem()
+
 // extractTypeInternal gets the actual underlying type of field value.
 // It will dive into pointers, customTypes and return you the
 // underlying value and it's kind.
@@ -30,7 +34,9 @@ BEGIN:
 			return current, reflect.Ptr, nullable
 		}
 
-		if current.CanInterface() {
+		// a type with no methods cannot implement Valuer; NumMethod is O(1),
+		// unlike Type.Implements, which walks the type's method list
+		if current.CanInterface() && current.Type().NumMethod() > 0 {
 			if v, ok := current.Interface().(Valuer); ok {
 				current = reflect.ValueOf(v.ValidatorValue())
 				goto BEGIN
@@ -48,7 +54,8 @@ BEGIN:
 			return current, reflect.Interface, nullable
 		}
 
-		if current.CanInterface() {
+		// the interface's own type has no methods; check the dynamic type
+		if current.CanInterface() && current.Elem().Type().NumMethod() > 0 {
 			if v, ok := current.Interface().(Valuer); ok {
 				current = reflect.ValueOf(v.ValidatorValue())
 				goto BEGIN
@@ -63,7 +70,16 @@ BEGIN:
 
 	default:
 
-		if current.CanInterface() {
+		// A registered custom function for a method-bearing type that does
+		// not implement Valuer can run without a failed interface assertion.
+		if current.CanInterface() && current.Type().NumMethod() > 0 {
+			if v.v.customFuncsNoValuer != nil {
+				if next, ok := v.extractCustomTypeNoValuer(current); ok {
+					current = next
+					goto BEGIN
+				}
+			}
+
 			if v, ok := current.Interface().(Valuer); ok {
 				current = reflect.ValueOf(v.ValidatorValue())
 				goto BEGIN
@@ -79,6 +95,14 @@ BEGIN:
 
 		return current, current.Kind(), nullable
 	}
+}
+
+func (v *validate) extractCustomTypeNoValuer(current reflect.Value) (reflect.Value, bool) {
+	fn, ok := v.v.customFuncsNoValuer[current.Type()]
+	if !ok {
+		return current, false
+	}
+	return reflect.ValueOf(fn(current)), true
 }
 
 // getStructFieldOKInternal traverses a struct to retrieve a specific field denoted by the provided namespace and

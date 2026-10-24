@@ -86,6 +86,7 @@ type Validate struct {
 	tagNameFunc            TagNameFunc
 	structLevelFuncs       map[reflect.Type]StructLevelFuncCtx
 	customFuncs            map[reflect.Type]CustomTypeFunc
+	customFuncsNoValuer    map[reflect.Type]CustomTypeFunc
 	aliases                map[string]string
 	validations            map[string]internalValidationFuncWrapper
 	transTagFunc           map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
@@ -106,10 +107,12 @@ type Validate struct {
 // Using multiple instances neglects the benefit of caching.
 func New(options ...Option) *Validate {
 	tc := new(tagCache)
-	tc.m.Store(make(map[string]*cTag))
+	tagMap := make(map[string]*cTag)
+	tc.m.Store(&tagMap)
 
 	sc := new(structCache)
-	sc.m.Store(make(map[reflect.Type]*cStruct))
+	structMap := make(map[reflect.Type]*cStruct)
+	sc.m.Store(&structMap)
 
 	v := &Validate{
 		tagName:     defaultTagName,
@@ -312,7 +315,16 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 	}
 
 	for _, t := range types {
-		v.customFuncs[reflect.TypeOf(t)] = fn
+		typ := reflect.TypeOf(t)
+		v.customFuncs[typ] = fn
+		if typ != nil && typ.NumMethod() > 0 && !typ.Implements(valuerType) {
+			if v.customFuncsNoValuer == nil {
+				v.customFuncsNoValuer = make(map[reflect.Type]CustomTypeFunc)
+			}
+			v.customFuncsNoValuer[typ] = fn
+		} else {
+			delete(v.customFuncsNoValuer, typ)
+		}
 	}
 
 	v.hasCustomFuncs = true
