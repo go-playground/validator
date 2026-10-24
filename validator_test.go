@@ -783,7 +783,8 @@ func TestAliasTags(t *testing.T) {
 
 	fe := getError(errs, "Test.Color", "Test.Color")
 	NotEqual(t, fe, nil)
-	Equal(t, fe.ActualTag(), "hexcolor|rgb|rgba|hsl|hsla|cmyk")
+	Equal(t, len(errs.(ValidationErrors)), 6)
+	Equal(t, fe.ActualTag(), "hexcolor")
 
 	validate.RegisterAlias("req", "required,dive,iscoloralias")
 	arr := []string{"val1", "#fff", "#000"}
@@ -9312,12 +9313,22 @@ func TestOrTag(t *testing.T) {
 	s = "this ain't right"
 	errs = validate.Var(s, "rgb|rgba")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgb|rgba")
+	orErrs := errs.(ValidationErrors)
+	Equal(t, len(orErrs), 2)
+	Equal(t, orErrs[0].Tag(), "rgb")
+	Equal(t, orErrs[0].Param(), "")
+	Equal(t, orErrs[1].Tag(), "rgba")
+	Equal(t, orErrs[1].Param(), "")
 
 	s = "this ain't right"
 	errs = validate.Var(s, "rgb|rgba|len=10")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgb|rgba|len=10")
+	orErrs = errs.(ValidationErrors)
+	Equal(t, len(orErrs), 3)
+	Equal(t, orErrs[0].Tag(), "rgb")
+	Equal(t, orErrs[1].Tag(), "rgba")
+	Equal(t, orErrs[2].Tag(), "len")
+	Equal(t, orErrs[2].Param(), "10")
 
 	s = "this is right"
 	errs = validate.Var(s, "rgb|rgba|len=13")
@@ -9331,8 +9342,11 @@ func TestOrTag(t *testing.T) {
 	errs = validate.Var(s, "eq=|eq=blue,rgb|rgba") // should fail on first validation block
 	NotEqual(t, errs, nil)
 	ve := errs.(ValidationErrors)
-	Equal(t, len(ve), 1)
-	Equal(t, ve[0].Tag(), "eq=|eq=blue")
+	Equal(t, len(ve), 2)
+	Equal(t, ve[0].Tag(), "eq")
+	Equal(t, ve[0].Param(), "")
+	Equal(t, ve[1].Tag(), "eq")
+	Equal(t, ve[1].Param(), "blue")
 
 	s = "this is right, but a blank or isn't"
 
@@ -9362,6 +9376,39 @@ func TestOrTag(t *testing.T) {
 	errs = err.(ValidationErrors)
 	fe := getError(errs, "Colors.fc", "Colors.Fav")
 	NotEqual(t, fe, nil)
+}
+
+func TestOrOperatorFailuresReturnOneErrorPerValidation(t *testing.T) {
+	validate := New()
+	value := "https://example.com/"
+
+	err := validate.Var(value, "omitempty,http_url,contains=discord|contains=guilded")
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+	Equal(t, len(errs), 2)
+	Equal(t, errs[0].Tag(), "contains")
+	Equal(t, errs[0].ActualTag(), "contains")
+	Equal(t, errs[0].Param(), "discord")
+	Equal(t, errs[1].Tag(), "contains")
+	Equal(t, errs[1].ActualTag(), "contains")
+	Equal(t, errs[1].Param(), "guilded")
+
+	validate.RegisterAlias("containslink", "contains=discord|contains=guilded")
+	err = validate.Var(value, "containslink")
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+	Equal(t, len(errs), 2)
+	Equal(t, errs[0].Tag(), "containslink")
+	Equal(t, errs[0].ActualTag(), "contains")
+	Equal(t, errs[0].Param(), "discord")
+	Equal(t, errs[1].Tag(), "containslink")
+	Equal(t, errs[1].ActualTag(), "contains")
+	Equal(t, errs[1].Param(), "guilded")
+
+	err = validate.Var("https://example.com/guilded", "omitempty,http_url,contains=discord|contains=guilded")
+	Equal(t, err, nil)
 }
 
 func TestCmyk(t *testing.T) {
@@ -12127,9 +12174,16 @@ func TestKeyOrs(t *testing.T) {
 
 	errs := err.(ValidationErrors)
 
-	Equal(t, len(errs), 2)
+	Equal(t, len(errs), 3)
 
-	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq=testkey|eq=testkeyok", "eq=testkey|eq=testkeyok")
+	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
+	Equal(t, errs[0].Param(), "testkey")
+	Equal(t, errs[1].Tag(), "eq")
+	Equal(t, errs[1].ActualTag(), "eq")
+	Equal(t, errs[1].Param(), "testkeyok")
+	Equal(t, errs[2].Tag(), "eq")
+	Equal(t, errs[2].ActualTag(), "eq")
+	Equal(t, errs[2].Param(), "testval")
 	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
 
 	validate.RegisterAlias("okkey", "eq=testkey|eq=testkeyok")
@@ -12159,9 +12213,16 @@ func TestKeyOrs(t *testing.T) {
 
 	errs = err.(ValidationErrors)
 
-	Equal(t, len(errs), 2)
+	Equal(t, len(errs), 3)
 
-	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "okkey", "eq=testkey|eq=testkeyok")
+	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "okkey", "eq")
+	Equal(t, errs[0].Param(), "testkey")
+	Equal(t, errs[1].Tag(), "okkey")
+	Equal(t, errs[1].ActualTag(), "eq")
+	Equal(t, errs[1].Param(), "testkeyok")
+	Equal(t, errs[2].Tag(), "eq")
+	Equal(t, errs[2].ActualTag(), "eq")
+	Equal(t, errs[2].Param(), "testval")
 	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
 }
 
