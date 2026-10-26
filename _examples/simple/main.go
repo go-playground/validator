@@ -14,7 +14,7 @@ type User struct {
 	Age            uint8      `validate:"gte=0,lte=130"`
 	Email          string     `validate:"required,email"`
 	Gender         string     `validate:"oneof=male female prefer_not_to"`
-	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla'
+	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla|cmyk'
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 }
 

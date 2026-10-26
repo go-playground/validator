@@ -138,7 +138,7 @@ used "eqcsfield" it could be multiple levels down. Example:
 	//       into the function
 	//       when calling validate.VarWithValue(val, field, tag) val will be
 	//       whatever you pass, struct, field...
-	//       when calling validate.Field(field, tag) val will be nil
+	//       when calling validate.Var(field, tag) val will be the field itself
 
 # Multiple Validators
 
@@ -1183,7 +1183,7 @@ This validates that a string value contains a valid isbn13 value.
 
 # Universally Unique Identifier UUID
 
-This validates that a string value contains a valid UUID. Uppercase UUID values will not pass - use `uuid_rfc4122` instead.
+This validates that a string value contains a valid UUID. Both lowercase and uppercase hex digits are accepted.
 
 	Usage: uuid
 
@@ -1600,9 +1600,11 @@ case will be the actual tag within the alias that failed.
 Here is a list of the current built in alias tags:
 
 	"iscolor"
-		alias is "hexcolor|rgb|rgba|hsl|hsla" (Usage: iscolor)
+		alias is "hexcolor|rgb|rgba|hsl|hsla|cmyk" (Usage: iscolor)
 	"country_code"
 		alias is "iso3166_1_alpha2|iso3166_1_alpha3|iso3166_1_alpha_numeric" (Usage: country_code)
+	"eu_country_code"
+		alias is "iso3166_1_alpha2_eu|iso3166_1_alpha3_eu|iso3166_1_alpha_numeric_eu" (Usage: eu_country_code)
 
 Validator notes:
 
@@ -1635,7 +1637,7 @@ Example of registration and use:
 	}
 
 	t := &Test{
-		TestField: "Test"
+		TestField: "Test",
 	}
 
 	validate := validator.New()
@@ -1660,7 +1662,7 @@ that should not make it to production.
 	}
 
 	t := &Test{
-		TestField: "Test"
+		TestField: "Test",
 	}
 
 	validate.Struct(t) // this will panic
