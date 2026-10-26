@@ -284,6 +284,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | - | - |
 | iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla\|cmyk |
 | country_code | iso3166_1_alpha2\|iso3166_1_alpha3\|iso3166_1_alpha_numeric |
+| eu_country_code | iso3166_1_alpha2_eu\|iso3166_1_alpha3_eu\|iso3166_1_alpha_numeric_eu |
 
 Benchmarks
 ------
