@@ -4608,6 +4608,58 @@ func TestULIDValidation(t *testing.T) {
 	}
 }
 
+func TestULIDRangeValidation(t *testing.T) {
+	// The ULID specification limits the first Base32 digit to 0-7.
+	validate := New()
+
+	for _, first := range "0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz" {
+		value := string(first) + strings.Repeat("Z", 25)
+		expected := first >= '0' && first <= '7'
+
+		errs := validate.Var(value, "ulid")
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Var(%q) failed Error: %s", value, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: value})
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Struct(%q) failed Error: %s", value, errs)
+		}
+	}
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{strings.Repeat("0", 26), true},
+		{"7" + strings.Repeat("z", 25), true},
+		{"01bX5zzKBkACTav9weVGEmMvrZ", true},
+		{"7" + strings.Repeat("Z", 24), false},
+		{"7" + strings.Repeat("Z", 26), false},
+		{"7" + strings.Repeat("Z", 24) + "I", false},
+		{"7" + strings.Repeat("Z", 24) + "L", false},
+		{"7" + strings.Repeat("Z", 24) + "O", false},
+		{"7" + strings.Repeat("Z", 24) + "U", false},
+		{"", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "ulid")
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: test.param})
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+		}
+	}
+}
+
 func TestMD4Validation(t *testing.T) {
 	tests := []struct {
 		param    string
