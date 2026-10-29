@@ -172,7 +172,15 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	return cs
 }
 
-func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
+func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool, aliasStack ...string) (firstCtag *cTag, current *cTag) {
+	if hasAlias {
+		for _, active := range aliasStack {
+			if active == alias {
+				panic(fmt.Sprintf("Cyclic alias '%s' on field '%s'", alias, fieldName))
+			}
+		}
+		aliasStack = append(aliasStack, alias)
+	}
 	var t string
 	noAlias := len(alias) == 0
 	tags := strings.Split(tag, tagSeparator)
@@ -186,9 +194,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		// check map for alias and process new tags, otherwise process as usual
 		if tagsVal, found := v.aliases[t]; found {
 			if i == 0 {
-				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true, aliasStack...)
 			} else {
-				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true, aliasStack...)
 				current.next, current = next, curr
 			}
 			continue
@@ -231,7 +239,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 			}
 
-			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false)
+			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false, aliasStack...)
 
 		case endKeysTag:
 			current.typeof = typeEndKeys
@@ -290,7 +298,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 					current.fn = wrapper.fn
 					current.runValidationWhenNil = wrapper.runValidationOnNil
 				} else if aliasTag, isAlias := v.aliases[current.tag]; isAlias {
-					aliasFirst, aliasLast := v.parseFieldTagsRecursive(aliasTag, fieldName, current.tag, true)
+					aliasFirst, aliasLast := v.parseFieldTagsRecursive(aliasTag, fieldName, current.tag, true, aliasStack...)
 
 					current.tag = aliasFirst.tag
 					current.fn = aliasFirst.fn
