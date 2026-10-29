@@ -1940,6 +1940,26 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+type namedTime time.Time
+
+func TestNeFieldNamedTimeValidation(t *testing.T) {
+	// nefield accepts any type convertible to time.Time, per its own guard.
+	type Test struct {
+		Start namedTime
+		End   namedTime `validate:"nefield=Start"`
+	}
+
+	validate := New()
+	now := namedTime(time.Now())
+
+	errs := validate.Struct(Test{Start: now, End: now})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs.(ValidationErrors), "Test.End", "Test.End", "End", "End", "nefield")
+
+	errs = validate.Struct(Test{Start: now, End: namedTime(time.Now().Add(time.Hour))})
+	Equal(t, errs, nil)
+}
+
 func TestCrossStructEqFieldValidation(t *testing.T) {
 	var errs error
 	validate := New()
