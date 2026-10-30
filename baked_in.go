@@ -372,6 +372,28 @@ func isNoneOfCI(fl FieldLevel) bool {
 	return !isOneOfCI(fl)
 }
 
+func addUniqueValue(value interface{}, seen map[interface{}]struct{}, nonComparable *[]interface{}) bool {
+	typ := reflect.TypeOf(value)
+	isComparable := typ == nil || typ.Comparable()
+	if isComparable && typ != nil && (typ.Kind() == reflect.Struct || typ.Kind() == reflect.Array) {
+		isComparable = reflect.ValueOf(value).Comparable()
+	}
+	if isComparable {
+		if _, ok := seen[value]; ok {
+			return false
+		}
+		seen[value] = struct{}{}
+		return true
+	}
+	for _, previous := range *nonComparable {
+		if reflect.DeepEqual(value, previous) {
+			return false
+		}
+	}
+	*nonComparable = append(*nonComparable, value)
+	return true
+}
+
 // isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
@@ -383,6 +405,7 @@ func isUnique(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
 		seen := make(map[interface{}]struct{})
+		var nonComparable []interface{}
 
 		for i := 0; i < field.Len(); i++ {
 			elem := field.Index(i)
@@ -401,10 +424,9 @@ func isUnique(fl FieldLevel) bool {
 					key = elem.Interface()
 				}
 
-				if _, ok := seen[key]; ok {
+				if !addUniqueValue(key, seen, &nonComparable) {
 					return false
 				}
-				seen[key] = struct{}{}
 				continue
 			}
 
@@ -442,16 +464,16 @@ func isUnique(fl FieldLevel) bool {
 				key = sf.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if !addUniqueValue(key, seen, &nonComparable) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
 
 	case reflect.Map:
 		seen := make(map[interface{}]struct{})
+		var nonComparable []interface{}
 
 		for _, k := range field.MapKeys() {
 			val := field.MapIndex(k)
@@ -468,10 +490,9 @@ func isUnique(fl FieldLevel) bool {
 				key = val.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if !addUniqueValue(key, seen, &nonComparable) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
