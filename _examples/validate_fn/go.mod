@@ -1,6 +1,6 @@
 module github.com/peczenyj/validator/_examples/validate_fn
 
-go 1.25.0
+go 1.26.0
 
 replace github.com/go-playground/validator/v10 => ../../../validator
 

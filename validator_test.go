@@ -1940,6 +1940,26 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	Equal(t, errs, nil)
 }
 
+type namedTime time.Time
+
+func TestNeFieldNamedTimeValidation(t *testing.T) {
+	// nefield accepts any type convertible to time.Time, per its own guard.
+	type Test struct {
+		Start namedTime
+		End   namedTime `validate:"nefield=Start"`
+	}
+
+	validate := New()
+	now := namedTime(time.Now())
+
+	errs := validate.Struct(Test{Start: now, End: now})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs.(ValidationErrors), "Test.End", "Test.End", "End", "End", "nefield")
+
+	errs = validate.Struct(Test{Start: now, End: namedTime(time.Now().Add(time.Hour))})
+	Equal(t, errs, nil)
+}
+
 func TestCrossStructEqFieldValidation(t *testing.T) {
 	var errs error
 	validate := New()
@@ -4277,6 +4297,43 @@ func TestUUID5Validation(t *testing.T) {
 	}
 }
 
+func TestUUID7Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", false},
+		{"018f6c1a-2a3b-7c4d-ce5f-1a2b3c4d5e6f", false},
+		{"018F6C1A-2A3B-7C4D-8E5F-1A2B3C4D5E6F", false},
+		{"017f22e2-79b0-7cc3-98c4-dc0c0c07398f", true},
+		{"018f6c1a-2a3b-7c4d-8e5f-1a2b3c4d5e6f", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "uuid7")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid7" {
+					t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestUUID4Validation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -4604,6 +4661,58 @@ func TestULIDValidation(t *testing.T) {
 					t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
 				}
 			}
+		}
+	}
+}
+
+func TestULIDRangeValidation(t *testing.T) {
+	// The ULID specification limits the first Base32 digit to 0-7.
+	validate := New()
+
+	for _, first := range "0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz" {
+		value := string(first) + strings.Repeat("Z", 25)
+		expected := first >= '0' && first <= '7'
+
+		errs := validate.Var(value, "ulid")
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Var(%q) failed Error: %s", value, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: value})
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Struct(%q) failed Error: %s", value, errs)
+		}
+	}
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{strings.Repeat("0", 26), true},
+		{"7" + strings.Repeat("z", 25), true},
+		{"01bX5zzKBkACTav9weVGEmMvrZ", true},
+		{"7" + strings.Repeat("Z", 24), false},
+		{"7" + strings.Repeat("Z", 26), false},
+		{"7" + strings.Repeat("Z", 24) + "I", false},
+		{"7" + strings.Repeat("Z", 24) + "L", false},
+		{"7" + strings.Repeat("Z", 24) + "O", false},
+		{"7" + strings.Repeat("Z", 24) + "U", false},
+		{"", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "ulid")
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: test.param})
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
 		}
 	}
 }
@@ -10007,6 +10116,68 @@ func TestAlphaNumericSpace(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "alphanumspace")
 }
 
+func TestDuration(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"1s", true},
+		{"300ms", true},
+		{"-1.5h", true},
+		{"2h45m", true},
+		{"0", true},
+		{"-0", true},
+		{"+5s", true},
+		{"1h2m3.5s", true},
+		{"100ns", true},
+		{"1.5us", true},
+		{"1µs", true},
+		{"1μs", true},
+		{".5s", true},
+		{"1.s", true},
+		{"2562047h", true},
+		{"s", false},
+		{"", false},
+		{"1", false},
+		{"1d", false},
+		{"1S", false},
+		{"1 s", false},
+		{" 1s", false},
+		{"1s ", false},
+		{"--1s", false},
+		{".s", false},
+		{"1e3s", false},
+		{"1h-1m", false},
+		{"2562048h", false},
+		{"9223372036854775808ns", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "duration")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "duration" {
+					t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	errs := validate.Var(time.Second, "duration")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "duration")
+}
+
 func TestStructStringValidation(t *testing.T) {
 	validate := New()
 
@@ -11269,6 +11440,58 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "hostname" {
 					t.Fatalf("Index: %d hostname failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestHostnameLabelValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"a", true}, // one character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true},   // 63 character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false}, // 64 character.
+		{"test", true},
+		{"2example", true},
+		{"example2", true},
+		{"57", true},
+		{"a.b.c", false},
+		{"complete.domain.name", false},
+		{"example.com", false},
+		{"1.test.com", false},
+		{"-invalid", false},
+		{"invalid-", false},
+		{".invalid", false},
+		{"invalid.", false},
+		{"192.168.0.1", false},
+		{"luznoceda", true},
+		{"akkoxdiana", true},
+		{"example-label", true},
+		{"example:80", false},
+		{"a$b", false},
+		{"this-is-another-deliberately-overlong-subdomain-used-for-boundary-test", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "hostname_label")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "hostname_label" {
+					t.Fatalf("Hostname Label: %v failed Error: %v", i, errs)
 				}
 			}
 		}
@@ -12829,6 +13052,36 @@ func TestExcludedWithout(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	// Multiple parameters: the field is excluded only when one of them is absent.
+	test4 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field2: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test4)
+	Equal(t, errs, nil)
+
+	test5 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test5)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_without")
 }
 
 func TestExcludedWithAll(t *testing.T) {
@@ -14842,18 +15095,89 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		value    string
 		expected bool
 	}{
+		"AL": {
+			{"1234", true},
+			{"12345", false},
+		},
+		"GB": {
+			{"EC1A 1BB", true},
+			{"CF10 1B1H", false},
+			// the pattern's top level `|` sits between `^` and `$`, so the
+			// non-`GIR` branches were not anchored and any string ending in a
+			// valid postcode, or in a BFPO number, was accepted
+			{"junkEC1A 1BB", false},
+			{"prefixBFPO 1234", false},
+			{"BFPO 1234", true},
+			{"EC1A 1BBjunk", false},
+		},
+		"GI": {
+			{"GI12 3AB", true},
+			{"GI1 1AA", true},
+			{"12345", false},
+		},
+		"IE": {
+			{"H54 RX46", true},
+			{"D6W E4E2", true},
+			{"H54RX46", true},
+			{"12345", false},
+		},
+		"IL": {
+			{"64928", true},
+			{"6492806", true},
+			{"649281", false},
+			{"1234", false},
+			{"ABCDEF", false},
+		},
+		"CR": {
+			{"10101", true},
+			{"12345", true},
+			{"1234", false},
+			{"123456", false},
+			{"123-4567", false},
+			{" 10101", false},
+			{"10101 ", false},
+			{"junk123-4567", false},
+			{"prefix123-4567", false},
+			{"123-4567xyz", false},
+			{"junk12345", false},
+			{"12345junk", false},
+		},
+		"VI": {
+			{"00803", true},
+			{"1234567", false},
+		},
 		"VN": {
 			{"ABC", false},
 			{"700000", true},
 			{"A1", false},
 		},
-		"GB": {
-			{"EC1A 1BB", true},
-			{"CF10 1B1H", false},
-		},
-		"VI": {
-			{"00803", true},
+		"TW": {
+			{"100", true},    // 3 digits (Valid)
+			{"10042", true},  // 5 digits (Valid)
+			{"106409", true}, // 6 digits (Valid)
+			{"040", true},    // Leading zero (Valid)
+			{"12", false},    // Too short
+			{"1234", false},  // 4 digits (Invalid)
 			{"1234567", false},
+			{"100-42", false}, // Contains hyphen (Invalid for strict numeric check)
+			{"abcdef", false}, // Letters (Invalid)
+		},
+		"NG": {
+			{"930283", true},          // former six-digit code
+			{"EK-01-A03-FK-01", true}, // 11-character code, hyphenated
+			{"EK 01 A03 FK 01", true},
+			{"EK01A03FK01", true},
+			{"EK-01 A03-FK-01", true}, // separators may differ
+			{"EK 01-A03 FK 01", true},
+			{"EK-00-A03-FK-01", false}, // LGA runs from 01 to 99
+			{"EK-01-A03-FK-00", false}, // unit runs from 01 to 99
+			{"EK-01-A03-FK-1", false},
+			{"EK-01-A03-FK-011", false},
+			{"E1-01-A03-FK-01", false},
+			{"EK--01-A03-FK-01", false}, // duplicate separator
+			{"-EK-01-A03-FK-01", false}, // leading separator
+			{"EK-01-A03-FK-01-", false}, // trailing separator
+			{"93028", false},
 		},
 		"LC": {
 			// not support regexp for post code
@@ -14862,6 +15186,26 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		"XX": {
 			// not support country
 			{"123456", false},
+		},
+		"KR": {
+			// five digits since 2015-08-01, the six digit format was abolished
+			{"06236", true},
+			{"03187", true},
+			{"135-080", false},
+			{"135080", false},
+			{"0623", false},
+			{"0623A", false},
+		},
+		"LI": {
+			{"9485", true},
+			{"9497", true},
+			{"9484", false},
+			{"9498", false},
+			// as with GB, the second branch of `^(948[5-9])|(949[0-7])$` fell
+			// outside the `^` assertion, so any string ending in 9490-9497 was
+			// accepted
+			{"9485junk", false},
+			{"x9497", false},
 		},
 	}
 
@@ -14890,13 +15234,24 @@ func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
 		CountryCode interface{}
 		expected    bool
 	}{
+		{"1234", "AL", true},
+		{"12345", "AL", false},
+		{"EC1A 1BB", "GB", true},
+		{"CF10 1B1H", "GB", false},
+		{"GI12 3AB", "GI", true},
+		{"12345", "GI", false},
+		{"H54 RX46", "IE", true},
+		{"D6W E4E2", "IE", true},
+		{"12345", "IE", false},
+		{"64928", "IL", true},
+		{"6492806", "IL", true},
+		{"649281", "IL", false},
+		{"1234", "IL", false},
+		{"00803", "VI", true},
+		{"1234567", "VI", false},
 		{"ABC", "VN", false},
 		{"700000", "VN", true},
 		{"A1", "VN", false},
-		{"EC1A 1BB", "GB", true},
-		{"CF10 1B1H", "GB", false},
-		{"00803", "VI", true},
-		{"1234567", "VI", false},
 		{"123456", "LC", false}, // not support regexp for post code
 		{"123456", "XX", false}, // not support country
 	}
@@ -16973,6 +17328,29 @@ func TestValuerInterface(t *testing.T) {
 			t.Fatalf("Expected no error, got: %v", errs)
 		}
 	})
+}
+
+func TestBCP47StrictDuplicateVariants(t *testing.T) {
+	validate := New()
+	for _, value := range []string{
+		"de-1901-1901", "de-DE-1901-1901", "sl-rozaj-rozaj",
+		"sl-rozaj-biske-rozaj", "sl-ROZAJ-rozaj",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err == nil {
+				t.Errorf("duplicate variant accepted: %s", value)
+			}
+		})
+	}
+	for _, value := range []string{
+		"de-DE-1901", "sl-rozaj-biske", "sl-ROZAJ-biske", "de-1901-x-1901", "de-x-rozaj-rozaj",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err != nil {
+				t.Errorf("valid tag rejected: %s: %v", value, err)
+			}
+		})
+	}
 }
 
 func TestQuotedParameterApostrophes(t *testing.T) {
