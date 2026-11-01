@@ -795,6 +795,50 @@ func TestAliasTags(t *testing.T) {
 	PanicMatches(t, func() { validate.RegisterAlias("exists!", "gt=5,lt=10") }, "Alias 'exists!' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
+func TestAliasCycleAtRegistration(t *testing.T) {
+	// A self-referencing alias used to recurse forever on first use, and a
+	// stack overflow cannot be recovered from, so it is refused at
+	// registration time instead.
+	PanicMatches(t, func() {
+		New().RegisterAlias("loop", "loop")
+	}, "Alias 'loop' expands to itself, which would recurse forever when validating")
+
+	validate := New()
+	validate.RegisterAlias("three", "required")
+
+	PanicMatches(t, func() {
+		validate.RegisterAlias("dash", "three,dash")
+	}, "Alias 'dash' expands to itself, which would recurse forever when validating")
+
+	// Indirect: "forward" already points at "three", so adding itself to the
+	// same expression closes the loop.
+	validate.RegisterAlias("forward", "three")
+
+	PanicMatches(t, func() {
+		validate.RegisterAlias("forward", "three,forward")
+	}, "Alias 'forward' expands to itself, which would recurse forever when validating")
+
+	PanicMatches(t, func() {
+		validate.RegisterAlias("back", "forward,back")
+	}, "Alias 'back' expands to itself, which would recurse forever when validating")
+
+	// A plain chain of aliases is still fine.
+	validate.RegisterAlias("alias1", "required")
+	validate.RegisterAlias("alias2", "alias1,min=1")
+	validate.RegisterAlias("alias3", "alias2")
+
+	type test struct {
+		A string `validate:"alias3"`
+	}
+
+	if errs := validate.Struct(test{A: ""}); IsEqual(errs, nil) {
+		t.Fatalf("an empty value must still fail the chained alias")
+	}
+	if errs := validate.Struct(test{A: "x"}); !IsEqual(errs, nil) {
+		t.Fatalf("a filled value must still pass the chained alias: %v", errs)
+	}
+}
+
 func TestAliasWithOrOperator(t *testing.T) {
 	validate := New()
 	validate.RegisterAlias("customnum", "numeric")

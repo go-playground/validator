@@ -48,6 +48,7 @@ const (
 	rightBracket          = "]"
 	restrictedTagChars    = ".[],|=+()`~!@#$%^&*\\\"/?<>{}"
 	restrictedAliasErr    = "Alias '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
+	cyclicAliasErr        = "Alias '%s' expands to itself, which would recurse forever when validating"
 	restrictedTagErr      = "Tag '%s' either contains restricted characters or is the same as a restricted tag needed for normal operation"
 )
 
@@ -242,6 +243,12 @@ func (v *Validate) RegisterAlias(alias, tags string) {
 
 	if ok || strings.ContainsAny(alias, restrictedTagChars) {
 		panic(fmt.Sprintf(restrictedAliasErr, alias))
+	}
+
+	if aliasesExpandsTo(v, alias, tags) {
+		// An alias that expands to itself would recurse forever the first time
+		// it is used, and a stack overflow cannot be recovered from.
+		panic(fmt.Sprintf(cyclicAliasErr, alias))
 	}
 
 	v.aliases[alias] = tags
@@ -755,4 +762,32 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 	}
 	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
 	return nil
+}
+
+// aliasesExpandsTo reports whether the tag expression tags, once aliases are
+// expanded, refers back to alias - directly or through other aliases.
+func aliasesExpandsTo(v *Validate, alias, tags string) bool {
+	seen := make(map[string]struct{})
+
+	pending := strings.Split(tags, tagSeparator)
+	for len(pending) > 0 {
+		t := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+
+		if t == alias {
+			return true
+		}
+
+		if _, ok := seen[t]; ok {
+			continue
+		}
+
+		seen[t] = struct{}{}
+
+		if tagsVal, ok := v.aliases[t]; ok {
+			pending = append(pending, strings.Split(tagsVal, tagSeparator)...)
+		}
+	}
+
+	return false
 }
