@@ -11725,6 +11725,53 @@ func TestUniqueValidation(t *testing.T) {
 	})
 }
 
+func TestUniqueValidationUnhashableElements(t *testing.T) {
+	type withSlice struct {
+		Tags []string
+	}
+
+	tests := []struct {
+		param    interface{}
+		tag      string
+		expected bool
+	}{
+		{[][]string{{"a"}, {"b"}}, "unique", true},
+		{[][]string{{"a"}, {"a"}}, "unique", false},
+		{[][]string{{"a", "b"}, {"a", "b"}, {"c"}}, "unique", false},
+		{[][]byte{{1}, {2}}, "unique", true},
+		{[][]byte{{1}, {1}}, "unique", false},
+		{[]map[string]string{{"a": "b"}, {"c": "d"}}, "unique", true},
+		{[]map[string]string{{"a": "b"}, {"a": "b"}}, "unique", false},
+		{[]withSlice{{Tags: []string{"a"}}, {Tags: []string{"b"}}}, "unique", true},
+		{[]withSlice{{Tags: []string{"a"}}, {Tags: []string{"a"}}}, "unique", false},
+		{[]withSlice{{Tags: []string{"a"}}, {Tags: []string{"a"}}}, "unique=Tags", false},
+		{[]withSlice{{Tags: []string{"a"}}, {Tags: []string{"b"}}}, "unique=Tags", true},
+		// A comparable element after an unhashable one must still be found.
+		{[]interface{}{[]string{"a"}, "b", "b"}, "unique", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %s failed Error: %v", i, test.tag, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %s failed Error: %v", i, test.tag, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "unique" {
+					t.Fatalf("Index: %d %s failed Error: %v", i, test.tag, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestUniqueValidationStructSlice(t *testing.T) {
 	testStructs := []struct {
 		A string
