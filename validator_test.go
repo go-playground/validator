@@ -3987,6 +3987,14 @@ func TestSSNValidation(t *testing.T) {
 		{"66690-76", false},
 		{"191 60 2869", true},
 		{"191-60-2869", true},
+		// areas 000, 666 and 900-999 are never assigned
+		{"000-60-2869", false},
+		{"666-60-2869", false},
+		{"900-60-2869", false},
+		{"999-60-2869", false},
+		{"667-60-2869", true},
+		{"899-60-2869", true},
+		{"001-60-2869", true},
 	}
 
 	validate := New()
