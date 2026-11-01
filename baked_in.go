@@ -373,6 +373,43 @@ func isNoneOfCI(fl FieldLevel) bool {
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
+// seenValues remembers the values isUnique has already met. Values that can be
+// used as a map key go into the map, which keeps the common case O(n). Anything
+// else - a nested slice, a map, []byte, a struct holding one of those - is kept
+// in a list and compared with reflect.DeepEqual, because putting it in a map
+// panics with "hash of unhashable type".
+type seenValues struct {
+	index map[interface{}]struct{}
+	other []interface{}
+}
+
+// seen records v and reports whether it was already there.
+func (s *seenValues) seen(v interface{}) bool {
+	if v == nil || reflect.TypeOf(v).Comparable() {
+		if s.index == nil {
+			s.index = make(map[interface{}]struct{})
+		}
+
+		if _, ok := s.index[v]; ok {
+			return true
+		}
+
+		s.index[v] = struct{}{}
+
+		return false
+	}
+
+	for _, o := range s.other {
+		if reflect.DeepEqual(o, v) {
+			return true
+		}
+	}
+
+	s.other = append(s.other, v)
+
+	return false
+}
+
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
@@ -382,7 +419,7 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
-		seen := make(map[interface{}]struct{})
+		var seen seenValues
 
 		for i := 0; i < field.Len(); i++ {
 			elem := field.Index(i)
@@ -401,10 +438,9 @@ func isUnique(fl FieldLevel) bool {
 					key = elem.Interface()
 				}
 
-				if _, ok := seen[key]; ok {
+				if seen.seen(key) {
 					return false
 				}
-				seen[key] = struct{}{}
 				continue
 			}
 
@@ -412,10 +448,9 @@ func isUnique(fl FieldLevel) bool {
 
 			if elem.Kind() == reflect.Ptr {
 				if elem.IsNil() {
-					if _, ok := seen[nilKey]; ok {
+					if seen.seen(nilKey) {
 						return false
 					}
-					seen[nilKey] = struct{}{}
 					continue
 				}
 				elem = elem.Elem()
@@ -442,16 +477,15 @@ func isUnique(fl FieldLevel) bool {
 				key = sf.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if seen.seen(key) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
 
 	case reflect.Map:
-		seen := make(map[interface{}]struct{})
+		var seen seenValues
 
 		for _, k := range field.MapKeys() {
 			val := field.MapIndex(k)
@@ -468,10 +502,9 @@ func isUnique(fl FieldLevel) bool {
 				key = val.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if seen.seen(key) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
