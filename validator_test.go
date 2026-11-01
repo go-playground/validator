@@ -4564,7 +4564,9 @@ func TestUUID3RFC4122Validation(t *testing.T) {
 		{"412452646", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9F3", false},
 		{"a987fbc9-4bed-4078-8f07-9141ba07c9F3", false},
-		{"a987fbc9-4bed-3078-cf07-9141ba07c9F3", true},
+		{"a987fbc9-4bed-3078-8f07-9141ba07c9F3", true},
+		// the variant nibble must be 8, 9, a or b per RFC 4122 section 4.1.1
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9F3", false},
 	}
 
 	validate := New()
@@ -4601,7 +4603,9 @@ func TestUUIDRFC4122Validation(t *testing.T) {
 		{"934859", false},
 		{"987fbc9-4bed-3078-cf07a-9141ba07c9F3", false},
 		{"aaaaaaaa-1111-1111-aaaG-111111111111", false},
-		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+		{"a987Fbc9-4bed-3078-8f07-9141ba07c9f3", true},
+		// the variant nibble must be 8, 9, a or b per RFC 4122 section 4.1.1
+		{"a987Fbc9-4bed-3078-cf07-9141ba07c9f3", false},
 	}
 
 	validate := New()
