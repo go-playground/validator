@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"mime"
 	"net"
 	"net/mail"
 	"net/url"
@@ -1786,13 +1787,17 @@ func detectFileMIMEType(field reflect.Value) (string, bool) {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
-func matchesMIMEType(mime, expected string) bool {
+func matchesMIMEType(detected, expected string) bool {
+	mediaType, _, err := mime.ParseMediaType(detected)
+	if err != nil {
+		return false
+	}
 	expectedType, expectedSubtype, ok := strings.Cut(strings.TrimSpace(expected), "/")
 	if !ok || expectedType == "" || expectedSubtype == "" {
 		return false
 	}
 
-	mimeType, mimeSubtype, ok := strings.Cut(mime, "/")
+	mimeType, mimeSubtype, ok := strings.Cut(mediaType, "/")
 	if !ok || mimeType == "" || mimeSubtype == "" {
 		return false
 	}
