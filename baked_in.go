@@ -2918,11 +2918,21 @@ func isIP6Addr(fl FieldLevel) bool {
 }
 
 func isHostnameRFC952(fl FieldLevel) bool {
-	return hostnameRegexRFC952().MatchString(fl.Field().String())
+	hostname := fl.Field().String()
+	if len(hostname) > 253 {
+		return false
+	}
+
+	return hostnameRegexRFC952().MatchString(hostname)
 }
 
 func isHostnameRFC1123(fl FieldLevel) bool {
-	return hostnameRegexRFC1123().MatchString(fl.Field().String())
+	hostname := fl.Field().String()
+	if len(hostname) > 253 {
+		return false
+	}
+
+	return hostnameRegexRFC1123().MatchString(hostname)
 }
 
 func isHostnameLabel(fl FieldLevel) bool {
