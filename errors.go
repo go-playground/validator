@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -48,6 +49,20 @@ func (ve ValidationErrors) Error() string {
 	}
 
 	return strings.TrimSpace(buff.String())
+}
+
+// Unwrap returns the nested errors reported by individual field validations.
+func (ve ValidationErrors) Unwrap() []error {
+	errs := make([]error, 0, len(ve))
+	for _, fe := range ve {
+		if err := errors.Unwrap(fe); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) == 0 {
+		return nil
+	}
+	return errs
 }
 
 // Translate translates all of the ValidationErrors
@@ -174,6 +189,7 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+	err            error
 }
 
 // Tag returns the validation tag that failed.
@@ -246,6 +262,11 @@ func (fe *fieldError) Type() reflect.Type {
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+}
+
+// Unwrap returns the underlying error reported by the validation, if any.
+func (fe *fieldError) Unwrap() error {
+	return fe.err
 }
 
 // Translate returns the FieldError's translated error

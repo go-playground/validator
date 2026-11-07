@@ -16,6 +16,9 @@ func isValidateFn(fl FieldLevel) bool {
 
 	ok, err := tryCallValidateFn(field, validateFn)
 	if err != nil {
+		if v, ok := fl.(*validate); ok {
+			v.fieldErr = err
+		}
 		return false
 	}
 
@@ -48,7 +51,11 @@ func tryCallValidateFn(field reflect.Value, validateFn string) (bool, error) {
 		errorType := reflect.TypeOf((*error)(nil)).Elem()
 
 		if firstReturnValue.Type().Implements(errorType) {
-			return firstReturnValue.IsNil(), nil
+			if firstReturnValue.IsNil() {
+				return true, nil
+			}
+
+			return false, firstReturnValue.Interface().(error)
 		}
 
 		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got interface %v expect error)",
