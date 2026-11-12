@@ -369,7 +369,7 @@ OUTER:
 
 		case typeOr:
 
-			v.misc = v.misc[0:0]
+			var failedTags []*cTag
 
 			for {
 				// set Field Level fields
@@ -403,13 +403,7 @@ OUTER:
 					}
 				}
 
-				v.misc = append(v.misc, '|')
-				v.misc = append(v.misc, ct.tag...)
-
-				if ct.hasParam {
-					v.misc = append(v.misc, '=')
-					v.misc = append(v.misc, ct.param...)
-				}
+				failedTags = append(failedTags, ct)
 
 				if ct.isBlockEnd || ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
@@ -421,36 +415,23 @@ OUTER:
 						v.str2 = v.str1
 					}
 
-					if ct.hasAlias {
-						v.errs = append(v.errs,
-							&fieldError{
-								v:              v.v,
-								tag:            ct.aliasTag,
-								actualTag:      ct.actualAliasTag,
-								ns:             v.str1,
-								structNs:       v.str2,
-								fieldLen:       uint8(len(cf.altName)),
-								structfieldLen: uint8(len(cf.name)),
-								value:          getValue(current),
-								param:          ct.param,
-								kind:           kind,
-								typ:            typ,
-							},
-						)
-					} else {
-						tVal := string(v.misc)[1:]
+					for _, failedTag := range failedTags {
+						tag := failedTag.tag
+						if failedTag.hasAlias {
+							tag = failedTag.aliasTag
+						}
 
 						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
-								tag:            tVal,
-								actualTag:      tVal,
+								tag:            tag,
+								actualTag:      failedTag.tag,
 								ns:             v.str1,
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
 								value:          getValue(current),
-								param:          ct.param,
+								param:          failedTag.param,
 								kind:           kind,
 								typ:            typ,
 							},
@@ -462,7 +443,6 @@ OUTER:
 
 				ct = ct.next
 			}
-
 		default:
 
 			// set Field Level fields
