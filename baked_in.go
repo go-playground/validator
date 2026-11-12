@@ -372,6 +372,38 @@ func isNoneOfCI(fl FieldLevel) bool {
 	return !isOneOfCI(fl)
 }
 
+// uniqueElemKey returns the value used to test uniqueness of elem, and
+// whether that value can be used as a map key. Nil pointers use nilKey.
+func uniqueElemKey(elem reflect.Value, nilKey interface{}) (interface{}, bool) {
+	if elem.Kind() == reflect.Ptr {
+		if elem.IsNil() {
+			return nilKey, true
+		}
+		elem = elem.Elem()
+	}
+	return elem.Interface(), elem.Comparable()
+}
+
+// uniqueRemember records key. It returns false if key was already seen.
+// Comparable values go in the map; unhashable values are compared with
+// reflect.DeepEqual so unique does not panic on slices, maps, or []byte.
+func uniqueRemember(seen map[interface{}]struct{}, unhashable *[]interface{}, key interface{}, comparable bool) bool {
+	if !comparable {
+		for _, prev := range *unhashable {
+			if reflect.DeepEqual(prev, key) {
+				return false
+			}
+		}
+		*unhashable = append(*unhashable, key)
+		return true
+	}
+	if _, ok := seen[key]; ok {
+		return false
+	}
+	seen[key] = struct{}{}
+	return true
+}
+
 // isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
@@ -383,28 +415,17 @@ func isUnique(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
 		seen := make(map[interface{}]struct{})
+		var unhashable []interface{}
 
 		for i := 0; i < field.Len(); i++ {
 			elem := field.Index(i)
 
 			// -------- unique (no param) --------
 			if param == "" {
-				var key interface{}
-
-				if elem.Kind() == reflect.Ptr {
-					if elem.IsNil() {
-						key = nilKey
-					} else {
-						key = elem.Elem().Interface() // <-- compare underlying value
-					}
-				} else {
-					key = elem.Interface()
-				}
-
-				if _, ok := seen[key]; ok {
+				key, comparable := uniqueElemKey(elem, nilKey)
+				if !uniqueRemember(seen, &unhashable, key, comparable) {
 					return false
 				}
-				seen[key] = struct{}{}
 				continue
 			}
 
@@ -430,48 +451,24 @@ func isUnique(fl FieldLevel) bool {
 				panic(fmt.Sprintf("Bad field name %s", param))
 			}
 
-			var key interface{}
-
-			if sf.Kind() == reflect.Ptr {
-				if sf.IsNil() {
-					key = nilKey
-				} else {
-					key = sf.Elem().Interface()
-				}
-			} else {
-				key = sf.Interface()
-			}
-
-			if _, ok := seen[key]; ok {
+			key, comparable := uniqueElemKey(sf, nilKey)
+			if !uniqueRemember(seen, &unhashable, key, comparable) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
 
 	case reflect.Map:
 		seen := make(map[interface{}]struct{})
+		var unhashable []interface{}
 
 		for _, k := range field.MapKeys() {
 			val := field.MapIndex(k)
-
-			var key interface{}
-
-			if val.Kind() == reflect.Ptr {
-				if val.IsNil() {
-					key = nilKey
-				} else {
-					key = val.Elem().Interface() // <-- compare underlying value
-				}
-			} else {
-				key = val.Interface()
-			}
-
-			if _, ok := seen[key]; ok {
+			key, comparable := uniqueElemKey(val, nilKey)
+			if !uniqueRemember(seen, &unhashable, key, comparable) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true

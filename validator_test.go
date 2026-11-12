@@ -11918,6 +11918,68 @@ func TestUniqueValidationNilPtrSlice(t *testing.T) {
 	})
 }
 
+func TestUniqueValidationUnhashableElements(t *testing.T) {
+	validate := New()
+
+	type WithSlice struct{ Tags []string }
+
+	t.Run("slice_of_slices_unique", func(t *testing.T) {
+		errs := validate.Var([][]string{{"a"}, {"b"}}, "unique")
+		if errs != nil {
+			t.Fatalf("distinct [][]string should pass unique, got: %v", errs)
+		}
+	})
+	t.Run("slice_of_slices_duplicate", func(t *testing.T) {
+		errs := validate.Var([][]string{{"a"}, {"a"}}, "unique")
+		if errs == nil {
+			t.Fatal("duplicate [][]string should fail unique")
+		}
+	})
+	t.Run("slice_of_byte_slices_unique", func(t *testing.T) {
+		errs := validate.Var([][]byte{{1}, {2}}, "unique")
+		if errs != nil {
+			t.Fatalf("distinct [][]byte should pass unique, got: %v", errs)
+		}
+	})
+	t.Run("slice_of_byte_slices_duplicate", func(t *testing.T) {
+		errs := validate.Var([][]byte{{1}, {1}}, "unique")
+		if errs == nil {
+			t.Fatal("duplicate [][]byte should fail unique")
+		}
+	})
+	t.Run("slice_of_maps_unique", func(t *testing.T) {
+		errs := validate.Var([]map[string]string{{"a": "1"}, {"b": "2"}}, "unique")
+		if errs != nil {
+			t.Fatalf("distinct []map should pass unique, got: %v", errs)
+		}
+	})
+	t.Run("slice_of_structs_with_slice_field", func(t *testing.T) {
+		errs := validate.Var([]WithSlice{{Tags: []string{"a"}}, {Tags: []string{"b"}}}, "unique")
+		if errs != nil {
+			t.Fatalf("distinct structs with slice fields should pass unique, got: %v", errs)
+		}
+	})
+	t.Run("struct_field_and_var", func(t *testing.T) {
+		type A struct {
+			L [][]string `validate:"unique"`
+		}
+		if errs := validate.Struct(A{L: [][]string{{"a"}, {"b"}}}); errs != nil {
+			t.Fatalf("struct with unique [][]string should pass, got: %v", errs)
+		}
+		if errs := validate.Struct(A{L: [][]string{{"a"}, {"a"}}}); errs == nil {
+			t.Fatal("struct with duplicate [][]string should fail unique")
+		}
+	})
+	t.Run("map_of_byte_slices", func(t *testing.T) {
+		if errs := validate.Var(map[string][]byte{"one": {1}, "two": {2}}, "unique"); errs != nil {
+			t.Fatalf("distinct map []byte values should pass unique, got: %v", errs)
+		}
+		if errs := validate.Var(map[string][]byte{"one": {1}, "two": {1}}, "unique"); errs == nil {
+			t.Fatal("duplicate map []byte values should fail unique")
+		}
+	})
+}
+
 func TestHTMLValidation(t *testing.T) {
 	tests := []struct {
 		param    string
