@@ -106,7 +106,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
-		if ct.typeof == typeOmitNil && (kind != reflect.Invalid && current.IsNil()) {
+		if ct.typeof == typeOmitNil && (kind == reflect.Invalid || current.IsNil()) {
 			return
 		}
 
@@ -114,8 +114,14 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
+		// An OR group may contain a nil-enabled validator after its first
+		// alternative. Let the validation loop evaluate each alternative.
+		if kind == reflect.Invalid && ct.typeof == typeOr {
+			break
+		}
+
 		if ct.hasTag {
-			if kind == reflect.Invalid {
+			if kind == reflect.Invalid && !ct.runValidationWhenNil {
 				v.str1 = appendAltName(ns, cf.altName)
 				if v.v.hasTagNameFunc {
 					v.str2 = string(append(structNs, cf.name...))
@@ -164,7 +170,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			}
 		}
 
-		if kind == reflect.Invalid {
+		if kind == reflect.Invalid && !ct.hasTag {
 			return
 		}
 
@@ -180,7 +186,9 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 	}
 
-	typ = current.Type()
+	if kind != reflect.Invalid {
+		typ = current.Type()
+	}
 
 OUTER:
 	for {
@@ -259,6 +267,8 @@ OUTER:
 			v.ct = ct
 
 			switch field := v.Field(); field.Kind() {
+			case reflect.Invalid:
+				return
 			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 				if field.IsNil() {
 					return
@@ -378,7 +388,7 @@ OUTER:
 				v.cf = cf
 				v.ct = ct
 
-				if ct.fn(ctx, v) {
+				if (kind != reflect.Invalid || ct.runValidationWhenNil) && ct.fn(ctx, v) {
 					if ct.isBlockEnd {
 						ct = ct.next
 						continue OUTER
@@ -463,6 +473,13 @@ OUTER:
 				ct = ct.next
 			}
 
+		case typeIsDefault:
+			if kind == reflect.Invalid {
+				ct = ct.next
+				continue
+			}
+			fallthrough
+
 		default:
 
 			// set Field Level fields
@@ -471,7 +488,7 @@ OUTER:
 			v.cf = cf
 			v.ct = ct
 
-			if !ct.fn(ctx, v) {
+			if (kind == reflect.Invalid && !ct.runValidationWhenNil) || !ct.fn(ctx, v) {
 				v.str1 = appendAltName(ns, cf.altName)
 
 				if v.v.hasTagNameFunc {
@@ -514,6 +531,10 @@ func appendAltName(ns []byte, altName string) string {
 }
 
 func getValue(val reflect.Value) interface{} {
+	if !val.IsValid() {
+		return nil
+	}
+
 	if val.CanInterface() {
 		return val.Interface()
 	}
