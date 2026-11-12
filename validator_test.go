@@ -14358,6 +14358,12 @@ func TestIsIso3166AlphaNumericValidation(t *testing.T) {
 		{1, false},
 		{"1", false},
 		{"invalid_int", false},
+		{1248, false},
+		{"1248", false},
+		{uint(1248), false},
+		{-248, false},
+		{"-248", false},
+		{10840, false},
 	}
 
 	validate := New()
@@ -14390,6 +14396,9 @@ func TestIsIso3166AlphaNumericEUValidation(t *testing.T) {
 		{"752", true},
 		{826, false}, // UK
 		{"826", false},
+		{1752, false},
+		{"1752", false},
+		{uint(1752), false},
 	}
 
 	validate := New()
@@ -14426,6 +14435,8 @@ func TestCountryCodeValidation(t *testing.T) {
 		{"248", true},
 		{"1", false},
 		{"0", false},
+		{1840, false},
+		{"1840", false},
 	}
 
 	validate := New()
