@@ -1,6 +1,7 @@
 package hu
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -906,5 +907,58 @@ func TestTranslations(t *testing.T) {
 
 		NotEqual(t, fe, nil)
 		Equal(t, tt.expected, fe.Translate(trans))
+	}
+}
+
+// stubFieldError implements only the methods fmtNumberParam calls; any other
+// method panics on the nil embedded interface.
+type stubFieldError struct {
+	validator.FieldError
+
+	typ   reflect.Type
+	param string
+}
+
+func (f stubFieldError) Type() reflect.Type { return f.typ }
+func (f stubFieldError) Param() string      { return f.param }
+
+func TestFmtNumberParam(t *testing.T) {
+	hun := hungarian.New()
+	uni := ut.New(hun, hun)
+	trans, _ := uni.GetTranslator("hu")
+
+	tests := []struct {
+		name     string
+		typ      reflect.Type
+		param    string
+		expected string
+	}{
+		{"int", reflect.TypeOf(0), "1000", "1\u00a0000"},
+		{"negative int", reflect.TypeOf(0), "-1000", "-1\u00a0000"},
+		{"zero", reflect.TypeOf(0), "0", "0"},
+		{"uint", reflect.TypeOf(uint64(0)), "1000000", "1\u00a0000\u00a0000"},
+		{"float", reflect.TypeOf(float64(0)), "2.33", "2,33"},
+		{"float with trailing zeros", reflect.TypeOf(float32(0)), "1113.00", "1\u00a0113,00"},
+
+		// The validator reports a pointer type only for nil pointers, other
+		// pointers are dereferenced before validation.
+		{"nil pointer to int", reflect.TypeOf((*int)(nil)), "1000", "1\u00a0000"},
+		{"nil pointer to float", reflect.TypeOf((*float64)(nil)), "2.5", "2,5"},
+
+		// Everything else is returned as is.
+		{"string", reflect.TypeOf(""), "1000", "1000"},
+		{"string with decimal point", reflect.TypeOf(""), "2.33", "2.33"},
+		{"duration", reflect.TypeOf(time.Duration(0)), "1h30m", "1h30m"},
+		{"duration without unit", reflect.TypeOf(time.Duration(0)), "1000", "1000"},
+		{"nil pointer to duration", reflect.TypeOf((*time.Duration)(nil)), "1000", "1000"},
+		{"slice", reflect.TypeOf([]int(nil)), "3", "3"},
+		{"no type", nil, "1000", "1000"},
+		{"unparsable param", reflect.TypeOf(0), "abc", "abc"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Equal(t, tt.expected, fmtNumberParam(trans, stubFieldError{typ: tt.typ, param: tt.param}))
+		})
 	}
 }
