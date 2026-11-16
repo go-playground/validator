@@ -405,7 +405,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} értéke nem egyenlő a következővel: {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fmtNumberParam(ut, fe))
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
@@ -419,7 +419,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} értéke nem lehet egyenlő a következővel: {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
-				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				t, err := ut.T(fe.Tag(), fe.Field(), fmtNumberParam(ut, fe))
 				if err != nil {
 					fmt.Printf("warning: error translating FieldError: %#v", fe)
 					return fe.(error).Error()
@@ -1624,4 +1624,37 @@ func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	}
 
 	return t
+}
+
+// fmtNumberParam formats the tag param of numeric fields in the translator's
+// number format (e.g. "2.33" -> "2,33"); any other param is returned as is.
+func fmtNumberParam(trans ut.Translator, fe validator.FieldError) string {
+	typ := fe.Type()
+	if typ != nil && typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	if typ == nil || typ == reflect.TypeOf(time.Duration(0)) {
+		return fe.Param()
+	}
+
+	switch typ.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+	default:
+		return fe.Param()
+	}
+
+	f64, err := strconv.ParseFloat(fe.Param(), 64)
+	if err != nil {
+		return fe.Param()
+	}
+
+	var digits uint64
+	if idx := strings.Index(fe.Param(), "."); idx != -1 {
+		digits = uint64(len(fe.Param()[idx+1:]))
+	}
+
+	return trans.FmtNumber(f64, digits)
 }

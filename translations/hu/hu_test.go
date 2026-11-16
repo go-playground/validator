@@ -197,6 +197,9 @@ func TestTranslations(t *testing.T) {
 		MinDuration           time.Duration `validate:"min=1h30m,max=2h"`
 		MaxDuration           time.Duration `validate:"min=1h30m,max=2h"`
 		ValidateFn            Foo           `validate:"validateFn=IsBar"`
+		EqInt                 int           `validate:"eq=1000"`
+		NeIntPtr              *int          `validate:"ne=1000"`
+		EqDuration            time.Duration `validate:"eq=1h30m"`
 	}
 
 	var test Test
@@ -273,6 +276,9 @@ func TestTranslations(t *testing.T) {
 
 	test.MinDuration = 1 * time.Hour
 	test.MaxDuration = 3 * time.Hour
+
+	neInt := 1000
+	test.NeIntPtr = &neInt
 
 	test.Inner.RequiredIf = "abcd"
 
@@ -652,7 +658,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.NeNumber",
-			expected: "NeNumber értéke nem lehet egyenlő a következővel: 0.00",
+			expected: "NeNumber értéke nem lehet egyenlő a következővel: 0,00",
 		},
 		{
 			ns:       "Test.NeMultiple",
@@ -664,7 +670,19 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber értéke nem egyenlő a következővel: 2.33",
+			expected: "EqNumber értéke nem egyenlő a következővel: 2,33",
+		},
+		{
+			ns:       "Test.EqInt",
+			expected: "EqInt értéke nem egyenlő a következővel: 1\u00a0000",
+		},
+		{
+			ns:       "Test.NeIntPtr",
+			expected: "NeIntPtr értéke nem lehet egyenlő a következővel: 1\u00a0000",
+		},
+		{
+			ns:       "Test.EqDuration",
+			expected: "EqDuration értéke nem egyenlő a következővel: 1h30m",
 		},
 		{
 			ns:       "Test.EqMultiple",
