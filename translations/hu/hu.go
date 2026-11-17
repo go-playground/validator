@@ -402,7 +402,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "eq",
-			translation: "{0} értéke nem egyenlő a következővel: {1}",
+			translation: "{0} értékének egyenlőnek kell lennie ezzel: {1}",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fmtNumberParam(ut, fe))
