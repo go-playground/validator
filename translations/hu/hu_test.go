@@ -667,15 +667,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.EqString",
-			expected: "EqString értéke nem egyenlő a következővel: 3",
+			expected: "EqString értékének egyenlőnek kell lennie ezzel: 3",
 		},
 		{
 			ns:       "Test.EqNumber",
-			expected: "EqNumber értéke nem egyenlő a következővel: 2,33",
+			expected: "EqNumber értékének egyenlőnek kell lennie ezzel: 2,33",
 		},
 		{
 			ns:       "Test.EqInt",
-			expected: "EqInt értéke nem egyenlő a következővel: 1\u00a0000",
+			expected: "EqInt értékének egyenlőnek kell lennie ezzel: 1\u00a0000",
 		},
 		{
 			ns:       "Test.NeIntPtr",
@@ -683,11 +683,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.EqDuration",
-			expected: "EqDuration értéke nem egyenlő a következővel: 1h30m",
+			expected: "EqDuration értékének egyenlőnek kell lennie ezzel: 1h30m",
 		},
 		{
 			ns:       "Test.EqMultiple",
-			expected: "EqMultiple értéke nem egyenlő a következővel: 7",
+			expected: "EqMultiple értékének egyenlőnek kell lennie ezzel: 7",
 		},
 		{
 			ns:       "Test.MaxString",
