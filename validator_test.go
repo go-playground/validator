@@ -17352,3 +17352,259 @@ func TestBCP47StrictDuplicateVariants(t *testing.T) {
 		})
 	}
 }
+
+func TestRequiredIfFloat64FieldValidation(t *testing.T) {
+	type Test struct {
+		Price float64
+		Note  string `validate:"required_if=Price 9.99"`
+	}
+
+	validate := New()
+
+	errs := validate.Struct(Test{Price: 9.99})
+	AssertError(t, errs, "Test.Note", "Test.Note", "Note", "Note", "required_if")
+
+	errs = validate.Struct(Test{Price: 9.99, Note: "sale"})
+	Equal(t, errs, nil)
+
+	errs = validate.Struct(Test{Price: 1.5})
+	Equal(t, errs, nil)
+}
+
+func TestOmitZeroNilableKindsValidation(t *testing.T) {
+	type Test struct {
+		Ch chan int `validate:"omitzero,required"`
+		Fn func()   `validate:"omitzero,required"`
+	}
+
+	validate := New()
+
+	// Nil chan/func are zero values and must be skipped.
+	errs := validate.Struct(Test{})
+	Equal(t, errs, nil)
+
+	// Non-nil chan/func are not zero, so the following validators run and pass.
+	errs = validate.Struct(Test{Ch: make(chan int), Fn: func() {}})
+	Equal(t, errs, nil)
+}
+
+func TestUniqueBadFieldPanics(t *testing.T) {
+	validate := New()
+
+	PanicMatches(t, func() { _ = validate.Var([]string{"a", "b"}, "unique=Name") }, "Bad field type string")
+
+	type BadName struct {
+		A string `validate:"unique=Missing"`
+	}
+	PanicMatches(t, func() { _ = validate.Struct(BadName{A: "x"}) }, "Bad field name provided Missing")
+
+	type BadKind struct {
+		A string `validate:"unique=B"`
+		B int
+	}
+	PanicMatches(t, func() { _ = validate.Struct(BadKind{A: "x", B: 1}) }, "Bad field type string:int")
+}
+
+func TestBadFieldTypePanics(t *testing.T) {
+	validate := New()
+
+	PanicMatches(t, func() { _ = validate.Var(1, "http_url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "https_url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "filepath") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "dirpath") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1.5, "iso4217_numeric") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var(1.5, "luhn_checksum") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var("abc", "spicedb=bogus") }, "Unrecognized parameter: bogus")
+}
+
+func TestIsoNumericUintValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		value       any
+		tag         string
+		expectedNil bool
+	}{
+		{uint(250), "iso3166_1_alpha_numeric", true},  // France
+		{uint16(1), "iso3166_1_alpha_numeric", false}, // unassigned
+		{uint(250), "iso3166_1_alpha_numeric_eu", true},
+		{uint(840), "iso3166_1_alpha_numeric_eu", false}, // US is not in the EU
+		{uint(978), "iso4217_numeric", true},             // EUR
+		{uint32(1), "iso4217_numeric", false},
+	}
+
+	for i, tt := range tests {
+		errs := validate.Var(tt.value, tt.tag)
+		if (tt.expectedNil && errs != nil) || (!tt.expectedNil && errs == nil) {
+			t.Fatalf("Index: %d value: %v tag: %s failed Error: %v", i, tt.value, tt.tag, errs)
+		}
+	}
+}
+
+func TestFilePathAndDirPathTrailingSeparator(t *testing.T) {
+	validate := New()
+	sep := string(os.PathSeparator)
+	missing := filepath.Join(t.TempDir(), "does-not-exist")
+
+	// A non-existent path ending in a separator names a directory, not a file.
+	errs := validate.Var(missing+sep, "filepath")
+	AssertError(t, errs, "", "", "", "", "filepath")
+
+	// A non-existent path without trailing separator is not a dirpath.
+	errs = validate.Var(missing, "dirpath")
+	AssertError(t, errs, "", "", "", "", "dirpath")
+
+	// A non-existent path with trailing separator is a valid dirpath.
+	errs = validate.Var(missing+sep, "dirpath")
+	Equal(t, errs, nil)
+}
+
+func TestFieldLevelGetStructFieldOK2(t *testing.T) {
+	type Test struct {
+		Ptr   *string
+		Val   string
+		A     string `validate:"fl_ok2=Ptr"`
+		B     string `validate:"fl_ok2=Val"`
+		C     string `validate:"fl_ok2=Missing"`
+		NilPt string `validate:"fl_ok2_nil=Ptr"`
+	}
+
+	type result struct {
+		kind     reflect.Kind
+		nullable bool
+		found    bool
+	}
+	got := map[string]result{}
+
+	validate := New()
+	err := validate.RegisterValidation("fl_ok2", func(fl FieldLevel) bool {
+		_, kind, nullable, found := fl.GetStructFieldOK2()
+		got[fl.StructFieldName()] = result{kind, nullable, found}
+		return true
+	})
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("fl_ok2_nil", func(fl FieldLevel) bool {
+		_, kind, nullable, found := fl.GetStructFieldOK2()
+		got[fl.StructFieldName()] = result{kind, nullable, found}
+		return true
+	})
+	Equal(t, err, nil)
+
+	s := "x"
+	Equal(t, validate.Struct(Test{Ptr: &s, Val: "y"}), nil)
+
+	// Non-nil pointer is dereferenced and reported as nullable.
+	Equal(t, got["A"], result{reflect.String, true, true})
+	// Plain value is not nullable.
+	Equal(t, got["B"], result{reflect.String, false, true})
+	// Unknown field is not found.
+	Equal(t, got["C"].found, false)
+
+	Equal(t, validate.Struct(Test{}), nil)
+
+	// Nil pointer stays a pointer and is still found.
+	Equal(t, got["NilPt"], result{reflect.Ptr, true, true})
+}
+
+func TestFieldLevelGetStructFieldOKAdvanced(t *testing.T) {
+	type Inner struct {
+		Name string
+	}
+
+	type Test struct {
+		Inner Inner
+		A     string `validate:"fl_adv=Inner.Name"`
+		B     string `validate:"fl_adv=Inner.Missing"`
+	}
+
+	validate := New()
+	err := validate.RegisterValidation("fl_adv", func(fl FieldLevel) bool {
+		field, kind, found := fl.GetStructFieldOKAdvanced(fl.Parent(), fl.Param())
+		if !found {
+			return false
+		}
+		return kind == reflect.String && field.String() == fl.Field().String()
+	})
+	Equal(t, err, nil)
+
+	errs := validate.Struct(Test{Inner: Inner{Name: "abc"}, A: "abc"})
+	AssertError(t, errs, "Test.B", "Test.B", "B", "B", "fl_adv")
+
+	errs = validate.Struct(Test{Inner: Inner{Name: "abc"}, A: "xyz"})
+	AssertError(t, errs, "Test.A", "Test.A", "A", "A", "fl_adv")
+	AssertError(t, errs, "Test.B", "Test.B", "B", "B", "fl_adv")
+}
+
+func TestOmitNilNilableKinds(t *testing.T) {
+	type Test struct {
+		Slice []int          `validate:"omitnil,min=1"`
+		Map   map[string]int `validate:"omitnil,min=1"`
+	}
+
+	validate := New()
+
+	// Nil slice/map are skipped.
+	errs := validate.Struct(Test{})
+	Equal(t, errs, nil)
+
+	// Empty but non-nil slice/map are validated.
+	errs = validate.Struct(Test{Slice: []int{}, Map: map[string]int{}})
+	AssertError(t, errs, "Test.Slice", "Test.Slice", "Slice", "Slice", "min")
+	AssertError(t, errs, "Test.Map", "Test.Map", "Map", "Map", "min")
+
+	errs = validate.Struct(Test{Slice: []int{1}, Map: map[string]int{"a": 1}})
+	Equal(t, errs, nil)
+}
+
+func TestVarWithKeySkipTags(t *testing.T) {
+	validate := New()
+
+	Equal(t, validate.VarWithKey("field", "", ""), nil)
+	Equal(t, validate.VarWithKey("field", "", "-"), nil)
+
+	errs := validate.VarWithKey("field", "", "required")
+	AssertError(t, errs, "field", "field", "field", "field", "required")
+}
+
+func TestValuerInInterfaceField(t *testing.T) {
+	type Test struct {
+		Data any `validate:"min=3"`
+	}
+
+	validate := New()
+
+	// The Valuer's ValidatorValue is validated, not the wrapper struct.
+	errs := validate.Struct(Test{Data: ValuerTypeWithValueReceiver[string]{Data: "ab"}})
+	AssertError(t, errs, "Test.Data", "Test.Data", "Data", "Data", "min")
+
+	errs = validate.Struct(Test{Data: ValuerTypeWithValueReceiver[string]{Data: "abc"}})
+	Equal(t, errs, nil)
+}
+
+type uuidByteArray [36]byte
+
+func TestUUIDNonStringNonStringer(t *testing.T) {
+	validate := New()
+
+	// Non-string kinds without a String method fall back to reflect.Value.String,
+	// which never yields a valid UUID.
+	var b uuidByteArray
+	copy(b[:], "a987fbc9-4bed-3078-cf07-9141ba07c9f3")
+
+	errs := validate.Var(b, "uuid")
+	AssertError(t, errs, "", "", "", "", "uuid")
+}
+
+type validateFnNonErrorInterface struct{}
+
+func (validateFnNonErrorInterface) Validate() fmt.Stringer { return nil }
+
+func TestValidateFnNonErrorInterfaceReturn(t *testing.T) {
+	type Test struct {
+		Inner validateFnNonErrorInterface `validate:"validateFn=Validate"`
+	}
+
+	errs := New().Struct(Test{})
+	AssertError(t, errs, "Test.Inner", "Test.Inner", "Inner", "Inner", "validateFn")
+}
