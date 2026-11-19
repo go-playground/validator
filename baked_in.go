@@ -3076,9 +3076,9 @@ func isHostnamePort(fl FieldLevel) bool {
 		return false
 	}
 
-	// If host is specified, it should match a DNS name
+	// If host is specified, it should match a DNS name or an IP address
 	if host != "" {
-		return hostnameRegexRFC1123().MatchString(host)
+		return net.ParseIP(host) != nil || hostnameRegexRFC1123().MatchString(host)
 	}
 	return true
 }
