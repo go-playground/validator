@@ -1452,8 +1452,10 @@ can be used to validate a directory path before creating it.
 
 # HostPort
 
-This validates that a string value contains a valid DNS hostname and port that
-can be used to validate fields typically passed to sockets and connections.
+This validates that a string value contains a valid DNS hostname or IP address
+and port that can be used to validate fields typically passed to sockets and
+connections. IPv6 addresses must be enclosed in brackets, as in
+"[2001:db8::1]:80".
 
 	Usage: hostname_port
 
