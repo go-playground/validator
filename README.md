@@ -167,8 +167,8 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | Tag | Description |
 | - | - |
 | base64 | Base64 String |
-| base64url | Base64URL String |
-| base64rawurl | Base64RawURL String |
+| base64url | Base64URL String with required padding |
+| base64rawurl | Base64URL String without padding |
 | bic_iso_9362_2014 | Business Identifier Code (ISO 9362:2014) |
 | bic | Business Identifier Code (ISO 9362:2022) |
 | bcp47_language_tag | Language tag (BCP 47) |
