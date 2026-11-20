@@ -282,6 +282,10 @@ values; think of it like the 'dive' tag, but for map keys instead of values.
 Multidimensional nesting is also supported, each level you wish to validate will
 require another 'keys' and 'endkeys' tag. These tags are only valid for maps.
 
+Struct map values are also validated using their own tags when no validation
+tags follow 'endkeys'. Pointers, interfaces and custom types are unwrapped
+in the same way as other struct fields.
+
 	Usage: dive,keys,othertagvalidation(s),endkeys,valuevalidationtags
 
 Example #1
