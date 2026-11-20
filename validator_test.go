@@ -5972,6 +5972,7 @@ func TestOneOfValidation(t *testing.T) {
 		{f: uint16(6), t: "oneof=5 6"},
 		{f: uint32(6), t: "oneof=5 6"},
 		{f: uint64(6), t: "oneof=5 6"},
+		{f: uintptr(6), t: "oneof=5 6"},
 	}
 
 	for _, spec := range passSpecs {
@@ -6000,6 +6001,8 @@ func TestOneOfValidation(t *testing.T) {
 		{f: uint16(5), t: "oneof=red green"},
 		{f: uint32(5), t: "oneof=red green"},
 		{f: uint64(5), t: "oneof=red green"},
+		{f: uintptr(5), t: "oneof=red green"},
+		{f: uintptr(7), t: "oneof=5 6"},
 	}
 
 	for _, spec := range failSpecs {
@@ -6111,6 +6114,7 @@ func TestNoneOfValidation(t *testing.T) {
 		{f: uint16(6), t: "noneof=7"},
 		{f: uint32(6), t: "noneof=7"},
 		{f: uint64(6), t: "noneof=7"},
+		{f: uintptr(6), t: "noneof=7"},
 	}
 	for _, spec := range passSpecs {
 		t.Logf("%#v", spec)
@@ -6137,6 +6141,7 @@ func TestNoneOfValidation(t *testing.T) {
 		{f: uint16(6), t: "noneof=5 6"},
 		{f: uint32(6), t: "noneof=5 6"},
 		{f: uint64(6), t: "noneof=5 6"},
+		{f: uintptr(6), t: "noneof=5 6"},
 	}
 	for _, spec := range failSpecs {
 		t.Logf("%#v", spec)
