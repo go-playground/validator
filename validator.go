@@ -16,6 +16,7 @@ type validate struct {
 	actualNs       []byte
 	errs           ValidationErrors
 	includeExclude map[string]struct{} // reset only if StructPartial or StructExcept are called, no need otherwise
+	subtrees       map[string]struct{}
 	ffn            FilterFunc
 	slflParent     reflect.Value // StructLevel & FieldLevel
 	slCurrent      reflect.Value // StructLevel & FieldLevel
@@ -88,6 +89,13 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
 func (v *validate) traverseField(ctx context.Context, parent reflect.Value, current reflect.Value, ns []byte, structNs []byte, cf *cField, ct *cTag) {
+	if v.isPartial && v.ffn == nil && !v.hasExcludes {
+		if _, selected := v.subtrees[string(append(structNs, cf.name...))]; selected {
+			// A complete selection includes descendants; restore filtering for siblings.
+			v.isPartial = false
+			defer func() { v.isPartial = true }()
+		}
+	}
 	var typ reflect.Type
 	var kind reflect.Kind
 
