@@ -106,7 +106,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 			return
 		}
 
-		if ct.typeof == typeOmitNil && (kind != reflect.Invalid && current.IsNil()) {
+		if ct.typeof == typeOmitNil && (kind == reflect.Invalid || current.IsNil()) {
 			return
 		}
 
@@ -115,29 +115,6 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 
 		if ct.hasTag {
-			if kind == reflect.Invalid {
-				v.str1 = appendAltName(ns, cf.altName)
-				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
-				} else {
-					v.str2 = v.str1
-				}
-				v.errs = append(v.errs,
-					&fieldError{
-						v:              v.v,
-						tag:            ct.aliasTag,
-						actualTag:      ct.tag,
-						ns:             v.str1,
-						structNs:       v.str2,
-						fieldLen:       uint8(len(cf.altName)),
-						structfieldLen: uint8(len(cf.name)),
-						param:          ct.param,
-						kind:           kind,
-					},
-				)
-				return
-			}
-
 			v.str1 = appendAltName(ns, cf.altName)
 			if v.v.hasTagNameFunc {
 				v.str2 = string(append(structNs, cf.name...))
@@ -145,6 +122,9 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				v.str2 = v.str1
 			}
 			if !ct.runValidationWhenNil {
+				if current.IsValid() {
+					typ = current.Type()
+				}
 				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
@@ -157,14 +137,14 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
-						typ:            current.Type(),
+						typ:            typ,
 					},
 				)
 				return
 			}
 		}
 
-		if kind == reflect.Invalid {
+		if kind == reflect.Invalid && !ct.runValidationWhenNil {
 			return
 		}
 
@@ -180,7 +160,9 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 	}
 
-	typ = current.Type()
+	if current.IsValid() {
+		typ = current.Type()
+	}
 
 OUTER:
 	for {
@@ -259,6 +241,8 @@ OUTER:
 			v.ct = ct
 
 			switch field := v.Field(); field.Kind() {
+			case reflect.Invalid:
+				return
 			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
 				if field.IsNil() {
 					return
@@ -514,6 +498,10 @@ func appendAltName(ns []byte, altName string) string {
 }
 
 func getValue(val reflect.Value) interface{} {
+	if !val.IsValid() {
+		return nil
+	}
+
 	if val.CanInterface() {
 		return val.Interface()
 	}
