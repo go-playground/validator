@@ -795,6 +795,45 @@ func TestAliasTags(t *testing.T) {
 	PanicMatches(t, func() { validate.RegisterAlias("exists!", "gt=5,lt=10") }, "Alias 'exists!' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
+func TestCyclicAliases(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		aliases map[string]string
+	}{
+		{"self", map[string]string{"loop": "loop"}},
+		{"indirect", map[string]string{"loop": "other", "other": "loop"}},
+		{"three aliases", map[string]string{"loop": "second", "second": "third", "third": "loop"}},
+		{"OR alternative", map[string]string{"loop": "required|loop"}},
+		{"map keys", map[string]string{"loop": "dive,keys,loop,endkeys"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := New()
+			for alias, tags := range tc.aliases {
+				v.RegisterAlias(alias, tags)
+			}
+			PanicMatches(t, func() { _ = v.Var("value", "loop") }, "Cyclic alias 'loop' on field ''")
+			PanicMatches(t, func() {
+				_ = v.Struct(struct {
+					Value string `validate:"loop"`
+				}{Value: "value"})
+			}, "Cyclic alias 'loop' on field 'Value'")
+			Equal(t, v.Var("value", "required"), nil)
+		})
+	}
+}
+
+func TestRepeatedAcyclicAliases(t *testing.T) {
+	v := New()
+	v.RegisterAlias("leaf", "min=2")
+	v.RegisterAlias("left", "leaf")
+	v.RegisterAlias("right", "leaf")
+	v.RegisterAlias("both", "left,right")
+	Equal(t, v.Var("good", "both,both"), nil)
+	Equal(t, v.Var("good", "leaf|leaf"), nil)
+	Equal(t, v.Var(map[string]string{"ok": "good"}, "dive,keys,leaf,endkeys,leaf"), nil)
+	NotEqual(t, v.Var("x", "both"), nil)
+}
+
 func TestAliasWithOrOperator(t *testing.T) {
 	validate := New()
 	validate.RegisterAlias("customnum", "numeric")
