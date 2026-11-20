@@ -1408,6 +1408,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "unique",
+			translation: "{0}字段内的值必须唯一",
+			override:    false,
+		},
+		{
 			tag:         "datetime",
 			translation: "{0}的格式必须是{1}",
 			override:    false,
