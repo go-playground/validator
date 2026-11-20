@@ -498,6 +498,9 @@ OUTER:
 
 				return
 			}
+			if ct.runValidationWhenNil && (kind == reflect.Ptr || kind == reflect.Interface) && current.IsNil() {
+				return
+			}
 			ct = ct.next
 		}
 	}
