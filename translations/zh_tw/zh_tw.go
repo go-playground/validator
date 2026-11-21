@@ -1362,6 +1362,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} 必須是有效圖像",
 			override:    false,
 		},
+		{
+			tag:         "mimetype",
+			translation: "{0} 必須是有效MIME類型",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

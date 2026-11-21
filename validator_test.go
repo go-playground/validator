@@ -422,6 +422,49 @@ func TestNameNamespace(t *testing.T) {
 	Equal(t, fe.StructNamespace(), "Namespace.Inner1.Inner2.String[1]")
 }
 
+func TestBlankTagNameFuncOmitsNamespace(t *testing.T) {
+	validate := New(WithTagNameFuncBlankOmit())
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name, _, _ := strings.Cut(fld.Tag.Get("json"), ",")
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
+	type Inner struct {
+		Field string `validate:"required" json:"field"`
+	}
+
+	type Outer struct {
+		Hidden  Inner  `json:"-"`
+		Skipped string `validate:"required" json:"-"`
+	}
+
+	errs := validate.Struct(Outer{})
+	NotEqual(t, errs, nil)
+
+	ve := errs.(ValidationErrors)
+	Equal(t, len(ve), 2)
+
+	AssertError(t, errs, "Outer.field", "Outer.Hidden.Field", "field", "Field", "required")
+	AssertError(t, errs, "Outer", "Outer.Skipped", "", "Skipped", "required")
+
+	fe := getError(ve, "Outer.field", "Outer.Hidden.Field")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "field")
+	Equal(t, fe.StructField(), "Field")
+	Equal(t, fe.Namespace(), "Outer.field")
+	Equal(t, fe.StructNamespace(), "Outer.Hidden.Field")
+
+	fe = getError(ve, "Outer", "Outer.Skipped")
+	NotEqual(t, fe, nil)
+	Equal(t, fe.Field(), "")
+	Equal(t, fe.StructField(), "Skipped")
+	Equal(t, fe.Namespace(), "Outer")
+	Equal(t, fe.StructNamespace(), "Outer.Skipped")
+}
+
 func TestAnonymous(t *testing.T) {
 	validate := New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -648,6 +691,60 @@ func TestStructLevelValidations(t *testing.T) {
 	v4.RegisterStructValidation(StructValidationTestStructSuccess, TestStruct{})
 
 	errs = v4.Struct(tst)
+	Equal(t, errs, nil)
+}
+
+func TestRegisterStructValidationMapRules(t *testing.T) {
+	type MapRulesTestStruct struct {
+		Name string `validate:"required"`
+		Age  int
+	}
+
+	rules := map[string]string{
+		"Name": "omitempty",
+		"Age":  "required,gt=0",
+	}
+
+	validate := New()
+	validate.RegisterStructValidationMapRules(rules, MapRulesTestStruct{})
+
+	// Name's own "required" tag is superseded by the "omitempty" rule, so an
+	// empty Name is now allowed, while Age's rule is enforced.
+	errs := validate.Struct(MapRulesTestStruct{Name: "", Age: 5})
+	Equal(t, errs, nil)
+
+	errs = validate.Struct(MapRulesTestStruct{Name: "", Age: 0})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "MapRulesTestStruct.Age", "MapRulesTestStruct.Age", "Age", "Age", "required")
+
+	errs = validate.Struct(MapRulesTestStruct{Name: "gopher", Age: 5})
+	Equal(t, errs, nil)
+
+	// mutating the map passed to RegisterStructValidationMapRules after
+	// registration must not affect already-registered rules (deep copy).
+	rules["Name"] = "required"
+	errs = validate.Struct(MapRulesTestStruct{Name: "", Age: 5})
+	Equal(t, errs, nil)
+
+	// a struct with no registered rules falls back to its own tags.
+	type NoRulesTestStruct struct {
+		Name string `validate:"required"`
+	}
+	errs = validate.Struct(NoRulesTestStruct{Name: ""})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "NoRulesTestStruct.Name", "NoRulesTestStruct.Name", "Name", "Name", "required")
+
+	// registering against a pointer type applies the same as the value type.
+	v2 := New()
+	v2.RegisterStructValidationMapRules(rules, &MapRulesTestStruct{})
+	errs = v2.Struct(&MapRulesTestStruct{Name: "", Age: 5})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "MapRulesTestStruct.Name", "MapRulesTestStruct.Name", "Name", "Name", "required")
+
+	// non-struct types are silently ignored rather than panicking.
+	v3 := New()
+	v3.RegisterStructValidationMapRules(map[string]string{"Foo": "required"}, 5)
+	errs = v3.Struct(MapRulesTestStruct{Name: "gopher", Age: 5})
 	Equal(t, errs, nil)
 }
 
@@ -1840,6 +1937,26 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	timeDurationInner = &TimeDurationInner{time.Duration(0)}
 	timeDurationOmitemptyTest = &TimeDurationOmitemptyTest{timeDurationInner, time.Duration(0)}
 	errs = validate.Struct(timeDurationOmitemptyTest)
+	Equal(t, errs, nil)
+}
+
+type namedTime time.Time
+
+func TestNeFieldNamedTimeValidation(t *testing.T) {
+	// nefield accepts any type convertible to time.Time, per its own guard.
+	type Test struct {
+		Start namedTime
+		End   namedTime `validate:"nefield=Start"`
+	}
+
+	validate := New()
+	now := namedTime(time.Now())
+
+	errs := validate.Struct(Test{Start: now, End: now})
+	NotEqual(t, errs, nil)
+	AssertError(t, errs.(ValidationErrors), "Test.End", "Test.End", "End", "End", "nefield")
+
+	errs = validate.Struct(Test{Start: now, End: namedTime(time.Now().Add(time.Hour))})
 	Equal(t, errs, nil)
 }
 
@@ -4180,6 +4297,43 @@ func TestUUID5Validation(t *testing.T) {
 	}
 }
 
+func TestUUID7Validation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
+		{"57b73598-8764-4ad0-a76a-679bb6640eb1", false},
+		{"018f6c1a-2a3b-7c4d-ce5f-1a2b3c4d5e6f", false},
+		{"018F6C1A-2A3B-7C4D-8E5F-1A2B3C4D5E6F", false},
+		{"017f22e2-79b0-7cc3-98c4-dc0c0c07398f", true},
+		{"018f6c1a-2a3b-7c4d-8e5f-1a2b3c4d5e6f", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "uuid7")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "uuid7" {
+					t.Fatalf("Index: %d UUID7 failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestUUID4Validation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -4281,6 +4435,7 @@ func TestUUIDValidation(t *testing.T) {
 		{"987fbc9-4bed-3078-cf07a-9141ba07c9f3", false},
 		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
+		{"2830923A-E5F5-4178-9700-787586673E0D", true},
 	}
 
 	validate := New()
@@ -4506,6 +4661,58 @@ func TestULIDValidation(t *testing.T) {
 					t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
 				}
 			}
+		}
+	}
+}
+
+func TestULIDRangeValidation(t *testing.T) {
+	// The ULID specification limits the first Base32 digit to 0-7.
+	validate := New()
+
+	for _, first := range "0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz" {
+		value := string(first) + strings.Repeat("Z", 25)
+		expected := first >= '0' && first <= '7'
+
+		errs := validate.Var(value, "ulid")
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Var(%q) failed Error: %s", value, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: value})
+		if (errs == nil) != expected {
+			t.Fatalf("ULID Struct(%q) failed Error: %s", value, errs)
+		}
+	}
+
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{strings.Repeat("0", 26), true},
+		{"7" + strings.Repeat("z", 25), true},
+		{"01bX5zzKBkACTav9weVGEmMvrZ", true},
+		{"7" + strings.Repeat("Z", 24), false},
+		{"7" + strings.Repeat("Z", 26), false},
+		{"7" + strings.Repeat("Z", 24) + "I", false},
+		{"7" + strings.Repeat("Z", 24) + "L", false},
+		{"7" + strings.Repeat("Z", 24) + "O", false},
+		{"7" + strings.Repeat("Z", 24) + "U", false},
+		{"", false},
+	}
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "ulid")
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(struct {
+			ID string `validate:"ulid"`
+		}{ID: test.param})
+		if (errs == nil) != test.expected {
+			t.Fatalf("Index: %d ULID failed Error: %s", i, errs)
 		}
 	}
 }
@@ -5882,6 +6089,133 @@ func TestOneOfCIValidation(t *testing.T) {
 	Equal(t, panicCount, len(panicSpecs))
 }
 
+func TestNoneOfValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "", t: "noneof=red green"},
+		{f: "yellow", t: "noneof=red green"},
+		{f: "green", t: "noneof='red green' blue"},
+		{f: 5, t: "noneof=red green"},
+		{f: 6, t: "noneof=red green"},
+		{f: 6, t: "noneof=7"},
+		{f: int8(5), t: "noneof=red green"},
+		{f: int16(5), t: "noneof=red green"},
+		{f: int32(5), t: "noneof=red green"},
+		{f: int64(5), t: "noneof=red green"},
+		{f: uint(6), t: "noneof=7"},
+		{f: uint8(6), t: "noneof=7"},
+		{f: uint16(6), t: "noneof=7"},
+		{f: uint32(6), t: "noneof=7"},
+		{f: uint64(6), t: "noneof=7"},
+	}
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "red", t: "noneof=red green"},
+		{f: "green", t: "noneof=red green"},
+		{f: "red green", t: "noneof='red green' blue'"},
+		{f: "blue", t: "noneof='red green' blue'"},
+		{f: 5, t: "noneof=5 6"},
+		{f: 6, t: "noneof=5 6"},
+		{f: int8(6), t: "noneof=5 6"},
+		{f: int16(6), t: "noneof=5 6"},
+		{f: int32(6), t: "noneof=5 6"},
+		{f: int64(6), t: "noneof=5 6"},
+		{f: uint(6), t: "noneof=5 6"},
+		{f: uint8(6), t: "noneof=5 6"},
+		{f: uint16(6), t: "noneof=5 6"},
+		{f: uint32(6), t: "noneof=5 6"},
+		{f: uint64(6), t: "noneof=5 6"},
+	}
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "noneof")
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(3.14, "noneof=red green")
+	}, "Bad field type float64")
+}
+
+func TestNoneOfCIValidation(t *testing.T) {
+	validate := New()
+
+	passSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "", t: "noneofci=red green"},
+		{f: "yellow", t: "noneofci=red green"},
+		{f: "green", t: "noneofci='red yellow' blue"},
+		{f: "RED", t: "noneofci=blue green"},
+		{f: "RED", t: "noneofci=BLUE GREEN"},
+		{f: "ReD", t: "noneofci=BLUE GREEN"},
+		{f: "gReEn", t: "noneofci=rEd BlUe"},
+		{f: "red Green", t: "noneofci='BLUE YELLOW' Orange"},
+		{f: "Red green", t: "noneofci='Blue Yellow' ORANGE"},
+		{f: "rEd GrEeN", t: "noneofci='bLuE YeLlOw' OrAnGe"},
+		{f: "BlUe", t: "noneofci='RED GREEN' Yellow"},
+		{f: "bLuE", t: "noneofci='red green' YELLOW"},
+	}
+	for _, spec := range passSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		Equal(t, errs, nil)
+	}
+
+	failSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: "red", t: "noneofci=red green"},
+		{f: "green", t: "noneofci=red green"},
+		{f: "red green", t: "noneofci='red green' blue'"},
+	}
+	for _, spec := range failSpecs {
+		t.Logf("%#v", spec)
+		errs := validate.Var(spec.f, spec.t)
+		AssertError(t, errs, "", "", "", "", "noneofci")
+	}
+
+	panicSpecs := []struct {
+		f any
+		t string
+	}{
+		{f: 3.14, t: "noneofci=red green"},
+		{f: 5, t: "noneofci=red green"},
+		{f: int8(5), t: "noneofci=red green"},
+		{f: int16(5), t: "noneofci=red green"},
+		{f: int32(5), t: "noneofci=red green"},
+		{f: int64(5), t: "noneofci=red green"},
+		{f: uint(5), t: "noneofci=red green"},
+		{f: uint8(5), t: "noneofci=red green"},
+		{f: uint16(5), t: "noneofci=red green"},
+		{f: uint32(5), t: "noneofci=red green"},
+		{f: uint64(5), t: "noneofci=red green"},
+	}
+	panicCount := 0
+	for _, spec := range panicSpecs {
+		t.Logf("%#v", spec)
+		PanicMatches(t, func() {
+			_ = validate.Var(spec.f, spec.t)
+		}, fmt.Sprintf("Bad field type %T", spec.f))
+		panicCount++
+	}
+	Equal(t, panicCount, len(panicSpecs))
+}
+
 func TestBase32Validation(t *testing.T) {
 	validate := New()
 
@@ -6175,6 +6509,153 @@ func TestImageValidation(t *testing.T) {
 
 	PanicMatches(t, func() {
 		_ = validate.Var(6, "image")
+	}, "Bad field type int")
+}
+
+func TestMIMETypeValidation(t *testing.T) {
+	validate := New()
+
+	tmpDir := t.TempDir()
+
+	paths := map[string]string{
+		"empty":     "",
+		"directory": "testdata",
+		"missing":   filepath.Join(tmpDir, "none.png"),
+		"png":       filepath.Join(tmpDir, "image.png"),
+		"jpeg":      filepath.Join(tmpDir, "image.jpg"),
+		"go":        filepath.Join("testdata", "a.go"),
+	}
+
+	tests := []struct {
+		title      string
+		param      string
+		tag        string
+		expected   bool
+		createFile func()
+	}{
+		{
+			title:      "empty path",
+			param:      paths["empty"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
+		},
+		{
+			title:      "directory, not a file",
+			param:      paths["directory"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
+		},
+		{
+			title:      "missing file",
+			param:      paths["missing"],
+			tag:        "mimetype=image/png",
+			expected:   false,
+			createFile: func() {},
+		},
+		{
+			title:    "exact png match",
+			param:    paths["png"],
+			tag:      "mimetype=image/png",
+			expected: true,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:    "type wildcard png match",
+			param:    paths["png"],
+			tag:      "mimetype=image/*",
+			expected: true,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:    "type wildcard jpeg match",
+			param:    paths["jpeg"],
+			tag:      "mimetype=image/*",
+			expected: true,
+			createFile: func() {
+				var opt jpeg.Options
+				img := image.NewGray(image.Rect(0, 0, 10, 10))
+				f, err := os.Create(paths["jpeg"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = jpeg.Encode(f, img, &opt)
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:      "type mismatch",
+			param:      paths["go"],
+			tag:        "mimetype=image/*",
+			expected:   false,
+			createFile: func() {},
+		},
+		{
+			title:    "subtype mismatch",
+			param:    paths["png"],
+			tag:      "mimetype=image/jpeg",
+			expected: false,
+			createFile: func() {
+				img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{10, 10}})
+				f, err := os.Create(paths["png"])
+				Equal(t, err, nil)
+				defer func() {
+					_ = f.Close()
+				}()
+
+				err = png.Encode(f, img)
+				Equal(t, err, nil)
+			},
+		},
+		{
+			title:      "invalid validator param missing subtype",
+			param:      paths["go"],
+			tag:        "mimetype=image",
+			expected:   false,
+			createFile: func() {},
+		},
+	}
+
+	for _, test := range tests {
+		test.createFile()
+		errs := validate.Var(test.param, test.tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(6, "mimetype=image/png")
 	}, "Bad field type int")
 }
 
@@ -7713,6 +8194,10 @@ func TestLength(t *testing.T) {
 	validate := New()
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "len") }, "Bad field type bool")
+
+	var f32 float32 = 5
+	Equal(t, validate.Var(f32, "len=5"), nil)
+	NotEqual(t, validate.Var(f32, "len=6"), nil)
 }
 
 func TestIsGt(t *testing.T) {
@@ -7730,6 +8215,11 @@ func TestIsGt(t *testing.T) {
 
 	var ui uint = 5
 	errs = validate.Var(ui, "gt=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gt")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "gt=5")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gt")
 
@@ -7817,6 +8307,26 @@ func TestIsGt(t *testing.T) {
 func TestIsGte(t *testing.T) {
 	var errs error
 	validate := New()
+
+	myMap := map[string]string{}
+	errs = validate.Var(myMap, "gte=1")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	f := 1.23
+	errs = validate.Var(f, "gte=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	var ui uint = 5
+	errs = validate.Var(ui, "gte=10")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "gte=5")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "gte")
 
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
@@ -8134,6 +8644,11 @@ func TestIsLt(t *testing.T) {
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "lt=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lt")
+
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "lt") }, "Bad field type bool")
 
@@ -8219,6 +8734,26 @@ func TestIsLt(t *testing.T) {
 func TestIsLte(t *testing.T) {
 	var errs error
 	validate := New()
+
+	myMap := map[string]string{"key": "value"}
+	errs = validate.Var(myMap, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	f := 1.23
+	errs = validate.Var(f, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	var ui uint = 5
+	errs = validate.Var(ui, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
+
+	var f32 float32 = 1.23
+	errs = validate.Var(f32, "lte=0")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "lte")
 
 	i := true
 	PanicMatches(t, func() { _ = validate.Var(i, "lte") }, "Bad field type bool")
@@ -8348,6 +8883,83 @@ func TestUrnRFC2141(t *testing.T) {
 	}
 
 	tag := "urn_rfc2141"
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, tag)
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != tag {
+					t.Fatalf("Index: %d URN failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, tag) }, "Bad field type int")
+}
+
+func TestUrnRFC8141(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5", true},
+		{"urn:nid:nss/", true},
+		{"urn:nid:nss&", true},
+		{"urn:example:1/406/47452/2", true},
+		{"urn:example:foo-bar-baz-qux?+CCResolve:cc=uk", true},
+		{"urn:example:foo-bar-baz-qux?+&", true},
+		{"urn:example:foo-bar-baz-qux?+%16CCResolve:cc=uk", true},
+		{"urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z", true},
+		{"urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag?some/slash/~%D0", true},
+		{"urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag", true},
+		{"URN:signs:()+,-.:=@;$_!*alnum123456789", true},
+		{"URN:abcd-abcd:x", true},
+		{"urn:urnx:urn", true},
+		{"urn:ciao:a:b:c", true},
+		{"urn:aaa:x:y:", true},
+		{"urn:ciao:-", true},
+		{"urn:colon:::::nss", true},
+		{"urn:ciao:@!=%2C(xyz)+a,b.*@g=$_'", true},
+		{"URN:hexes:%25", true},
+		{"URN:xyz:abc%1Dz%2F%3az", true},
+		{"URN:foo:a123,456", true},
+		{"urn:foo:a123,456", true},
+		{"urn:FOO:a123,456", true},
+		{"urn:foo:A123,456", true},
+		{"urn:foo:a123%2C456", true},
+		{"URN:FOO:a123%2c456", true},
+		{"URN:FOO:ABC%FFabc123%2c456", true},
+		{"URN:FOO:ABC%FFabc123%2C456%9A", true},
+		{"urn:ietf:params:scim:schemas:core:2.0:User", true},
+		{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified", true},
+		{"urn:urn-7:informal", true},
+		{"", false},
+		{"urn:aa:", false},
+		{"URN:x:abc%1Dz%2F%3az", false},
+		{"urn:123456789-1234567890-abcdefghilmn:o", false},
+		{"urn:ex:ex?+a?+", false},
+		{"urn:xn--:nss", false},
+		{"urn:a:nss", false},
+		{"URN:trailing-:w", false},
+		{"URN:-leading:w", false},
+		{"urn:urn-s:nss", false},
+		{"urn:urn-0:nss", false},
+		{"urn:", false},
+	}
+
+	tag := "urn_rfc8141"
 
 	validate := New()
 
@@ -8661,6 +9273,138 @@ func TestUri(t *testing.T) {
 
 	i := 1
 	PanicMatches(t, func() { _ = validate.Var(i, "uri") }, "Bad field type int")
+}
+
+func TestOrigin(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		// Valid HTTP origins
+		{"http://example.com", true},
+		{"http://app.example.com", true},
+		{"http://example.com:8080", true},
+		{"http://localhost", true},
+		{"http://localhost:3000", true},
+		{"http://127.0.0.1", true},
+		{"http://127.0.0.1:8080", true},
+
+		// Valid HTTPS origins
+		{"https://example.com", true},
+		{"https://app.example.com", true},
+		{"https://example.com:8443", true},
+		{"https://example.com:443", true},
+		{"https://sub.domain.example.com", true},
+		{"https://example.co.uk", true},
+		{"https://xn--nxasmq6b.example.com", true}, // punycode (IDN)
+
+		// Valid IPv6 origins
+		{"http://[::1]", true},
+		{"http://[::1]:8080", true},
+		{"https://[2001:db8::1]", true},
+		{"https://[2001:db8::1]:8443", true},
+
+		// Invalid: wrong scheme
+		{"ftp://example.com", false},
+		{"file://example.com", false},
+		{"javascript://example.com", false},
+		{"data://example.com", false},
+		{"ws://example.com", false},
+		{"wss://example.com", false},
+		{"ssh://example.com", false},
+		{"mailto:user@example.com", false},
+		{"tel:+1234567890", false},
+
+		// Invalid: missing scheme
+		{"example.com", false},
+		{"app.example.com", false},
+		{"//example.com", false},
+		{"://example.com", false},
+
+		// Invalid: missing host
+		{"https://", false},
+		{"http://", false},
+		{"https:///path", false},
+		{"https://:8080", false},
+
+		// Invalid: has path
+		{"https://example.com/", false},
+		{"https://example.com/path", false},
+		{"https://example.com/path/to/resource", false},
+		{"http://example.com/", false},
+		{"https://example.com/a", false},
+
+		// Invalid: has query
+		{"https://example.com?foo=bar", false},
+		{"https://example.com?", false},
+		{"http://example.com?q=1&r=2", false},
+
+		// Invalid: has fragment
+		{"https://example.com#section", false},
+		{"https://example.com#", false},
+		{"http://example.com#top", false},
+		{"https://example.com%23", false},
+
+		// Invalid: combinations of path/query/fragment
+		{"https://example.com/path?q=1", false},
+		{"https://example.com/path#frag", false},
+		{"https://example.com/?q=1#frag", false},
+		{"https://example.com/path?q=1#frag", false},
+
+		// Invalid: malformed or meaningless
+		{"", false},
+		{" ", false},
+		{"not a url", false},
+		{"https:example.com", false},  // missing //
+		{"https:/example.com", false}, // single /
+		{"https//example.com", false}, // missing :
+		{"://", false},
+		{"http://  ", false}, // whitespace host
+		{"*", false},
+		{"https://*", false},
+
+		// Invalid: userinfo in URL (not valid in origin)
+		{"https://user:pass@example.com", false},
+		{"https://user@example.com", false},
+
+		// Case sensitivity and port boundary cases
+		{"HTTPS://example.com", true},        // uppercase scheme, Parse normalizes
+		{"https://EXAMPLE.COM", true},        // uppercase host, valid per RFC
+		{"https://example.com:65535", true},  // max valid port
+		{"https://example.com:0", false},     // port 0 isn't valid in the context of a web origin
+		{"https://example.com:65536", false}, // port out of range
+		{"https://example.com:-1", false},    // negative port
+		{"https://example.com:abc", false},   // non-numeric port
+		{"http://example-.com", false},
+		{"http://-sub.example.com", false},
+		{"http://sub-.example.com", false},
+		{"http://example..com", false},
+		{"http://example.com.", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "origin")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "origin" {
+					t.Fatalf("Index: %d %q origin failed Error: %s", i, test.param, errs)
+				}
+			}
+		}
+	}
+
+	i := 1
+	PanicMatches(t, func() { _ = validate.Var(i, "origin") }, "Bad field type int")
 }
 
 func TestOrTag(t *testing.T) {
@@ -9370,6 +10114,68 @@ func TestAlphaNumericSpace(t *testing.T) {
 	errs = validate.Var(1.23, "alphanumspace")
 	NotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alphanumspace")
+}
+
+func TestDuration(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"1s", true},
+		{"300ms", true},
+		{"-1.5h", true},
+		{"2h45m", true},
+		{"0", true},
+		{"-0", true},
+		{"+5s", true},
+		{"1h2m3.5s", true},
+		{"100ns", true},
+		{"1.5us", true},
+		{"1µs", true},
+		{"1μs", true},
+		{".5s", true},
+		{"1.s", true},
+		{"2562047h", true},
+		{"s", false},
+		{"", false},
+		{"1", false},
+		{"1d", false},
+		{"1S", false},
+		{"1 s", false},
+		{" 1s", false},
+		{"1s ", false},
+		{"--1s", false},
+		{".s", false},
+		{"1e3s", false},
+		{"1h-1m", false},
+		{"2562048h", false},
+		{"9223372036854775808ns", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "duration")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "duration" {
+					t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	errs := validate.Var(time.Second, "duration")
+	NotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "duration")
 }
 
 func TestStructStringValidation(t *testing.T) {
@@ -10505,6 +11311,8 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"abc1234", true},
 		{"example. com", false},
 		{"ex ample.com", false},
+		{"foo-.example.com", false}, // label ends with '-' (RFC 952)
+		{"host-.tld", false},
 	}
 
 	validate := New()
@@ -10553,6 +11361,18 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 		{"2001:cdba:0000:0000:0000:0000:3257:9652", false},
 		{"2001:cdba:0:0:0:0:3257:9652", false},
 		{"2001:cdba::3257:9652", false},
+		{"", false},
+		{"-example.com", false},
+		{"example-.com", false},
+		{"foo.-bar.com", false},
+		{"foo.bar-.com", false},
+		{"example..com", false},
+		{".example.com", false},
+		{"foo.bar baz", false},
+		{"foo.bar/baz", false},
+		{"foo.bar:80", false},
+		{"foo$.example.com", false},
+		{"this-is-a-deliberately-overlong-subdomain-used-for-boundary-test.example.com", false},
 	}
 
 	validate := New()
@@ -10626,7 +11446,61 @@ func TestHostnameRFC1123AliasValidation(t *testing.T) {
 	}
 }
 
+func TestHostnameLabelValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"a", true}, // one character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true},   // 63 character.
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false}, // 64 character.
+		{"test", true},
+		{"2example", true},
+		{"example2", true},
+		{"57", true},
+		{"a.b.c", false},
+		{"complete.domain.name", false},
+		{"example.com", false},
+		{"1.test.com", false},
+		{"-invalid", false},
+		{"invalid-", false},
+		{".invalid", false},
+		{"invalid.", false},
+		{"192.168.0.1", false},
+		{"luznoceda", true},
+		{"akkoxdiana", true},
+		{"example-label", true},
+		{"example:80", false},
+		{"a$b", false},
+		{"this-is-another-deliberately-overlong-subdomain-used-for-boundary-test", false},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.param, "hostname_label")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("Hostname Label: %v failed Error: %v", test, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "hostname_label" {
+					t.Fatalf("Hostname Label: %v failed Error: %v", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestFQDNValidation(t *testing.T) {
+	maxFQDN := strings.Repeat(strings.Repeat("a", 63)+".", 3) + strings.Repeat("a", 61)
+
 	tests := []struct {
 		param    string
 		expected bool
@@ -10644,6 +11518,10 @@ func TestFQDNValidation(t *testing.T) {
 		{"24.example24.com", true},
 		{"test.24.example.com", true},
 		{"test-site-http.test-site", true},
+		{maxFQDN, true},
+		{maxFQDN + ".", true},
+		{maxFQDN + "a", false},
+		{maxFQDN + "a.", false},
 		{"test24.example24.com..", false},
 		{"example", false},
 		{"192.168.0.1", false},
@@ -11532,6 +12410,60 @@ func TestEndsWithValidation(t *testing.T) {
 	}
 }
 
+func TestStartsNotWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"startsnotwith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "abcd", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "startsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
+func TestEndsNotWithValidation(t *testing.T) {
+	tests := []struct {
+		Value       string `validate:"endsnotwith=(/^ヮ^)/*:・ﾟ✧"`
+		Tag         string
+		ExpectedNil bool
+	}{
+		{Value: "(/^ヮ^)/*:・ﾟ✧ glitter", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: true},
+		{Value: "glitter (/^ヮ^)/*:・ﾟ✧", Tag: "endsnotwith=(/^ヮ^)/*:・ﾟ✧", ExpectedNil: false},
+	}
+
+	validate := New()
+
+	for i, s := range tests {
+		errs := validate.Var(s.Value, s.Tag)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+
+		errs = validate.Struct(s)
+
+		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
+			t.Fatalf("Index: %d failed Error: %s", i, errs)
+		}
+	}
+}
+
 func TestRequiredIf(t *testing.T) {
 	type Inner struct {
 		Field *string
@@ -12120,6 +13052,36 @@ func TestExcludedWithout(t *testing.T) {
 
 	errs = validate.Struct(test3)
 	Equal(t, errs, nil)
+
+	// Multiple parameters: the field is excluded only when one of them is absent.
+	test4 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field2: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test4)
+	Equal(t, errs, nil)
+
+	test5 := struct {
+		Field1 string `validate:"excluded_without=Field2 Field3" json:"field_1"`
+		Field2 string `json:"field_2"`
+		Field3 string `json:"field_3"`
+	}{
+		Field1: "test",
+		Field3: "test",
+	}
+
+	errs = validate.Struct(&test5)
+	NotEqual(t, errs, nil)
+
+	ve = errs.(ValidationErrors)
+	Equal(t, len(ve), 1)
+	AssertError(t, errs, "Field1", "Field1", "Field1", "Field1", "excluded_without")
 }
 
 func TestExcludedWithAll(t *testing.T) {
@@ -13073,28 +14035,73 @@ func Test_hostnameport_validator(t *testing.T) {
 }
 
 func Test_port_validator(t *testing.T) {
+	type Port int64
+
 	type Host struct {
-		Port uint32 `validate:"port"`
+		Port interface{} `validate:"port"`
 	}
 
-	type testInput struct {
-		data     uint32
+	tests := []struct {
+		name     string
+		value    interface{}
 		expected bool
+	}{
+		{"uint32 zero", uint32(0), false},
+		{"uint32 minimum", uint32(1), true},
+		{"uint32 maximum", uint32(65535), true},
+		{"uint32 above maximum", uint32(65536), false},
+		{"uint valid", uint(8080), true},
+		{"uint8 valid", uint8(80), true},
+		{"uint16 maximum", uint16(65535), true},
+		{"uint64 maximum value", ^uint64(0), false},
+		{"uintptr valid", uintptr(8080), true},
+		{"int valid", int(8080), true},
+		{"int negative", int(-1), false},
+		{"int zero", int(0), false},
+		{"int minimum", int(1), true},
+		{"int maximum", int(65535), true},
+		{"int above maximum", int(65536), false},
+		{"int8 valid", int8(80), true},
+		{"int8 negative", int8(-1), false},
+		{"int16 valid", int16(8080), true},
+		{"int16 negative", int16(-1), false},
+		{"int32 valid", int32(8080), true},
+		{"int32 above maximum", int32(65536), false},
+		{"int64 valid", int64(8080), true},
+		{"int64 negative", int64(-1), false},
+		{"int64 large value", int64(1 << 32), false},
+		{"named integer valid", Port(8080), true},
+		{"named integer negative", Port(-1), false},
 	}
-	testData := []testInput{
-		{0, false},
-		{1, true},
-		{65535, true},
-		{65536, false},
-		{65538, false},
+
+	validate := New()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validate.Struct(Host{Port: tt.value})
+			if (err == nil) != tt.expected {
+				t.Fatalf("port %v (%T): expected valid=%v, got error %v", tt.value, tt.value, tt.expected, err)
+			}
+		})
 	}
-	for _, td := range testData {
-		h := Host{Port: td.data}
-		v := New()
-		err := v.Struct(h)
-		if td.expected != (err == nil) {
-			t.Fatalf("Test failed for data: %v Error: %v", td.data, err)
-		}
+}
+
+func Test_port_validator_unsupported_types(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    interface{}
+		expected string
+	}{
+		{"string", "8080", "Bad field type string"},
+		{"float", float64(8080), "Bad field type float64"},
+		{"bool", true, "Bad field type bool"},
+		{"slice", []int{8080}, "Bad field type []int"},
+	}
+
+	validate := New()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			PanicMatches(t, func() { _ = validate.Var(tt.value, "port") }, tt.expected)
+		})
 	}
 }
 
@@ -13638,6 +14645,7 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 		{"az-Cyrl-AZ", "bcp47_language_tag", true},
 		{"en-029", "bcp47_language_tag", true},
 		{"xog", "bcp47_language_tag", true},
+		{"i-klingon", "bcp47_language_tag", true},
 	}
 
 	validate := New()
@@ -13663,6 +14671,147 @@ func TestBCP47LanguageTagValidation(t *testing.T) {
 
 	PanicMatches(t, func() {
 		_ = validate.Var(2, "bcp47_language_tag")
+	}, "Bad field type int")
+}
+
+func TestBCP47StrictLanguageTagValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"bcp47_strict_language_tag"`
+		expected bool
+	}{
+		// VALID
+		//
+		{"en-US", true},
+		{"es", true},
+		{"az-Cyrl-AZ", true},
+		{"en-029", true},
+		{"xog", true},
+		{"i-klingon", true},
+		{"zh-min-nan", true},
+		{"x-foobar", true},
+
+		// script
+		{"it-Aran", true},
+
+		// region
+		{"it-Aran-142", true},
+		{"it-Aran-IT", true},
+
+		// variant
+		{"frm-Aran-FR-1606nict", true},
+
+		// extension
+		{"frm-Aran-FR-a-1234567c", true},
+		{"frm-Aran-FR-b-ab", true},
+		{"frm-Aran-FR-a-12345678-12345678", true},
+
+		// privateuse
+		{"frm-Aran-FR-x-a", true},
+		{"frm-Aran-FR-x-1234567a", true},
+		{"frm-Aran-FR-x-1234567a-abcde", true},
+
+		// From RFC Appendix A.
+		//
+		// Simple language subtag:
+		{"de", true},         // German
+		{"fr", true},         // French
+		{"ja", true},         // Japanese
+		{"i-enochian", true}, // example of a grandfathered tag
+		// Language subtag plus Script subtag:
+		{"zh-Hant", true}, // Chinese written using the Traditional Chinese script
+		{"zh-Hans", true}, // Chinese written using the Simplified Chinese script
+		{"sr-Cyrl", true}, // Serbian written using the Cyrillic script
+		{"sr-Latn", true}, // Serbian written using the Latin script
+		// Extended language subtags and their primary language subtag counterparts:
+		{"zh-cmn-Hans-CN", true}, // Chinese, Mandarin, Simplified script, as used in China
+		{"cmn-Hans-CN", true},    // Mandarin Chinese, Simplified script, as used in China
+		{"zh-yue-HK", true},      // Chinese, Cantonese, as used in Hong Kong SAR
+		{"yue-HK", true},         // Cantonese Chinese, as used in Hong Kong SAR
+		// Language-Script-Region:
+		{"zh-Hans-CN", true}, // Chinese written using the Simplified script as used in mainland China
+		{"sr-Latn-RS", true}, // Serbian written using the Latin script as used in Serbia
+		// Language-Variant:
+		{"sl-rozaj", true},       // Resian dialect of Slovenian
+		{"sl-rozaj-biske", true}, // San Giorgio dialect of Resian dialect of Slovenian
+		{"sl-nedis", true},       // Nadiza dialect of Slovenian
+		// Language-Region-Variant:
+		{"de-CH-1901", true},  // German as used in Switzerland using the 1901 variant (orthography)
+		{"sl-IT-nedis", true}, // Slovenian as used in Italy, Nadiza dialect
+		// Language-Script-Region-Variant:
+		{"hy-Latn-IT-arevela", true}, // Eastern Armenian written in Latin script, as used in Italy
+		// Language-Region:
+		{"de-DE", true},  // German for Germany
+		{"en-US", true},  // English as used in the United States
+		{"es-419", true}, // Spanish appropriate for the Latin America and Caribbean region using the UN region code
+		// Private use subtags:
+		{"de-CH-x-phonebk", true},       // private use subtag
+		{"az-Arab-x-AZE-derbend", true}, // private use subtag
+		// Private use registry values:
+		{"x-whatever", true},             // private use using the singleton 'x'
+		{"qaa-Qaaa-QM-x-southern", true}, // all private tags
+		{"de-Qaaa", true},                // German, with a private script
+		{"sr-Latn-QM", true},             // Serbian, Latin script, private region
+		{"sr-Qaaa-RS", true},             // Serbian, private script, for Serbia
+
+		// INVALID
+		//
+		// language
+		{"English", false},
+		{"AmericanEnglish", false}, // too long
+		{"ESES", false},            // 4 chars are reserved for future use
+		{"ita", false},             // valid but not shortest ISO 639 code
+		{"en_GB", false},
+		{"eng", false},
+		{"xfoobar", false},
+		{"x-123456789", false},
+
+		// script
+		{"it-Aram", false}, // "Aram" is not a valid script
+
+		// region
+		{"it-Aran-ITA", false}, // "ITA" is not a valid ISO 3166-1 alpha2 code
+		{"it-Aran-380", false}, // "380" is a valid UN M.49 region code, but it's not in the IANA language subtag registry
+
+		// variant
+
+		// "1606nict" SHOULD be used prefix "frm", but it's still
+		// valid: https://www.rfc-editor.org/rfc/rfc5646.html#section-3.1.8
+		// https://github.com/go-playground/validator/pull/1489#issuecomment-4204814263
+		{"it-Aran-FR-1606nict", true},
+
+		// extension
+		{"frm-Aran-FR-a-12345678a", false},          // too long
+		{"frm-Aran-FR-b-a", false},                  // too short
+		{"frm-Aran-FR-a-12345678-12345678a", false}, // second extension too long
+
+		// privateuse
+		{"frm-Aran-FR-x-12345678a", false}, // too long
+		{"frm-Aran-FR-x-", false},          // too short
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+		errs := validate.Var(test.value, "bcp47_strict_language_tag")
+
+		if test.expected {
+			if !IsEqual(errs, nil) {
+				t.Fatalf("'%s' should be valid (index %d). Error: %s", test.value, i, errs)
+			}
+		} else {
+			if IsEqual(errs, nil) {
+				t.Fatalf("'%s' should not be valid (index %d)", test.value, i)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "bcp47_strict_language_tag" {
+					t.Fatalf("'%s' (index %d) failed with validator other than 'bcp47_strict_language_tag'. Error: %s", test.value, i, errs)
+				}
+			}
+		}
+	}
+
+	PanicMatches(t, func() {
+		_ = validate.Var(2, "bcp47_strict_language_tag")
 	}, "Bad field type int")
 }
 
@@ -13876,6 +15025,10 @@ func TestCveFormatValidation(t *testing.T) {
 		{"CVE-3000-0001", "cve", false},
 		{"CVE-1999-0000", "cve", false},
 		{"CVE-2099-0000", "cve", false},
+		{"CVE-2020-0a00", "cve", false},
+		{"CVE-2020-0/00", "cve", false},
+		{"CVE-2020-00a0", "cve", false},
+		{"CVE-2020-000z", "cve", false},
 	}
 
 	validate := New()
@@ -13946,18 +15099,89 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		value    string
 		expected bool
 	}{
+		"AL": {
+			{"1234", true},
+			{"12345", false},
+		},
+		"GB": {
+			{"EC1A 1BB", true},
+			{"CF10 1B1H", false},
+			// the pattern's top level `|` sits between `^` and `$`, so the
+			// non-`GIR` branches were not anchored and any string ending in a
+			// valid postcode, or in a BFPO number, was accepted
+			{"junkEC1A 1BB", false},
+			{"prefixBFPO 1234", false},
+			{"BFPO 1234", true},
+			{"EC1A 1BBjunk", false},
+		},
+		"GI": {
+			{"GI12 3AB", true},
+			{"GI1 1AA", true},
+			{"12345", false},
+		},
+		"IE": {
+			{"H54 RX46", true},
+			{"D6W E4E2", true},
+			{"H54RX46", true},
+			{"12345", false},
+		},
+		"IL": {
+			{"64928", true},
+			{"6492806", true},
+			{"649281", false},
+			{"1234", false},
+			{"ABCDEF", false},
+		},
+		"CR": {
+			{"10101", true},
+			{"12345", true},
+			{"1234", false},
+			{"123456", false},
+			{"123-4567", false},
+			{" 10101", false},
+			{"10101 ", false},
+			{"junk123-4567", false},
+			{"prefix123-4567", false},
+			{"123-4567xyz", false},
+			{"junk12345", false},
+			{"12345junk", false},
+		},
+		"VI": {
+			{"00803", true},
+			{"1234567", false},
+		},
 		"VN": {
 			{"ABC", false},
 			{"700000", true},
 			{"A1", false},
 		},
-		"GB": {
-			{"EC1A 1BB", true},
-			{"CF10 1B1H", false},
-		},
-		"VI": {
-			{"00803", true},
+		"TW": {
+			{"100", true},    // 3 digits (Valid)
+			{"10042", true},  // 5 digits (Valid)
+			{"106409", true}, // 6 digits (Valid)
+			{"040", true},    // Leading zero (Valid)
+			{"12", false},    // Too short
+			{"1234", false},  // 4 digits (Invalid)
 			{"1234567", false},
+			{"100-42", false}, // Contains hyphen (Invalid for strict numeric check)
+			{"abcdef", false}, // Letters (Invalid)
+		},
+		"NG": {
+			{"930283", true},          // former six-digit code
+			{"EK-01-A03-FK-01", true}, // 11-character code, hyphenated
+			{"EK 01 A03 FK 01", true},
+			{"EK01A03FK01", true},
+			{"EK-01 A03-FK-01", true}, // separators may differ
+			{"EK 01-A03 FK 01", true},
+			{"EK-00-A03-FK-01", false}, // LGA runs from 01 to 99
+			{"EK-01-A03-FK-00", false}, // unit runs from 01 to 99
+			{"EK-01-A03-FK-1", false},
+			{"EK-01-A03-FK-011", false},
+			{"E1-01-A03-FK-01", false},
+			{"EK--01-A03-FK-01", false}, // duplicate separator
+			{"-EK-01-A03-FK-01", false}, // leading separator
+			{"EK-01-A03-FK-01-", false}, // trailing separator
+			{"93028", false},
 		},
 		"LC": {
 			// not support regexp for post code
@@ -13966,6 +15190,26 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 		"XX": {
 			// not support country
 			{"123456", false},
+		},
+		"KR": {
+			// five digits since 2015-08-01, the six digit format was abolished
+			{"06236", true},
+			{"03187", true},
+			{"135-080", false},
+			{"135080", false},
+			{"0623", false},
+			{"0623A", false},
+		},
+		"LI": {
+			{"9485", true},
+			{"9497", true},
+			{"9484", false},
+			{"9498", false},
+			// as with GB, the second branch of `^(948[5-9])|(949[0-7])$` fell
+			// outside the `^` assertion, so any string ending in 9490-9497 was
+			// accepted
+			{"9485junk", false},
+			{"x9497", false},
 		},
 	}
 
@@ -13994,13 +15238,24 @@ func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
 		CountryCode interface{}
 		expected    bool
 	}{
+		{"1234", "AL", true},
+		{"12345", "AL", false},
+		{"EC1A 1BB", "GB", true},
+		{"CF10 1B1H", "GB", false},
+		{"GI12 3AB", "GI", true},
+		{"12345", "GI", false},
+		{"H54 RX46", "IE", true},
+		{"D6W E4E2", "IE", true},
+		{"12345", "IE", false},
+		{"64928", "IL", true},
+		{"6492806", "IL", true},
+		{"649281", "IL", false},
+		{"1234", "IL", false},
+		{"00803", "VI", true},
+		{"1234567", "VI", false},
 		{"ABC", "VN", false},
 		{"700000", "VN", true},
 		{"A1", "VN", false},
-		{"EC1A 1BB", "GB", true},
-		{"CF10 1B1H", "GB", false},
-		{"00803", "VI", true},
-		{"1234567", "VI", false},
 		{"123456", "LC", false}, // not support regexp for post code
 		{"123456", "XX", false}, // not support country
 	}
@@ -14600,6 +15855,24 @@ func TestCronExpressionValidation(t *testing.T) {
 		{"0 15 10 ? * 6#3", "cron", true},
 		{"0 */15 * * *", "cron", true},
 		{"wrong", "cron", false},
+		// The regex must match the entire string, not a substring containing
+		// something cron-like. Without `^...$` anchors, arbitrary text wrapped
+		// around a valid cron expression would falsely validate.
+		{"random text @daily more text", "cron", false},
+		{"foo @yearly bar", "cron", false},
+		{"prefix @every 1h suffix", "cron", false},
+		{"x 1 2 3 4 5 y", "cron", false},
+		{"hello world this string has 1 2 3 4 5 numbers", "cron", false},
+		{"not at all valid; trailing junk: * * * * *", "cron", false},
+		// Known limitations: the following inputs still pass because the
+		// regex validates cron *syntax*, not semantics. Catching them would
+		// require a real cron parser (per-field value ranges, an enumerated
+		// list of valid alphabetic tokens like MON/TUE/JAN/FEB, etc.):
+		//   "60 25 32 13 7"           - all numeric fields out of range
+		//   "foo bar baz qux quux"    - nonsense alphabetic tokens, all 2+ chars
+		//   "5- * * * *"              - field with trailing separator
+		//   "0,,1 * * * *"            - field with empty list slot
+		//   "@every 0s"               - zero-duration interval
 	}
 
 	validate := New()
@@ -16059,4 +17332,283 @@ func TestValuerInterface(t *testing.T) {
 			t.Fatalf("Expected no error, got: %v", errs)
 		}
 	})
+}
+
+func TestBCP47StrictDuplicateVariants(t *testing.T) {
+	validate := New()
+	for _, value := range []string{
+		"de-1901-1901", "de-DE-1901-1901", "sl-rozaj-rozaj",
+		"sl-rozaj-biske-rozaj", "sl-ROZAJ-rozaj",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err == nil {
+				t.Errorf("duplicate variant accepted: %s", value)
+			}
+		})
+	}
+	for _, value := range []string{
+		"de-DE-1901", "sl-rozaj-biske", "sl-ROZAJ-biske", "de-1901-x-1901", "de-x-rozaj-rozaj",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err != nil {
+				t.Errorf("valid tag rejected: %s: %v", value, err)
+			}
+		})
+	}
+}
+
+func TestRequiredIfFloat64FieldValidation(t *testing.T) {
+	type Test struct {
+		Price float64
+		Note  string `validate:"required_if=Price 9.99"`
+	}
+
+	validate := New()
+
+	errs := validate.Struct(Test{Price: 9.99})
+	AssertError(t, errs, "Test.Note", "Test.Note", "Note", "Note", "required_if")
+
+	errs = validate.Struct(Test{Price: 9.99, Note: "sale"})
+	Equal(t, errs, nil)
+
+	errs = validate.Struct(Test{Price: 1.5})
+	Equal(t, errs, nil)
+}
+
+func TestOmitZeroNilableKindsValidation(t *testing.T) {
+	type Test struct {
+		Ch chan int `validate:"omitzero,required"`
+		Fn func()   `validate:"omitzero,required"`
+	}
+
+	validate := New()
+
+	// Nil chan/func are zero values and must be skipped.
+	errs := validate.Struct(Test{})
+	Equal(t, errs, nil)
+
+	// Non-nil chan/func are not zero, so the following validators run and pass.
+	errs = validate.Struct(Test{Ch: make(chan int), Fn: func() {}})
+	Equal(t, errs, nil)
+}
+
+func TestUniqueBadFieldPanics(t *testing.T) {
+	validate := New()
+
+	PanicMatches(t, func() { _ = validate.Var([]string{"a", "b"}, "unique=Name") }, "Bad field type string")
+
+	type BadName struct {
+		A string `validate:"unique=Missing"`
+	}
+	PanicMatches(t, func() { _ = validate.Struct(BadName{A: "x"}) }, "Bad field name provided Missing")
+
+	type BadKind struct {
+		A string `validate:"unique=B"`
+		B int
+	}
+	PanicMatches(t, func() { _ = validate.Struct(BadKind{A: "x", B: 1}) }, "Bad field type string:int")
+}
+
+func TestBadFieldTypePanics(t *testing.T) {
+	validate := New()
+
+	PanicMatches(t, func() { _ = validate.Var(1, "http_url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "https_url") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "filepath") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1, "dirpath") }, "Bad field type int")
+	PanicMatches(t, func() { _ = validate.Var(1.5, "iso4217_numeric") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var(1.5, "luhn_checksum") }, "Bad field type float64")
+	PanicMatches(t, func() { _ = validate.Var("abc", "spicedb=bogus") }, "Unrecognized parameter: bogus")
+}
+
+func TestIsoNumericUintValidation(t *testing.T) {
+	validate := New()
+
+	tests := []struct {
+		value       any
+		tag         string
+		expectedNil bool
+	}{
+		{uint(250), "iso3166_1_alpha_numeric", true},  // France
+		{uint16(1), "iso3166_1_alpha_numeric", false}, // unassigned
+		{uint(250), "iso3166_1_alpha_numeric_eu", true},
+		{uint(840), "iso3166_1_alpha_numeric_eu", false}, // US is not in the EU
+		{uint(978), "iso4217_numeric", true},             // EUR
+		{uint32(1), "iso4217_numeric", false},
+	}
+
+	for i, tt := range tests {
+		errs := validate.Var(tt.value, tt.tag)
+		if (tt.expectedNil && errs != nil) || (!tt.expectedNil && errs == nil) {
+			t.Fatalf("Index: %d value: %v tag: %s failed Error: %v", i, tt.value, tt.tag, errs)
+		}
+	}
+}
+
+func TestFilePathAndDirPathTrailingSeparator(t *testing.T) {
+	validate := New()
+	sep := string(os.PathSeparator)
+	missing := filepath.Join(t.TempDir(), "does-not-exist")
+
+	// A non-existent path ending in a separator names a directory, not a file.
+	errs := validate.Var(missing+sep, "filepath")
+	AssertError(t, errs, "", "", "", "", "filepath")
+
+	// A non-existent path without trailing separator is not a dirpath.
+	errs = validate.Var(missing, "dirpath")
+	AssertError(t, errs, "", "", "", "", "dirpath")
+
+	// A non-existent path with trailing separator is a valid dirpath.
+	errs = validate.Var(missing+sep, "dirpath")
+	Equal(t, errs, nil)
+}
+
+func TestFieldLevelGetStructFieldOK2(t *testing.T) {
+	type Test struct {
+		Ptr   *string
+		Val   string
+		A     string `validate:"fl_ok2=Ptr"`
+		B     string `validate:"fl_ok2=Val"`
+		C     string `validate:"fl_ok2=Missing"`
+		NilPt string `validate:"fl_ok2_nil=Ptr"`
+	}
+
+	type result struct {
+		kind     reflect.Kind
+		nullable bool
+		found    bool
+	}
+	got := map[string]result{}
+
+	validate := New()
+	err := validate.RegisterValidation("fl_ok2", func(fl FieldLevel) bool {
+		_, kind, nullable, found := fl.GetStructFieldOK2()
+		got[fl.StructFieldName()] = result{kind, nullable, found}
+		return true
+	})
+	Equal(t, err, nil)
+
+	err = validate.RegisterValidation("fl_ok2_nil", func(fl FieldLevel) bool {
+		_, kind, nullable, found := fl.GetStructFieldOK2()
+		got[fl.StructFieldName()] = result{kind, nullable, found}
+		return true
+	})
+	Equal(t, err, nil)
+
+	s := "x"
+	Equal(t, validate.Struct(Test{Ptr: &s, Val: "y"}), nil)
+
+	// Non-nil pointer is dereferenced and reported as nullable.
+	Equal(t, got["A"], result{reflect.String, true, true})
+	// Plain value is not nullable.
+	Equal(t, got["B"], result{reflect.String, false, true})
+	// Unknown field is not found.
+	Equal(t, got["C"].found, false)
+
+	Equal(t, validate.Struct(Test{}), nil)
+
+	// Nil pointer stays a pointer and is still found.
+	Equal(t, got["NilPt"], result{reflect.Ptr, true, true})
+}
+
+func TestFieldLevelGetStructFieldOKAdvanced(t *testing.T) {
+	type Inner struct {
+		Name string
+	}
+
+	type Test struct {
+		Inner Inner
+		A     string `validate:"fl_adv=Inner.Name"`
+		B     string `validate:"fl_adv=Inner.Missing"`
+	}
+
+	validate := New()
+	err := validate.RegisterValidation("fl_adv", func(fl FieldLevel) bool {
+		field, kind, found := fl.GetStructFieldOKAdvanced(fl.Parent(), fl.Param())
+		if !found {
+			return false
+		}
+		return kind == reflect.String && field.String() == fl.Field().String()
+	})
+	Equal(t, err, nil)
+
+	errs := validate.Struct(Test{Inner: Inner{Name: "abc"}, A: "abc"})
+	AssertError(t, errs, "Test.B", "Test.B", "B", "B", "fl_adv")
+
+	errs = validate.Struct(Test{Inner: Inner{Name: "abc"}, A: "xyz"})
+	AssertError(t, errs, "Test.A", "Test.A", "A", "A", "fl_adv")
+	AssertError(t, errs, "Test.B", "Test.B", "B", "B", "fl_adv")
+}
+
+func TestOmitNilNilableKinds(t *testing.T) {
+	type Test struct {
+		Slice []int          `validate:"omitnil,min=1"`
+		Map   map[string]int `validate:"omitnil,min=1"`
+	}
+
+	validate := New()
+
+	// Nil slice/map are skipped.
+	errs := validate.Struct(Test{})
+	Equal(t, errs, nil)
+
+	// Empty but non-nil slice/map are validated.
+	errs = validate.Struct(Test{Slice: []int{}, Map: map[string]int{}})
+	AssertError(t, errs, "Test.Slice", "Test.Slice", "Slice", "Slice", "min")
+	AssertError(t, errs, "Test.Map", "Test.Map", "Map", "Map", "min")
+
+	errs = validate.Struct(Test{Slice: []int{1}, Map: map[string]int{"a": 1}})
+	Equal(t, errs, nil)
+}
+
+func TestVarWithKeySkipTags(t *testing.T) {
+	validate := New()
+
+	Equal(t, validate.VarWithKey("field", "", ""), nil)
+	Equal(t, validate.VarWithKey("field", "", "-"), nil)
+
+	errs := validate.VarWithKey("field", "", "required")
+	AssertError(t, errs, "field", "field", "field", "field", "required")
+}
+
+func TestValuerInInterfaceField(t *testing.T) {
+	type Test struct {
+		Data any `validate:"min=3"`
+	}
+
+	validate := New()
+
+	// The Valuer's ValidatorValue is validated, not the wrapper struct.
+	errs := validate.Struct(Test{Data: ValuerTypeWithValueReceiver[string]{Data: "ab"}})
+	AssertError(t, errs, "Test.Data", "Test.Data", "Data", "Data", "min")
+
+	errs = validate.Struct(Test{Data: ValuerTypeWithValueReceiver[string]{Data: "abc"}})
+	Equal(t, errs, nil)
+}
+
+type uuidByteArray [36]byte
+
+func TestUUIDNonStringNonStringer(t *testing.T) {
+	validate := New()
+
+	// Non-string kinds without a String method fall back to reflect.Value.String,
+	// which never yields a valid UUID.
+	var b uuidByteArray
+	copy(b[:], "a987fbc9-4bed-3078-cf07-9141ba07c9f3")
+
+	errs := validate.Var(b, "uuid")
+	AssertError(t, errs, "", "", "", "", "uuid")
+}
+
+type validateFnNonErrorInterface struct{}
+
+func (validateFnNonErrorInterface) Validate() fmt.Stringer { return nil }
+
+func TestValidateFnNonErrorInterfaceReturn(t *testing.T) {
+	type Test struct {
+		Inner validateFnNonErrorInterface `validate:"validateFn=Validate"`
+	}
+
+	errs := New().Struct(Test{})
+	AssertError(t, errs, "Test.Inner", "Test.Inner", "Inner", "Inner", "validateFn")
 }

@@ -51,7 +51,8 @@ Validator returns only InvalidValidationError for bad validation input, nil or V
 
 ```go
 err := validate.Struct(mystruct)
-validationErrors := err.(validator.ValidationErrors)
+var validationErrors validator.ValidationErrors
+errors.As(err, &validationErrors)
  ```
 
 Usage and documentation
@@ -84,7 +85,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | eqcsfield | Field Equals Another Field (relative)|
 | eqfield | Field Equals Another Field |
 | fieldcontains | Check the indicated characters are present in the Field |
-| fieldexcludes | Check the indicated characters are not present in the field |
+| fieldexcludes | Current field does not contain another field's value |
 | gtcsfield | Field Greater Than Another Relative Field |
 | gtecsfield | Field Greater Than or Equal To Another Relative Field |
 | gtefield | Field Greater Than or Equal To Another Field |
@@ -128,8 +129,10 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | url | URL String |
 | http_url | HTTP(s) URL String |
 | https_url | HTTPS-only URL String |
+| origin | Web origin (URL with HTTP(S) scheme and host, but no path/query/fragment) |
 | url_encoded | URL Encoded |
 | urn_rfc2141 | Urn RFC 2141 String |
+| urn_rfc8141 | Urn RFC 8141 String |
 
 ### Strings:
 
@@ -169,6 +172,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | bic_iso_9362_2014 | Business Identifier Code (ISO 9362:2014) |
 | bic | Business Identifier Code (ISO 9362:2022) |
 | bcp47_language_tag | Language tag (BCP 47) |
+| bcp47_strict_language_tag | Language tag (BCP 47), strictly following RFC 5646 |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | credit_card | Credit Card Number |
@@ -177,6 +181,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | cron | Cron |
 | spicedb | SpiceDb ObjectID/Permission/Type |
 | datetime | Datetime |
+| duration | Duration string (Go time.ParseDuration format) |
 | e164 | e164 formatted phone number |
 | ein | U.S. Employer Identification Number |
 | email | E-mail String
@@ -215,6 +220,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | uuid4_rfc4122 | Universally Unique Identifier UUID v4 RFC4122 |
 | uuid5 | Universally Unique Identifier UUID v5 |
 | uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
+| uuid7 | Universally Unique Identifier UUID v7 |
 | uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
 | md4 | MD4 hash |
 | md5 | MD5 hash |
@@ -222,7 +228,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | sha384 | SHA384 hash |
 | sha512 | SHA512 hash |
 | ripemd128 | RIPEMD-128 hash |
-| ripemd128 | RIPEMD-160 hash |
+| ripemd160 | RIPEMD-160 hash |
 | tiger128 | TIGER128 hash |
 | tiger160 | TIGER160 hash |
 | tiger192 | TIGER192 hash |
@@ -250,11 +256,13 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | file | Existing File |
 | filepath | File Path |
 | image | Image |
+| mimetype | MIME Type |
 | isdefault | Is Default |
 | len | Length |
 | max | Maximum |
 | min | Minimum |
 | oneof | One Of |
+| noneof | None Of |
 | required | Required |
 | required_if | Required If |
 | required_unless | Required Unless |
@@ -277,6 +285,7 @@ validate := validator.New(validator.WithRequiredStructEnabled())
 | - | - |
 | iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla\|cmyk |
 | country_code | iso3166_1_alpha2\|iso3166_1_alpha3\|iso3166_1_alpha_numeric |
+| eu_country_code | iso3166_1_alpha2_eu\|iso3166_1_alpha3_eu\|iso3166_1_alpha_numeric_eu |
 
 Benchmarks
 ------

@@ -1350,6 +1350,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "mimetype",
+			translation: "{0} は有効なMIMEタイプでなければなりません",
+			override:    false,
+		},
+		{
 			tag:         "json",
 			translation: "{0}は正しいJSON文字列でなければなりません",
 			override:    false,
@@ -1382,6 +1387,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 
 				return t
 			},
+		},
+		{
+			tag:         "timezone",
+			translation: "{0}は正しいタイムゾーン文字列でなければなりません",
+			override:    false,
 		},
 		{
 			tag:         "postcode_iso3166_alpha2",

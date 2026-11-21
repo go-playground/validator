@@ -310,7 +310,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("max-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("max-items", "{0} must contain at most {1}", false); err != nil {
 					return
 				}
 				if err = ut.AddCardinal("max-items-item", "{0} item", locales.PluralRuleOne, false); err != nil {
@@ -548,7 +548,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		{
 			tag: "lte",
 			customRegisFunc: func(ut ut.Translator) (err error) {
-				if err = ut.Add("lte-string", "{0} must be at maximum {1} in length", false); err != nil {
+				if err = ut.Add("lte-string", "{0} must be at most {1} in length", false); err != nil {
 					return
 				}
 
@@ -564,7 +564,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-items", "{0} must contain at maximum {1}", false); err != nil {
+				if err = ut.Add("lte-items", "{0} must contain at most {1}", false); err != nil {
 					return
 				}
 
@@ -1188,6 +1188,62 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "startswith",
+			translation: "{0} must start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endswith",
+			translation: "{0} must end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startsnotwith",
+			translation: "{0} must not start with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endsnotwith",
+			translation: "{0} must not end with '{1}'",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
 			tag:         "excludes",
 			translation: "{0} cannot contain the text '{1}'",
 			override:    false,
@@ -1467,6 +1523,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			},
 		},
 		{
+			tag:         "timezone",
+			translation: "{0} must be a valid time zone",
+			override:    false,
+		},
+		{
 			tag:         "postcode_iso3166_alpha2",
 			translation: "{0} does not match postcode format of {1} country",
 			override:    false,
@@ -1505,8 +1566,18 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			override:    false,
 		},
 		{
+			tag:         "mimetype",
+			translation: "{0} must be a valid MIME type",
+			override:    false,
+		},
+		{
 			tag:         "cve",
 			translation: "{0} must be a valid cve identifier",
+			override:    false,
+		},
+		{
+			tag:         "bcp47_strict_language_tag",
+			translation: "{0} must be a valid BCP 47 language tag",
 			override:    false,
 		},
 		{

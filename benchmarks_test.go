@@ -1099,6 +1099,30 @@ func BenchmarkOneofParallel(b *testing.B) {
 	})
 }
 
+type TestNoneOf struct {
+	Color string `validate:"noneof=red green"`
+}
+
+func BenchmarkNoneOf(b *testing.B) {
+	w := &TestNoneOf{Color: "blue"}
+	val := New()
+	for i := 0; i < b.N; i++ {
+		_ = val.Struct(w)
+	}
+}
+
+func BenchmarkNoneOfParallel(b *testing.B) {
+	w := &TestNoneOf{Color: "blue"}
+	val := New()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = val.Struct(w)
+		}
+	})
+}
+
 type T struct{}
 
 func (*T) Validate() error { return errors.New("ops") }
@@ -1133,4 +1157,16 @@ func BenchmarkValidateFnParallel(b *testing.B) {
 			_ = validate.Struct(test)
 		}
 	})
+}
+
+func BenchmarkBCP47Variants(b *testing.B) {
+	v := New()
+	for _, tag := range []string{"en-US", "sl-rozaj", "sl-rozaj-biske", "sl-rozaj-biske-rozaj"} {
+		b.Run(tag, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				_ = v.Var(tag, "bcp47_strict_language_tag")
+			}
+		})
+	}
 }

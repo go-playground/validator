@@ -144,7 +144,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 
 		if v.hasTagNameFunc {
 			name := v.tagNameFunc(fld)
-			if len(name) > 0 {
+			if len(name) > 0 || v.omitBlankFieldNames {
 				customName = name
 			}
 		}

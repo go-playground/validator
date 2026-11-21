@@ -167,6 +167,7 @@ func TestTranslations(t *testing.T) {
 		Datetime           string    `validate:"datetime=2006-01-02"`
 		Image              string    `validate:"image"`
 		UniqueSlice        []string  `validate:"unique"`
+		MIMEType           string    `validate:"mimetype=image/png"`
 	}
 
 	var test Test
@@ -725,6 +726,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.UniqueSlice",
 			expected: "UniqueSlice必須包含唯一值",
+		},
+		{
+			ns:       "Test.MIMEType",
+			expected: "MIMEType 必須是有效MIME類型",
 		},
 	}
 

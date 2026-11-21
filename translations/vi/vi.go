@@ -1351,6 +1351,11 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 			translation: "{0} phải là một hình ảnh hợp lệ",
 			override:    false,
 		},
+		{
+			tag:         "mimetype",
+			translation: "{0} phải là một loại MIME hợp lệ",
+			override:    false,
+		},
 	}
 
 	for _, t := range translations {

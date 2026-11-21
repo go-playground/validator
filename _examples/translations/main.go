@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/locales/en"
@@ -15,7 +16,7 @@ type User struct {
 	LastName       string     `validate:"required"`
 	Age            uint8      `validate:"gte=0,lte=130"`
 	Email          string     `validate:"required,email"`
-	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla'
+	FavouriteColor string     `validate:"iscolor"`                // alias for 'hexcolor|rgb|rgba|hsl|hsla|cmyk'
 	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
 }
 
@@ -70,13 +71,14 @@ func translateAll(trans ut.Translator) {
 	if err != nil {
 
 		// translate all error at once
-		errs := err.(validator.ValidationErrors)
-
-		// returns a map with key = namespace & value = translated error
-		// NOTICE: 2 errors are returned and you'll see something surprising
-		// translations are i18n aware!!!!
-		// eg. '10 characters' vs '1 character'
-		fmt.Println(errs.Translate(trans))
+		var errs validator.ValidationErrors
+		if errors.As(err, &errs) {
+			// returns a map with key = namespace & value = translated error
+			// NOTICE: 2 errors are returned and you'll see something surprising
+			// translations are i18n aware!!!!
+			// eg. '10 characters' vs '1 character'
+			fmt.Println(errs.Translate(trans))
+		}
 	}
 }
 
@@ -91,11 +93,12 @@ func translateIndividual(trans ut.Translator) {
 	err := validate.Struct(user)
 	if err != nil {
 
-		errs := err.(validator.ValidationErrors)
-
-		for _, e := range errs {
-			// can translate each error one at a time.
-			fmt.Println(e.Translate(trans))
+		var errs validator.ValidationErrors
+		if errors.As(err, &errs) {
+			for _, e := range errs {
+				// can translate each error one at a time.
+				fmt.Println(e.Translate(trans))
+			}
 		}
 	}
 }
@@ -119,11 +122,12 @@ func translateOverride(trans ut.Translator) {
 	err := validate.Struct(user)
 	if err != nil {
 
-		errs := err.(validator.ValidationErrors)
-
-		for _, e := range errs {
-			// can translate each error one at a time.
-			fmt.Println(e.Translate(trans))
+		var errs validator.ValidationErrors
+		if errors.As(err, &errs) {
+			for _, e := range errs {
+				// can translate each error one at a time.
+				fmt.Println(e.Translate(trans))
+			}
 		}
 	}
 }

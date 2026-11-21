@@ -3,7 +3,6 @@ package validator
 import (
 	"bufio"
 	"bytes"
-	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -16,7 +15,9 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"regexp"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -141,6 +142,8 @@ var (
 		"http_url":                      isHttpURL,
 		"https_url":                     isHttpsURL,
 		"uri":                           isURI,
+		"origin":                        isOrigin,
+		"urn_rfc8141":                   isUrnRFC8141, // RFC 8141
 		"urn_rfc2141":                   isUrnRFC2141, // RFC 2141
 		"file":                          isFile,
 		"filepath":                      isFilePath,
@@ -159,6 +162,7 @@ var (
 		"startsnotwith":                 startsNotWith,
 		"endsnotwith":                   endsNotWith,
 		"image":                         isImage,
+		"mimetype":                      isMIMEType,
 		"isbn":                          isISBN,
 		"isbn10":                        isISBN10,
 		"isbn13":                        isISBN13,
@@ -171,6 +175,7 @@ var (
 		"uuid3":                         isUUID3,
 		"uuid4":                         isUUID4,
 		"uuid5":                         isUUID5,
+		"uuid7":                         isUUID7,
 		"uuid_rfc4122":                  isUUIDRFC4122,
 		"uuid3_rfc4122":                 isUUID3RFC4122,
 		"uuid4_rfc4122":                 isUUID4RFC4122,
@@ -213,10 +218,13 @@ var (
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"hostname_label":                isHostnameLabel,
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
 		"oneofci":                       isOneOfCI,
+		"noneof":                        isNoneOf,
+		"noneofci":                      isNoneOfCI,
 		"html":                          isHTML,
 		"html_encoded":                  isHTMLEncoded,
 		"url_encoded":                   isURLEncoded,
@@ -240,6 +248,7 @@ var (
 		"iso4217":                       isIso4217,
 		"iso4217_numeric":               isIso4217Numeric,
 		"bcp47_language_tag":            isBCP47LanguageTag,
+		"bcp47_strict_language_tag":     isBCP47StrictLanguageTag,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"bic_iso_9362_2014":             isIsoBic2014Format,
@@ -254,6 +263,7 @@ var (
 		"cron":                          isCron,
 		"spicedb":                       isSpiceDB,
 		"ein":                           isEIN,
+		"duration":                      isDuration,
 		"validateFn":                    isValidateFn,
 	}
 )
@@ -261,6 +271,33 @@ var (
 var (
 	oneofValsCache       = map[string][]string{}
 	oneofValsCacheRWLock = sync.RWMutex{}
+
+	// BCP47 language tag
+	// according to https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+	bcp47LanguageTagRe = regexp.MustCompile(strings.Join([]string{
+		// group 1:
+		`^(`,
+		// irregular
+		`en-gb-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|`,
+		`sgn-be-fr|sgn-be-nl|sgn-ch-de|`,
+		// regular
+		`art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang|`,
+		// privateuse
+		`x-[a-z0-9]{1,8}`,
+		`)$`,
+
+		`|`,
+
+		// langtag
+		`^`,
+		`((?:[a-z]{2,3}(?:-[a-z]{3}){0,3})|[a-z]{4}|[a-z]{5,8})`, // group 2: language
+		`(?:-([a-z]{4}))?`,          // group 3: script
+		`(?:-([a-z]{2}|[0-9]{3}))?`, // group 4: region
+		`(?:-((?:[a-z0-9]{5,8}|[0-9][a-z0-9]{3})(?:-(?:[a-z0-9]{5,8}|[0-9][a-z0-9]{3}))*))?`, // group 5: variant
+		`(?:-((?:[a-wyz0-9](?:-[a-z0-9]{2,8})+)(?:-(?:[a-wyz0-9](?:-[a-z0-9]{2,8})+))*))?`,   // group 6: extension
+		`(?:-x(?:-[a-z0-9]{1,8})+)?`,
+		`$`,
+	}, ""))
 )
 
 func parseOneOfParam2(s string) []string {
@@ -307,12 +344,8 @@ func isOneOf(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
-	for i := 0; i < len(vals); i++ {
-		if vals[i] == v {
-			return true
-		}
-	}
-	return false
+
+	return slices.Contains(vals, v)
 }
 
 // isOneOfCI is the validation function for validating if the current field's value is one of the provided string values (case insensitive).
@@ -323,13 +356,20 @@ func isOneOfCI(fl FieldLevel) bool {
 	if field.Kind() != reflect.String {
 		panic(fmt.Sprintf("Bad field type %s", field.Type()))
 	}
-	v := field.String()
-	for _, val := range vals {
-		if strings.EqualFold(val, v) {
-			return true
-		}
-	}
-	return false
+
+	return slices.ContainsFunc(vals, func(val string) bool {
+		return strings.EqualFold(val, field.String())
+	})
+}
+
+// isNoneOf validates that the current field's value is not one of the provided string or integer values
+func isNoneOf(fl FieldLevel) bool {
+	return !isOneOf(fl)
+}
+
+// isNoneOfCI validates that the current field's value is not one of the provided string values (case insensitive)
+func isNoneOfCI(fl FieldLevel) bool {
+	return !isOneOfCI(fl)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
@@ -607,6 +647,11 @@ func isASCII(fl FieldLevel) bool {
 // isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
 func isUUID5(fl FieldLevel) bool {
 	return fieldMatchesRegexByStringerValOrString(uUID5Regex, fl)
+}
+
+// isUUID7 is the validation function for validating if the field's value is a valid v7 UUID.
+func isUUID7(fl FieldLevel) bool {
+	return fieldMatchesRegexByStringerValOrString(uUID7Regex, fl)
 }
 
 // isUUID4 is the validation function for validating if the field's value is a valid v4 UUID.
@@ -1033,8 +1078,8 @@ func isNeField(fl FieldLevel) bool {
 		fieldType := field.Type()
 
 		if fieldType.ConvertibleTo(timeType) && currentField.Type().ConvertibleTo(timeType) {
-			t := getValue(currentField).(time.Time)
-			fieldTime := getValue(field).(time.Time)
+			t := getValue(currentField.Convert(timeType)).(time.Time)
+			fieldTime := getValue(field.Convert(timeType)).(time.Time)
 
 			return !fieldTime.Equal(t)
 		}
@@ -1526,6 +1571,64 @@ func isURI(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
+// isOrigin checks if a field value is a valid web origin URL with HTTP(S) scheme and host defined, but no path, query, or fragment.
+func isOrigin(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		s := field.String()
+
+		if len(s) == 0 {
+			return false
+		}
+
+		// Fragments with empty content ("#") are not detectable after parse and
+		// u.Fragment will be empty even if # is present in the URL.
+		if strings.Contains(s, "#") {
+			return false
+		}
+
+		u, err := url.Parse(s)
+		if err != nil {
+			return false
+		}
+
+		if u.Scheme != "http" && u.Scheme != "https" {
+			return false
+		}
+
+		if u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+			return false
+		}
+
+		if u.User != nil {
+			return false
+		}
+
+		hostname := u.Hostname()
+		if hostname == "" {
+			return false
+		}
+		if net.ParseIP(hostname) == nil && !hostnameRegexRFC1123().MatchString(hostname) {
+			return false
+		}
+
+		portStr := u.Port()
+		if portStr != "" {
+			// Port 0 is reserved (RFC 6335) and has no valid use as an origin port.
+			// https://www.rfc-editor.org/rfc/rfc6335.html#section-6
+			port, portErr := strconv.ParseUint(portStr, 10, 16)
+			if portErr != nil || port == 0 {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
 // isURL is the validation function for validating if the current field's value is a valid URL.
 func isURL(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1601,6 +1704,26 @@ func isHttpsURL(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
+// isUrnRFC8141 is the validation function for validating if the current field's value is a valid URN as per RFC 8141.
+func isUrnRFC8141(fl FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+
+		str := field.String()
+		if str == "" {
+			return false
+		}
+
+		_, match := urn.Parse([]byte(str), urn.WithParsingMode(urn.RFC8141Only))
+
+		return match
+	}
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+}
+
 // isUrnRFC2141 is the validation function for validating if the current field's value is a valid URN as per RFC 2141.
 func isUrnRFC2141(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1635,6 +1758,63 @@ func isFile(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
+func detectFileMIMEType(field reflect.Value) (string, bool) {
+	switch field.Kind() {
+	case reflect.String:
+		filePath := field.String()
+		fileInfo, err := os.Stat(filePath)
+		if err != nil || fileInfo.IsDir() {
+			return "", false
+		}
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return "", false
+		}
+		defer func() {
+			_ = file.Close()
+		}()
+
+		mime, err := mimetype.DetectReader(file)
+		if err != nil {
+			return "", false
+		}
+
+		return mime.String(), true
+	}
+
+	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+}
+
+func matchesMIMEType(mime, expected string) bool {
+	expectedType, expectedSubtype, ok := strings.Cut(strings.TrimSpace(expected), "/")
+	if !ok || expectedType == "" || expectedSubtype == "" {
+		return false
+	}
+
+	mimeType, mimeSubtype, ok := strings.Cut(mime, "/")
+	if !ok || mimeType == "" || mimeSubtype == "" {
+		return false
+	}
+
+	if expectedSubtype == "*" {
+		return mimeType == expectedType
+	}
+
+	return mimeType == expectedType && mimeSubtype == expectedSubtype
+}
+
+// isMIMEType is the validation function for validating if the current field's value contains the path to a file
+// whose detected MIME type matches the provided validator param in the form type/subtype or type/*.
+func isMIMEType(fl FieldLevel) bool {
+	mime, ok := detectFileMIMEType(fl.Field())
+	if !ok {
+		return false
+	}
+
+	return matchesMIMEType(mime, fl.Param())
+}
+
 // isImage is the validation function for validating if the current field's value contains the path to a valid image file
 func isImage(fl FieldLevel) bool {
 	mimetypes := map[string]bool{
@@ -1663,39 +1843,14 @@ func isImage(fl FieldLevel) bool {
 		"image/x-xpixmap":          true,
 		"image/x-xwindowdump":      true,
 	}
-	field := fl.Field()
 
-	switch field.Kind() {
-	case reflect.String:
-		filePath := field.String()
-		fileInfo, err := os.Stat(filePath)
-		if err != nil {
-			return false
-		}
-
-		if fileInfo.IsDir() {
-			return false
-		}
-
-		file, err := os.Open(filePath)
-		if err != nil {
-			return false
-		}
-		defer func() {
-			_ = file.Close()
-		}()
-
-		mime, err := mimetype.DetectReader(file)
-		if err != nil {
-			return false
-		}
-
-		if _, ok := mimetypes[mime.String()]; ok {
-			return true
-		}
+	mime, ok := detectFileMIMEType(fl.Field())
+	if !ok {
+		return false
 	}
 
-	panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	_, ok = mimetypes[mime]
+	return ok
 }
 
 // isFilePath is the validation function for validating if the current field's value is a valid file path.
@@ -2106,8 +2261,11 @@ func requiredWithAll(fl FieldLevel) bool {
 // excludedWithout is the validation function
 // The field under validation must not be present or is empty when any of the other specified fields are not present.
 func excludedWithout(fl FieldLevel) bool {
-	if requireCheckFieldKind(fl, strings.TrimSpace(fl.Param()), true) {
-		return !hasValue(fl)
+	params := parseOneOfParam2(fl.Param())
+	for _, param := range params {
+		if requireCheckFieldKind(fl, param, true) {
+			return !hasValue(fl)
+		}
 	}
 	return true
 }
@@ -2767,10 +2925,39 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 	return hostnameRegexRFC1123().MatchString(fl.Field().String())
 }
 
+func isHostnameLabel(fl FieldLevel) bool {
+	v := fl.Field().String()
+	n := len(v)
+
+	// A valid hostname label must be between 1 and 63 characters long.
+	if n <= 0 || n > 63 {
+		return false
+	}
+
+	for i := range n {
+		c := v[i]
+
+		// 1. Allow alphanumeric characters anywhere
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
+			continue
+		}
+
+		// 2. Allow hyphens only in the middle (not at the start or end)
+		if c == '-' && i > 0 && i < n-1 {
+			continue
+		}
+
+		// 3. Any other character, or a hyphen at the boundaries, is invalid
+		return false
+	}
+
+	return true
+}
+
 func isFQDN(fl FieldLevel) bool {
 	val := fl.Field().String()
 
-	if val == "" {
+	if val == "" || len(strings.TrimSuffix(val, ".")) > 253 {
 		return false
 	}
 
@@ -2898,9 +3085,18 @@ func isHostnamePort(fl FieldLevel) bool {
 
 // IsPort validates if the current field's value represents a valid port
 func isPort(fl FieldLevel) bool {
-	val := fl.Field().Uint()
+	field := fl.Field()
 
-	return val >= 1 && val <= 65535
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		val := field.Int()
+		return val >= 1 && val <= 65535
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		val := field.Uint()
+		return val >= 1 && val <= 65535
+	default:
+		panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	}
 }
 
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
@@ -3081,6 +3277,156 @@ func isBCP47LanguageTag(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %s", field.Type()))
 }
 
+// isBCP47StrictLanguageTag is the validation function for validating if the current field's value is a valid BCP 47 language tag
+// according to https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+func isBCP47StrictLanguageTag(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() != reflect.String {
+		panic(fmt.Sprintf("Bad field type %s", field.Type()))
+	}
+
+	lower := strings.ToLower(field.String())
+	lowerTagDash := lower + "-"
+
+	m := bcp47LanguageTagRe.FindStringSubmatch(lower)
+	if m == nil {
+		return false
+	}
+
+	grandfatheredOrPrivateuse := m[1]
+	lang := m[2]
+	script := m[3]
+	region := m[4]
+	variant := m[5]
+	extension := m[6]
+
+	if grandfatheredOrPrivateuse != "" {
+		return true
+	}
+
+	// language      = 2*3ALPHA            ; shortest ISO 639 code
+	//                 ["-" extlang]       ; sometimes followed by
+	//                                     ; extended language subtags
+	//               / 4ALPHA              ; or reserved for future use
+	//               / 5*8ALPHA            ; or registered language subtag
+	switch n := len(lang); {
+	// 2*3ALPHA "-" extlang
+	case strings.Contains(lang, "-"):
+		parts := strings.Split(lang, "-")
+
+		baseLang := parts[0]
+		base, err := language.ParseBase(baseLang)
+		if err != nil {
+			return false
+		}
+		// base.String() normalizes the base to the shortest code
+		// for the language
+		if base.String() != baseLang {
+			return false
+		}
+
+		for _, e := range parts[1:] {
+			prefixes, ok := iana_subtag_registry_extlangs[e]
+			if !ok {
+				return false
+			}
+
+			if len(prefixes) > 0 {
+				found := false
+				for _, p := range prefixes {
+					if strings.HasPrefix(lowerTagDash, p) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return false
+				}
+			}
+		}
+	// 2*3ALPHA            ; shortest ISO 639 code
+	case n <= 3:
+		base, err := language.ParseBase(lang)
+		if err != nil {
+			return false
+		}
+
+		// base.String() normalizes the base to the shortest code
+		// for the language
+		if base.String() != lang {
+			return false
+		}
+	// 4ALPHA              ; or reserved for future use
+	case n == 4:
+		return false
+	// 5*8ALPHA            ; or registered language subtag
+	default:
+		// registered language subtag with 5+ characters.
+		// As of today there aren't any.
+		// https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+		return false
+	}
+
+	// script        = 4ALPHA              ; ISO 15924 code
+	if script != "" {
+		_, err := language.ParseScript(script)
+		if err != nil {
+			return false
+		}
+	}
+
+	//  region        = 2ALPHA              ; ISO 3166-1 code
+	//                  3DIGIT              ; UN M.49 code
+	if region != "" {
+		if len(region) == 2 {
+			_, err := language.ParseRegion(region)
+			if err != nil {
+				return false
+			}
+		} else {
+			// Can't use language.ParseRegion() here because not all
+			// UN M.49 region codes are allowed, just the subset present
+			// in the IANA subtag registry.
+			_, ok := iana_subtag_registry_m49_codes[region]
+			if !ok {
+				return false
+			}
+		}
+	}
+
+	//  variant       = 5*8alphanum         ; registered variants
+	//                  / (DIGIT 3alphanum)
+	if variant != "" {
+		seen := make(map[string]struct{})
+		for v := range strings.SplitSeq(variant, "-") {
+			if _, duplicate := seen[v]; duplicate {
+				return false
+			}
+			seen[v] = struct{}{}
+
+			_, err := language.ParseVariant(v)
+			if err != nil {
+				return false
+			}
+
+			_, ok := iana_subtag_registry_variants[v]
+			if !ok {
+				return false
+			}
+		}
+	}
+
+	if extension != "" {
+		_, err := language.ParseExtension(extension)
+		if err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
 // isIsoBic2014Format is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362 2014
 func isIsoBic2014Format(fl FieldLevel) bool {
 	bicString := fl.Field().String()
@@ -3235,18 +3581,15 @@ func isEIN(fl FieldLevel) bool {
 	return einRegex().MatchString(field.String())
 }
 
-func isValidateFn(fl FieldLevel) bool {
-	const defaultParam = `Validate`
-
+func isDuration(fl FieldLevel) bool {
 	field := fl.Field()
-	validateFn := cmp.Or(fl.Param(), defaultParam)
 
-	ok, err := tryCallValidateFn(field, validateFn)
-	if err != nil {
+	if field.Kind() != reflect.String {
 		return false
 	}
 
-	return ok
+	_, err := time.ParseDuration(field.String())
+	return err == nil
 }
 
 var (
@@ -3254,40 +3597,3 @@ var (
 	errMethodReturnNoValues    = errors.New(`method return o values (void)`)
 	errMethodReturnInvalidType = errors.New(`method should return invalid type`)
 )
-
-func tryCallValidateFn(field reflect.Value, validateFn string) (bool, error) {
-	method := field.MethodByName(validateFn)
-	if field.CanAddr() && !method.IsValid() {
-		method = field.Addr().MethodByName(validateFn)
-	}
-
-	if !method.IsValid() {
-		return false, fmt.Errorf("unable to call %q on type %q: %w",
-			validateFn, field.Type().String(), errMethodNotFound)
-	}
-
-	returnValues := method.Call([]reflect.Value{})
-	if len(returnValues) == 0 {
-		return false, fmt.Errorf("unable to use result of method %q on type %q: %w",
-			validateFn, field.Type().String(), errMethodReturnNoValues)
-	}
-
-	firstReturnValue := returnValues[0]
-
-	switch firstReturnValue.Kind() {
-	case reflect.Bool:
-		return firstReturnValue.Bool(), nil
-	case reflect.Interface:
-		errorType := reflect.TypeOf((*error)(nil)).Elem()
-
-		if firstReturnValue.Type().Implements(errorType) {
-			return firstReturnValue.IsNil(), nil
-		}
-
-		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got interface %v expect error)",
-			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
-	default:
-		return false, fmt.Errorf("unable to use result of method %q on type %q: %w (got %v expect error or bool)",
-			validateFn, field.Type().String(), errMethodReturnInvalidType, firstReturnValue.Type().String())
-	}
-}
