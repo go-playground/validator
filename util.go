@@ -247,10 +247,27 @@ BEGIN:
 	return
 }
 
+// numericBase returns the base to use when parsing a numeric tag parameter.
+// A leading zero is a decimal zero, not an octal prefix, so "010" is 10 and
+// "08" is 8. An explicit Go integer prefix is still honoured.
+func numericBase(param string) int {
+	s := param
+	if strings.HasPrefix(s, "-") || strings.HasPrefix(s, "+") {
+		s = s[1:]
+	}
+	if len(s) > 2 && s[0] == '0' {
+		switch s[1] {
+		case 'x', 'X', 'b', 'B', 'o', 'O':
+			return 0
+		}
+	}
+	return 10
+}
+
 // asInt returns the parameter as an int64
 // or panics if it can't convert
 func asInt(param string) int64 {
-	i, err := strconv.ParseInt(param, 0, 64)
+	i, err := strconv.ParseInt(param, numericBase(param), 64)
 	panicIf(err)
 
 	return i
@@ -281,7 +298,7 @@ func asIntFromType(t reflect.Type, param string) int64 {
 // asUint returns the parameter as a uint64
 // or panics if it can't convert
 func asUint(param string) uint64 {
-	i, err := strconv.ParseUint(param, 0, 64)
+	i, err := strconv.ParseUint(param, numericBase(param), 64)
 	panicIf(err)
 
 	return i
