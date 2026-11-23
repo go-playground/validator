@@ -376,7 +376,11 @@ func isNoneOfCI(fl FieldLevel) bool {
 // values go into a map; values whose dynamic type is not comparable
 // (slices, maps, structs containing them) cannot be map keys, so they
 // are kept in a list and compared with reflect.DeepEqual instead of
-// panicking with "hash of unhashable type" (see #1674).
+// panicking with "hash of unhashable type" (see #1674). The check must
+// look at the value, not the type: reflect.Type.Comparable is true for
+// a struct or array with an interface field, but hashing such a value
+// still panics when the interface holds a slice or map, so
+// reflect.Value.Comparable decides instead.
 type uniqueTracker struct {
 	hashable   map[interface{}]struct{}
 	unhashable []interface{}
@@ -389,7 +393,7 @@ func newUniqueTracker() *uniqueTracker {
 // check reports whether key was already recorded; if not, it records
 // it and reports false.
 func (t *uniqueTracker) check(key interface{}) bool {
-	if key == nil || reflect.TypeOf(key).Comparable() {
+	if key == nil || reflect.ValueOf(key).Comparable() {
 		if _, ok := t.hashable[key]; ok {
 			return true
 		}
