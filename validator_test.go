@@ -6925,10 +6925,31 @@ func TestBitcoinBech32AddressValidation(t *testing.T) {
 		{"bc1gmk9yu", false},
 		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv", false},
 		{"BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4", true},
-		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx", true},
 		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3", true},
-		{"BC1SW50QA3JX3S", true},
-		{"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj", true},
+		// Valid BIP-350 Bech32m addresses (witness versions 1-16, including Taproot)
+		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kt5nd6y", true},
+		{"BC1SW50QGDZ25J", true},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvaxxpcs", true},
+		{"bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0", true},
+		{"BC1P0XLXVLHEMJA6C4DQV22UAPCTQUPFHLXM9H8Z3K2E72Q4K9HCZ7VQZK5JJ0", true},
+		{"bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr", true},
+		// Invalid per BIP-350: witness versions 1-16 using Bech32 checksum instead of Bech32m
+		{"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx", false},
+		{"BC1SW50QA3JX3S", false},
+		{"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj", false},
+		{"bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqh2y7hd", false},
+		// Invalid per BIP-350: invalid character ('o') in data part
+		{"bc1p38j9r5y49hruaue7wxjce0updqjuyyx0kh56v8s25huc6995vvpql3jow4", false},
+		// Invalid per BIP-350: witness version 0 using Bech32m checksum instead of Bech32
+		{"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kemeawh", false},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qdyehfn", false},
+		// Invalid per BIP-350: witness version > 16 or witness program too short with Bech32m
+		{"BC130XLXVLHEMJA6C4DQV22UAPCTQUPFHLXM9H8Z3K2E72Q4K9HCZ7VQ7ZWS8R", false},
+		{"bc1pw5dgrnzv", false},
+		// Invalid per BIP-173 / BIP-350: valid checksum and program length, but non-zero padding bits
+		{"bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vplqq80a", false},
+		{"bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3p9waw3r", false},
+		{"bc1zw508d6qejxtdg4y5r3zarvarydqsj59z", false},
 	}
 
 	for i, test := range tests {
