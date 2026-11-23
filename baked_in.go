@@ -372,6 +372,39 @@ func isNoneOfCI(fl FieldLevel) bool {
 	return !isOneOfCI(fl)
 }
 
+// uniqueTracker records values already seen by isUnique. Comparable
+// values go into a map; values whose dynamic type is not comparable
+// (slices, maps, structs containing them) cannot be map keys, so they
+// are kept in a list and compared with reflect.DeepEqual instead of
+// panicking with "hash of unhashable type" (see #1674).
+type uniqueTracker struct {
+	hashable   map[interface{}]struct{}
+	unhashable []interface{}
+}
+
+func newUniqueTracker() *uniqueTracker {
+	return &uniqueTracker{hashable: make(map[interface{}]struct{})}
+}
+
+// check reports whether key was already recorded; if not, it records
+// it and reports false.
+func (t *uniqueTracker) check(key interface{}) bool {
+	if key == nil || reflect.TypeOf(key).Comparable() {
+		if _, ok := t.hashable[key]; ok {
+			return true
+		}
+		t.hashable[key] = struct{}{}
+		return false
+	}
+	for _, prev := range t.unhashable {
+		if reflect.DeepEqual(prev, key) {
+			return true
+		}
+	}
+	t.unhashable = append(t.unhashable, key)
+	return false
+}
+
 // isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
 	field := fl.Field()
@@ -382,7 +415,7 @@ func isUnique(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
-		seen := make(map[interface{}]struct{})
+		tracker := newUniqueTracker()
 
 		for i := 0; i < field.Len(); i++ {
 			elem := field.Index(i)
@@ -401,10 +434,9 @@ func isUnique(fl FieldLevel) bool {
 					key = elem.Interface()
 				}
 
-				if _, ok := seen[key]; ok {
+				if tracker.check(key) {
 					return false
 				}
-				seen[key] = struct{}{}
 				continue
 			}
 
@@ -412,10 +444,9 @@ func isUnique(fl FieldLevel) bool {
 
 			if elem.Kind() == reflect.Ptr {
 				if elem.IsNil() {
-					if _, ok := seen[nilKey]; ok {
+					if tracker.check(nilKey) {
 						return false
 					}
-					seen[nilKey] = struct{}{}
 					continue
 				}
 				elem = elem.Elem()
@@ -442,16 +473,15 @@ func isUnique(fl FieldLevel) bool {
 				key = sf.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if tracker.check(key) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
 
 	case reflect.Map:
-		seen := make(map[interface{}]struct{})
+		tracker := newUniqueTracker()
 
 		for _, k := range field.MapKeys() {
 			val := field.MapIndex(k)
@@ -468,10 +498,9 @@ func isUnique(fl FieldLevel) bool {
 				key = val.Interface()
 			}
 
-			if _, ok := seen[key]; ok {
+			if tracker.check(key) {
 				return false
 			}
-			seen[key] = struct{}{}
 		}
 
 		return true
