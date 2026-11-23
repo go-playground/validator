@@ -661,7 +661,8 @@ duration given in the parameter.
 # Field Equals Another Field
 
 This will validate the field value against another fields value either within
-a struct or passed in field.
+a struct or passed in field. For structs of the same type, time.Time values are
+compared with time.Time.Equal and other structs are compared by value equality.
 
 Example #1:
 
@@ -683,7 +684,8 @@ to the top level struct.
 # Field Does Not Equal Another Field
 
 This will validate the field value against another fields value either within
-a struct or passed in field.
+a struct or passed in field. For structs of the same type, time.Time values are
+compared with time.Time.Equal and other structs are compared by value equality.
 
 Examples:
 

@@ -13,6 +13,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -17611,4 +17612,338 @@ func TestValidateFnNonErrorInterfaceReturn(t *testing.T) {
 
 	errs := New().Struct(Test{})
 	AssertError(t, errs, "Test.Inner", "Test.Inner", "Inner", "Inner", "validateFn")
+}
+
+func TestCrossFieldStructComparison(t *testing.T) {
+	validate := New()
+
+	t.Run("netip.Addr eqfield and nefield", func(t *testing.T) {
+		addr1 := netip.MustParseAddr("192.0.2.1")
+		addr1Copy := netip.MustParseAddr("192.0.2.1")
+		addr2 := netip.MustParseAddr("192.0.2.2")
+
+		type EqTest struct {
+			A netip.Addr `validate:"eqfield=B"`
+			B netip.Addr
+		}
+		type NeTest struct {
+			A netip.Addr `validate:"nefield=B"`
+			B netip.Addr
+		}
+
+		Equal(t, validate.Struct(EqTest{A: addr1, B: addr1Copy}), nil)
+		errs := validate.Struct(EqTest{A: addr1, B: addr2})
+		AssertError(t, errs, "EqTest.A", "EqTest.A", "A", "A", "eqfield")
+
+		Equal(t, validate.Struct(NeTest{A: addr1, B: addr2}), nil)
+		errs = validate.Struct(NeTest{A: addr1, B: addr1Copy})
+		AssertError(t, errs, "NeTest.A", "NeTest.A", "A", "A", "nefield")
+	})
+
+	t.Run("netip.Addr eqcsfield and necsfield", func(t *testing.T) {
+		addr1 := netip.MustParseAddr("2001:db8::1")
+		addr1Copy := netip.MustParseAddr("2001:db8::1")
+		addr2 := netip.MustParseAddr("2001:db8::2")
+
+		type Inner struct {
+			Addr netip.Addr
+		}
+		type EqCS struct {
+			Inner Inner
+			Addr  netip.Addr `validate:"eqcsfield=Inner.Addr"`
+		}
+		type NeCS struct {
+			Inner Inner
+			Addr  netip.Addr `validate:"necsfield=Inner.Addr"`
+		}
+
+		Equal(t, validate.Struct(EqCS{Inner: Inner{Addr: addr1}, Addr: addr1Copy}), nil)
+		errs := validate.Struct(EqCS{Inner: Inner{Addr: addr1}, Addr: addr2})
+		AssertError(t, errs, "EqCS.Addr", "EqCS.Addr", "Addr", "Addr", "eqcsfield")
+
+		Equal(t, validate.Struct(NeCS{Inner: Inner{Addr: addr1}, Addr: addr2}), nil)
+		errs = validate.Struct(NeCS{Inner: Inner{Addr: addr1}, Addr: addr1Copy})
+		AssertError(t, errs, "NeCS.Addr", "NeCS.Addr", "Addr", "Addr", "necsfield")
+	})
+
+	t.Run("custom comparable struct with exported and unexported fields", func(t *testing.T) {
+		type Point struct {
+			X int
+			y string
+		}
+
+		type Test struct {
+			A Point `validate:"eqfield=B"`
+			B Point
+		}
+		type NeTest struct {
+			A Point `validate:"nefield=B"`
+			B Point
+		}
+
+		Equal(t, validate.Struct(Test{A: Point{X: 1, y: "a"}, B: Point{X: 1, y: "a"}}), nil)
+		errs := validate.Struct(Test{A: Point{X: 1, y: "a"}, B: Point{X: 1, y: "b"}})
+		AssertError(t, errs, "Test.A", "Test.A", "A", "A", "eqfield")
+
+		Equal(t, validate.Struct(NeTest{A: Point{X: 1, y: "a"}, B: Point{X: 1, y: "b"}}), nil)
+		errs = validate.Struct(NeTest{A: Point{X: 1, y: "a"}, B: Point{X: 1, y: "a"}})
+		AssertError(t, errs, "NeTest.A", "NeTest.A", "A", "A", "nefield")
+	})
+
+	t.Run("non-comparable struct with slice and map fields", func(t *testing.T) {
+		type Record struct {
+			Name   string
+			Tags   []string
+			Labels map[string]int
+		}
+
+		type EqTest struct {
+			A Record `validate:"eqfield=B"`
+			B Record
+		}
+		type NeTest struct {
+			A Record `validate:"nefield=B"`
+			B Record
+		}
+		type Inner struct {
+			R Record
+		}
+		type EqCSTest struct {
+			Inner Inner
+			R     Record `validate:"eqcsfield=Inner.R"`
+		}
+		type NeCSTest struct {
+			Inner Inner
+			R     Record `validate:"necsfield=Inner.R"`
+		}
+
+		r1 := Record{Name: "a", Tags: []string{"x", "y"}, Labels: map[string]int{"k": 1}}
+		r1Copy := Record{Name: "a", Tags: []string{"x", "y"}, Labels: map[string]int{"k": 1}}
+		r2 := Record{Name: "a", Tags: []string{"x", "z"}, Labels: map[string]int{"k": 1}}
+
+		Equal(t, validate.Struct(EqTest{A: r1, B: r1Copy}), nil)
+		errs := validate.Struct(EqTest{A: r1, B: r2})
+		AssertError(t, errs, "EqTest.A", "EqTest.A", "A", "A", "eqfield")
+
+		Equal(t, validate.Struct(NeTest{A: r1, B: r2}), nil)
+		errs = validate.Struct(NeTest{A: r1, B: r1Copy})
+		AssertError(t, errs, "NeTest.A", "NeTest.A", "A", "A", "nefield")
+
+		Equal(t, validate.Struct(EqCSTest{Inner: Inner{R: r1}, R: r1Copy}), nil)
+		errs = validate.Struct(EqCSTest{Inner: Inner{R: r1}, R: r2})
+		AssertError(t, errs, "EqCSTest.R", "EqCSTest.R", "R", "R", "eqcsfield")
+
+		Equal(t, validate.Struct(NeCSTest{Inner: Inner{R: r1}, R: r2}), nil)
+		errs = validate.Struct(NeCSTest{Inner: Inner{R: r1}, R: r1Copy})
+		AssertError(t, errs, "NeCSTest.R", "NeCSTest.R", "R", "R", "necsfield")
+	})
+
+	t.Run("private struct fields with WithPrivateFieldValidation", func(t *testing.T) {
+		privValidate := New(WithPrivateFieldValidation())
+
+		type NonComparable struct {
+			Items []int
+			Meta  map[string]string
+		}
+
+		type ComparablePrivate struct {
+			a netip.Addr `validate:"eqfield=b"`
+			b netip.Addr
+		}
+		type NonComparablePrivate struct {
+			a NonComparable `validate:"eqfield=b"`
+			b NonComparable
+		}
+		type NonComparablePrivateNe struct {
+			a NonComparable `validate:"nefield=b"`
+			b NonComparable
+		}
+
+		ip1 := netip.MustParseAddr("10.0.0.1")
+		ip2 := netip.MustParseAddr("10.0.0.2")
+
+		// Both by-value (non-addressable) and by-pointer (addressable) must work without panicking.
+		Equal(t, privValidate.Struct(ComparablePrivate{a: ip1, b: ip1}), nil)
+		AssertError(t, privValidate.Struct(ComparablePrivate{a: ip1, b: ip2}), "ComparablePrivate.a", "ComparablePrivate.a", "a", "a", "eqfield")
+		Equal(t, privValidate.Struct(&ComparablePrivate{a: ip1, b: ip1}), nil)
+		AssertError(t, privValidate.Struct(&ComparablePrivate{a: ip1, b: ip2}), "ComparablePrivate.a", "ComparablePrivate.a", "a", "a", "eqfield")
+
+		nc1 := NonComparable{Items: []int{1, 2}, Meta: map[string]string{"k": "v"}}
+		nc1Copy := NonComparable{Items: []int{1, 2}, Meta: map[string]string{"k": "v"}}
+		nc2 := NonComparable{Items: []int{1, 3}, Meta: map[string]string{"k": "v"}}
+		nc3 := NonComparable{Items: []int{1, 2}, Meta: map[string]string{"k": "other"}}
+
+		Equal(t, privValidate.Struct(NonComparablePrivate{a: nc1, b: nc1Copy}), nil)
+		AssertError(t, privValidate.Struct(NonComparablePrivate{a: nc1, b: nc2}), "NonComparablePrivate.a", "NonComparablePrivate.a", "a", "a", "eqfield")
+		AssertError(t, privValidate.Struct(NonComparablePrivate{a: nc1, b: nc3}), "NonComparablePrivate.a", "NonComparablePrivate.a", "a", "a", "eqfield")
+		Equal(t, privValidate.Struct(&NonComparablePrivate{a: nc1, b: nc1Copy}), nil)
+		AssertError(t, privValidate.Struct(&NonComparablePrivate{a: nc1, b: nc2}), "NonComparablePrivate.a", "NonComparablePrivate.a", "a", "a", "eqfield")
+
+		Equal(t, privValidate.Struct(NonComparablePrivateNe{a: nc1, b: nc2}), nil)
+		AssertError(t, privValidate.Struct(NonComparablePrivateNe{a: nc1, b: nc1Copy}), "NonComparablePrivateNe.a", "NonComparablePrivateNe.a", "a", "a", "nefield")
+	})
+
+	t.Run("ordering validators reject non-time structs", func(t *testing.T) {
+		addr := netip.MustParseAddr("192.0.2.1")
+
+		type OrderingFields struct {
+			Other netip.Addr
+			Lt    netip.Addr `validate:"ltfield=Other"`
+			Lte   netip.Addr `validate:"ltefield=Other"`
+			Gt    netip.Addr `validate:"gtfield=Other"`
+			Gte   netip.Addr `validate:"gtefield=Other"`
+		}
+		type Inner struct {
+			Other netip.Addr
+		}
+		type OrderingCSFields struct {
+			Inner Inner
+			Lt    netip.Addr `validate:"ltcsfield=Inner.Other"`
+			Lte   netip.Addr `validate:"ltecsfield=Inner.Other"`
+			Gt    netip.Addr `validate:"gtcsfield=Inner.Other"`
+			Gte   netip.Addr `validate:"gtecsfield=Inner.Other"`
+		}
+
+		errs := validate.Struct(OrderingFields{Other: addr, Lt: addr, Lte: addr, Gt: addr, Gte: addr})
+		AssertError(t, errs, "OrderingFields.Lt", "OrderingFields.Lt", "Lt", "Lt", "ltfield")
+		AssertError(t, errs, "OrderingFields.Lte", "OrderingFields.Lte", "Lte", "Lte", "ltefield")
+		AssertError(t, errs, "OrderingFields.Gt", "OrderingFields.Gt", "Gt", "Gt", "gtfield")
+		AssertError(t, errs, "OrderingFields.Gte", "OrderingFields.Gte", "Gte", "Gte", "gtefield")
+
+		errs = validate.Struct(OrderingCSFields{Inner: Inner{Other: addr}, Lt: addr, Lte: addr, Gt: addr, Gte: addr})
+		AssertError(t, errs, "OrderingCSFields.Lt", "OrderingCSFields.Lt", "Lt", "Lt", "ltcsfield")
+		AssertError(t, errs, "OrderingCSFields.Lte", "OrderingCSFields.Lte", "Lte", "Lte", "ltecsfield")
+		AssertError(t, errs, "OrderingCSFields.Gt", "OrderingCSFields.Gt", "Gt", "Gt", "gtcsfield")
+		AssertError(t, errs, "OrderingCSFields.Gte", "OrderingCSFields.Gte", "Gte", "Gte", "gtecsfield")
+	})
+
+	t.Run("cyclic structs", func(t *testing.T) {
+		privValidate := New(WithPrivateFieldValidation())
+
+		type CyclicNode struct {
+			Val  int
+			Next *CyclicNode `validate:"-"`
+		}
+		type CyclicMap struct {
+			Data map[string]any
+		}
+		type CyclicSlice struct {
+			Items []any
+		}
+
+		n1 := &CyclicNode{Val: 1}
+		n1.Next = n1
+		n2 := &CyclicNode{Val: 1}
+		n2.Next = n2
+		n3 := &CyclicNode{Val: 2}
+		n3.Next = n3
+
+		type EqCyclic struct {
+			A CyclicNode `validate:"eqfield=B"`
+			B CyclicNode
+		}
+		type NeCyclic struct {
+			A CyclicNode `validate:"nefield=B"`
+			B CyclicNode
+		}
+		type PrivateCyclic struct {
+			a CyclicNode `validate:"eqfield=b"`
+			b CyclicNode
+		}
+
+		Equal(t, validate.Struct(EqCyclic{A: *n1, B: *n2}), nil)
+		AssertError(t, validate.Struct(EqCyclic{A: *n1, B: *n3}), "EqCyclic.A", "EqCyclic.A", "A", "A", "eqfield")
+		Equal(t, validate.Struct(NeCyclic{A: *n1, B: *n3}), nil)
+		AssertError(t, validate.Struct(NeCyclic{A: *n1, B: *n2}), "NeCyclic.A", "NeCyclic.A", "A", "A", "nefield")
+
+		Equal(t, privValidate.Struct(PrivateCyclic{a: *n1, b: *n2}), nil)
+		AssertError(t, privValidate.Struct(PrivateCyclic{a: *n1, b: *n3}), "PrivateCyclic.a", "PrivateCyclic.a", "a", "a", "eqfield")
+		Equal(t, privValidate.Struct(&PrivateCyclic{a: *n1, b: *n2}), nil)
+		AssertError(t, privValidate.Struct(&PrivateCyclic{a: *n1, b: *n3}), "PrivateCyclic.a", "PrivateCyclic.a", "a", "a", "eqfield")
+
+		m1 := map[string]any{}
+		m1["self"] = m1
+		m2 := map[string]any{}
+		m2["self"] = m2
+		m3 := map[string]any{"k": 1}
+		m3["self"] = m3
+
+		type PrivateCyclicMap struct {
+			a CyclicMap `validate:"eqfield=b"`
+			b CyclicMap
+		}
+		Equal(t, privValidate.Struct(PrivateCyclicMap{a: CyclicMap{Data: m1}, b: CyclicMap{Data: m2}}), nil)
+		Equal(t, privValidate.Struct(PrivateCyclicMap{a: CyclicMap{Data: m2}, b: CyclicMap{Data: m1}}), nil)
+		AssertError(t, privValidate.Struct(PrivateCyclicMap{a: CyclicMap{Data: m1}, b: CyclicMap{Data: m3}}), "PrivateCyclicMap.a", "PrivateCyclicMap.a", "a", "a", "eqfield")
+
+		s1 := make([]any, 1)
+		s1[0] = s1
+		s2 := make([]any, 1)
+		s2[0] = s2
+		s3 := []any{1}
+
+		type PrivateCyclicSlice struct {
+			a CyclicSlice `validate:"eqfield=b"`
+			b CyclicSlice
+		}
+		Equal(t, privValidate.Struct(PrivateCyclicSlice{a: CyclicSlice{Items: s1}, b: CyclicSlice{Items: s2}}), nil)
+		AssertError(t, privValidate.Struct(PrivateCyclicSlice{a: CyclicSlice{Items: s1}, b: CyclicSlice{Items: s3}}), "PrivateCyclicSlice.a", "PrivateCyclicSlice.a", "a", "a", "eqfield")
+	})
+
+	t.Run("unexported field fallback types", func(t *testing.T) {
+		privValidate := New(WithPrivateFieldValidation())
+
+		type Mixed struct {
+			arr [2]int
+			s   []int
+			p   *int
+			i   any
+			m   map[string]int
+			fn  func()
+		}
+		type PrivateMixed struct {
+			a Mixed `validate:"eqfield=b"`
+			b Mixed
+		}
+
+		v1, v2 := 10, 20
+		sharedSlice := []int{1, 2}
+		sharedMap := map[string]int{"x": 1}
+		noop := func() {}
+
+		cases := []struct {
+			name string
+			a, b Mixed
+			want bool
+		}{
+			{"equal zero values", Mixed{}, Mixed{}, true},
+			{"equal arrays", Mixed{arr: [2]int{1, 2}}, Mixed{arr: [2]int{1, 2}}, true},
+			{"different arrays", Mixed{arr: [2]int{1, 2}}, Mixed{arr: [2]int{1, 3}}, false},
+			{"nil vs empty slice", Mixed{s: nil}, Mixed{s: []int{}}, false},
+			{"different length slices", Mixed{s: []int{1}}, Mixed{s: []int{1, 2}}, false},
+			{"empty slices", Mixed{s: []int{}}, Mixed{s: []int{}}, true},
+			{"same backing slice", Mixed{s: sharedSlice}, Mixed{s: sharedSlice}, true},
+			{"equal non-empty slices", Mixed{s: []int{1, 2}}, Mixed{s: []int{1, 2}}, true},
+			{"different non-empty slices", Mixed{s: []int{1, 2}}, Mixed{s: []int{1, 3}}, false},
+			{"one nil pointer", Mixed{p: &v1}, Mixed{p: nil}, false},
+			{"equal pointers", Mixed{p: &v1}, Mixed{p: &v1}, true},
+			{"different pointer targets", Mixed{p: &v1}, Mixed{p: &v2}, false},
+			{"one nil interface", Mixed{i: 1}, Mixed{i: nil}, false},
+			{"different interface types", Mixed{i: 1}, Mixed{i: "1"}, false},
+			{"equal interfaces", Mixed{i: 1}, Mixed{i: 1}, true},
+			{"nil vs empty map", Mixed{m: nil}, Mixed{m: map[string]int{}}, false},
+			{"empty maps", Mixed{m: map[string]int{}}, Mixed{m: map[string]int{}}, true},
+			{"same map pointer", Mixed{m: sharedMap}, Mixed{m: sharedMap}, true},
+			{"non-nil func", Mixed{fn: noop}, Mixed{fn: noop}, false},
+		}
+
+		for _, tc := range cases {
+			err := privValidate.Struct(PrivateMixed{a: tc.a, b: tc.b})
+			if tc.want {
+				Equal(t, err, nil)
+			} else {
+				AssertError(t, err, "PrivateMixed.a", "PrivateMixed.a", "a", "a", "eqfield")
+			}
+		}
+	})
 }
