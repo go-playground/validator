@@ -882,16 +882,21 @@ This validates that a string value can successfully be parsed into a boolean wit
 
 # Number
 
-This validates that a string value contains number values only.
-For integers or float it returns true.
+This validates that a string value is nonempty and contains only ASCII digits
+(0-9). Strings containing a sign or decimal point are not valid; use "numeric"
+for those strings.
+
+For values with an integer or floating-point type, it returns true.
 
 	Usage: number
 
 # Numeric
 
-This validates that a string value contains a basic numeric value.
-basic excludes exponents etc...
-for integers or float it returns true.
+This validates that a string value contains ASCII digits (0-9), optionally
+preceded by a sign (+ or -) and optionally followed by a decimal point and one or
+more digits. Exponents are not supported.
+
+For values with an integer or floating-point type, it returns true.
 
 	Usage: numeric
 
