@@ -20,6 +20,8 @@ type Valuer interface {
 // It will dive into pointers, customTypes and return you the
 // underlying value and it's kind.
 func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (reflect.Value, reflect.Kind, bool) {
+	var seenPtrs map[uintptr]struct{}
+
 BEGIN:
 	switch current.Kind() {
 	case reflect.Ptr:
@@ -29,6 +31,24 @@ BEGIN:
 		if current.IsNil() {
 			return current, reflect.Ptr, nullable
 		}
+
+		// A pointer that leads back to itself, directly or via an
+		// interface holding it (e.g. x = &x, or p = &p for type P *P),
+		// would otherwise loop here forever: Elem() keeps yielding the
+		// same pointer. Report the value as invalid instead of spinning:
+		// callers treat Invalid as a validation failure when a tag is
+		// present and simply skip the field otherwise, so Struct/Var
+		// return instead of hanging. The check runs before unwrapping
+		// any Valuer so a Valuer returning the same pointer cannot
+		// bypass it.
+		ptr := current.Pointer()
+		if _, ok := seenPtrs[ptr]; ok {
+			return current, reflect.Invalid, nullable
+		}
+		if seenPtrs == nil {
+			seenPtrs = make(map[uintptr]struct{})
+		}
+		seenPtrs[ptr] = struct{}{}
 
 		if current.CanInterface() {
 			if v, ok := current.Interface().(Valuer); ok {
