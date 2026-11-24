@@ -17430,6 +17430,102 @@ func TestUniqueBadFieldPanics(t *testing.T) {
 	PanicMatches(t, func() { _ = validate.Struct(BadKind{A: "x", B: 1}) }, "Bad field type string:int")
 }
 
+func TestUniqueValidationUnhashableElements(t *testing.T) {
+	// #1674: `unique` must not panic with "hash of unhashable type" on
+	// slices/maps of non-comparable elements; such elements are
+	// compared structurally instead.
+	validate := New()
+
+	type WithSlice struct{ Tags []string }
+
+	type A struct {
+		L [][]string `validate:"unique"`
+	}
+	type B struct {
+		L []WithSlice `validate:"unique"`
+	}
+	type C struct {
+		L [][]byte `validate:"unique"`
+	}
+	type D struct {
+		L []map[string]string `validate:"unique"`
+	}
+
+	cases := []any{
+		A{L: [][]string{{"a"}, {"b"}}},
+		B{L: []WithSlice{{Tags: []string{"a"}}, {Tags: []string{"b"}}}},
+		C{L: [][]byte{{1}, {2}}},
+		D{L: []map[string]string{{"a": "1"}, {"b": "2"}}},
+	}
+	for i, s := range cases {
+		if err := validate.Struct(s); err != nil {
+			t.Fatalf("case %d: distinct unhashable elements should pass, got %v", i, err)
+		}
+	}
+
+	// Duplicates must still be detected.
+	dupCases := []any{
+		A{L: [][]string{{"a"}, {"a"}}},
+		B{L: []WithSlice{{Tags: []string{"a"}}, {Tags: []string{"a"}}}},
+		C{L: [][]byte{{1}, {1}}},
+		D{L: []map[string]string{{"a": "1"}, {"a": "1"}}},
+	}
+	for i, s := range dupCases {
+		if err := validate.Struct(s); err == nil {
+			t.Fatalf("case %d: duplicate unhashable elements should fail unique validation", i)
+		}
+	}
+
+	// unique=Field where the compared field itself is unhashable.
+	type E struct {
+		Name string
+		Tags []string
+	}
+	type F struct {
+		L []E `validate:"unique=Tags"`
+	}
+	if err := validate.Struct(F{L: []E{{Name: "x", Tags: []string{"a"}}, {Name: "y", Tags: []string{"b"}}}}); err != nil {
+		t.Fatalf("distinct unique=Tags should pass, got %v", err)
+	}
+	if err := validate.Struct(F{L: []E{{Name: "x", Tags: []string{"a"}}, {Name: "y", Tags: []string{"a"}}}}); err == nil {
+		t.Fatalf("duplicate unique=Tags should fail unique validation")
+	}
+
+	// Map with unhashable values.
+	type G struct {
+		M map[string][]string `validate:"unique"`
+	}
+	if err := validate.Struct(G{M: map[string][]string{"a": {"1"}, "b": {"2"}}}); err != nil {
+		t.Fatalf("distinct map values should pass, got %v", err)
+	}
+	if err := validate.Struct(G{M: map[string][]string{"a": {"1"}, "b": {"1"}}}); err == nil {
+		t.Fatalf("duplicate map values should fail unique validation")
+	}
+
+	// A struct (or array) type with an interface field is comparable
+	// by type, but hashing it still panics when the interface holds
+	// a slice or map: reflect.Type.Comparable is not enough, the
+	// check must look at the value the interface holds (review on
+	// #1700). The same shapes must pass when distinct and fail when
+	// duplicated.
+	type WithIface struct{ V any }
+	if err := validate.Var([]WithIface{{V: []int{1}}, {V: []int{2}}}, "unique"); err != nil {
+		t.Fatalf("distinct interface fields holding slices should pass, got %v", err)
+	}
+	if err := validate.Var([]WithIface{{V: []int{1}}, {V: []int{1}}}, "unique"); err == nil {
+		t.Fatalf("duplicate interface fields holding slices should fail unique validation")
+	}
+	if err := validate.Var([]any{WithIface{V: []int{1}}, WithIface{V: []int{2}}}, "unique"); err != nil {
+		t.Fatalf("distinct any elements holding slices should pass, got %v", err)
+	}
+	if err := validate.Var([][1]any{{WithIface{V: []int{1}}}, {WithIface{V: []int{2}}}}, "unique"); err != nil {
+		t.Fatalf("distinct arrays of any holding slices should pass, got %v", err)
+	}
+	if err := validate.Var(map[string]WithIface{"a": {V: []int{1}}, "b": {V: []int{2}}}, "unique"); err != nil {
+		t.Fatalf("distinct map values holding slices should pass, got %v", err)
+	}
+}
+
 func TestBadFieldTypePanics(t *testing.T) {
 	validate := New()
 
