@@ -889,7 +889,7 @@ func isBitcoinAddress(fl FieldLevel) bool {
 	return validchecksum == computedchecksum
 }
 
-// isBitcoinBech32Address is the validation function for validating if the field's value is a valid bech32 btc address
+// isBitcoinBech32Address is the validation function for validating if the field's value is a valid bech32/bech32m btc address
 func isBitcoinBech32Address(fl FieldLevel) bool {
 	address := fl.Field().String()
 
@@ -944,25 +944,46 @@ func isBitcoinBech32Address(fl FieldLevel) bool {
 		}
 	}
 
-	if p != 1 {
+	// BIP-173 requires Bech32 (constant 1) for witness version 0;
+	// BIP-350 requires Bech32m (constant 0x2bc830a3) for witness versions 1-16.
+	const (
+		bech32Const  = 1
+		bech32mConst = 0x2bc830a3
+	)
+
+	expectedConst := bech32Const
+	if ver != 0 {
+		expectedConst = bech32mConst
+	}
+
+	if p != expectedConst {
 		return false
 	}
 
 	b := uint(0)
 	acc := 0
-	mv := (1 << 5) - 1
-	var sw []int
+	const (
+		maxv   = (1 << 8) - 1
+		maxAcc = (1 << (5 + 8 - 1)) - 1
+	)
+	swLen := 0
 
 	for _, v := range dp[1 : len(dp)-6] {
-		acc = (acc << 5) | v
+		acc = ((acc << 5) | v) & maxAcc
 		b += 5
 		for b >= 8 {
 			b -= 8
-			sw = append(sw, (acc>>b)&mv)
+			swLen++
 		}
 	}
 
-	if len(sw) < 2 || len(sw) > 40 {
+	// Mirror the BIP-173 / BIP-350 convertbits (5-to-8-bit, pad=false) rule:
+	// reject any non-zero padding bits (lengths with >= 5 leftover bits are already excluded above).
+	if ((acc << (8 - b)) & maxv) != 0 {
+		return false
+	}
+
+	if swLen < 2 || swLen > 40 {
 		return false
 	}
 

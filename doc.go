@@ -1086,10 +1086,11 @@ P2PKH, P2SH and performs checksum validation.
 
 	Usage: btc_addr
 
-Bitcoin Bech32 Address (segwit)
+Bitcoin Bech32/Bech32m Address (SegWit / Taproot)
 
-This validates that a string value contains a valid bitcoin Bech32 address as defined
-by bip-0173 (https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+This validates that a string value contains a valid bitcoin Bech32 or Bech32m address as defined
+by bip-0173 (https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki) and
+bip-0350 (https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki).
 Special thanks to Pieter Wuille for providing reference implementations.
 
 	Usage: btc_addr_bech32
