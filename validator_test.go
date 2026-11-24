@@ -17633,3 +17633,74 @@ func TestValidateFnNonErrorInterfaceReturn(t *testing.T) {
 	errs := New().Struct(Test{})
 	AssertError(t, errs, "Test.Inner", "Test.Inner", "Inner", "Inner", "validateFn")
 }
+
+type selfRefAny struct {
+	F any
+}
+
+type selfRefPtr *selfRefPtr
+
+// TestSelfReferentialPointerDoesNotHang ensures Struct and Var return
+// instead of spinning forever when a value holds a pointer back to
+// itself, e.g. an any holding a pointer to itself (x = &x) or a value
+// of type P *P with p = &p. See https://github.com/go-playground/validator/issues/1698
+func TestSelfReferentialPointerDoesNotHang(t *testing.T) {
+	validate := New()
+
+	run := func(t *testing.T, name string, fn func() error) error {
+		t.Helper()
+
+		done := make(chan error, 1)
+		go func() { done <- fn() }()
+
+		select {
+		case err := <-done:
+			return err
+		case <-time.After(5 * time.Second):
+			t.Fatalf("%s did not return for self-referential pointer", name)
+			return nil
+		}
+	}
+
+	t.Run("Struct with any holding pointer to itself", func(t *testing.T) {
+		var x any
+		x = &x
+
+		Equal(t, run(t, "Struct", func() error {
+			return validate.Struct(selfRefAny{F: x})
+		}), nil)
+	})
+
+	t.Run("Var with self-referential named pointer type", func(t *testing.T) {
+		var p selfRefPtr
+		p = &p
+
+		// The value cannot be unwrapped, so it fails validation
+		// instead of hanging; the important part is that Var returns.
+		if err := run(t, "Var", func() error {
+			return validate.Var(p, "required")
+		}); err == nil {
+			t.Fatal("expected required to fail for self-referential pointer")
+		}
+	})
+
+	t.Run("Var with nil named pointer type still fails required", func(t *testing.T) {
+		var p selfRefPtr
+
+		err := validate.Var(p, "required")
+		if err == nil {
+			t.Fatal("expected required to fail for nil pointer")
+		}
+	})
+
+	t.Run("Struct with self-referential named pointer type field", func(t *testing.T) {
+		var p selfRefPtr
+		p = &p
+
+		Equal(t, run(t, "Struct", func() error {
+			return validate.Struct(struct {
+				F selfRefPtr
+			}{F: p})
+		}), nil)
+	})
+}
