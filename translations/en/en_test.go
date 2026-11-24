@@ -196,6 +196,11 @@ func TestTranslations(t *testing.T) {
 		CveString             string        `validate:"cve"`
 		MinDuration           time.Duration `validate:"min=1h30m,max=2h"`
 		MaxDuration           time.Duration `validate:"min=1h30m,max=2h"`
+		LenDuration           time.Duration `validate:"len=1h"`
+		LtDuration            time.Duration `validate:"lt=1h"`
+		LteDuration           time.Duration `validate:"lte=1h"`
+		GtDuration            time.Duration `validate:"gt=1h"`
+		GteDuration           time.Duration `validate:"gte=1h"`
 		ValidateFn            Foo           `validate:"validateFn=IsBar"`
 	}
 
@@ -273,6 +278,11 @@ func TestTranslations(t *testing.T) {
 
 	test.MinDuration = 1 * time.Hour
 	test.MaxDuration = 3 * time.Hour
+	test.LenDuration = 2 * time.Hour
+	test.LtDuration = 2 * time.Hour
+	test.LteDuration = 2 * time.Hour
+	test.GtDuration = 30 * time.Minute
+	test.GteDuration = 30 * time.Minute
 
 	test.Inner.RequiredIf = "abcd"
 
@@ -869,6 +879,26 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.MaxDuration",
 			expected: "MaxDuration must be 2h or less",
+		},
+		{
+			ns:       "Test.LenDuration",
+			expected: "LenDuration must be equal to 1h",
+		},
+		{
+			ns:       "Test.LtDuration",
+			expected: "LtDuration must be less than 1h",
+		},
+		{
+			ns:       "Test.LteDuration",
+			expected: "LteDuration must be 1h or less",
+		},
+		{
+			ns:       "Test.GtDuration",
+			expected: "GtDuration must be greater than 1h",
+		},
+		{
+			ns:       "Test.GteDuration",
+			expected: "GteDuration must be 1h or greater",
 		},
 		{
 			ns:       "Test.ValidateFn",
