@@ -252,38 +252,6 @@ func (v *Validate) RegisterAlias(alias, tags string) {
 	v.aliases[alias] = tags
 }
 
-// aliasExpansionCycles reports whether expanding tags can reach alias again,
-// either directly or through other registered aliases. Such a cycle would make
-// parseFieldTagsRecursive recurse until the process dies of a stack overflow,
-// so it is rejected here, when the alias is registered.
-func (v *Validate) aliasExpansionCycles(tags, alias string, visited map[string]struct{}) bool {
-	for _, t := range strings.Split(tags, tagSeparator) {
-		for _, orVal := range strings.Split(t, orSeparator) {
-			name := strings.SplitN(orVal, tagKeySeparator, 2)[0]
-
-			if name == alias {
-				return true
-			}
-
-			expansion, ok := v.aliases[name]
-			if !ok {
-				continue
-			}
-
-			if _, seen := visited[name]; seen {
-				continue
-			}
-			visited[name] = struct{}{}
-
-			if v.aliasExpansionCycles(expansion, alias, visited) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // RegisterStructValidation registers a StructLevelFunc against a number of types.
 //
 // NOTE:
@@ -775,6 +743,38 @@ func (v *Validate) VarWithKeyCtx(ctx context.Context, key string, field interfac
 	}
 	v.pool.Put(vd)
 	return
+}
+
+// aliasExpansionCycles reports whether expanding tags can reach alias again,
+// either directly or through other registered aliases. Such a cycle would make
+// parseFieldTagsRecursive recurse until the process dies of a stack overflow,
+// so it is rejected here, when the alias is registered.
+func (v *Validate) aliasExpansionCycles(tags, alias string, visited map[string]struct{}) bool {
+	for _, t := range strings.Split(tags, tagSeparator) {
+		for _, orVal := range strings.Split(t, orSeparator) {
+			name := strings.SplitN(orVal, tagKeySeparator, 2)[0]
+
+			if name == alias {
+				return true
+			}
+
+			expansion, ok := v.aliases[name]
+			if !ok {
+				continue
+			}
+
+			if _, seen := visited[name]; seen {
+				continue
+			}
+			visited[name] = struct{}{}
+
+			if v.aliasExpansionCycles(expansion, alias, visited) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
