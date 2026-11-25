@@ -790,3 +790,25 @@ func TestTranslations(t *testing.T) {
 		Equal(t, tt.expected, fe.Translate(trans))
 	}
 }
+
+func TestUniqueTranslation(t *testing.T) {
+	locale := zhongwen.New()
+	trans, _ := ut.New(locale, locale).GetTranslator("zh")
+	validate := validator.New()
+	Equal(t, RegisterDefaultTranslations(validate, trans), nil)
+	value := struct {
+		Slice []string          `validate:"unique"`
+		Array [2]string         `validate:"unique"`
+		Map   map[string]string `validate:"unique"`
+	}{[]string{"a", "a"}, [2]string{"a", "a"}, map[string]string{"one": "a", "two": "a"}}
+	err := validate.Struct(value)
+	if err == nil {
+		t.Fatal("expected uniqueness errors")
+	}
+	validationErrors := err.(validator.ValidationErrors)
+	Equal(t, len(validationErrors), 3)
+	for _, fieldError := range validationErrors {
+		Equal(t, fieldError.Translate(trans), fieldError.Field()+"字段内的值必须唯一")
+	}
+	Equal(t, validate.Var([]string{"a", "b"}, "unique"), nil)
+}
