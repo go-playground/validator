@@ -1067,6 +1067,118 @@ func fieldExcludes(fl FieldLevel) bool {
 	return !strings.Contains(field.String(), currentField.String())
 }
 
+// isStructEqual reports whether two struct reflect.Values of the same type are equal.
+func isStructEqual(a, b reflect.Value) bool {
+	if (a.CanInterface() || a.CanAddr()) && (b.CanInterface() || b.CanAddr()) {
+		return reflect.DeepEqual(getValue(a), getValue(b))
+	}
+
+	type visit struct {
+		a1, a2 uintptr
+		typ    reflect.Type
+	}
+
+	var visited map[visit]bool
+	seen := func(a1, a2 uintptr, typ reflect.Type) bool {
+		if a1 > a2 {
+			a1, a2 = a2, a1
+		}
+		v := visit{a1: a1, a2: a2, typ: typ}
+		if visited == nil {
+			visited = make(map[visit]bool)
+		}
+		if visited[v] {
+			return true
+		}
+		visited[v] = true
+		return false
+	}
+
+	var equal func(a, b reflect.Value) bool
+	equal = func(a, b reflect.Value) bool {
+		if a.Type() != b.Type() {
+			return false
+		}
+		if (a.CanInterface() || a.CanAddr()) && (b.CanInterface() || b.CanAddr()) {
+			return reflect.DeepEqual(getValue(a), getValue(b))
+		}
+
+		switch a.Kind() {
+		case reflect.Struct:
+			for i := 0; i < a.NumField(); i++ {
+				if !equal(a.Field(i), b.Field(i)) {
+					return false
+				}
+			}
+			return true
+
+		case reflect.Array:
+			for i := 0; i < a.Len(); i++ {
+				if !equal(a.Index(i), b.Index(i)) {
+					return false
+				}
+			}
+			return true
+
+		case reflect.Slice:
+			if a.IsNil() != b.IsNil() || a.Len() != b.Len() {
+				return false
+			}
+			if a.Len() == 0 || a.Pointer() == b.Pointer() {
+				return true
+			}
+			for i := 0; i < a.Len(); i++ {
+				if !equal(a.Index(i), b.Index(i)) {
+					return false
+				}
+			}
+			return true
+
+		case reflect.Ptr:
+			if a.Pointer() == b.Pointer() {
+				return true
+			}
+			if a.IsNil() || b.IsNil() {
+				return false
+			}
+			return equal(a.Elem(), b.Elem())
+
+		case reflect.Interface:
+			if a.IsNil() || b.IsNil() {
+				return a.IsNil() == b.IsNil()
+			}
+			return equal(a.Elem(), b.Elem())
+
+		case reflect.Map:
+			if a.IsNil() != b.IsNil() || a.Len() != b.Len() {
+				return false
+			}
+			if a.Len() == 0 || a.Pointer() == b.Pointer() {
+				return true
+			}
+			if seen(a.Pointer(), b.Pointer(), a.Type()) {
+				return true
+			}
+			iter := a.MapRange()
+			for iter.Next() {
+				val2 := b.MapIndex(iter.Key())
+				if !val2.IsValid() || !equal(iter.Value(), val2) {
+					return false
+				}
+			}
+			return true
+
+		case reflect.Func:
+			return a.IsNil() && b.IsNil()
+
+		default:
+			return a.Comparable() && b.Comparable() && a.Equal(b)
+		}
+	}
+
+	return equal(a, b)
+}
+
 // isNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
 func isNeField(fl FieldLevel) bool {
 	field := fl.Field()
@@ -1109,6 +1221,8 @@ func isNeField(fl FieldLevel) bool {
 		if fieldType != currentField.Type() {
 			return true
 		}
+
+		return !isStructEqual(field, currentField)
 	}
 
 	// default reflect.String:
@@ -1160,10 +1274,7 @@ func isLteCrossStructField(fl FieldLevel) bool {
 			return fieldTime.Before(topTime) || fieldTime.Equal(topTime)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != topField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String:
@@ -1205,10 +1316,7 @@ func isLtCrossStructField(fl FieldLevel) bool {
 			return fieldTime.Before(topTime)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != topField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String:
@@ -1249,10 +1357,7 @@ func isGteCrossStructField(fl FieldLevel) bool {
 			return fieldTime.After(topTime) || fieldTime.Equal(topTime)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != topField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String:
@@ -1293,10 +1398,7 @@ func isGtCrossStructField(fl FieldLevel) bool {
 			return fieldTime.After(topTime)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != topField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String:
@@ -1344,6 +1446,8 @@ func isNeCrossStructField(fl FieldLevel) bool {
 		if fieldType != topField.Type() {
 			return true
 		}
+
+		return !isStructEqual(topField, field)
 	}
 
 	// default reflect.String:
@@ -1391,6 +1495,8 @@ func isEqCrossStructField(fl FieldLevel) bool {
 		if fieldType != topField.Type() {
 			return false
 		}
+
+		return isStructEqual(topField, field)
 	}
 
 	// default reflect.String:
@@ -1438,6 +1544,8 @@ func isEqField(fl FieldLevel) bool {
 		if fieldType != currentField.Type() {
 			return false
 		}
+
+		return isStructEqual(field, currentField)
 	}
 
 	// default reflect.String:
@@ -2361,10 +2469,7 @@ func isGteField(fl FieldLevel) bool {
 			return fieldTime.After(t) || fieldTime.Equal(t)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String
@@ -2405,10 +2510,7 @@ func isGtField(fl FieldLevel) bool {
 			return fieldTime.After(t)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String
@@ -2589,10 +2691,7 @@ func isLteField(fl FieldLevel) bool {
 			return fieldTime.Before(t) || fieldTime.Equal(t)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String
@@ -2633,10 +2732,7 @@ func isLtField(fl FieldLevel) bool {
 			return fieldTime.Before(t)
 		}
 
-		// Not Same underlying type i.e. struct and time
-		if fieldType != currentField.Type() {
-			return false
-		}
+		return false
 	}
 
 	// default reflect.String
