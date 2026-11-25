@@ -795,6 +795,41 @@ func TestAliasTags(t *testing.T) {
 	PanicMatches(t, func() { validate.RegisterAlias("exists!", "gt=5,lt=10") }, "Alias 'exists!' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
+func TestCyclicAliasPanicsAtRegistration(t *testing.T) {
+	t.Run("self reference", func(t *testing.T) {
+		validate := New()
+		PanicMatches(t, func() { validate.RegisterAlias("loop", "loop") }, "Alias 'loop' expands to itself, either directly or through other aliases")
+	})
+
+	t.Run("mutual reference", func(t *testing.T) {
+		validate := New()
+		validate.RegisterAlias("a", "b")
+		PanicMatches(t, func() { validate.RegisterAlias("b", "a") }, "Alias 'b' expands to itself, either directly or through other aliases")
+	})
+
+	t.Run("three alias chain", func(t *testing.T) {
+		validate := New()
+		validate.RegisterAlias("x", "y")
+		validate.RegisterAlias("y", "z")
+		PanicMatches(t, func() { validate.RegisterAlias("z", "x") }, "Alias 'z' expands to itself, either directly or through other aliases")
+	})
+
+	t.Run("cycle through or alternative", func(t *testing.T) {
+		validate := New()
+		PanicMatches(t, func() { validate.RegisterAlias("c", "required|c") }, "Alias 'c' expands to itself, either directly or through other aliases")
+	})
+
+	t.Run("forward references and chains do not panic", func(t *testing.T) {
+		validate := New()
+		validate.RegisterAlias("fwd", "chained,required")
+		validate.RegisterAlias("chained", "numeric")
+		validate.RegisterAlias("again", "fwd")
+
+		Equal(t, validate.Var("123", "again"), nil)
+		NotEqual(t, validate.Var("abc", "again"), nil)
+	})
+}
+
 func TestAliasWithOrOperator(t *testing.T) {
 	validate := New()
 	validate.RegisterAlias("customnum", "numeric")
