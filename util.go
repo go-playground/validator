@@ -20,7 +20,18 @@ type Valuer interface {
 // It will dive into pointers, customTypes and return you the
 // underlying value and it's kind.
 func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (reflect.Value, reflect.Kind, bool) {
+	// Pointer, interface, Valuer and custom type indirections can form a
+	// cycle: an interface holding a pointer back to itself, a self-referential
+	// pointer type, or a Valuer returning a value of its own type loop
+	// forever. No legitimate value needs this many indirections, so past the
+	// limit the innermost value reached is returned as-is.
+	const maxIndirections = 100
+	depth := 0
 BEGIN:
+	if depth == maxIndirections {
+		return current, current.Kind(), nullable
+	}
+	depth++
 	switch current.Kind() {
 	case reflect.Ptr:
 
