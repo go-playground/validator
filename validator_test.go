@@ -17633,3 +17633,35 @@ func TestValidateFnNonErrorInterfaceReturn(t *testing.T) {
 	errs := New().Struct(Test{})
 	AssertError(t, errs, "Test.Inner", "Test.Inner", "Inner", "Inner", "validateFn")
 }
+
+type selfReferentialValuer struct{}
+
+func (selfReferentialValuer) ValidatorValue() any { return selfReferentialValuer{} }
+
+func TestSelfReferentialValueTermination(t *testing.T) {
+	// Pointer, interface and Valuer indirections that form a cycle must not
+	// loop forever; extraction terminates with the innermost value reached.
+
+	validate := New()
+
+	// An interface holding a pointer back to itself.
+	type testStruct struct {
+		F any
+	}
+	var x any
+	x = &x
+	Equal(t, validate.Struct(testStruct{F: x}), nil)
+
+	// A self-referential pointer type. The chain of indirections has no
+	// concrete bottom type, so the value is treated as untypable and
+	// required fails the same way it does for a value whose type cannot
+	// be resolved; the point of the regression test is that the call
+	// returns at all instead of looping forever.
+	type P *P
+	var p P
+	p = &p
+	AssertError(t, validate.Var(p, "required"), "", "", "", "", "required")
+
+	// A Valuer returning a value of its own type.
+	Equal(t, validate.Var(selfReferentialValuer{}, "required"), nil)
+}
