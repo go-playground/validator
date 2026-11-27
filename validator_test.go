@@ -17378,6 +17378,31 @@ func TestBCP47StrictDuplicateVariants(t *testing.T) {
 	}
 }
 
+func TestBCP47StrictDuplicateExtlangs(t *testing.T) {
+	validate := New()
+	// RFC 5646 section 2.2.2: extlang = 3ALPHA *("-" 3ALPHA) ; each at most once.
+	// A repeated extlang subtag must be rejected, like the duplicate variants
+	// fixed in #1678.
+	for _, value := range []string{
+		"zh-cmn-cmn", "zh-yue-yue", "zh-CMN-cmn", "ar-arb-arb",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err == nil {
+				t.Errorf("duplicate extlang accepted: %s", value)
+			}
+		})
+	}
+	for _, value := range []string{
+		"zh-cmn-yue", "zh-CMN-yue", "ar-arb", "zh-cmn",
+	} {
+		t.Run(value, func(t *testing.T) {
+			if err := validate.Var(value, "bcp47_strict_language_tag"); err != nil {
+				t.Errorf("valid tag rejected: %s: %v", value, err)
+			}
+		})
+	}
+}
+
 func TestRequiredIfFloat64FieldValidation(t *testing.T) {
 	type Test struct {
 		Price float64

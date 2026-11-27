@@ -1512,6 +1512,7 @@ More information on https://pkg.go.dev/golang.org/x/text/language
 This validates that a string value is a valid BCP 47 language tag strictly following RFC 5646 rules,
 unlike language.Parse which also accepts Unicode extensions.
 Variant subtags cannot be repeated within the same tag (case-insensitively).
+Extended language subtags cannot be repeated either (RFC 5646 section 2.2.2: each at most once).
 see https://www.rfc-editor.org/rfc/bcp/bcp47.txt
 
 	Usage: bcp47_strict_language_tag
