@@ -166,6 +166,7 @@ func TestTranslations(t *testing.T) {
 		OneOfInt           int       `validate:"oneof=5 63"`
 		Datetime           string    `validate:"datetime=2006-01-02"`
 		Image              string    `validate:"image"`
+		UniqueSlice        []string  `validate:"unique"`
 		MIMEType           string    `validate:"mimetype=image/png"`
 	}
 
@@ -229,6 +230,8 @@ func TestTranslations(t *testing.T) {
 	test.StrPtrLen = &s
 
 	test.Datetime = "2008-Feb-01"
+
+	test.UniqueSlice = []string{"1234", "1234"}
 
 	err = validate.Struct(test)
 	NotEqual(t, err, nil)
@@ -719,6 +722,10 @@ func TestTranslations(t *testing.T) {
 		{
 			ns:       "Test.Image",
 			expected: "Image 必須是有效圖像",
+		},
+		{
+			ns:       "Test.UniqueSlice",
+			expected: "UniqueSlice必須包含唯一值",
 		},
 		{
 			ns:       "Test.MIMEType",
