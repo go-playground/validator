@@ -11304,6 +11304,8 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 }
 
 func TestHostnameRFC952Validation(t *testing.T) {
+	maxLengthHostname := strings.Repeat(strings.Repeat("a", 63)+".", 3) + strings.Repeat("a", 61)
+
 	tests := []struct {
 		param    string
 		expected bool
@@ -11334,6 +11336,9 @@ func TestHostnameRFC952Validation(t *testing.T) {
 		{"ex ample.com", false},
 		{"foo-.example.com", false}, // label ends with '-' (RFC 952)
 		{"host-.tld", false},
+		{maxLengthHostname, true},
+		{maxLengthHostname + "a", false},
+		{maxLengthHostname + "aa", false},
 	}
 
 	validate := New()
@@ -11359,6 +11364,8 @@ func TestHostnameRFC952Validation(t *testing.T) {
 }
 
 func TestHostnameRFC1123Validation(t *testing.T) {
+	maxLengthHostname := strings.Repeat(strings.Repeat("a", 63)+".", 3) + strings.Repeat("a", 61)
+
 	tests := []struct {
 		param    string
 		expected bool
@@ -11394,6 +11401,9 @@ func TestHostnameRFC1123Validation(t *testing.T) {
 		{"foo.bar:80", false},
 		{"foo$.example.com", false},
 		{"this-is-a-deliberately-overlong-subdomain-used-for-boundary-test.example.com", false},
+		{maxLengthHostname, true},
+		{maxLengthHostname + "a", false},
+		{maxLengthHostname + "aa", false},
 	}
 
 	validate := New()
