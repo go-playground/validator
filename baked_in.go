@@ -3347,7 +3347,17 @@ func isBCP47StrictLanguageTag(fl FieldLevel) bool {
 			return false
 		}
 
+		// RFC 5646 section 2.2.2: extlang = 3ALPHA *("-" 3ALPHA) ; each at most once.
+		// A repeated extlang subtag is invalid, like the duplicate variants
+		// rejected below. The input has already been lowercased, so
+		// mixed-case repeats are rejected too.
+		seen := make(map[string]struct{})
 		for _, e := range parts[1:] {
+			if _, duplicate := seen[e]; duplicate {
+				return false
+			}
+			seen[e] = struct{}{}
+
 			prefixes, ok := iana_subtag_registry_extlangs[e]
 			if !ok {
 				return false
