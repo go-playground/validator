@@ -209,7 +209,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MAC",
-			expected: "MAC geçerli bir MAC adresi içermelidir",
+			expected: "MAC geçerli bir MAC adresi olmalıdır",
 		},
 		{
 			ns:       "Test.IPAddr",
@@ -277,15 +277,15 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.DataURI",
-			expected: "DataURI geçerli bir Veri URI içermelidir",
+			expected: "DataURI geçerli bir veri URI'si olmalıdır",
 		},
 		{
 			ns:       "Test.Latitude",
-			expected: "Latitude geçerli bir enlem koordinatı içermelidir",
+			expected: "Latitude geçerli bir enlem koordinatı olmalıdır",
 		},
 		{
 			ns:       "Test.Longitude",
-			expected: "Longitude geçerli bir boylam koordinatı içermelidir",
+			expected: "Longitude geçerli bir boylam koordinatı olmalıdır",
 		},
 		{
 			ns:       "Test.MultiByte",
@@ -389,7 +389,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.HexadecimalString",
-			expected: "HexadecimalString geçerli bir onaltılık olmalıdır",
+			expected: "HexadecimalString geçerli bir onaltılık sayı olmalıdır",
 		},
 		{
 			ns:       "Test.HexColorString",
@@ -445,7 +445,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteCSFieldString",
-			expected: "GteCSFieldString, Inner.GteCSFieldString değerinden küçük veya ona eşit olmalıdır",
+			expected: "GteCSFieldString, Inner.GteCSFieldString değerinden büyük veya ona eşit olmalıdır",
 		},
 		{
 			ns:       "Test.NeCSFieldString",
@@ -473,7 +473,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GteTime",
-			expected: "GteTime geçerli Tarih ve Saatten büyük veya ona eşit olmalıdır",
+			expected: "GteTime şu anki tarih ve saatten sonra veya ona eşit olmalıdır",
 		},
 		{
 			ns:       "Test.GtString",
@@ -489,7 +489,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.GtTime",
-			expected: "GtTime geçerli Tarih ve Saatten büyük olmalıdır",
+			expected: "GtTime şu anki tarih ve saatten sonra olmalıdır",
 		},
 		{
 			ns:       "Test.LteString",
@@ -505,7 +505,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LteTime",
-			expected: "LteTime geçerli Tarih ve Saate eşit veya daha küçük olmalıdır",
+			expected: "LteTime şu anki tarih ve saatten önce veya ona eşit olmalıdır",
 		},
 		{
 			ns:       "Test.LtString",
@@ -521,7 +521,7 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.LtTime",
-			expected: "LtTime geçerli Tarih ve Saatten daha az olmalıdır",
+			expected: "LtTime şu anki tarih ve saatten önce olmalıdır",
 		},
 		{
 			ns:       "Test.NeString",
@@ -625,11 +625,11 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.OneOfString",
-			expected: "OneOfString, [red green]'dan biri olmalıdır",
+			expected: "OneOfString, [red green] değerlerinden biri olmalıdır",
 		},
 		{
 			ns:       "Test.OneOfInt",
-			expected: "OneOfInt, [5 63]'dan biri olmalıdır",
+			expected: "OneOfInt, [5 63] değerlerinden biri olmalıdır",
 		},
 		{
 			ns:       "Test.UniqueSlice",
@@ -649,9 +649,190 @@ func TestTranslations(t *testing.T) {
 		},
 		{
 			ns:       "Test.MIMEType",
-			expected: "MIMEType gecerli bir MIME turu olmalidir",
+			expected: "MIMEType geçerli bir MIME türü olmalıdır",
 		},
 	}
+
+	for _, tt := range tests {
+		var fe validator.FieldError
+
+		for _, e := range errs {
+			if tt.ns == e.Namespace() {
+				fe = e
+				break
+			}
+		}
+
+		NotEqual(t, fe, nil)
+		Equal(t, tt.expected, fe.Translate(trans))
+	}
+}
+
+type Foo struct{}
+
+func (Foo) IsBar() bool { return false }
+
+func TestAdditionalTranslations(t *testing.T) {
+	tr := turkish.New()
+	uni := ut.New(tr, tr)
+	trans, _ := uni.GetTranslator("tr")
+
+	validate := validator.New()
+
+	err := RegisterDefaultTranslations(validate, trans)
+	Equal(t, err, nil)
+
+	type Inner struct {
+		RequiredIf         string
+		RequiredUnless     string
+		RequiredWith       string
+		RequiredWithAll    string
+		RequiredWithout    string
+		RequiredWithoutAll string
+		ExcludedIf         string
+		ExcludedUnless     string
+		ExcludedWith       string
+		ExcludedWithAll    string
+		ExcludedWithout    string
+		ExcludedWithoutAll string
+	}
+
+	type Test struct {
+		Inner                 Inner
+		RequiredIf            string `validate:"required_if=Inner.RequiredIf abcd"`
+		RequiredUnless        string `validate:"required_unless=Inner.RequiredUnless abcd"`
+		RequiredWith          string `validate:"required_with=Inner.RequiredWith"`
+		RequiredWithAll       string `validate:"required_with_all=Inner.RequiredWith Inner.RequiredWithAll"`
+		RequiredWithout       string `validate:"required_without=Inner.RequiredWithout"`
+		RequiredWithoutAll    string `validate:"required_without_all=Inner.RequiredWithout Inner.RequiredWithoutAll"`
+		ExcludedIf            string `validate:"excluded_if=Inner.ExcludedIf abcd"`
+		ExcludedUnless        string `validate:"excluded_unless=Inner.ExcludedUnless abcd"`
+		ExcludedWith          string `validate:"excluded_with=Inner.ExcludedWith"`
+		ExcludedWithAll       string `validate:"excluded_with_all=Inner.ExcludedWith Inner.ExcludedWithAll"`
+		ExcludedWithout       string `validate:"excluded_without=Inner.ExcludedWithout"`
+		ExcludedWithoutAll    string `validate:"excluded_without_all=Inner.ExcludedWithout Inner.ExcludedWithoutAll"`
+		IsDefault             string `validate:"isdefault"`
+		AlphaSpaceString      string `validate:"alphaspace"`
+		AlphaNumSpaceString   string `validate:"alphanumspace"`
+		AlphaUnicodeString    string `validate:"alphaunicode"`
+		AlphaNumUnicodeString string `validate:"alphanumunicode"`
+		E164                  string `validate:"e164"`
+		StartsWith            string `validate:"startswith=start"`
+		EndsWith              string `validate:"endswith=end"`
+		StartsNotWith         string `validate:"startsnotwith=start"`
+		EndsNotWith           string `validate:"endsnotwith=end"`
+		URN                   string `validate:"urn_rfc2141"`
+		FQDN                  string `validate:"fqdn"`
+		Cron                  string `validate:"cron"`
+		JSONString            string `validate:"json"`
+		JWTString             string `validate:"jwt"`
+		LowercaseString       string `validate:"lowercase"`
+		UppercaseString       string `validate:"uppercase"`
+		Datetime              string `validate:"datetime=2006-01-02"`
+		Timezone              string `validate:"timezone"`
+		PostCode              string `validate:"postcode_iso3166_alpha2=SG"`
+		PostCodeCountry       string
+		PostCodeByField       string `validate:"postcode_iso3166_alpha2_field=PostCodeCountry"`
+		BooleanString         string `validate:"boolean"`
+		CveString             string `validate:"cve"`
+		LanguageTag           string `validate:"bcp47_strict_language_tag"`
+		ValidateFn            Foo    `validate:"validateFn=IsBar"`
+	}
+
+	var test Test
+
+	test.Inner.RequiredIf = "abcd"
+	test.Inner.RequiredUnless = "1234"
+	test.Inner.RequiredWith = "1234"
+	test.Inner.RequiredWithAll = "1234"
+	test.Inner.ExcludedIf = "abcd"
+	test.Inner.ExcludedUnless = "1234"
+	test.Inner.ExcludedWith = "1234"
+	test.Inner.ExcludedWithAll = "1234"
+
+	test.ExcludedIf = "1234"
+	test.ExcludedUnless = "1234"
+	test.ExcludedWith = "1234"
+	test.ExcludedWithAll = "1234"
+	test.ExcludedWithout = "1234"
+	test.ExcludedWithoutAll = "1234"
+
+	test.IsDefault = "1234"
+	test.AlphaSpaceString = "abc3"
+	test.AlphaNumSpaceString = "abc3!"
+	test.AlphaUnicodeString = "abc3"
+	test.AlphaNumUnicodeString = "abc3!"
+	test.E164 = "1234"
+	test.StartsWith = "end"
+	test.EndsWith = "start"
+	test.StartsNotWith = "start value"
+	test.EndsNotWith = "value end"
+	test.URN = "invalid"
+	test.FQDN = "-invalid-"
+	test.Cron = "invalid"
+	test.JSONString = "{invalid"
+	test.JWTString = "invalid"
+	test.LowercaseString = "ABCDEFG"
+	test.UppercaseString = "abcdefg"
+	test.Datetime = "2008-Feb-01"
+	test.Timezone = "abc"
+	test.PostCode = "1234"
+	test.PostCodeCountry = "SG"
+	test.PostCodeByField = "1234"
+	test.BooleanString = "A"
+	test.CveString = "A"
+	test.LanguageTag = "invalid_tag"
+
+	err = validate.Struct(test)
+	NotEqual(t, err, nil)
+
+	errs, ok := err.(validator.ValidationErrors)
+	Equal(t, ok, true)
+
+	tests := []struct {
+		ns       string
+		expected string
+	}{
+		{ns: "Test.RequiredIf", expected: "RequiredIf zorunlu bir alandır"},
+		{ns: "Test.RequiredUnless", expected: "RequiredUnless zorunlu bir alandır"},
+		{ns: "Test.RequiredWith", expected: "RequiredWith zorunlu bir alandır"},
+		{ns: "Test.RequiredWithAll", expected: "RequiredWithAll zorunlu bir alandır"},
+		{ns: "Test.RequiredWithout", expected: "RequiredWithout zorunlu bir alandır"},
+		{ns: "Test.RequiredWithoutAll", expected: "RequiredWithoutAll zorunlu bir alandır"},
+		{ns: "Test.ExcludedIf", expected: "ExcludedIf hariç tutulan bir alandır"},
+		{ns: "Test.ExcludedUnless", expected: "ExcludedUnless hariç tutulan bir alandır"},
+		{ns: "Test.ExcludedWith", expected: "ExcludedWith hariç tutulan bir alandır"},
+		{ns: "Test.ExcludedWithAll", expected: "ExcludedWithAll hariç tutulan bir alandır"},
+		{ns: "Test.ExcludedWithout", expected: "ExcludedWithout hariç tutulan bir alandır"},
+		{ns: "Test.ExcludedWithoutAll", expected: "ExcludedWithoutAll hariç tutulan bir alandır"},
+		{ns: "Test.IsDefault", expected: "IsDefault varsayılan değer olmalıdır"},
+		{ns: "Test.AlphaSpaceString", expected: "AlphaSpaceString yalnızca alfabetik karakterler ve boşluk içerebilir"},
+		{ns: "Test.AlphaNumSpaceString", expected: "AlphaNumSpaceString yalnızca alfanümerik karakterler ve boşluk içerebilir"},
+		{ns: "Test.AlphaUnicodeString", expected: "AlphaUnicodeString yalnızca Unicode alfabetik karakterler içerebilir"},
+		{ns: "Test.AlphaNumUnicodeString", expected: "AlphaNumUnicodeString yalnızca Unicode alfanümerik karakterler içerebilir"},
+		{ns: "Test.E164", expected: "E164 geçerli bir E.164 biçiminde telefon numarası olmalıdır"},
+		{ns: "Test.StartsWith", expected: "StartsWith, 'start' ile başlamalıdır"},
+		{ns: "Test.EndsWith", expected: "EndsWith, 'end' ile bitmelidir"},
+		{ns: "Test.StartsNotWith", expected: "StartsNotWith, 'start' ile başlamamalıdır"},
+		{ns: "Test.EndsNotWith", expected: "EndsNotWith, 'end' ile bitmemelidir"},
+		{ns: "Test.URN", expected: "URN geçerli bir RFC 2141 URN olmalıdır"},
+		{ns: "Test.FQDN", expected: "FQDN geçerli bir FQDN olmalıdır"},
+		{ns: "Test.Cron", expected: "Cron geçerli bir cron ifadesi olmalıdır"},
+		{ns: "Test.JSONString", expected: "JSONString geçerli bir JSON karakter dizesi olmalıdır"},
+		{ns: "Test.JWTString", expected: "JWTString geçerli bir JWT karakter dizesi olmalıdır"},
+		{ns: "Test.LowercaseString", expected: "LowercaseString küçük harflerden oluşmalıdır"},
+		{ns: "Test.UppercaseString", expected: "UppercaseString büyük harflerden oluşmalıdır"},
+		{ns: "Test.Datetime", expected: "Datetime, 2006-01-02 biçimiyle eşleşmiyor"},
+		{ns: "Test.Timezone", expected: "Timezone geçerli bir saat dilimi olmalıdır"},
+		{ns: "Test.PostCode", expected: "PostCode, SG ülkesinin posta kodu biçimiyle eşleşmiyor"},
+		{ns: "Test.PostCodeByField", expected: "PostCodeByField, PostCodeCountry alanındaki ülkenin posta kodu biçimiyle eşleşmiyor"},
+		{ns: "Test.BooleanString", expected: "BooleanString geçerli bir mantıksal (boolean) değer olmalıdır"},
+		{ns: "Test.CveString", expected: "CveString geçerli bir CVE tanımlayıcısı olmalıdır"},
+		{ns: "Test.LanguageTag", expected: "LanguageTag geçerli bir BCP 47 dil etiketi olmalıdır"},
+		{ns: "Test.ValidateFn", expected: "ValidateFn geçerli bir nesne olmalıdır"},
+	}
+
+	Equal(t, len(errs), len(tests))
 
 	for _, tt := range tests {
 		var fe validator.FieldError

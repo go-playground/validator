@@ -350,7 +350,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lt-datetime", "{0} geçerli Tarih ve Saatten daha az olmalıdır", false); err != nil {
+				if err = ut.Add("lt-datetime", "{0} şu anki tarih ve saatten önce olmalıdır", false); err != nil {
 					return
 				}
 
@@ -467,7 +467,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("lte-datetime", "{0} geçerli Tarih ve Saate eşit veya daha küçük olmalıdır", false); err != nil {
+				if err = ut.Add("lte-datetime", "{0} şu anki tarih ve saatten önce veya ona eşit olmalıdır", false); err != nil {
 					return
 				}
 
@@ -584,7 +584,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gt-datetime", "{0} geçerli Tarih ve Saatten büyük olmalıdır", false); err != nil {
+				if err = ut.Add("gt-datetime", "{0} şu anki tarih ve saatten sonra olmalıdır", false); err != nil {
 					return
 				}
 
@@ -701,7 +701,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 					return
 				}
 
-				if err = ut.Add("gte-datetime", "{0} geçerli Tarih ve Saatten büyük veya ona eşit olmalıdır", false); err != nil {
+				if err = ut.Add("gte-datetime", "{0} şu anki tarih ve saatten sonra veya ona eşit olmalıdır", false); err != nil {
 					return
 				}
 
@@ -845,7 +845,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "gtecsfield",
-			translation: "{0}, {1} değerinden küçük veya ona eşit olmalıdır",
+			translation: "{0}, {1} değerinden büyük veya ona eşit olmalıdır",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -977,7 +977,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "hexadecimal",
-			translation: "{0} geçerli bir onaltılık olmalıdır",
+			translation: "{0} geçerli bir onaltılık sayı olmalıdır",
 			override:    false,
 		},
 		{
@@ -1157,17 +1157,17 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "datauri",
-			translation: "{0} geçerli bir Veri URI içermelidir",
+			translation: "{0} geçerli bir veri URI'si olmalıdır",
 			override:    false,
 		},
 		{
 			tag:         "latitude",
-			translation: "{0} geçerli bir enlem koordinatı içermelidir",
+			translation: "{0} geçerli bir enlem koordinatı olmalıdır",
 			override:    false,
 		},
 		{
 			tag:         "longitude",
-			translation: "{0} geçerli bir boylam koordinatı içermelidir",
+			translation: "{0} geçerli bir boylam koordinatı olmalıdır",
 			override:    false,
 		},
 		{
@@ -1257,7 +1257,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "mac",
-			translation: "{0} geçerli bir MAC adresi içermelidir",
+			translation: "{0} geçerli bir MAC adresi olmalıdır",
 			override:    false,
 		},
 		{
@@ -1272,7 +1272,7 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "oneof",
-			translation: "{0}, [{1}]'dan biri olmalıdır",
+			translation: "{0}, [{1}] değerlerinden biri olmalıdır",
 			override:    false,
 			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
 				s, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
@@ -1290,7 +1290,255 @@ func RegisterDefaultTranslations(v *validator.Validate, trans ut.Translator) (er
 		},
 		{
 			tag:         "mimetype",
-			translation: "{0} gecerli bir MIME turu olmalidir",
+			translation: "{0} geçerli bir MIME türü olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "required_if",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "required_unless",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "required_with",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "required_with_all",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "required_without",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "required_without_all",
+			translation: "{0} zorunlu bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_if",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_unless",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_with_all",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "excluded_without_all",
+			translation: "{0} hariç tutulan bir alandır",
+			override:    false,
+		},
+		{
+			tag:         "isdefault",
+			translation: "{0} varsayılan değer olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "alphaspace",
+			translation: "{0} yalnızca alfabetik karakterler ve boşluk içerebilir",
+			override:    false,
+		},
+		{
+			tag:         "alphanumspace",
+			translation: "{0} yalnızca alfanümerik karakterler ve boşluk içerebilir",
+			override:    false,
+		},
+		{
+			tag:         "alphaunicode",
+			translation: "{0} yalnızca Unicode alfabetik karakterler içerebilir",
+			override:    false,
+		},
+		{
+			tag:         "alphanumunicode",
+			translation: "{0} yalnızca Unicode alfanümerik karakterler içerebilir",
+			override:    false,
+		},
+		{
+			tag:         "e164",
+			translation: "{0} geçerli bir E.164 biçiminde telefon numarası olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "startswith",
+			translation: "{0}, '{1}' ile başlamalıdır",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endswith",
+			translation: "{0}, '{1}' ile bitmelidir",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "startsnotwith",
+			translation: "{0}, '{1}' ile başlamamalıdır",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "endsnotwith",
+			translation: "{0}, '{1}' ile bitmemelidir",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "urn_rfc2141",
+			translation: "{0} geçerli bir RFC 2141 URN olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "fqdn",
+			translation: "{0} geçerli bir FQDN olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "cron",
+			translation: "{0} geçerli bir cron ifadesi olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "json",
+			translation: "{0} geçerli bir JSON karakter dizesi olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "jwt",
+			translation: "{0} geçerli bir JWT karakter dizesi olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "lowercase",
+			translation: "{0} küçük harflerden oluşmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "uppercase",
+			translation: "{0} büyük harflerden oluşmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "datetime",
+			translation: "{0}, {1} biçimiyle eşleşmiyor",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "timezone",
+			translation: "{0} geçerli bir saat dilimi olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "postcode_iso3166_alpha2",
+			translation: "{0}, {1} ülkesinin posta kodu biçimiyle eşleşmiyor",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "postcode_iso3166_alpha2_field",
+			translation: "{0}, {1} alanındaki ülkenin posta kodu biçimiyle eşleşmiyor",
+			override:    false,
+			customTransFunc: func(ut ut.Translator, fe validator.FieldError) string {
+				t, err := ut.T(fe.Tag(), fe.Field(), fe.Param())
+				if err != nil {
+					log.Printf("warning: error translating FieldError: %#v", fe)
+					return fe.(error).Error()
+				}
+
+				return t
+			},
+		},
+		{
+			tag:         "boolean",
+			translation: "{0} geçerli bir mantıksal (boolean) değer olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "cve",
+			translation: "{0} geçerli bir CVE tanımlayıcısı olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "bcp47_strict_language_tag",
+			translation: "{0} geçerli bir BCP 47 dil etiketi olmalıdır",
+			override:    false,
+		},
+		{
+			tag:         "validateFn",
+			translation: "{0} geçerli bir nesne olmalıdır",
 			override:    false,
 		},
 	}
